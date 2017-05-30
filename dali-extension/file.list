@@ -1,0 +1,5 @@
+key_extension_src_files = \
+   $(extension_src_dir)/key-extension.cpp
+
+key_extension_header_files = \
+   $(extension_src_dir)/key-extension.h
