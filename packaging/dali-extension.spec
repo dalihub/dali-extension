@@ -37,7 +37,7 @@ Requires:   %{name} = %{version}-%{release}
 %description devel
 Development components for the DALi Tizen Extensions - public headers and package configs
 
-V##############################
+##############################
 # Dali Key Extension
 ##############################
 
@@ -47,6 +47,19 @@ Group:      System/Libraries
 
 %description key-extension
 Plugin to support extension keys for Dali
+
+##############################
+# Dali VideoPlayer Plugin
+##############################
+
+%package video-player-plugin
+Summary:    Plugin to play a video file for Dali
+Group:      System/Libraries
+BuildRequires: pkgconfig(ecore-wayland)
+BuildRequires: pkgconfig(capi-media-player)
+
+%description video-player-plugin
+VideoPlayer plugin to play a video file for Dali
 
 ##############################
 # Preparation
@@ -99,6 +112,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post video-player-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -113,6 +130,10 @@ exit 0
 exit 0
 
 %postun key-extension
+/sbin/ldconfig
+exit 0
+
+%postun video-player-plugin
 /sbin/ldconfig
 exit 0
 
@@ -134,4 +155,10 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-key-extension.so*
+%license LICENSE
+
+%files video-player-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-video-player-plugin.so*
 %license LICENSE

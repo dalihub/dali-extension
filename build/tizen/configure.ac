@@ -1,4 +1,4 @@
-m4_define([dali_version],[0.1.0])
+4_define([dali_version],[0.1.0])
 AC_INIT([dali], [dali_version])
 AM_INIT_AUTOMAKE([-Wall foreign])
 
@@ -24,6 +24,10 @@ AM_CONDITIONAL([USE_KEY_EXTENSION], [test x$enable_keyextension = xyes])
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 
+# ToDO Videoplayer plugin separation
+PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
+PKG_CHECK_MODULES(ECORE_WAYLAND, ecore-wayland)
+
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
 
@@ -32,4 +36,4 @@ Makefile
 dali-extension.pc
 ])
 
-AC_OUTPUT()
+AC_OUTPUT
