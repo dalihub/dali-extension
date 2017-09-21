@@ -57,6 +57,7 @@ Summary:    Plugin to play a video file for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(ecore-wayland)
 BuildRequires: pkgconfig(capi-media-player)
+BuildRequires: pkgconfig(capi-system-info)
 
 %description video-player-plugin
 VideoPlayer plugin to play a video file for Dali

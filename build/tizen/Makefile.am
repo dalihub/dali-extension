@@ -64,6 +64,7 @@ libdali_video_player_plugin_la_CXXFLAGS = -DDALI_COMPILATION \
                       $(DALI_CFLAGS) \
                       $(ECORE_WAYLAND_CFLAGS) \
                       $(CAPI_MEDIA_PLAYER_CFLAGS) \
+                      $(CAPI_SYSTEM_INFO_CFLAGS) \
                       -I../../dali-extension/video-player \
                       -Werror -Wall
 
@@ -71,7 +72,8 @@ libdali_video_player_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
                       $(ECORE_WAYLAND_LIBS) \
-                      $(CAPI_MEDIA_PLAYER_LIBS)
+                      $(CAPI_MEDIA_PLAYER_LIBS) \
+                      $(CAPI_SYSTEM_INFO_LIBS)
 
 libdali_video_player_plugin_la_LDFLAGS = \
                       -rdynamic
