@@ -29,7 +29,6 @@
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
 #endif
-#include <Ecore_Wayland.h>
 #include <player_internal.h>
 
 namespace Dali
