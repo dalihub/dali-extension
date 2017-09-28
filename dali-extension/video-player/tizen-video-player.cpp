@@ -215,7 +215,7 @@ TizenVideoPlayer::TizenVideoPlayer()
   mTbmSurface( NULL ),
   mPacket( NULL ),
   mNativeImageSourcePtr( NULL ),
-  mTimer( NULL ),
+  mTimer(),
   mBackgroundColor( Dali::Vector4( 1.0f, 1.0f, 1.0f, 0.0f ) ),
   mTargetType( NativeImage ),
   mPacketMutex(),
