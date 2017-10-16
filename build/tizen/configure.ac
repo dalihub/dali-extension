@@ -27,6 +27,7 @@ PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 # ToDO Videoplayer plugin separation
 PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
 PKG_CHECK_MODULES(ECORE_WAYLAND, ecore-wayland)
+PKG_CHECK_MODULES(CAPI_SYSTEM_INFO, capi-system-info)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
