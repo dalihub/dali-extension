@@ -225,6 +225,7 @@ TizenVideoPlayer::TizenVideoPlayer()
 
 TizenVideoPlayer::~TizenVideoPlayer()
 {
+  DestroyPlayer();
 }
 
 void TizenVideoPlayer::GetPlayerState( player_state_e* state )
@@ -269,24 +270,7 @@ std::string TizenVideoPlayer::GetUrl()
 
 void TizenVideoPlayer::SetRenderingTarget( Any target )
 {
-  int error;
-  if( mPlayerState != PLAYER_STATE_NONE )
-  {
-    GetPlayerState( &mPlayerState );
-
-    if( mPlayerState != PLAYER_STATE_IDLE )
-    {
-      Stop();
-      error = player_unprepare( mPlayer );
-      LogPlayerError( error );
-    }
-
-    error = player_destroy( mPlayer );
-    LogPlayerError( error );
-    mPlayerState = PLAYER_STATE_NONE;
-    mPlayer = NULL;
-    mUrl = "";
-  }
+  DestroyPlayer();
 
   mNativeImageSourcePtr = NULL;
   mEcoreWlWindow = NULL;
@@ -753,6 +737,28 @@ bool TizenVideoPlayer::IsVideoTextureSupported()
   }
 
   return featureFlag;
+}
+
+void TizenVideoPlayer::DestroyPlayer()
+{
+  int error;
+  if( mPlayerState != PLAYER_STATE_NONE )
+  {
+    GetPlayerState( &mPlayerState );
+
+    if( mPlayerState != PLAYER_STATE_IDLE )
+    {
+      Stop();
+      error = player_unprepare( mPlayer );
+      LogPlayerError( error );
+    }
+
+    error = player_destroy( mPlayer );
+    LogPlayerError( error );
+    mPlayerState = PLAYER_STATE_NONE;
+    mPlayer = NULL;
+    mUrl = "";
+  }
 }
 
 } // namespace Plugin
