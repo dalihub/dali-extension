@@ -205,6 +205,11 @@ private:
    */
   void InitializeUnderlayMode( Ecore_Wl_Window* ecoreWlWindow );
 
+  /**
+   * @brief Destroys player handle
+   */
+  void DestroyPlayer();
+
 private:
 
   std::string mUrl; ///< The video file path
