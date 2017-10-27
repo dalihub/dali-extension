@@ -723,7 +723,7 @@ void TizenVideoPlayer::Backward( int millisecond )
   }
 }
 
-bool TizenVideoPlayer::IsVideoTextureSupported()
+bool TizenVideoPlayer::IsVideoTextureSupported() const
 {
   bool featureFlag = true;
   int error = SYSTEM_INFO_ERROR_NONE;
