@@ -16,7 +16,7 @@
  */
 
 // CLASS HEADER
-#include "key-extension.h"
+#include <integration-api/key-extension.h>
 
 
 // The plugin factories

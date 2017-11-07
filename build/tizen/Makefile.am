@@ -14,67 +14,7 @@
 # limitations under the License.
 #
 
-# Build the Dali feedback plugin
+SUBDIRS = ${subdirs}
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dali-extension.pc
-
-extension_src_dir = ../../dali-extension
-
-include ../../dali-extension/file.list
-
-lib_LTLIBRARIES =
-
-if USE_KEY_EXTENSION
-lib_LTLIBRARIES += libdali-key-extension.la
-endif
-
-lib_LTLIBRARIES += libdali-video-player-plugin.la
-
-# key extension
-libdali_key_extension_la_SOURCES = \
-			$(key_extension_src_files)
-libdali_key_extension_la_DEPENDENCIES =
-
-libdali_key_extension_la_CXXFLAGS =
-			$(DLOG_CFLAGS) \
-			$(DALI_CFLAGS) \
-			-I../../dali-extension/ \
-			-Werror -Wall
-
-libdali_key_extension_la_LIBADD = \
-			$(DLOG_LIBS)
-
-libdali_key_extension_la_LDFLAGS = \
-			-rdynamic
-
-libdali_key_extensiondir = $(devincludepath)/dali-extension/
-
-libdali_key_extension_HEADERS = $(key_extension_header_files)
-
-# Todo Video player plugin separation
-libdali_video_player_plugin_la_SOURCES = \
-                     $(video_player_plugin_src_files)
-
-libdali_video_player_plugin_la_DEPENDENCIES =
-
-libdali_video_player_plugin_la_CXXFLAGS = -DDALI_COMPILATION \
-                      -DDALI_ADAPTOR_COMPILATION \
-                      $(DLOG_CFLAGS) \
-                      $(DALI_CFLAGS) \
-                      $(ECORE_WAYLAND_CFLAGS) \
-                      $(CAPI_MEDIA_PLAYER_CFLAGS) \
-                      $(CAPI_SYSTEM_INFO_CFLAGS) \
-                      -I../../dali-extension/video-player \
-                      -Werror -Wall
-
-libdali_video_player_plugin_la_LIBADD = \
-                      $(DLOG_LIBS) \
-                      $(DALI_LIBS) \
-                      $(ECORE_WAYLAND_LIBS) \
-                      $(CAPI_MEDIA_PLAYER_LIBS) \
-                      $(CAPI_SYSTEM_INFO_LIBS)
-
-libdali_video_player_plugin_la_LDFLAGS = \
-                      -rdynamic
-
