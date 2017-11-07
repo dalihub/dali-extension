@@ -14,12 +14,15 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
-AC_CONFIG_SUBDIRS(key)
-AC_CONFIG_SUBDIRS(video-player)
+PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
+PKG_CHECK_MODULES(ECORE_WAYLAND, ecore-wayland)
+PKG_CHECK_MODULES(CAPI_SYSTEM_INFO, capi-system-info)
+
+devincludepath=${includedir}
+AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([
 Makefile
-dali-extension.pc
 ])
 
 AC_OUTPUT

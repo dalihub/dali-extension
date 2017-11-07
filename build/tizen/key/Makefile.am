@@ -14,12 +14,38 @@
 # limitations under the License.
 #
 
-SUBDIRS = ${subdirs}
+# Build the Dali feedback plugin
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dali-extension.pc
 
 extension_src_dir = ../../dali-extension
 
+include ../../dali-extension/file.list
+
 lib_LTLIBRARIES =
 
+if USE_KEY_EXTENSION
+lib_LTLIBRARIES += libdali-key-extension.la
+endif
+
+# key extension
+libdali_key_extension_la_SOURCES = \
+			$(key_extension_src_files)
+libdali_key_extension_la_DEPENDENCIES =
+
+libdali_key_extension_la_CXXFLAGS =
+			$(DLOG_CFLAGS) \
+			$(DALI_CFLAGS) \
+			-I../../dali-extension/ \
+			-Werror -Wall
+
+libdali_key_extension_la_LIBADD = \
+			$(DLOG_LIBS)
+
+libdali_key_extension_la_LDFLAGS = \
+			-rdynamic
+
+libdali_key_extensiondir = $(devincludepath)/dali-extension/
+
+libdali_key_extension_HEADERS = $(key_extension_header_files)
