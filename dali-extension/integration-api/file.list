@@ -1,0 +1,2 @@
+key_extension_header_files = \
+   $(extension_src_dir)/integration-api/key-extension.h

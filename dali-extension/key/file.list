@@ -1,0 +1,2 @@
+key_extension_src_files = \
+   $(extension_src_dir)/key/key-extension.cpp
