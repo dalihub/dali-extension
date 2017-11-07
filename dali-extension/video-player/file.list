@@ -1,2 +1,0 @@
-video_player_plugin_src_files = \
-   $(extension_src_dir)/video-player/tizen-video-player.cpp

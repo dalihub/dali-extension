@@ -14,8 +14,23 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
-AC_CONFIG_SUBDIRS(key)
-AC_CONFIG_SUBDIRS(video-player)
+AC_ARG_ENABLE([keyextension],
+              [AC_HELP_STRING([--enable-keyextension],
+              [enables the key extension of all the symbols in the library])],
+              [enable_keyextension=yes],
+              [enable_keyextension=no])
+
+AM_CONDITIONAL([USE_KEY_EXTENSION], [test x$enable_keyextension = xyes])
+
+PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
+
+# ToDO Videoplayer plugin separation
+PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
+PKG_CHECK_MODULES(ECORE_WAYLAND, ecore-wayland)
+PKG_CHECK_MODULES(CAPI_SYSTEM_INFO, capi-system-info)
+
+devincludepath=${includedir}
+AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([
 Makefile

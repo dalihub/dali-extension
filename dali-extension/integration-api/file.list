@@ -1,2 +1,0 @@
-key_extension_header_files = \
-   $(extension_src_dir)/key/key-extension.h
