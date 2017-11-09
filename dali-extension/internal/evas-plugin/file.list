@@ -1,0 +1,11 @@
+evas_plugin_internal_header_files = \
+   $(extension_src_dir)/internal/evas-plugin/ecore-wl-event-handler.h \
+   $(extension_src_dir)/internal/evas-plugin/evas-event-handler.h \
+   $(extension_src_dir)/internal/evas-plugin/evas-plugin-event-interface.h \
+   $(extension_src_dir)/internal/evas-plugin/evas-plugin-visibility-interface.h \
+   $(extension_src_dir)/internal/evas-plugin/evas-plugin-impl.h
+
+evas_plugin_internal_src_files = \
+   $(extension_src_dir)/internal/evas-plugin/ecore-wl-event-handler.cpp \
+   $(extension_src_dir)/internal/evas-plugin/evas-event-handler.cpp \
+   $(extension_src_dir)/internal/evas-plugin/evas-plugin-impl.cpp
