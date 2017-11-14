@@ -173,6 +173,11 @@ public:
    */
   void Backward( int millisecond );
 
+  /**
+   * @brief Dali::VideoPlayer::IsVideoTextureSupported()
+   */
+  bool IsVideoTextureSupported() const;
+
 private:
 
   /**
@@ -199,6 +204,11 @@ private:
    * @brief Initializes player for video rendering using wayland window surface
    */
   void InitializeUnderlayMode( Ecore_Wl_Window* ecoreWlWindow );
+
+  /**
+   * @brief Destroys player handle
+   */
+  void DestroyPlayer();
 
 private:
 

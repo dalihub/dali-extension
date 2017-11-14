@@ -22,6 +22,7 @@
 #include <dali/public-api/common/stage.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/debug.h>
+#include <system_info.h>
 
 // INTERNAL INCLUDES
 
@@ -66,15 +67,12 @@ static void MediaPacketVideoDecodedCb( media_packet_h packet, void* user_data )
 static void EmitPlaybackFinishedSignal( void* user_data )
 {
   TizenVideoPlayer* player = static_cast< TizenVideoPlayer* >( user_data );
-  DALI_LOG_ERROR( "EmitPlaybackFinishedSignal.\n" );
 
   if( player == NULL )
   {
     DALI_LOG_ERROR( "Decoded callback got Null pointer as user_data.\n" );
     return;
   }
-
-  DALI_LOG_ERROR( "EmitPlaybackFinishedSignal.\n" );
 
   if( !player->mFinishedSignal.Empty() )
   {
@@ -209,17 +207,25 @@ void LogPlayerError( int error )
 } // unnamed namespace
 
 TizenVideoPlayer::TizenVideoPlayer()
-: mPlayer( NULL ),
+: mUrl(),
+  mPlayer( NULL ),
   mPlayerState( PLAYER_STATE_NONE ),
   mTbmSurface( NULL ),
   mPacket( NULL ),
+  mNativeImageSourcePtr( NULL ),
+  mTimer(),
+  mBackgroundColor( Dali::Vector4( 1.0f, 1.0f, 1.0f, 0.0f ) ),
   mTargetType( NativeImage ),
+  mPacketMutex(),
+  mPacketVector(),
+  mEcoreWlWindow( NULL ),
   mAlphaBitChanged( false )
 {
 }
 
 TizenVideoPlayer::~TizenVideoPlayer()
 {
+  DestroyPlayer();
 }
 
 void TizenVideoPlayer::GetPlayerState( player_state_e* state )
@@ -264,24 +270,7 @@ std::string TizenVideoPlayer::GetUrl()
 
 void TizenVideoPlayer::SetRenderingTarget( Any target )
 {
-  int error;
-  if( mPlayerState != PLAYER_STATE_NONE )
-  {
-    GetPlayerState( &mPlayerState );
-
-    if( mPlayerState != PLAYER_STATE_IDLE )
-    {
-      Stop();
-      error = player_unprepare( mPlayer );
-      LogPlayerError( error );
-    }
-
-    error = player_destroy( mPlayer );
-    LogPlayerError( error );
-    mPlayerState = PLAYER_STATE_NONE;
-    mPlayer = NULL;
-    mUrl = "";
-  }
+  DestroyPlayer();
 
   mNativeImageSourcePtr = NULL;
   mEcoreWlWindow = NULL;
@@ -678,6 +667,8 @@ void TizenVideoPlayer::SetDisplayArea( DisplayArea area )
 
   )
   {
+    area.x = ( area.x < 0 ) ? 0: area.x;
+    area.y = ( area.y < 0 ) ? 0: area.y;
     int error = player_set_display_roi_area( mPlayer, area.x, area.y, area.width, area.height );
     LogPlayerError( error );
   }
@@ -729,6 +720,44 @@ void TizenVideoPlayer::Backward( int millisecond )
 
     error = player_set_play_position( mPlayer, nextPosition, false, PlayerSeekCompletedCb, NULL );
     LogPlayerError( error );
+  }
+}
+
+bool TizenVideoPlayer::IsVideoTextureSupported() const
+{
+  bool featureFlag = true;
+  int error = SYSTEM_INFO_ERROR_NONE;
+
+  error = system_info_get_platform_bool( "tizen.org/feature/multimedia.raw_video", &featureFlag );
+
+  if( error != SYSTEM_INFO_ERROR_NONE )
+  {
+    DALI_LOG_ERROR( "Plugin can't check platform feature\n" );
+    return false;
+  }
+
+  return featureFlag;
+}
+
+void TizenVideoPlayer::DestroyPlayer()
+{
+  int error;
+  if( mPlayerState != PLAYER_STATE_NONE )
+  {
+    GetPlayerState( &mPlayerState );
+
+    if( mPlayerState != PLAYER_STATE_IDLE )
+    {
+      Stop();
+      error = player_unprepare( mPlayer );
+      LogPlayerError( error );
+    }
+
+    error = player_destroy( mPlayer );
+    LogPlayerError( error );
+    mPlayerState = PLAYER_STATE_NONE;
+    mPlayer = NULL;
+    mUrl = "";
   }
 }
 

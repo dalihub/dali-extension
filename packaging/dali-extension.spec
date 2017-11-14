@@ -7,7 +7,7 @@
 
 Name:       dali-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.2.56
+Version:    1.2.65
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -57,6 +57,7 @@ Summary:    Plugin to play a video file for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(ecore-wayland)
 BuildRequires: pkgconfig(capi-media-player)
+BuildRequires: pkgconfig(capi-system-info)
 
 %description video-player-plugin
 VideoPlayer plugin to play a video file for Dali
