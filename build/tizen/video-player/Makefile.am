@@ -30,8 +30,7 @@ libdali_video_player_plugin_la_SOURCES = \
 
 libdali_video_player_plugin_la_DEPENDENCIES =
 
-libdali_video_player_plugin_la_CXXFLAGS = -DDALI_COMPILATION \
-                      -DDALI_ADAPTOR_COMPILATION \
+libdali_video_player_plugin_la_CXXFLAGS = \
                       $(DLOG_CFLAGS) \
                       $(DALI_CFLAGS) \
                       $(ECORE_WAYLAND_CFLAGS) \
