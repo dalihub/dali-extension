@@ -176,7 +176,17 @@ public:
   /**
    * @brief Dali::VideoPlayer::IsVideoTextureSupported()
    */
-  bool IsVideoTextureSupported() const;
+  bool IsVideoTextureSupported();
+
+  /**
+   * @brief Dali::VideoPlayer::SetCodecType()
+   */
+  void SetCodecType( Dali::VideoPlayerPlugin::CodecType type );
+
+  /**
+   * @brief Dali::VideoPlayer::GetCodecType()
+   */
+  Dali::VideoPlayerPlugin::CodecType GetCodecType() const;
 
 private:
 
@@ -188,7 +198,7 @@ private:
   /**
    * @brief Gets current player state
    */
-  void GetPlayerState( player_state_e* state );
+  void GetPlayerState( player_state_e* state ) const;
 
   /**
    * @brief Destroy all packests, which this plugin stores
@@ -228,6 +238,8 @@ private:
   Ecore_Wl_Window* mEcoreWlWindow;
 
   bool mAlphaBitChanged; ///< True if underlay rendering initialization changes window alpha
+
+  player_codec_type_e mCodecType;
 
 public:
 

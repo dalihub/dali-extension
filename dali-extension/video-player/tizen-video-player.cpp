@@ -219,7 +219,8 @@ TizenVideoPlayer::TizenVideoPlayer()
   mPacketMutex(),
   mPacketVector(),
   mEcoreWlWindow( NULL ),
-  mAlphaBitChanged( false )
+  mAlphaBitChanged( false ),
+  mCodecType( PLAYER_CODEC_TYPE_DEFAULT )
 {
 }
 
@@ -228,7 +229,7 @@ TizenVideoPlayer::~TizenVideoPlayer()
   DestroyPlayer();
 }
 
-void TizenVideoPlayer::GetPlayerState( player_state_e* state )
+void TizenVideoPlayer::GetPlayerState( player_state_e* state ) const
 {
   if( mPlayer != NULL && player_get_state( mPlayer, state ) != PLAYER_ERROR_NONE )
   {
@@ -723,7 +724,7 @@ void TizenVideoPlayer::Backward( int millisecond )
   }
 }
 
-bool TizenVideoPlayer::IsVideoTextureSupported() const
+bool TizenVideoPlayer::IsVideoTextureSupported()
 {
   bool featureFlag = true;
   int error = SYSTEM_INFO_ERROR_NONE;
@@ -759,6 +760,33 @@ void TizenVideoPlayer::DestroyPlayer()
     mPlayer = NULL;
     mUrl = "";
   }
+}
+
+void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
+{
+  int error;
+  if( mPlayerState != PLAYER_STATE_NONE )
+  {
+    GetPlayerState( &mPlayerState );
+
+    if( mPlayerState == PLAYER_STATE_IDLE )
+    {
+      error = player_set_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, static_cast< player_codec_type_e >( type ) );
+      LogPlayerError( error );
+
+      if( error == PLAYER_ERROR_INVALID_OPERATION )
+      {
+        DALI_LOG_ERROR( "The target should not support the codec type\n" );
+      }
+      error = player_get_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, &mCodecType );
+      LogPlayerError( error );
+    }
+  }
+}
+
+Dali::VideoPlayerPlugin::CodecType TizenVideoPlayer::GetCodecType() const
+{
+  return static_cast< Dali::VideoPlayerPlugin::CodecType >( mCodecType );
 }
 
 } // namespace Plugin
