@@ -242,20 +242,46 @@ void TizenVideoPlayer::SetUrl( const std::string& url )
 {
   if( mUrl != url )
   {
+    int error = PLAYER_ERROR_NONE;
+
     mUrl = url;
 
     GetPlayerState( &mPlayerState );
 
     if( mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE )
     {
+
+      if( mNativeImageSourcePtr )
+      {
+        error = player_unset_media_packet_video_frame_decoded_cb( mPlayer );
+        LogPlayerError( error );
+      }
+
       Stop();
-      int error = player_unprepare( mPlayer );
+
+      error = player_unprepare( mPlayer );
+      LogPlayerError( error );
+
+      if( mNativeImageSourcePtr )
+      {
+        error = player_set_media_packet_video_frame_decoded_cb( mPlayer, MediaPacketVideoDecodedCb, this );
+        LogPlayerError( error );
+      }
+      else
+      {
+        int width, height;
+        ecore_wl_screen_size_get( &width, &height );
+        error = player_set_ecore_wl_display( mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height );
+        LogPlayerError( error );
+      }
+
+      GetPlayerState( &mPlayerState );
       LogPlayerError( error );
     }
 
     if( mPlayerState == PLAYER_STATE_IDLE )
     {
-      int error = player_set_uri( mPlayer, mUrl.c_str() );
+      error = player_set_uri( mPlayer, mUrl.c_str() );
       LogPlayerError( error );
 
       error = player_prepare( mPlayer );
