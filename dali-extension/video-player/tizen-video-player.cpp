@@ -593,13 +593,9 @@ void TizenVideoPlayer::InitializeUnderlayMode( Ecore_Wl_Window* ecoreWlWindow )
     error = player_set_display_roi_area( mPlayer, 0, 0, 1, 1 );
 
     int width, height;
-    mAlphaBitChanged = ( ecore_wl_window_alpha_get( mEcoreWlWindow ) )? false: true;
     ecore_wl_screen_size_get( &width, &height );
+    ecore_wl_window_alpha_set( mEcoreWlWindow, false );
 
-    if( mAlphaBitChanged )
-    {
-      ecore_wl_window_alpha_set( mEcoreWlWindow, true );
-    }
     error = player_set_ecore_wl_display( mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height );
     LogPlayerError( error );
 
