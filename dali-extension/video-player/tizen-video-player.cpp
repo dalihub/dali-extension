@@ -811,5 +811,20 @@ Dali::VideoPlayerPlugin::CodecType TizenVideoPlayer::GetCodecType() const
   return static_cast< Dali::VideoPlayerPlugin::CodecType >( mCodecType );
 }
 
+void TizenVideoPlayer::SetDisplayMode( Dali::VideoPlayerPlugin::DisplayMode::Type mode )
+{
+  int error;
+  error = player_set_display_mode( mPlayer, static_cast< player_display_mode_e >( mode ) );
+  LogPlayerError( error );
+}
+
+Dali::VideoPlayerPlugin::DisplayMode::Type TizenVideoPlayer::GetDisplayMode() const
+{
+  player_display_mode_e mode;
+  player_get_display_mode( mPlayer, &mode );
+  return static_cast< Dali::VideoPlayerPlugin::DisplayMode::Type >( mode );
+}
+
+
 } // namespace Plugin
 } // namespace Dali;
