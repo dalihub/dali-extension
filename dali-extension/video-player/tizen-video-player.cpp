@@ -220,7 +220,9 @@ TizenVideoPlayer::TizenVideoPlayer()
   mPacketVector(),
   mEcoreWlWindow( NULL ),
   mAlphaBitChanged( false ),
-  mCodecType( PLAYER_CODEC_TYPE_DEFAULT )
+  mCodecType( PLAYER_CODEC_TYPE_DEFAULT ),
+  mStreamInfo( NULL ),
+  mStreamType( SOUND_STREAM_TYPE_MEDIA )
 {
 }
 
@@ -550,7 +552,10 @@ void TizenVideoPlayer::InitializeTextureStreamMode( Dali::NativeImageSourcePtr n
     error = player_set_media_packet_video_frame_decoded_cb( mPlayer, MediaPacketVideoDecodedCb, this );
     LogPlayerError( error );
 
-    error = player_set_sound_type( mPlayer, SOUND_TYPE_MEDIA );
+    error = sound_manager_create_stream_information( mStreamType, NULL, NULL, &mStreamInfo );
+    LogPlayerError( error );
+
+    error = player_set_sound_stream_info( mPlayer, mStreamInfo );
     LogPlayerError( error );
 
     error = player_set_display_mode( mPlayer, PLAYER_DISPLAY_MODE_FULL_SCREEN );
@@ -584,7 +589,10 @@ void TizenVideoPlayer::InitializeUnderlayMode( Ecore_Wl_Window* ecoreWlWindow )
     error = player_set_completed_cb( mPlayer, EmitPlaybackFinishedSignal, this );
     LogPlayerError( error );
 
-    error = player_set_sound_type( mPlayer, SOUND_TYPE_MEDIA );
+    error = sound_manager_create_stream_information( mStreamType, NULL, NULL, &mStreamInfo );
+    LogPlayerError( error );
+
+    error = player_set_sound_stream_info( mPlayer, mStreamInfo );
     LogPlayerError( error );
 
     error = player_set_display_mode( mPlayer, PLAYER_DISPLAY_MODE_DST_ROI );
@@ -778,6 +786,10 @@ void TizenVideoPlayer::DestroyPlayer()
 
     error = player_destroy( mPlayer );
     LogPlayerError( error );
+
+    error = sound_manager_destroy_stream_information(mStreamInfo);
+    LogPlayerError( error );
+
     mPlayerState = PLAYER_STATE_NONE;
     mPlayer = NULL;
     mUrl = "";
