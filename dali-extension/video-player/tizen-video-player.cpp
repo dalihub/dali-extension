@@ -219,7 +219,10 @@ TizenVideoPlayer::TizenVideoPlayer()
   mPacketMutex(),
   mPacketVector(),
   mEcoreWlWindow( NULL ),
-  mAlphaBitChanged( false )
+  mAlphaBitChanged( false ),
+  mCodecType( PLAYER_CODEC_TYPE_DEFAULT ),
+  mStreamInfo( NULL ),
+  mStreamType( SOUND_STREAM_TYPE_MEDIA )
 {
 }
 
@@ -228,7 +231,7 @@ TizenVideoPlayer::~TizenVideoPlayer()
   DestroyPlayer();
 }
 
-void TizenVideoPlayer::GetPlayerState( player_state_e* state )
+void TizenVideoPlayer::GetPlayerState( player_state_e* state ) const
 {
   if( mPlayer != NULL && player_get_state( mPlayer, state ) != PLAYER_ERROR_NONE )
   {
@@ -241,20 +244,46 @@ void TizenVideoPlayer::SetUrl( const std::string& url )
 {
   if( mUrl != url )
   {
+    int error = PLAYER_ERROR_NONE;
+
     mUrl = url;
 
     GetPlayerState( &mPlayerState );
 
     if( mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE )
     {
+
+      if( mNativeImageSourcePtr )
+      {
+        error = player_unset_media_packet_video_frame_decoded_cb( mPlayer );
+        LogPlayerError( error );
+      }
+
       Stop();
-      int error = player_unprepare( mPlayer );
+
+      error = player_unprepare( mPlayer );
+      LogPlayerError( error );
+
+      if( mNativeImageSourcePtr )
+      {
+        error = player_set_media_packet_video_frame_decoded_cb( mPlayer, MediaPacketVideoDecodedCb, this );
+        LogPlayerError( error );
+      }
+      else
+      {
+        int width, height;
+        ecore_wl_screen_size_get( &width, &height );
+        error = player_set_ecore_wl_display( mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height );
+        LogPlayerError( error );
+      }
+
+      GetPlayerState( &mPlayerState );
       LogPlayerError( error );
     }
 
     if( mPlayerState == PLAYER_STATE_IDLE )
     {
-      int error = player_set_uri( mPlayer, mUrl.c_str() );
+      error = player_set_uri( mPlayer, mUrl.c_str() );
       LogPlayerError( error );
 
       error = player_prepare( mPlayer );
@@ -523,7 +552,10 @@ void TizenVideoPlayer::InitializeTextureStreamMode( Dali::NativeImageSourcePtr n
     error = player_set_media_packet_video_frame_decoded_cb( mPlayer, MediaPacketVideoDecodedCb, this );
     LogPlayerError( error );
 
-    error = player_set_sound_type( mPlayer, SOUND_TYPE_MEDIA );
+    error = sound_manager_create_stream_information( mStreamType, NULL, NULL, &mStreamInfo );
+    LogPlayerError( error );
+
+    error = player_set_sound_stream_info( mPlayer, mStreamInfo );
     LogPlayerError( error );
 
     error = player_set_display_mode( mPlayer, PLAYER_DISPLAY_MODE_FULL_SCREEN );
@@ -557,7 +589,10 @@ void TizenVideoPlayer::InitializeUnderlayMode( Ecore_Wl_Window* ecoreWlWindow )
     error = player_set_completed_cb( mPlayer, EmitPlaybackFinishedSignal, this );
     LogPlayerError( error );
 
-    error = player_set_sound_type( mPlayer, SOUND_TYPE_MEDIA );
+    error = sound_manager_create_stream_information( mStreamType, NULL, NULL, &mStreamInfo );
+    LogPlayerError( error );
+
+    error = player_set_sound_stream_info( mPlayer, mStreamInfo );
     LogPlayerError( error );
 
     error = player_set_display_mode( mPlayer, PLAYER_DISPLAY_MODE_DST_ROI );
@@ -566,13 +601,9 @@ void TizenVideoPlayer::InitializeUnderlayMode( Ecore_Wl_Window* ecoreWlWindow )
     error = player_set_display_roi_area( mPlayer, 0, 0, 1, 1 );
 
     int width, height;
-    mAlphaBitChanged = ( ecore_wl_window_alpha_get( mEcoreWlWindow ) )? false: true;
     ecore_wl_screen_size_get( &width, &height );
+    ecore_wl_window_alpha_set( mEcoreWlWindow, false );
 
-    if( mAlphaBitChanged )
-    {
-      ecore_wl_window_alpha_set( mEcoreWlWindow, true );
-    }
     error = player_set_ecore_wl_display( mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height );
     LogPlayerError( error );
 
@@ -723,7 +754,7 @@ void TizenVideoPlayer::Backward( int millisecond )
   }
 }
 
-bool TizenVideoPlayer::IsVideoTextureSupported() const
+bool TizenVideoPlayer::IsVideoTextureSupported()
 {
   bool featureFlag = true;
   int error = SYSTEM_INFO_ERROR_NONE;
@@ -755,11 +786,57 @@ void TizenVideoPlayer::DestroyPlayer()
 
     error = player_destroy( mPlayer );
     LogPlayerError( error );
+
+    error = sound_manager_destroy_stream_information(mStreamInfo);
+    LogPlayerError( error );
+
     mPlayerState = PLAYER_STATE_NONE;
     mPlayer = NULL;
     mUrl = "";
   }
 }
+
+void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
+{
+  int error;
+  if( mPlayerState != PLAYER_STATE_NONE )
+  {
+    GetPlayerState( &mPlayerState );
+
+    if( mPlayerState == PLAYER_STATE_IDLE )
+    {
+      error = player_set_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, static_cast< player_codec_type_e >( type ) );
+      LogPlayerError( error );
+
+      if( error == PLAYER_ERROR_INVALID_OPERATION )
+      {
+        DALI_LOG_ERROR( "The target should not support the codec type\n" );
+      }
+      error = player_get_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, &mCodecType );
+      LogPlayerError( error );
+    }
+  }
+}
+
+Dali::VideoPlayerPlugin::CodecType TizenVideoPlayer::GetCodecType() const
+{
+  return static_cast< Dali::VideoPlayerPlugin::CodecType >( mCodecType );
+}
+
+void TizenVideoPlayer::SetDisplayMode( Dali::VideoPlayerPlugin::DisplayMode::Type mode )
+{
+  int error;
+  error = player_set_display_mode( mPlayer, static_cast< player_display_mode_e >( mode ) );
+  LogPlayerError( error );
+}
+
+Dali::VideoPlayerPlugin::DisplayMode::Type TizenVideoPlayer::GetDisplayMode() const
+{
+  player_display_mode_e mode;
+  player_get_display_mode( mPlayer, &mode );
+  return static_cast< Dali::VideoPlayerPlugin::DisplayMode::Type >( mode );
+}
+
 
 } // namespace Plugin
 } // namespace Dali;
