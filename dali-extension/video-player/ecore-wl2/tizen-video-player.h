@@ -176,27 +176,7 @@ public:
   /**
    * @brief Dali::VideoPlayer::IsVideoTextureSupported()
    */
-  bool IsVideoTextureSupported();
-
-  /**
-   * @brief Dali::VideoPlayer::SetCodecType()
-   */
-  void SetCodecType( Dali::VideoPlayerPlugin::CodecType type );
-
-  /**
-   * @brief Dali::VideoPlayer::GetCodecType()
-   */
-  Dali::VideoPlayerPlugin::CodecType GetCodecType() const;
-
-  /**
-   * @copydoc Dali::VideoPlayerPlugin::SetDisplayMode()
-   */
-  void SetDisplayMode(  Dali::VideoPlayerPlugin::DisplayMode::Type mode );
-
-  /**
-   * @copydoc Dali::VideoPlayerPlugin::GetDisplayMode()
-   */
-  Dali::VideoPlayerPlugin::DisplayMode::Type GetDisplayMode() const;
+  bool IsVideoTextureSupported() const;
 
 private:
 
@@ -208,7 +188,7 @@ private:
   /**
    * @brief Gets current player state
    */
-  void GetPlayerState( player_state_e* state ) const;
+  void GetPlayerState( player_state_e* state );
 
   /**
    * @brief Destroy all packests, which this plugin stores
@@ -249,10 +229,6 @@ private:
 
   bool mAlphaBitChanged; ///< True if underlay rendering initialization changes window alpha
 
-  player_codec_type_e mCodecType;
-
-  sound_stream_info_h mStreamInfo;
-  sound_stream_type_e mStreamType;
 public:
 
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
