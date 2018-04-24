@@ -16,20 +16,8 @@ AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
+PKG_CHECK_MODULES(ECORE_WAYLAND, ecore-wayland)
 PKG_CHECK_MODULES(CAPI_SYSTEM_INFO, capi-system-info)
-
-AC_ARG_ENABLE(Ecore_Wl2,
-              [  --enable-ecore-wl2      build with ecorewl2 on tizen],
-              enable_ecore_wl2=yes,
-              enable_ecore_wl2=no)
-
-AM_CONDITIONAL([ECOREWL2], [test "x$enable_ecore_wl2" = "xyes"])
-
-if test x$enable_ecore_wl2 = xyes; then
-  PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
-else
-  PKG_CHECK_MODULES(ECORE_WAYLAND, ecore-wayland)
-fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

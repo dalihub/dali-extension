@@ -55,14 +55,9 @@ Plugin to support extension keys for Dali
 %package video-player-plugin
 Summary:    Plugin to play a video file for Dali
 Group:      System/Libraries
+BuildRequires: pkgconfig(ecore-wayland)
 BuildRequires: pkgconfig(capi-media-player)
 BuildRequires: pkgconfig(capi-system-info)
-# dali-adaptor uses ecore mainloop
-%if 0%{?tizen_version_major} >= 5
-BuildRequires:  pkgconfig(ecore-wl2)
-%else
-BuildRequires:  pkgconfig(ecore-wayland)
-%endif
 
 %description video-player-plugin
 VideoPlayer plugin to play a video file for Dali
@@ -87,18 +82,11 @@ PREFIX+="/usr"
 CXXFLAGS+=" -Wall -g -Os -fPIC -fvisibility-inlines-hidden -fdata-sections -ffunction-sections -DGL_GLEXT_PROTOTYPES"
 LDFLAGS+=" -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic-functions "
 
-%if 0%{?tizen_version_major} >= 5
-CFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
-CXXFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
-configure_flags="--enable-ecore-wl2"
-%endif
-
 libtoolize --force
 cd %{_builddir}/%{name}-%{version}/build/tizen
 autoreconf --install
 
 %configure --prefix=$PREFIX \
-           --enable-ecore-wl2 \
            --enable-keyextension
 
 make %{?jobs:-j%jobs}
