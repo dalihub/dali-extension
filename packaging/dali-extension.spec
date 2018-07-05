@@ -68,6 +68,20 @@ BuildRequires:  pkgconfig(ecore-wayland)
 VideoPlayer plugin to play a video file for Dali
 
 ##############################
+# Dali Web Engine Lite Plugin
+##############################
+
+%package web-engine-lite-plugin
+Summary:    Plugin to support WebView for Dali
+Group:      System/Libraries
+BuildRequires: pkgconfig(libtbm)
+BuildRequires: pkgconfig(libtuv)
+BuildRequires: pkgconfig(lightweight-web-engine)
+
+%description web-engine-lite-plugin
+Web Engine Lite plugin to support WebView for Dali
+
+##############################
 # Preparation
 ##############################
 %prep
@@ -129,6 +143,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post web-engine-lite-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -147,6 +165,10 @@ exit 0
 exit 0
 
 %postun video-player-plugin
+/sbin/ldconfig
+exit 0
+
+%postun web-engine-lite-plugin
 /sbin/ldconfig
 exit 0
 
@@ -174,4 +196,10 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-video-player-plugin.so*
+%license LICENSE
+
+%files web-engine-lite-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-web-engine-lite-plugin.so*
 %license LICENSE
