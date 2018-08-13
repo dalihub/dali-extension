@@ -1,0 +1,53 @@
+## Implement
+
+You can implement a new type of image loader plugin.
+implement LoadBitmapFromImage and LoadImageHeader in the loader-dummy.cpp file.
+
+ bool LoadImageHeader( const Dali::ImageLoader::Input& input, unsigned int& width, unsigned int& height )
+ {
+  bool success = false;
+  /* Loads the header of a image file and fills in the width and height appropriately. */
+
+  return success;
+ }
+
+ bool LoadBitmapFromImage( const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap )
+ {
+   bool success = false;
+   /* Loads the bitmap from an image file.  This function checks the header first */
+
+   return success;
+ }
+
+And register your new image loader in tizen-image-loader.cpp
+ 1) add type of new file formats
+   enum FileFormats
+  {
+    // Unknown file format
+    FORMAT_UNKNOWN = -1,
+
+    // formats that use magic bytes
+    FORMAT_DUMMY = 0,
+    FORMAT_TOTAL_COUNT
+  };
+
+ 2) add function of new image loader
+  const Dali::ImageLoader::BitmapLoader BITMAP_LOADER_LOOKUP_TABLE[FORMAT_TOTAL_COUNT] =
+  {
+    { 0x0,                0x0,                LoadBitmapFromImage,  LoadImageHeader,  Dali::Integration::Bitmap::BITMAP_2D_PACKED_PIXELS },
+  };
+
+ 3) add file extensions and formats
+   const FormatExtension FORMAT_EXTENSIONS[] =
+  {
+    { ".dummy",  FORMAT_DUMMY  }
+  };
+
+## Build
+To use the new Image Loader plugin, You must change the use_image_loader value to 1.
+ packaging/dali-extension.spec
+ # Use Image Loader Plugin
+ %define use_image_loader 1
+
+ When you build the dali-extension, dali-extension-image-loader-plugin.armv7l.rpm file is created.
+

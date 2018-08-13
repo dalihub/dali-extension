@@ -77,6 +77,17 @@ BuildRequires: pkgconfig(elementary)
 Web Engine chromium plugin to support WebView for Dali
 
 ##############################
+# Dali Image Loader Plugin
+##############################
+
+%package image-loader-plugin
+Summary:    Plugin to image loading for Dali
+Group:      System/Libraries
+
+%description image-loader-plugin
+Image Loader plugin to image loading file for Dali
+
+##############################
 # Preparation
 ##############################
 %prep
@@ -87,6 +98,9 @@ Web Engine chromium plugin to support WebView for Dali
 %define dali_data_rw_dir         %TZ_SYS_RO_SHARE/dali/
 %define dali_data_ro_dir         %TZ_SYS_RO_SHARE/dali/
 %define dev_include_path %{_includedir}
+
+# Use Image Loader Plugin
+%define use_image_loader 0
 
 ##############################
 # Build
@@ -102,6 +116,10 @@ autoreconf --install
 
 %configure --prefix=$PREFIX \
            --enable-keyextension
+%if 0%{?use_image_loader}
+%configure \
+           --enable-imageloader-extension
+%endif
 
 make %{?jobs:-j%jobs}
 
@@ -135,6 +153,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post image-loader-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -157,6 +179,10 @@ exit 0
 exit 0
 
 %postun web-engine-chromium-plugin
+/sbin/ldconfig
+exit 0
+
+%postun image-loader-plugin
 /sbin/ldconfig
 exit 0
 
@@ -191,3 +217,11 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/libdali-web-engine-chromium-plugin.so*
 %license LICENSE
+
+%if 0%{?use_image_loader}
+%files image-loader-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-image-loader-plugin.so*
+%license LICENSE
+%endif
