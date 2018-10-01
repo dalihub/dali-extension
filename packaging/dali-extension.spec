@@ -75,7 +75,6 @@ VideoPlayer plugin to play a video file for Dali
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(libtbm)
-BuildRequires: pkgconfig(libtuv)
 BuildRequires: pkgconfig(lightweight-web-engine)
 
 %description web-engine-lite-plugin
@@ -158,6 +157,9 @@ exit 0
 exit 0
 
 %post web-engine-lite-plugin
+pushd %{_libdir}
+ln -sf libdali-web-engine-lite-plugin.so libdali-web-engine-plugin.so
+popd
 /sbin/ldconfig
 exit 0
 
