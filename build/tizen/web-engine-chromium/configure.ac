@@ -14,10 +14,12 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
-PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
-PKG_CHECK_MODULES(WAYLAND, libtbm)
-PKG_CHECK_MODULES(WEB_ENGINE_CHROMIUM, chromium-efl)
-PKG_CHECK_MODULES(ELEMENTARY, elementary)
+if test x$enable-web-engine-plugin = xyes; then
+  PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
+  PKG_CHECK_MODULES(WAYLAND, libtbm)
+  PKG_CHECK_MODULES(WEB_ENGINE_CHROMIUM, chromium-efl)
+  PKG_CHECK_MODULES(ELEMENTARY, elementary)
+fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

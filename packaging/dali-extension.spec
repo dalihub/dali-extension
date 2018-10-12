@@ -74,8 +74,10 @@ VideoPlayer plugin to play a video file for Dali
 %package web-engine-lite-plugin
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
+%ifarch %{arm}
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(lightweight-web-engine)
+%endif
 
 %description web-engine-lite-plugin
 Web Engine Lite plugin to support WebView for Dali
@@ -87,9 +89,11 @@ Web Engine Lite plugin to support WebView for Dali
 %package web-engine-chromium-plugin
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
+%ifarch %{arm}
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(chromium-efl)
 BuildRequires: pkgconfig(elementary)
+%endif
 
 %description web-engine-chromium-plugin
 Web Engine chromium plugin to support WebView for Dali
@@ -126,6 +130,9 @@ autoreconf --install
 
 %configure --prefix=$PREFIX \
            --enable-ecore-wl2 \
+%ifarch %{arm}
+           --enable-web-engine-plugin \
+%endif
            --enable-keyextension
 
 make %{?jobs:-j%jobs}

@@ -16,6 +16,13 @@ AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 
+AC_ARG_ENABLE([web-engine-plugin],
+              [AC_HELP_STRING([--enable-web-engine-plugin], [enable web engine plugin features or not])],
+              [enable-web-engine-plugin=yes],
+              [enable-web-engine-plugin=no])
+
+AM_CONDITIONAL([ENABLE_WEB_ENGINE_PLUGIN], [test x$enable-web-engine-plugin = xyes])
+
 AC_CONFIG_SUBDIRS(key)
 AC_CONFIG_SUBDIRS(video-player)
 AC_CONFIG_SUBDIRS(web-engine-lite)
