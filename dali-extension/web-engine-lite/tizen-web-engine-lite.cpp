@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#ifdef ENABLE_WEB_ENGINE_PLUGIN
+
 // CLASS HEADER
 #include "tizen-web-engine-lite.h"
 
@@ -740,4 +740,3 @@ bool TizenWebEngineLite::SendKeyEvent( const Dali::KeyEvent& event )
 
 } // namespace Plugin
 } // namespace Dali
-#endif

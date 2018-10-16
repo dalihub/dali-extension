@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#ifdef ENABLE_WEB_ENGINE_PLUGIN
+
 #include <tizen-web-engine-chromium.h>
 
 #include <Ecore.h>
@@ -419,4 +419,3 @@ extern "C" EXPORT_API void DestroyWebEnginePlugin(Dali::WebEnginePlugin* plugin)
   if (plugin)
     delete plugin;
 }
-#endif
