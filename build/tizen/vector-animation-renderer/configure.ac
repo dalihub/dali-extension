@@ -15,14 +15,13 @@ DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
+PKG_CHECK_MODULES(LOTTIE_PLAYER, lottie-player)
 
-AC_CONFIG_SUBDIRS(key)
-AC_CONFIG_SUBDIRS(video-player)
-AC_CONFIG_SUBDIRS(vector-animation-renderer)
+devincludepath=${includedir}
+AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([
 Makefile
-dali-extension.pc
 ])
 
 AC_OUTPUT

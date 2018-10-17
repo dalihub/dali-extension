@@ -62,6 +62,18 @@ BuildRequires: pkgconfig(capi-system-info)
 %description video-player-plugin
 VideoPlayer plugin to play a video file for Dali
 
+####################################
+# Vector Animation Renderer Plugin
+####################################
+
+%package vector-animation-renderer-plugin
+Summary:    Plugin to render a vector animation
+Group:      System/Libraries
+BuildRequires:  pkgconfig(lottie-player)
+
+%description vector-animation-renderer-plugin
+Plugin to render a vector animation
+
 ##############################
 # Preparation
 ##############################
@@ -117,6 +129,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post vector-animation-renderer-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -135,6 +151,10 @@ exit 0
 exit 0
 
 %postun video-player-plugin
+/sbin/ldconfig
+exit 0
+
+%postun vector-animation-renderer-plugin
 /sbin/ldconfig
 exit 0
 
@@ -162,4 +182,10 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-video-player-plugin.so*
+%license LICENSE
+
+%files vector-animation-renderer-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-vector-animation-renderer-plugin.so*
 %license LICENSE
