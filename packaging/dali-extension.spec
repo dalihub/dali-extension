@@ -96,6 +96,11 @@ make %{?jobs:-j%jobs}
 ##############################
 %install
 rm -rf %{buildroot}
+
+# install dali.sh
+mkdir -p %{buildroot}%{_sysconfdir}/profile.d
+install -m 0644 scripts/dali.sh %{buildroot}%{_sysconfdir}/profile.d
+
 cd build/tizen
 %make_install DALI_DATA_RW_DIR="%{dali_data_rw_dir}" DALI_DATA_RO_DIR="%{dali_data_ro_dir}"
 
@@ -145,6 +150,7 @@ exit 0
 %files
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
+%{_sysconfdir}/profile.d/dali.sh
 %license LICENSE
 
 %files devel
