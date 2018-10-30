@@ -1,0 +1,4 @@
+plugin_parser_src_files = $(extension_src_dir)/plugin-parser/plugin-parser.cpp
+
+
+plugin_parser_header_files = $(extension_src_dir)/plugin-parser/plugin-parser.h

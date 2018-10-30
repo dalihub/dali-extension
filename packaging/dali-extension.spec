@@ -106,6 +106,25 @@ BuildRequires: pkgconfig(lightweight-web-engine)
 Web Engine Lite plugin to support WebView for Dali
 
 ##############################
+# Dali plugin-parser
+##############################
+%package plugin-parser
+Summary:    plugin-parser for Dali
+Group:      System/Libraries
+BuildRequires: pkgconfig(dlog)
+BuildRequires: pkgconfig(pkgmgr-info)
+BuildRequires: pkgconfig(pkgmgr-installer)
+BuildRequires: pkgconfig(glib-2.0)
+BuildRequires: pkgconfig(boost)
+
+%description plugin-parser
+plugin-parser for Dali
+
+%define dali_plugin_parser_dir           /etc/package-manager/parserlib/metadata/
+%define dali_plugin_parser_list_dir      /usr/share/parser-plugins/
+
+
+##############################
 # Preparation
 ##############################
 %prep
@@ -161,6 +180,14 @@ install -m 0644 scripts/dali.sh %{buildroot}%{_sysconfdir}/profile.d
 cd build/tizen
 %make_install DALI_DATA_RW_DIR="%{dali_data_rw_dir}" DALI_DATA_RO_DIR="%{dali_data_ro_dir}"
 
+mkdir -p %{buildroot}%{dali_plugin_parser_dir}
+mkdir -p %{buildroot}%{dali_plugin_parser_list_dir}
+
+rm %{buildroot}/%{_libdir}/libdali-plugin-parser.so
+rm %{buildroot}/%{_libdir}/libdali-plugin-parser.so.0
+mv %{buildroot}/%{_libdir}/libdali-plugin-parser.so.0.0.0 %{buildroot}%{dali_plugin_parser_dir}libnui_vulkan_backend_plugin.so
+cp %{_builddir}/%{name}-%{version}/build/tizen/plugin-parser/nui_vulkan_backend.txt %{buildroot}%{dali_plugin_parser_list_dir}
+
 %pre
 exit 0
 
@@ -194,6 +221,10 @@ popd
 /sbin/ldconfig
 exit 0
 
+%post plugin-parser
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -224,6 +255,10 @@ exit 0
 exit 0
 
 %postun web-engine-lite-plugin
+/sbin/ldconfig
+exit 0
+
+%postun plugin-parser
 /sbin/ldconfig
 exit 0
 
@@ -272,4 +307,12 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-web-engine-lite-plugin.so*
+%license LICENSE
+
+
+%files plugin-parser
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{dali_plugin_parser_dir}libnui_vulkan_backend_plugin.so
+%{dali_plugin_parser_list_dir}nui_vulkan_backend.txt
 %license LICENSE

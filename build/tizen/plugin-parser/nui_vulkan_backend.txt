@@ -1,0 +1,1 @@
+type="metadata";name="http://tizen.org/metadata/nui_vulkan_backend";path="/etc/package-manager/parserlib/metadata/libnui_vulkan_backend_plugin.so"
