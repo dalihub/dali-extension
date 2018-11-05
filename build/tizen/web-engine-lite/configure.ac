@@ -16,6 +16,7 @@ AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 PKG_CHECK_MODULES(WAYLAND, libtbm)
+PKG_CHECK_MODULES([LIBTUV], [libtuv])
 PKG_CHECK_MODULES([WEB_ENGINE_LITE], [lightweight-web-engine-dali-plugin])
 
 devincludepath=${includedir}
