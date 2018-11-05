@@ -181,11 +181,7 @@ private:
 
   bool UpdateBuffer();
 
-  void StartMainThreadIfNeeds();
-  void CreateInstance();
   void DestroyInstance();
-  void CallEmptyAsyncHandle();
-  void StopLoop();
 
   void DispatchMouseDownEvent(float x, float y);
   void DispatchMouseUpEvent(float x, float y);
@@ -194,10 +190,6 @@ private:
   void DispatchKeyPressEvent(LWE::KeyValue keyCode);
   void DispatchKeyUpEvent(LWE::KeyValue keyCode);
 
-  void SendAsyncHandle(std::function<void(void*)> cb);
-  static void* StartMainThread(void* data);
-
-  pthread_t mThreadHandle;
   bool mIsMouseLbuttonDown;
   Dali::Timer mTimer;
 
@@ -207,10 +199,10 @@ private:
   size_t mOutputStride;
   uint8_t* mOutputBuffer;
   bool mCanGoBack, mCanGoForward;
-  bool mIsRunning;
+  bool mIsRunning, mIsNeedsUpdate;
+  pthread_mutex_t mOutputBufferMutex;
 
   LWE::WebContainer* mWebContainer;
-  std::list<size_t> mAsyncHandlePool;
 
 #ifdef STARFISH_DALI_TBMSURFACE
   tbm_surface_h mTbmSurface;
