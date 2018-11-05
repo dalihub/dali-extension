@@ -15,15 +15,15 @@ DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
+PKG_CHECK_MODULES(WAYLAND, libtbm)
+PKG_CHECK_MODULES([LIBTUV], [libtuv])
+PKG_CHECK_MODULES([WEB_ENGINE_LITE], [lightweight-web-engine-dali-plugin])
 
-AC_CONFIG_SUBDIRS(key)
-AC_CONFIG_SUBDIRS(video-player)
-AC_CONFIG_SUBDIRS(web-engine-chromium)
-AC_CONFIG_SUBDIRS(web-engine-lite)
+devincludepath=${includedir}
+AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([
 Makefile
-dali-extension.pc
 ])
 
 AC_OUTPUT
