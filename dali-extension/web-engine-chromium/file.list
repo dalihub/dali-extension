@@ -1,2 +1,0 @@
-web_engine_chromium_plugin_src_files = \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-chromium.cpp

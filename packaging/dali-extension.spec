@@ -82,20 +82,6 @@ BuildRequires: pkgconfig(lightweight-web-engine)
 Web Engine Lite plugin to support WebView for Dali
 
 ##############################
-# Dali Web Engine chromium Plugin
-##############################
-
-%package web-engine-chromium-plugin
-Summary:    Plugin to support WebView for Dali
-Group:      System/Libraries
-BuildRequires: pkgconfig(libtbm)
-BuildRequires: pkgconfig(chromium-efl)
-BuildRequires: pkgconfig(elementary)
-
-%description web-engine-chromium-plugin
-Web Engine chromium plugin to support WebView for Dali
-
-##############################
 # Preparation
 ##############################
 %prep
@@ -161,10 +147,6 @@ exit 0
 /sbin/ldconfig
 exit 0
 
-%post web-engine-chromium-plugin
-/sbin/ldconfig
-exit 0
-
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -187,10 +169,6 @@ exit 0
 exit 0
 
 %postun web-engine-lite-plugin
-/sbin/ldconfig
-exit 0
-
-%postun web-engine-chromium-plugin
 /sbin/ldconfig
 exit 0
 
@@ -224,10 +202,4 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-web-engine-lite-plugin.so*
-%license LICENSE
-
-%files web-engine-chromium-plugin
-%manifest dali-extension.manifest
-%defattr(-,root,root,-)
-%{_libdir}/libdali-web-engine-chromium-plugin.so*
 %license LICENSE
