@@ -7,7 +7,7 @@
 
 Name:       dali-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.3.43
+Version:    1.3.48
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -61,6 +61,20 @@ BuildRequires: pkgconfig(capi-system-info)
 
 %description video-player-plugin
 VideoPlayer plugin to play a video file for Dali
+
+##############################
+# Dali Web Engine chromium Plugin
+##############################
+
+%package web-engine-chromium-plugin
+Summary:    Plugin to support WebView for Dali
+Group:      System/Libraries
+BuildRequires: pkgconfig(libtbm)
+BuildRequires: pkgconfig(chromium-efl)
+BuildRequires: pkgconfig(elementary)
+
+%description web-engine-chromium-plugin
+Web Engine chromium plugin to support WebView for Dali
 
 ##############################
 # Preparation
@@ -117,6 +131,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post web-engine-chromium-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -135,6 +153,10 @@ exit 0
 exit 0
 
 %postun video-player-plugin
+/sbin/ldconfig
+exit 0
+
+%postun web-engine-chromium-plugin
 /sbin/ldconfig
 exit 0
 
@@ -162,4 +184,10 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-video-player-plugin.so*
+%license LICENSE
+
+%files web-engine-chromium-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-web-engine-chromium-plugin.so*
 %license LICENSE
