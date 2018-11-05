@@ -89,7 +89,6 @@ Web Engine chromium plugin to support WebView for Dali
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(libtbm)
-BuildRequires: pkgconfig(libtuv)
 BuildRequires: pkgconfig(lightweight-web-engine)
 
 %description web-engine-lite-plugin
