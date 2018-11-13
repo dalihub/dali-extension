@@ -1,0 +1,3 @@
+image_loader_plugin_src_files = \
+   $(extension_src_dir)/image-loader/tizen-image-loader.cpp \
+   $(extension_src_dir)/image-loader/loader-dummy.cpp
