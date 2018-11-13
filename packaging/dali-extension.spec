@@ -7,7 +7,7 @@
 
 Name:       dali-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.3.48
+Version:    1.3.49
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -77,6 +77,17 @@ BuildRequires: pkgconfig(elementary)
 Web Engine chromium plugin to support WebView for Dali
 
 ##############################
+# Dali Image Loader Plugin
+##############################
+
+%package image-loader-plugin
+Summary:    Plugin to image loading for Dali
+Group:      System/Libraries
+
+%description image-loader-plugin
+Image Loader plugin to image loading file for Dali
+
+##############################
 # Preparation
 ##############################
 %prep
@@ -87,6 +98,9 @@ Web Engine chromium plugin to support WebView for Dali
 %define dali_data_rw_dir         %TZ_SYS_RO_SHARE/dali/
 %define dali_data_ro_dir         %TZ_SYS_RO_SHARE/dali/
 %define dev_include_path %{_includedir}
+
+# Use Image Loader Plugin
+%define use_image_loader 0
 
 ##############################
 # Build
@@ -102,6 +116,10 @@ autoreconf --install
 
 %configure --prefix=$PREFIX \
            --enable-keyextension
+%if 0%{?use_image_loader}
+%configure \
+           --enable-imageloader-extension
+%endif
 
 make %{?jobs:-j%jobs}
 
@@ -110,6 +128,11 @@ make %{?jobs:-j%jobs}
 ##############################
 %install
 rm -rf %{buildroot}
+
+# install dali.sh
+mkdir -p %{buildroot}%{_sysconfdir}/profile.d
+install -m 0644 scripts/dali.sh %{buildroot}%{_sysconfdir}/profile.d
+
 cd build/tizen
 %make_install DALI_DATA_RW_DIR="%{dali_data_rw_dir}" DALI_DATA_RO_DIR="%{dali_data_ro_dir}"
 
@@ -132,6 +155,10 @@ exit 0
 exit 0
 
 %post web-engine-chromium-plugin
+/sbin/ldconfig
+exit 0
+
+%post image-loader-plugin
 /sbin/ldconfig
 exit 0
 
@@ -160,6 +187,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%postun image-loader-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 # Files in Binary Packages
 ##############################
@@ -167,6 +198,7 @@ exit 0
 %files
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
+%{_sysconfdir}/profile.d/dali.sh
 %license LICENSE
 
 %files devel
@@ -191,3 +223,11 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/libdali-web-engine-chromium-plugin.so*
 %license LICENSE
+
+%if 0%{?use_image_loader}
+%files image-loader-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-image-loader-plugin.so*
+%license LICENSE
+%endif

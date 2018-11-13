@@ -19,6 +19,7 @@ PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 AC_CONFIG_SUBDIRS(key)
 AC_CONFIG_SUBDIRS(video-player)
 AC_CONFIG_SUBDIRS(web-engine-chromium)
+AC_CONFIG_SUBDIRS(image-loader)
 
 AC_CONFIG_FILES([
 Makefile
