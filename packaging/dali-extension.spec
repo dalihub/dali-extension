@@ -162,9 +162,6 @@ exit 0
 exit 0
 
 %post web-engine-lite-plugin
-pushd %{_libdir}
-ln -sf libdali-web-engine-lite-plugin.so libdali-web-engine-plugin.so
-popd
 /sbin/ldconfig
 exit 0
 
