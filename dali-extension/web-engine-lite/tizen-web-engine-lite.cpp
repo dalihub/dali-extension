@@ -24,8 +24,8 @@
 #include <dali/public-api/events/key-event.h>
 #include <dali/public-api/events/touch-data.h>
 
-#include <libtuv/uv.h>
 #include <unistd.h>
+#include <pthread.h>
 
 // The plugin factories
 extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin( void )
@@ -41,54 +41,7 @@ extern "C" DALI_EXPORT_API void DestroyWebEnginePlugin( Dali::WebEnginePlugin* p
   }
 }
 
-#define TO_CONTAINER(ptr) (((TizenWebEngineLite*)ptr)->mWebContainer)
-
-static bool gIsNeedsUpdate = false;
-static bool gIsFirstTime = true;
-static uv_async_t gLauncherHandle;
-static pthread_mutex_t gMutex;
-static bool gIsAliveMainLoop = false;
-static int gDaliNumber = 0;
-
-class Locker {
-public:
-  Locker(pthread_mutex_t& lock)
-    : m_lock( lock )
-  {
-    pthread_mutex_lock( &m_lock );
-  }
-
-  ~Locker()
-  {
-    pthread_mutex_unlock( &m_lock );
-  }
-protected:
-  pthread_mutex_t m_lock;
-};
-
-struct UVAsyncHandleData {
-  std::function<void(void*)> cb;
-  void* data;
-};
-
-static bool IsAliveMainThread()
-{
-  return gIsAliveMainLoop;
-}
-
-static void InitMainThread( void* (*f)(void*), pthread_t& t )
-{
-  pthread_mutex_init(&gMutex, NULL);
-
-  pthread_mutex_lock(&gMutex);
-  pthread_attr_t attr;
-  pthread_attr_init(&attr);
-  pthread_create(&t, &attr, f, NULL);
-  pthread_mutex_lock(&gMutex);
-  pthread_mutex_unlock(&gMutex);
-}
-
-LWE::KeyValue KeyStringToKeyValue( const char* DALIKeyString, bool isShiftPressed )
+static LWE::KeyValue KeyStringToKeyValue( const char* DALIKeyString, bool isShiftPressed )
 {
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
   if( strcmp( "Left", DALIKeyString ) == 0 )
@@ -302,6 +255,21 @@ LWE::KeyValue KeyStringToKeyValue( const char* DALIKeyString, bool isShiftPresse
   return keyValue;
 }
 
+class Locker {
+public:
+  Locker(pthread_mutex_t& lock)
+    : m_lock( lock )
+  {
+    pthread_mutex_lock( &m_lock );
+  }
+
+  ~Locker()
+  {
+    pthread_mutex_unlock( &m_lock );
+  }
+protected:
+  pthread_mutex_t m_lock;
+};
 
 namespace Dali
 {
@@ -317,8 +285,7 @@ const int TIMER_INTERVAL( 20 );
 } // unnamed namespace
 
 TizenWebEngineLite::TizenWebEngineLite()
-: mThreadHandle(),
-  mIsMouseLbuttonDown( false ),
+: mIsMouseLbuttonDown( false ),
   mTimer(),
   mUrl( "" ),
   mOutputWidth( 0 ),
@@ -328,6 +295,7 @@ TizenWebEngineLite::TizenWebEngineLite()
   mCanGoBack( false ),
   mCanGoForward( false ),
   mIsRunning( false ),
+  mIsNeedsUpdate( true ),
   mWebContainer( NULL ),
 #ifdef STARFISH_DALI_TBMSURFACE
   mTbmSurface( NULL ),
@@ -336,10 +304,12 @@ TizenWebEngineLite::TizenWebEngineLite()
   mBufferImage( NULL )
 #endif
 {
+  pthread_mutex_init(&mOutputBufferMutex, NULL);
 }
 
 TizenWebEngineLite::~TizenWebEngineLite()
 {
+  pthread_mutex_destroy(&mOutputBufferMutex);
 }
 
 bool TizenWebEngineLite::UpdateBuffer()
@@ -349,9 +319,9 @@ bool TizenWebEngineLite::UpdateBuffer()
     return true;
   }
 
-  if( gIsNeedsUpdate )
+  if( mIsNeedsUpdate )
   {
-    Locker l( gMutex );
+    Locker l(mOutputBufferMutex);
 #ifdef STARFISH_DALI_TBMSURFACE
     Dali::Stage::GetCurrent().KeepRendering( 0.0f );
 #else
@@ -361,72 +331,10 @@ bool TizenWebEngineLite::UpdateBuffer()
     }
     mBufferImage.Update();
 #endif
-    gIsNeedsUpdate = false;
+    mIsNeedsUpdate = false;
   }
 
   return true;
-}
-
-void TizenWebEngineLite::StartMainThreadIfNeeds()
-{
-  if ( !IsAliveMainThread() )
-  {
-    InitMainThread( StartMainThread, mThreadHandle );
-  }
-}
-
-void TizenWebEngineLite::CreateInstance()
-{
-  gDaliNumber++;
-  auto cb = []( void* data )
-  {
-    TizenWebEngineLite* engine = static_cast< TizenWebEngineLite* >( data );
-    if ( !LWE::LWE::IsInitialized() )
-    {
-      LWE::LWE::Initialize("/tmp/StarFish_localStorage.txt",
-                           "/tmp/StarFish_Cookies.txt", "/tmp/StarFish-cache");
-    }
-    engine->mWebContainer = LWE::WebContainer::Create(
-        engine->mOutputBuffer, engine->mOutputWidth, engine->mOutputHeight,
-        engine->mOutputStride, 1.0, "SamsungOne", "ko-KR", "Asia/Seoul" );
-    TO_CONTAINER( data )->RegisterOnRenderedHandler(
-        [ engine ]( LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult )
-        {
-          engine->onRenderedHandler( container, renderResult );
-        } );
-    TO_CONTAINER( data )->RegisterOnReceivedErrorHandler(
-        [ engine ]( LWE::WebContainer* container, LWE::ResourceError error )
-        {
-          engine->mCanGoBack = container->CanGoBack();
-          engine->mCanGoForward = container->CanGoForward();
-          engine->onReceivedError( container, error );
-        });
-    TO_CONTAINER( data )->RegisterOnPageStartedHandler(
-        [ engine ]( LWE::WebContainer* container, const std::string& url )
-        {
-          engine->mUrl = url;
-          engine->mCanGoBack = container->CanGoBack();
-          engine->mCanGoForward = container->CanGoForward();
-          engine->onPageStartedHandler( container, url );
-        });
-    TO_CONTAINER( data )->RegisterOnPageLoadedHandler(
-        [ engine ]( LWE::WebContainer* container, const std::string& url )
-        {
-          engine->mUrl = url;
-          engine->mCanGoBack = container->CanGoBack();
-          engine->mCanGoForward = container->CanGoForward();
-          engine->onPageFinishedHandler( container, url );
-        });
-    TO_CONTAINER( data )->RegisterOnLoadResourceHandler(
-        [ engine ]( LWE::WebContainer* container, const std::string& url )
-        {
-          engine->mUrl = url;
-          engine->mCanGoBack = container->CanGoBack();
-          engine->mCanGoForward = container->CanGoForward();
-          engine->onLoadResourceHandler( container, url );
-        });
-    };
-    SendAsyncHandle( cb );
 }
 
 void TizenWebEngineLite::Create( int width, int height, const std::string& locale, const std::string& timezoneId )
@@ -435,99 +343,125 @@ void TizenWebEngineLite::Create( int width, int height, const std::string& local
   mTimer.TickSignal().Connect( this, &TizenWebEngineLite::UpdateBuffer );
   mTimer.Start();
 
-  StartMainThreadIfNeeds();
-
   mIsRunning = true;
   mOutputWidth = width;
   mOutputHeight = height;
   mOutputStride = width * sizeof( uint32_t );
   mOutputBuffer = ( uint8_t* )malloc( width * height * sizeof( uint32_t ) );
 
-  if( gIsFirstTime == true )
+  onRenderedHandler = [this]( LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult )
   {
-    gIsFirstTime = false;
-
-    onRenderedHandler = [this]( LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult )
+    size_t w = mOutputWidth;
+    size_t h = mOutputHeight;
+    if( renderResult.updatedWidth != w || renderResult.updatedHeight != h )
     {
-      Locker l( gMutex );
-      size_t w = mOutputWidth;
-      size_t h = mOutputHeight;
-      if( renderResult.updatedWidth != w || renderResult.updatedHeight != h )
-      {
-        return;
-      }
-
-      uint8_t* dstBuffer;
-      size_t dstStride;
+      return;
+    }
+    Locker l(mOutputBufferMutex);
+    uint8_t* dstBuffer;
+    size_t dstStride;
 
 #ifdef STARFISH_DALI_TBMSURFACE
-      tbm_surface_info_s tbmSurfaceInfo;
-      if( tbm_surface_map( mTbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &tbmSurfaceInfo ) != TBM_SURFACE_ERROR_NONE )
-      {
-        DALI_LOG_ERROR( "Fail to map tbm_surface\n" );
-      }
+    tbm_surface_info_s tbmSurfaceInfo;
+    if( tbm_surface_map( mTbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &tbmSurfaceInfo ) != TBM_SURFACE_ERROR_NONE )
+    {
+      DALI_LOG_ERROR( "Fail to map tbm_surface\n" );
+    }
 
-      DALI_ASSERT_ALWAYS( tbmSurfaceInfo.format == TBM_FORMAT_ABGR8888 && "Unsupported TizenWebEngineLite tbm format" );
-
-      dstBuffer = tbmSurfaceInfo.planes[0].ptr;
-      dstStride = tbmSurfaceInfo.planes[0].stride;
-
+    DALI_ASSERT_ALWAYS( tbmSurfaceInfo.format == TBM_FORMAT_ARGB8888 && "Unsupported TizenWebEngineLite tbm format" );
+    dstBuffer = tbmSurfaceInfo.planes[0].ptr;
+    dstStride = tbmSurfaceInfo.planes[0].stride;
 #else
-      dstBuffer = mBufferImage.GetBuffer();
-      dstStride = mBufferImage.GetBufferStride();
+    dstBuffer = mBufferImage.GetBuffer();
+    dstStride = mBufferImage.GetBufferStride();
 #endif
 
-      uint32_t srcStride = renderResult.updatedWidth * sizeof(uint32_t);
-      uint8_t* srcBuffer = static_cast< uint8_t* >( renderResult.updatedBufferAddress );
+    uint32_t srcStride = renderResult.updatedWidth * sizeof(uint32_t);
+    uint8_t* srcBuffer = static_cast< uint8_t* >( renderResult.updatedBufferAddress );
 
-      if (dstStride == srcStride)
+    if (dstStride == srcStride)
+    {
+      memcpy( dstBuffer, srcBuffer, tbmSurfaceInfo.planes[0].size );
+    }
+    else
+    {
+      for ( auto y = renderResult.updatedY; y < ( renderResult.updatedHeight + renderResult.updatedY ); y++ )
       {
-        memcpy( dstBuffer, srcBuffer, tbmSurfaceInfo.planes[0].size );
+        auto start = renderResult.updatedX;
+        memcpy( dstBuffer + ( y * dstStride ) + ( start * 4 ), srcBuffer + ( y * srcStride ) + ( start * 4 ), srcStride );
       }
-      else
-      {
-        for ( auto y = renderResult.updatedY; y < ( renderResult.updatedHeight + renderResult.updatedY ); y++ )
-        {
-          auto start = renderResult.updatedX;
-          memcpy( dstBuffer + ( y * dstStride ) + ( start * 4 ), srcBuffer + ( y * srcStride ) + ( start * 4 ), srcStride );
-        }
-      }
+    }
 
 #ifdef STARFISH_DALI_TBMSURFACE
-      if( tbm_surface_unmap( mTbmSurface ) != TBM_SURFACE_ERROR_NONE )
-      {
-        DALI_LOG_ERROR( "Fail to unmap tbm_surface\n" );
-      }
+    if( tbm_surface_unmap( mTbmSurface ) != TBM_SURFACE_ERROR_NONE )
+    {
+      DALI_LOG_ERROR( "Fail to unmap tbm_surface\n" );
+    }
 #endif
-      gIsNeedsUpdate = true;
-    };
+    mIsNeedsUpdate = true;
+  };
 
-    onReceivedError = []( LWE::WebContainer* container, LWE::ResourceError error ) {
-    };
-    onPageStartedHandler = []( LWE::WebContainer* container, const std::string& url ) {
-    };
-    onPageFinishedHandler = []( LWE::WebContainer* container, const std::string& url ) {
-    };
-    onLoadResourceHandler = []( LWE::WebContainer* container, const std::string& url ) {
-    };
-  }
+  onReceivedError = []( LWE::WebContainer* container, LWE::ResourceError error ) {
+  };
+  onPageStartedHandler = []( LWE::WebContainer* container, const std::string& url ) {
+  };
+  onPageFinishedHandler = []( LWE::WebContainer* container, const std::string& url ) {
+  };
+  onLoadResourceHandler = []( LWE::WebContainer* container, const std::string& url ) {
+  };
 
 #ifdef STARFISH_DALI_TBMSURFACE
-  mTbmSurface = tbm_surface_create( width, height, TBM_FORMAT_ABGR8888 );
+  mTbmSurface = tbm_surface_create( width, height, TBM_FORMAT_ARGB8888 );
   mNativeImageSourcePtr = Dali::NativeImageSource::New( mTbmSurface );
 #else
-  mBufferImage = Dali::BufferImage::New( width, height, Dali::Pixel::RGBA8888 );
+  mBufferImage = Dali::BufferImage::New( width, height, Dali::Pixel::BGRA8888 );
 #endif
 
-  CreateInstance();
-  while ( true )
+  if ( !LWE::LWE::IsInitialized() )
   {
-      if ( mWebContainer )
-      {
-          break;
-      }
-      usleep( 100 );
+    LWE::LWE::Initialize("/tmp/StarFish_localStorage.txt",
+                         "/tmp/StarFish_Cookies.txt", "/tmp/StarFish-cache");
   }
+  mWebContainer = LWE::WebContainer::Create(
+      mOutputBuffer, mOutputWidth, mOutputHeight,
+      mOutputStride, 1.0, "SamsungOne", locale.data(), timezoneId.data() );
+  mWebContainer->RegisterOnRenderedHandler(
+      [ this ]( LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult )
+      {
+        onRenderedHandler( container, renderResult );
+      } );
+  mWebContainer->RegisterOnReceivedErrorHandler(
+      [ this ]( LWE::WebContainer* container, LWE::ResourceError error )
+      {
+        mCanGoBack = container->CanGoBack();
+        mCanGoForward = container->CanGoForward();
+        onReceivedError( container, error );
+      });
+  mWebContainer->RegisterOnPageStartedHandler(
+      [ this ]( LWE::WebContainer* container, const std::string& url )
+      {
+        mUrl = url;
+        mCanGoBack = container->CanGoBack();
+        mCanGoForward = container->CanGoForward();
+        onPageStartedHandler( container, url );
+      });
+  mWebContainer->RegisterOnPageLoadedHandler(
+      [ this ]( LWE::WebContainer* container, const std::string& url )
+      {
+        mUrl = url;
+        mCanGoBack = container->CanGoBack();
+        mCanGoForward = container->CanGoForward();
+        onPageFinishedHandler( container, url );
+      });
+  mWebContainer->RegisterOnLoadResourceHandler(
+      [ this ]( LWE::WebContainer* container, const std::string& url )
+      {
+        mUrl = url;
+        mCanGoBack = container->CanGoBack();
+        mCanGoForward = container->CanGoForward();
+        onLoadResourceHandler( container, url );
+      });
+
 }
 
 void TizenWebEngineLite::Destroy()
@@ -549,41 +483,14 @@ void TizenWebEngineLite::Destroy()
 #endif
 
     DestroyInstance();
-    StopLoop();
-
-    int status;
-    pthread_join( mThreadHandle, ( void** )&status );
-
     mWebContainer = NULL;
   }
 }
 
 void TizenWebEngineLite::DestroyInstance()
 {
-	DALI_ASSERT_ALWAYS( mWebContainer );
-	auto cb = []( void* data )
-	{
-	  TizenWebEngineLite* engine = static_cast< TizenWebEngineLite* >( data );
-
-	  TO_CONTAINER( data )->Destroy();
-
-	  while ( !engine->mAsyncHandlePool.empty() )
-	  {
-	    UVAsyncHandleData* handleData = NULL;
-	    {
-	      Locker l( gMutex );
-	      handleData = ( UVAsyncHandleData* )*engine->mAsyncHandlePool.begin();
-	      engine->mAsyncHandlePool.erase( engine->mAsyncHandlePool.begin() );
-	    }
-
-	    if ( handleData ) {
-	      handleData->cb( handleData->data );
-	      delete handleData;
-	    }
-	  }
-	  gDaliNumber--;
-	};
-	SendAsyncHandle( cb );
+  DALI_ASSERT_ALWAYS( mWebContainer );
+  mWebContainer->Destroy();
 }
 
 Dali::NativeImageInterfacePtr TizenWebEngineLite::GetNativeImageSource()
@@ -594,11 +501,7 @@ Dali::NativeImageInterfacePtr TizenWebEngineLite::GetNativeImageSource()
 void TizenWebEngineLite::LoadUrl( const std::string& url )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = [url]( void* data )
-  {
-    TO_CONTAINER( data )->LoadURL( url );
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->LoadURL( url );
 }
 
 const std::string& TizenWebEngineLite::GetUrl()
@@ -610,51 +513,31 @@ const std::string& TizenWebEngineLite::GetUrl()
 void TizenWebEngineLite::LoadHTMLString( const std::string& str )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = [str]( void* data )
-  {
-    TO_CONTAINER( data )->LoadData( str );
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->LoadData( str );
 }
 
 void TizenWebEngineLite::Reload()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = []( void* data )
-  {
-    TO_CONTAINER( data )->Reload();
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->Reload();
 }
 
 void TizenWebEngineLite::StopLoading()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = []( void* data )
-  {
-    TO_CONTAINER( data )->StopLoading();
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->StopLoading();
 }
 
 void TizenWebEngineLite::GoBack()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = []( void* data )
-  {
-    TO_CONTAINER( data )->GoBack();
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->GoBack();
 }
 
 void TizenWebEngineLite::GoForward()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = []( void* data )
-  {
-    TO_CONTAINER( data )->GoForward();
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->GoForward();
 }
 
 bool TizenWebEngineLite::CanGoBack()
@@ -672,52 +555,32 @@ bool TizenWebEngineLite::CanGoForward()
 void TizenWebEngineLite::EvaluateJavaScript( const std::string& script )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = [script]( void* data ) {
-      TO_CONTAINER( data )->EvaluateJavaScript( script );
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->EvaluateJavaScript( script );
 }
 
 void TizenWebEngineLite::AddJavaScriptInterface( const std::string& exposedObjectName, const std::string& jsFunctionName, std::function< std::string(const std::string&) > callback )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = [exposedObjectName, jsFunctionName, callback]( void* data )
-  {
-    TO_CONTAINER( data )->AddJavaScriptInterface( exposedObjectName, jsFunctionName, callback );
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->AddJavaScriptInterface( exposedObjectName, jsFunctionName, callback );
 }
 
 void TizenWebEngineLite::RemoveJavascriptInterface( const std::string& exposedObjectName, const std::string& jsFunctionName )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = [exposedObjectName, jsFunctionName]( void* data )
-  {
-    TO_CONTAINER( data )->RemoveJavascriptInterface( exposedObjectName, jsFunctionName );
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->RemoveJavascriptInterface( exposedObjectName, jsFunctionName );
 }
 
 void TizenWebEngineLite::ClearHistory()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = []( void* data )
-  {
-    TizenWebEngineLite* engine = static_cast< TizenWebEngineLite* >( data );
-    TO_CONTAINER( data )->ClearHistory();
-    engine->mCanGoBack = TO_CONTAINER( data )->CanGoBack();
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->ClearHistory();
+  mCanGoBack = mWebContainer->CanGoBack();
 }
 
 void TizenWebEngineLite::ClearCache()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  auto cb = []( void* data )
-  {
-    TO_CONTAINER( data )->ClearCache();
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->ClearCache();
 }
 
 void TizenWebEngineLite::SetSize( int width, int height )
@@ -726,14 +589,13 @@ void TizenWebEngineLite::SetSize( int width, int height )
 
   if( mOutputWidth != ( size_t )width || mOutputHeight != ( size_t )height )
   {
-    Locker l( gMutex );
 	  mOutputWidth = width;
 	  mOutputHeight = height;
 	  mOutputStride = width * sizeof(uint32_t);
 
 #ifdef STARFISH_DALI_TBMSURFACE
 	  tbm_surface_h prevTbmSurface = mTbmSurface;
-	  mTbmSurface = tbm_surface_create( width, height, TBM_FORMAT_ABGR8888 );
+	  mTbmSurface = tbm_surface_create( width, height, TBM_FORMAT_ARGB8888 );
 	  Dali::Any source( mTbmSurface );
 	  mNativeImageSourcePtr->SetSource( source );
 	  if( prevTbmSurface != NULL && tbm_surface_destroy( prevTbmSurface ) != TBM_SURFACE_ERROR_NONE )
@@ -742,38 +604,27 @@ void TizenWebEngineLite::SetSize( int width, int height )
 	  }
 #endif
 
-	  auto cb = []( void* data )
-    {
-	    TizenWebEngineLite* engine = static_cast< TizenWebEngineLite* >( data );
+    auto oldOutputBuffer = mOutputBuffer;
+    mOutputBuffer = ( uint8_t* )malloc( mOutputWidth * mOutputHeight * sizeof( uint32_t ) );
+    mOutputStride = mOutputWidth * sizeof( uint32_t );
+	  mWebContainer->UpdateBuffer( mOutputBuffer, mOutputWidth,
+		mOutputHeight, mOutputStride );
 
-	    Locker l( gMutex );
-	    if (engine->mOutputBuffer) {
-	      free(engine->mOutputBuffer);
-	      engine->mOutputBuffer = NULL;
-	    }
-
-		  engine->mOutputBuffer = ( uint8_t* )malloc( engine->mOutputWidth * engine->mOutputHeight * sizeof( uint32_t ) );
-		  engine->mOutputStride = engine->mOutputWidth * sizeof( uint32_t );
-		  engine->mWebContainer->UpdateBuffer( engine->mOutputBuffer, engine->mOutputWidth,
-		      engine->mOutputHeight, engine->mOutputStride );
-	  };
-	  SendAsyncHandle( cb );
+    if (oldOutputBuffer) {
+	      free(oldOutputBuffer);
+	  }
   }
 }
 
 void TizenWebEngineLite::DispatchMouseDownEvent( float x, float y )
 {
-	DALI_ASSERT_ALWAYS( mWebContainer );
-	if (!mIsRunning)
-	{
-	  return;
-	}
-
-	auto cb = [x, y]( void* data )
+  DALI_ASSERT_ALWAYS( mWebContainer );
+  if (!mIsRunning)
   {
-	  TO_CONTAINER( data )->DispatchMouseDownEvent( LWE::MouseButtonValue::LeftButton, LWE::MouseButtonsValue::LeftButtonDown, x, y );
-  };
-	SendAsyncHandle( cb );
+    return;
+  }
+
+  mWebContainer->DispatchMouseDownEvent( LWE::MouseButtonValue::LeftButton, LWE::MouseButtonsValue::LeftButtonDown, x, y );
 }
 
 void TizenWebEngineLite::DispatchMouseUpEvent( float x, float y )
@@ -784,30 +635,22 @@ void TizenWebEngineLite::DispatchMouseUpEvent( float x, float y )
     return;
   }
 
-  auto cb = [x, y]( void* data )
-  {
-    TO_CONTAINER( data )->DispatchMouseUpEvent( LWE::MouseButtonValue::NoButton, LWE::MouseButtonsValue::NoButtonDown, x, y );
-  };
-  SendAsyncHandle( cb );
+  mWebContainer->DispatchMouseUpEvent( LWE::MouseButtonValue::NoButton, LWE::MouseButtonsValue::NoButtonDown, x, y );
 }
 
 void TizenWebEngineLite::DispatchMouseMoveEvent( float x, float y, bool isLButtonPressed, bool isRButtonPressed )
 {
-	DALI_ASSERT_ALWAYS( mWebContainer );
-	if (!mIsRunning)
-	{
-	  return;
-	}
-
-	auto cb = [x, y, isLButtonPressed]( void* data )
+  DALI_ASSERT_ALWAYS( mWebContainer );
+  if (!mIsRunning)
   {
-	  TO_CONTAINER( data )->DispatchMouseMoveEvent(
-	      isLButtonPressed ? LWE::MouseButtonValue::LeftButton
-	          : LWE::MouseButtonValue::NoButton,
-	      isLButtonPressed ? LWE::MouseButtonsValue::LeftButtonDown
-	          : LWE::MouseButtonsValue::NoButtonDown, x, y );
-  };
-	SendAsyncHandle( cb );
+    return;
+  }
+
+  mWebContainer->DispatchMouseMoveEvent(
+    isLButtonPressed ? LWE::MouseButtonValue::LeftButton
+    : LWE::MouseButtonValue::NoButton,
+    isLButtonPressed ? LWE::MouseButtonsValue::LeftButtonDown
+    : LWE::MouseButtonsValue::NoButtonDown, x, y );
 }
 
 bool TizenWebEngineLite::SendTouchEvent( const TouchData& touch )
@@ -840,47 +683,35 @@ bool TizenWebEngineLite::SendTouchEvent( const TouchData& touch )
 
 void TizenWebEngineLite::DispatchKeyDownEvent( LWE::KeyValue keyCode )
 {
-	DALI_ASSERT_ALWAYS( mWebContainer );
-	if (!mIsRunning)
-	{
-	  return;
-	}
-
-	auto cb = [keyCode]( void* data )
+  DALI_ASSERT_ALWAYS( mWebContainer );
+  if (!mIsRunning)
   {
-	  TO_CONTAINER( data )->DispatchKeyDownEvent( keyCode );
-  };
-	SendAsyncHandle( cb );
+    return;
+  }
+
+  mWebContainer->DispatchKeyDownEvent( keyCode );
 }
 
 void TizenWebEngineLite::DispatchKeyPressEvent( LWE::KeyValue keyCode )
 {
-	DALI_ASSERT_ALWAYS( mWebContainer );
-	if (!mIsRunning)
-	{
-	  return;
-	}
-
-	auto cb = [keyCode]( void* data )
+  DALI_ASSERT_ALWAYS( mWebContainer );
+  if (!mIsRunning)
   {
-	  TO_CONTAINER( data )->DispatchKeyPressEvent( keyCode );
-  };
-	SendAsyncHandle( cb );
+    return;
+  }
+
+  mWebContainer->DispatchKeyPressEvent( keyCode );
 }
 
 void TizenWebEngineLite::DispatchKeyUpEvent( LWE::KeyValue keyCode )
 {
-	DALI_ASSERT_ALWAYS( mWebContainer );
-	if (!mIsRunning)
-	{
-	  return;
-	}
-
-	auto cb = [keyCode]( void* data )
+  DALI_ASSERT_ALWAYS( mWebContainer );
+  if (!mIsRunning)
   {
-	  TO_CONTAINER( data )->DispatchKeyUpEvent(keyCode);
-  };
-	SendAsyncHandle( cb );
+    return;
+  }
+
+  mWebContainer->DispatchKeyUpEvent(keyCode);
 }
 
 bool TizenWebEngineLite::SendKeyEvent( const Dali::KeyEvent& event )
@@ -905,70 +736,6 @@ bool TizenWebEngineLite::SendKeyEvent( const Dali::KeyEvent& event )
   }
 
   return false;
-}
-
-void TizenWebEngineLite::CallEmptyAsyncHandle()
-{
-	DALI_ASSERT_ALWAYS( mWebContainer );
-	auto cb = []( void* data ) {
-  };
-	SendAsyncHandle( cb );
-}
-
-void TizenWebEngineLite::StopLoop()
-{
-  gDaliNumber = -1;
-  CallEmptyAsyncHandle();
-}
-
-void TizenWebEngineLite::SendAsyncHandle(std::function<void(void*)> cb)
-{
-  UVAsyncHandleData* handle = new UVAsyncHandleData();
-  handle->cb = cb;
-  handle->data = this;
-
-  {
-    Locker l( gMutex );
-    mAsyncHandlePool.push_back( ( size_t )handle );
-  }
-
-  gLauncherHandle.data = this;
-  uv_async_send(&gLauncherHandle);
-}
-
-void* TizenWebEngineLite::StartMainThread( void* data )
-{
-  uv_async_init( uv_default_loop(), &gLauncherHandle, []( uv_async_t* handle )
-  {
-    Dali::Plugin::TizenWebEngineLite* engine = static_cast< Dali::Plugin::TizenWebEngineLite* >(handle->data);
-    while ( !engine->mAsyncHandlePool.empty() )
-    {
-      UVAsyncHandleData* handleData = NULL;
-      {
-        Locker l( gMutex );
-        handleData = ( UVAsyncHandleData* )*engine->mAsyncHandlePool.begin();
-        engine->mAsyncHandlePool.erase( engine->mAsyncHandlePool.begin() );
-      }
-
-      if ( handleData )
-      {
-        handleData->cb( handleData->data );
-        delete handleData;
-      }
-    }
-  });
-
-  gIsAliveMainLoop = true;
-  pthread_mutex_unlock( &gMutex );
-  while ( true )
-  {
-    uv_run( uv_default_loop(), UV_RUN_ONCE );
-    if ( gDaliNumber < 0 )
-    {
-      break;
-    }
-  }
-  return NULL;
 }
 
 } // namespace Plugin
