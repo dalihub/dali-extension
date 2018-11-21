@@ -1,0 +1,2 @@
+web_engine_lite_plugin_src_files = \
+   $(extension_src_dir)/web-engine-lite/tizen-web-engine-lite.cpp
