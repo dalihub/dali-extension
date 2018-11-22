@@ -100,7 +100,6 @@ Image Loader plugin to image loading file for Dali
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(libtbm)
-BuildRequires: pkgconfig(libtuv)
 BuildRequires: pkgconfig(lightweight-web-engine)
 
 %description web-engine-lite-plugin
