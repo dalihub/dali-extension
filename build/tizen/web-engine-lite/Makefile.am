@@ -31,11 +31,13 @@ libdali_web_engine_lite_plugin_la_DEPENDENCIES =
 
 libdali_web_engine_lite_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
+                      $(LIBTUV_CFLAGS) \
                       $(WEB_ENGINE_LITE_CFLAGS) \
                       -Werror -Wall
 
 libdali_web_engine_lite_plugin_la_LIBADD = \
                       $(DALI_LIBS) \
+                      $(LIBTUV_LIBS) \
                       $(WEB_ENGINE_LITE_LIBS)
 
 libdali_web_engine_lite_plugin_la_LDFLAGS = \
