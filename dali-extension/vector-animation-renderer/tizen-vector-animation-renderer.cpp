@@ -50,6 +50,7 @@ const Vector4 FULL_TEXTURE_RECT( 0.f, 0.f, 1.f, 1.f );
 TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
 : mUrl(),
   mBuffers(),
+  mMutex(),
   mTargetSurface(),
   mRenderer(),
   mTbmQueue( NULL ),
@@ -61,6 +62,8 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
 
 TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
 {
+  Dali::Mutex::ScopedLock lock( mMutex );
+
   for( auto&& iter : mBuffers )
   {
     tbm_surface_internal_unref( iter.first );
@@ -95,6 +98,25 @@ bool TizenVectorAnimationRenderer::CreateRenderer( const std::string& url, Rende
   return true;
 }
 
+void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
+{
+  Dali::Mutex::ScopedLock lock( mMutex );
+
+  mTargetSurface->SetSize( width, height );
+
+  mWidth = width;
+  mHeight = height;
+
+  // Reset the buffer list
+  for( auto&& iter : mBuffers )
+  {
+    tbm_surface_internal_unref( iter.first );
+  }
+  mBuffers.clear();
+
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d\n", mWidth, mHeight );
+}
+
 bool TizenVectorAnimationRenderer::StartRender()
 {
   mRenderer = lottie::Animation::loadFromFile( mUrl );
@@ -113,6 +135,8 @@ bool TizenVectorAnimationRenderer::StartRender()
 
 void TizenVectorAnimationRenderer::StopRender()
 {
+  Dali::Mutex::ScopedLock lock( mMutex );
+
   if( mTbmQueue )
   {
     tbm_surface_queue_flush( mTbmQueue );
@@ -123,11 +147,17 @@ void TizenVectorAnimationRenderer::StopRender()
 
 void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 {
+  Dali::Mutex::ScopedLock lock( mMutex );
+
   if( tbm_surface_queue_can_dequeue( mTbmQueue, 1 ) )
   {
     tbm_surface_h tbmSurface;
 
-    tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface );
+    if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
+    {
+      DALI_LOG_ERROR( "Failed to dequeue a tbm_surface\n" );
+      return;
+    }
 
     tbm_surface_info_s info;
     tbm_surface_map( tbmSurface, TBM_OPTION_WRITE, &info );
@@ -153,7 +183,7 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
       unsigned char* buffer = info.planes[0].ptr;
 
       // Create Surface object
-      lottie::Surface surface( reinterpret_cast< uint32_t* >( buffer ), static_cast< size_t >( info.width ), static_cast< size_t >( info.height ), static_cast< size_t >( info.planes[0].stride ) );
+      lottie::Surface surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
 
       // Push the buffer
       mBuffers.push_back( SurfacePair( tbmSurface, surface ) );
@@ -165,6 +195,10 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
     tbm_surface_unmap( tbmSurface );
 
     tbm_surface_queue_enqueue( mTbmQueue, tbmSurface );
+  }
+  else
+  {
+    DALI_LOG_ERROR( "Cannot dequeue a tbm_surface [%d]\n", frameNumber );
   }
 }
 
