@@ -21,6 +21,7 @@
 // EXTERNAL INCLUDES
 #include <dali/public-api/math/uint-16-pair.h>
 #include <dali/public-api/common/vector-wrapper.h>
+#include <dali/devel-api/threading/mutex.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
 #include <memory>
@@ -57,6 +58,11 @@ public:
   bool CreateRenderer( const std::string& url, Renderer renderer, uint32_t width, uint32_t height ) override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::SetSize()
+   */
+  void SetSize( uint32_t width, uint32_t height ) override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::StartRender()
    */
   bool StartRender() override;
@@ -89,6 +95,7 @@ private:
 
   std::string                          mUrl;               ///< The content file path
   std::vector< SurfacePair >           mBuffers;           ///< EGL Image vector
+  Dali::Mutex                          mMutex;             ///< Mutex
   NativeImageSourceQueuePtr            mTargetSurface;     ///< The target surface
   std::unique_ptr< lottie::Animation > mRenderer;          ///< The vector animation renderer
   tbm_surface_queue_h                  mTbmQueue;          ///< Tbm surface queue handle
