@@ -7,7 +7,7 @@
 
 Name:       dali-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.3.53
+Version:    1.3.54
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -87,6 +87,18 @@ Group:      System/Libraries
 %description image-loader-plugin
 Image Loader plugin to image loading file for Dali
 
+####################################
+# Vector Animation Renderer Plugin
+####################################
+
+%package vector-animation-renderer-plugin
+Summary:    Plugin to render a vector animation
+Group:      System/Libraries
+BuildRequires:  pkgconfig(lottie-player)
+
+%description vector-animation-renderer-plugin
+Plugin to render a vector animation
+
 ##############################
 # Preparation
 ##############################
@@ -162,6 +174,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post vector-animation-renderer-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -188,6 +204,10 @@ exit 0
 exit 0
 
 %postun image-loader-plugin
+/sbin/ldconfig
+exit 0
+
+%postun vector-animation-renderer-plugin
 /sbin/ldconfig
 exit 0
 
@@ -231,3 +251,9 @@ exit 0
 %{_libdir}/libdali-image-loader-plugin.so*
 %license LICENSE
 %endif
+
+%files vector-animation-renderer-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-vector-animation-renderer-plugin.so*
+%license LICENSE
