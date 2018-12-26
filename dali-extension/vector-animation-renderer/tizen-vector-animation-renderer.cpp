@@ -231,10 +231,16 @@ void TizenVectorAnimationRenderer::SetShader( Renderer renderer )
     if( map )
     {
       Property::Value* fragment = map->Find( "fragment" );
-      fragmentShader += fragment->Get< std::string >();
+      if( fragment )
+      {
+        fragmentShader += fragment->Get< std::string >();
+      }
 
       Property::Value* vertex = map->Find( "vertex" );
-      vertexShader = vertex->Get< std::string >();
+      if( vertex )
+      {
+        vertexShader = vertex->Get< std::string >();
+      }
     }
 
     // Get custom sampler type name
