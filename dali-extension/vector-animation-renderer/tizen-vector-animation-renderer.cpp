@@ -153,7 +153,11 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
   {
     tbm_surface_h tbmSurface;
 
-    tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface );
+    if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
+    {
+      DALI_LOG_ERROR( "Failed to dequeue a tbm_surface\n" );
+      return;
+    }
 
     tbm_surface_info_s info;
     tbm_surface_map( tbmSurface, TBM_OPTION_WRITE, &info );
@@ -192,6 +196,10 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
     tbm_surface_queue_enqueue( mTbmQueue, tbmSurface );
   }
+  else
+  {
+    DALI_LOG_ERROR( "Cannot dequeue a tbm_surface [%d]\n", frameNumber );
+  }
 }
 
 uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber()
@@ -223,10 +231,16 @@ void TizenVectorAnimationRenderer::SetShader( Renderer renderer )
     if( map )
     {
       Property::Value* fragment = map->Find( "fragment" );
-      fragmentShader += fragment->Get< std::string >();
+      if( fragment )
+      {
+        fragmentShader += fragment->Get< std::string >();
+      }
 
       Property::Value* vertex = map->Find( "vertex" );
-      vertexShader = vertex->Get< std::string >();
+      if( vertex )
+      {
+        vertexShader = vertex->Get< std::string >();
+      }
     }
 
     // Get custom sampler type name
