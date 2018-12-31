@@ -99,6 +99,17 @@ BuildRequires:  pkgconfig(lottie-player)
 %description vector-animation-renderer-plugin
 Plugin to render a vector animation
 
+####################################
+# color controller Plugin
+####################################
+
+%package color-controller-plugin
+Summary:    Plugin to load color theme
+Group:      System/Libraries
+
+%description color-controller-plugin
+Plugin to load color theme
+
 ##############################
 # Preparation
 ##############################
@@ -178,6 +189,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post color-controller-plugin
+/sbin/ldconfig
+exit 0
+
 ##############################
 #   Pre Uninstall old package
 ##############################
@@ -208,6 +223,10 @@ exit 0
 exit 0
 
 %postun vector-animation-renderer-plugin
+/sbin/ldconfig
+exit 0
+
+%postun color-controller-plugin
 /sbin/ldconfig
 exit 0
 
@@ -256,4 +275,10 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-vector-animation-renderer-plugin.so*
+%license LICENSE
+
+%files color-controller-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-color-controller-plugin.so*
 %license LICENSE
