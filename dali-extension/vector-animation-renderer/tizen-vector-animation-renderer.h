@@ -53,9 +53,14 @@ public:
   virtual ~TizenVectorAnimationRenderer();
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::CreateRenderer()
+   * @copydoc Dali::VectorAnimationRendererPlugin::SetUrl()
    */
-  bool CreateRenderer( const std::string& url, Renderer renderer, uint32_t width, uint32_t height ) override;
+  void SetUrl( const std::string& url ) override;
+
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::SetRenderer()
+   */
+  void SetRenderer( Renderer renderer ) override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::SetSize()
@@ -87,7 +92,7 @@ private:
   /**
    * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
    */
-  void SetShader( Renderer renderer );
+  void SetShader();
 
 private:
 
@@ -96,8 +101,9 @@ private:
   std::string                          mUrl;               ///< The content file path
   std::vector< SurfacePair >           mBuffers;           ///< EGL Image vector
   Dali::Mutex                          mMutex;             ///< Mutex
+  Dali::Renderer                       mRenderer;          ///< Renderer
   NativeImageSourceQueuePtr            mTargetSurface;     ///< The target surface
-  std::unique_ptr< lottie::Animation > mRenderer;          ///< The vector animation renderer
+  std::unique_ptr< lottie::Animation > mVectorRenderer;    ///< The vector animation renderer
   tbm_surface_queue_h                  mTbmQueue;          ///< Tbm surface queue handle
   uint32_t                             mTotalFrameNumber;  ///< The total frame number
   uint32_t                             mWidth;             ///< The width of the surface
