@@ -188,6 +188,22 @@ rm %{buildroot}/%{_libdir}/libdali-plugin-parser.so.0
 mv %{buildroot}/%{_libdir}/libdali-plugin-parser.so.0.0.0 %{buildroot}%{dali_plugin_parser_dir}libnui_vulkan_backend_plugin.so
 cp %{_builddir}/%{name}-%{version}/build/tizen/plugin-parser/nui_vulkan_backend.txt %{buildroot}%{dali_plugin_parser_list_dir}
 
+%if "%{?profile}" != "wearable" && "%{?profile}" != "common" && "%{?profile}" != "ivi" && "%{?profile}" != "mobile"
+%if 0%{?graphic_backend_vulkan} > 0
+mkdir -p %{buildroot}/%{_libdir}
+pushd %{buildroot}%{_libdir}
+rm -f libdali-csharp-binder.so
+ln -s libdali-csharp-binder-vk.so.0.0.0 libdali-csharp-binder.so
+popd
+%else
+mkdir -p %{buildroot}/%{_libdir}
+pushd %{buildroot}%{_libdir}
+rm -f libdali-csharp-binder.so
+ln -s libdali-csharp-binder.so.0.0.0 libdali-csharp-binder.so
+popd
+%endif
+%endif
+
 %pre
 exit 0
 
@@ -315,4 +331,7 @@ exit 0
 %defattr(-,root,root,-)
 %{dali_plugin_parser_dir}libnui_vulkan_backend_plugin.so
 %{dali_plugin_parser_list_dir}nui_vulkan_backend.txt
+%if "%{?profile}" != "wearable" && "%{?profile}" != "common" && "%{?profile}" != "ivi" && "%{?profile}" != "mobile"
+%{_libdir}/libdali-csharp-binder.so
+%endif
 %license LICENSE

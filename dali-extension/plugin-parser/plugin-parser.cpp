@@ -28,6 +28,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
 #include "plugin-parser.h"
+#include <fstream>
+#include <iostream>
 
 typedef struct Metadata
 {
@@ -39,6 +41,33 @@ const std::string valueType = "true";
 const std::string mdKey = "http://tizen.org/metadata/nui_vulkan_backend";
 extern "C" int PKGMGR_MDPARSER_PLUGIN_INSTALL(const char *pkgId, const char *appId, GList *list)
 {
+  _INFO("dali.sh file read! \n");
+  bool graphic_backend_vulkan = false;
+  std::string filePath = "/etc/profile.d/dali.sh";
+  std::ifstream openFile(filePath.data());
+  if( openFile.is_open() )
+  {
+    std::string line;
+    while(std::getline(openFile, line))
+    {
+      _INFO("%s", line.c_str());
+      std::size_t found;
+      found = line.find("DALI_VULKAN_BACKEND=");
+      if (found != std::string::npos)
+      {
+        found = line.find("0");
+        if(found == std::string::npos)
+        {
+          graphic_backend_vulkan = true;
+          break;
+        }
+      }
+    }
+    openFile.close();
+  }
+
+  _INFO("graphic_backend_vulkan=%d \n", graphic_backend_vulkan);
+
   GList *tag = NULL;
   bool mdValue = false;
   Metadata *mdInfo = NULL;
@@ -48,20 +77,40 @@ extern "C" int PKGMGR_MDPARSER_PLUGIN_INSTALL(const char *pkgId, const char *app
     mdInfo = (Metadata*)tag->data;
     if (mdInfo->key == mdKey && mdInfo->value == valueType)
     {
-      _INFO("NUI VulkanBackend set TRUE");
       mdValue = true;
     }
     tag = g_list_next(tag);
   }
 
+  _INFO("mdValue(http://tizen.org/metadata/nui_vulkan_backend)=%d\n", mdValue );
+
   if (mdValue)
   {
-    int ret = makeNuiVulkanBackendSymbolicLink(pkgId, mdValue);
-    _INFO("makeNuiVulkanBackendSymbolicLink()=%d", ret );
+    if(graphic_backend_vulkan)
+    {
+      //app: vk, backend: vk
+      _INFO("No symbolic link for nui vulkan backend!");
+    }
+    else
+    {
+      //app: vk, backend: gl
+      int ret = makeNuiVulkanBackendSymbolicLink(pkgId, true);
+	_INFO("vk symbolic link is added! makeNuiVulkanBackendSymbolicLink()=%d", ret );
+    }
   }
   else
   {
-    _INFO("No symbolic link for nui vulkan backend!");
+    if(graphic_backend_vulkan)
+    {
+      //app: gl, backend: vk
+      int ret = makeNuiVulkanBackendSymbolicLink(pkgId, false);
+      _INFO("gl symbolic link is added! makeNuiVulkanBackendSymbolicLink()=%d", ret );
+    }
+    else
+    {
+      //app: gl, backend: gl
+      _INFO("No symbolic link for nui gl backend!");
+    }
   }
   return 0;
 }
@@ -118,13 +167,13 @@ extern "C" int makeNuiVulkanBackendSymbolicLink(const std::string& pkgId, bool v
     _ERR("makeNuiVulkanBackendSymbolicLink() ERROR : fail to get pkgRoot!");
     return -1;
   }
-  _INFO("makeNuiVulkanBackendSymbolicLink() TP1 : pkgRoot=%s, vkOn=%d", static_cast<const char*>(pkgRoot.c_str()), vkOn);
+  _INFO("makeNuiVulkanBackendSymbolicLink() pkgRoot=%s, vkOn=%d", static_cast<const char*>(pkgRoot.c_str()), vkOn);
 
-  const char* nuiVkBinderPath = "/usr/lib/libdali-csharp-binder-vk.so";
-
-  // if(!vkOn) {
-  //  nuiVkBinderPath = "/usr/lib/libdali-csharp-binder.so";
-  // }
+  const char* nuiVkBinderPath = "/usr/lib/libdali-csharp-binder-vk.so.0.0.0";
+  if(!vkOn)
+  {
+    nuiVkBinderPath = "/usr/lib/libdali-csharp-binder.so.0.0.0";
+  }
 
   bf::path symbol_path = bf::path(pkgRoot) / bf::path("lib/libdali-csharp-binder.so");
   boost::system::error_code error;
@@ -135,5 +184,6 @@ extern "C" int makeNuiVulkanBackendSymbolicLink(const std::string& pkgId, bool v
     _ERR("makeNuiVulkanBackendSymbolicLink() ERROR : create_symlink() error!");
     return -1;
   }
+
   return 0;
 }
