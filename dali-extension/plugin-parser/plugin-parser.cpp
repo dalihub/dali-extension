@@ -41,33 +41,6 @@ const std::string valueType = "true";
 const std::string mdKey = "http://tizen.org/metadata/nui_vulkan_backend";
 extern "C" int PKGMGR_MDPARSER_PLUGIN_INSTALL(const char *pkgId, const char *appId, GList *list)
 {
-  _INFO("dali.sh file read! \n");
-  bool graphic_backend_vulkan = false;
-  std::string filePath = "/etc/profile.d/dali.sh";
-  std::ifstream openFile(filePath.data());
-  if( openFile.is_open() )
-  {
-    std::string line;
-    while(std::getline(openFile, line))
-    {
-      _INFO("%s", line.c_str());
-      std::size_t found;
-      found = line.find("DALI_VULKAN_BACKEND=");
-      if (found != std::string::npos)
-      {
-        found = line.find("0");
-        if(found == std::string::npos)
-        {
-          graphic_backend_vulkan = true;
-          break;
-        }
-      }
-    }
-    openFile.close();
-  }
-
-  _INFO("graphic_backend_vulkan=%d \n", graphic_backend_vulkan);
-
   GList *tag = NULL;
   bool mdValue = false;
   Metadata *mdInfo = NULL;
@@ -83,35 +56,17 @@ extern "C" int PKGMGR_MDPARSER_PLUGIN_INSTALL(const char *pkgId, const char *app
   }
 
   _INFO("mdValue(http://tizen.org/metadata/nui_vulkan_backend)=%d\n", mdValue );
-
   if (mdValue)
   {
-    if(graphic_backend_vulkan)
-    {
-      //app: vk, backend: vk
-      _INFO("No symbolic link for nui vulkan backend!");
-    }
-    else
-    {
-      //app: vk, backend: gl
-      int ret = makeNuiVulkanBackendSymbolicLink(pkgId, true);
-	_INFO("vk symbolic link is added! makeNuiVulkanBackendSymbolicLink()=%d", ret );
-    }
+    int ret = makeNuiVulkanBackendSymbolicLink(pkgId, true);
+    _INFO("vk symbolic link is added! makeNuiVulkanBackendSymbolicLink()=%d", ret );
   }
   else
   {
-    if(graphic_backend_vulkan)
-    {
-      //app: gl, backend: vk
-      int ret = makeNuiVulkanBackendSymbolicLink(pkgId, false);
-      _INFO("gl symbolic link is added! makeNuiVulkanBackendSymbolicLink()=%d", ret );
-    }
-    else
-    {
-      //app: gl, backend: gl
-      _INFO("No symbolic link for nui gl backend!");
-    }
+    int ret = makeNuiVulkanBackendSymbolicLink(pkgId, false);
+    _INFO("gl symbolic link is added! makeNuiVulkanBackendSymbolicLink()=%d", ret );
   }
+
   return 0;
 }
 
