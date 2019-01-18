@@ -33,6 +33,19 @@ namespace Dali
 {
 namespace Plugin
 {
+
+class WebViewContainerClientPair {
+public:
+  WebViewContainerClientPair( WebViewContainerClient* client, Evas_Object* webView )
+  {
+    mClient = client;
+    mWebView = webView;
+  }
+
+  WebViewContainerClient* mClient;
+  Evas_Object* mWebView;
+};
+
 class WebViewContainerForDali
 {
 public:
@@ -57,11 +70,22 @@ public:
   {
     InitGalobalIfNeeded();
     InitWebView();
+
+    mWebViewContainerClients.push_back( WebViewContainerClientPair( &mClient, mWebView ) );
     mInstanceCount++;
   }
 
   ~WebViewContainerForDali()
   {
+    for( auto it = mWebViewContainerClients.begin(); it != mWebViewContainerClients.end(); )
+    {
+      if( (*it).mWebView == mWebView )
+      {
+        mWebViewContainerClients.erase( it );
+        break;
+      }
+    }
+
     evas_object_del( mWebView );
     ClearGlobalIfNeeded();
     mInstanceCount--;
@@ -140,6 +164,12 @@ public:
   void EvaluateJavaScript( const std::string& script )
   {
     ewk_view_script_execute( mWebView, script.c_str(), 0, 0 );
+  }
+
+  void AddJavaScriptMessageHandler( const std::string& exposedObjectName )
+  {
+    // |jsFunctionName| is fixed as "postMessage" so we don't use this.
+    ewk_view_javascript_message_handler_add( mWebView, &WebViewContainerForDali::OnJavaScriptMessage, exposedObjectName.c_str() );
   }
 
   void ClearHistory()
@@ -233,6 +263,18 @@ public:
   }
 
 private:
+  static WebViewContainerClient* FindWebViewContainerClient( Evas_Object* o )
+  {
+    for( auto& webViewClient :  mWebViewContainerClients )
+    {
+      if( webViewClient.mWebView == o )
+      {
+        return webViewClient.mClient;
+      }
+    }
+    return 0;
+  }
+
   static void OnFrameRendered( void* data, Evas_Object*, void* buffer )
   {
     auto client = static_cast<WebViewContainerClient*>(data);
@@ -263,11 +305,17 @@ private:
 
   static void OnJavaScriptMessage( Evas_Object* o, Ewk_Script_Message message )
   {
+    auto client = FindWebViewContainerClient( o );
+    if( client )
+    {
+      client->RunJavaScriptInterfaceCallback( message.name, static_cast<char*>( message.body ) );
+    }
   }
 
 private:
   static Ecore_Evas* mWindow;
   static int mInstanceCount;
+  static std::vector< WebViewContainerClientPair > mWebViewContainerClients;
 
   Evas_Object* mWebView;
   WebViewContainerClient& mClient;
@@ -278,6 +326,7 @@ private:
 
 Ecore_Evas* WebViewContainerForDali::mWindow = 0;
 int WebViewContainerForDali::mInstanceCount = 0;
+std::vector< WebViewContainerClientPair > WebViewContainerForDali::mWebViewContainerClients;
 
 class TBMSurfaceSourceInitializer
 {
@@ -288,7 +337,7 @@ public:
     mSurface = tbm_surface_create( width, height, TBM_FORMAT_ARGB8888 );
     if ( !mSurface )
     {
-      DALI_LOG_ERROR("Failed to create tbm surface.");
+      DALI_LOG_ERROR( "Failed to create tbm surface." );
     }
 
     Any tbmSource( mSurface );
@@ -303,7 +352,7 @@ public:
     {
       if ( tbm_surface_destroy( mSurface ) != TBM_SURFACE_ERROR_NONE )
       {
-        DALI_LOG_ERROR("Failed to destroy tbm surface.");
+        DALI_LOG_ERROR( "Failed to destroy tbm surface." );
       }
     }
   }
@@ -427,19 +476,21 @@ void TizenWebEngineChromium::EvaluateJavaScript( const std::string& script )
   }
 }
 
-void TizenWebEngineChromium::AddJavaScriptInterface(
-    const std::string& exposedObjectName,
-    const std::string& jsFunctionName,
-    std::function<std::string(const std::string&)> cb )
+void TizenWebEngineChromium::AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void( const std::string& ) > handler )
 {
-  // Not implemented yet.
-}
-
-void TizenWebEngineChromium::RemoveJavascriptInterface(
-    const std::string& exposedObjectName,
-    const std::string& jsFunctionName )
-{
-  // Not implemented yet.
+  if( mWebViewContainer )
+  {
+    for( auto& callback : mJsCallbacks )
+    {
+      if( callback.mObjectName == exposedObjectName )
+      {
+        DALI_LOG_ERROR( "Callback for (%s) already exists.", exposedObjectName.c_str() );
+        return;
+      }
+    }
+    mJsCallbacks.push_back( JsCallback( exposedObjectName, handler ) );
+    mWebViewContainer->AddJavaScriptMessageHandler( exposedObjectName );
+  }
 }
 
 void TizenWebEngineChromium::ClearHistory()
@@ -517,6 +568,18 @@ void TizenWebEngineChromium::LoadFinished()
 {
   DALI_LOG_RELEASE_INFO( "#LoadFinished : %s\n", GetUrl().c_str() );
   mLoadFinishedSignal.Emit( GetUrl() );
+}
+
+void TizenWebEngineChromium::RunJavaScriptInterfaceCallback( const std::string& objectName, const std::string& message )
+{
+  for( auto& callback : mJsCallbacks )
+  {
+    if( callback.mObjectName == objectName )
+    {
+      callback.mCallback( message );
+      return;
+    }
+  }
 }
 } // namespace Plugin
 } // namespace Dali

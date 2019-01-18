@@ -34,9 +34,22 @@ class WebViewContainerForDali;
 class WebViewContainerClient
 {
 public:
-  virtual void UpdateImage(tbm_surface_h buffer) = 0;
+  virtual void UpdateImage( tbm_surface_h buffer ) = 0;
   virtual void LoadStarted() = 0;
   virtual void LoadFinished() = 0;
+  virtual void RunJavaScriptInterfaceCallback( const std::string& objectName, const std::string& message ) = 0;
+};
+
+class JsCallback {
+public:
+  JsCallback( std::string objectName, std::function< void(const std::string&) > callback )
+  {
+    mObjectName = objectName;
+    mCallback = callback;
+  }
+
+  std::string mObjectName;
+  std::function< void( const std::string& ) > mCallback;
 };
 
 class TizenWebEngineChromium
@@ -67,12 +80,7 @@ public:
   void GoBack() override;
 
   void EvaluateJavaScript( const std::string& script ) override;
-  void AddJavaScriptInterface(
-      const std::string& exposedObjectName,
-      const std::string& jsFunctionName,
-      std::function<std::string( const std::string& )> cb ) override;
-  void RemoveJavascriptInterface( const std::string& exposedObjectName,
-                                  const std::string& jsFunctionName ) override;
+  void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void( const std::string& ) > handler ) override;
 
   void ClearHistory() override;
   void ClearCache() override;
@@ -89,6 +97,7 @@ public:
   void UpdateImage( tbm_surface_h buffer ) override;
   void LoadStarted() override;
   void LoadFinished() override;
+  void RunJavaScriptInterfaceCallback( const std::string& objectName, const std::string& message ) override;
 
 private:
   WebViewContainerForDali* mWebViewContainer;
@@ -96,6 +105,8 @@ private:
 
   Dali::WebEnginePlugin::WebEngineSignalType mLoadStartedSignal;
   Dali::WebEnginePlugin::WebEngineSignalType mLoadFinishedSignal;
+
+  std::vector< JsCallback > mJsCallbacks;
 
   std::string mUrl;
 };
