@@ -46,56 +46,93 @@ public:
   Evas_Object* mWebView;
 };
 
-class WebViewContainerForDali
-{
+class WebEngineManager {
+  //
+  // A class for managing multiple WebViews
+  //
 public:
-  static void InitGalobalIfNeeded()
+  static WebEngineManager& Get()
   {
-    if (!mWindow)
+    static WebEngineManager instance;
+
+    return instance;
+  }
+
+  WebEngineManager(WebEngineManager const&) = delete;
+
+  void operator=(WebEngineManager const&) = delete;
+
+  Ecore_Evas* GetWindow()
+  {
+    return mWindow;
+  }
+
+  void AddContainerClient( WebViewContainerClient* client, Evas_Object* webView )
+  {
+    mContainerClients.push_back( WebViewContainerClientPair( client, webView ) );
+  }
+
+  void RemoveContainerClient( Evas_Object* webView )
+  {
+    for( auto it = mContainerClients.begin(); it != mContainerClients.end(); )
     {
-      elm_init( 0, 0 );
-      ewk_init();
-      mWindow = ecore_evas_new( "wayland_egl", 0, 0, 1, 1, 0 );
+      if( (*it).mWebView == webView )
+      {
+        mContainerClients.erase( it );
+        break;
+      }
     }
   }
 
-  static void ClearGlobalIfNeeded()
+  WebViewContainerClient* FindContainerClient( Evas_Object* o )
   {
+    for( auto& webViewClient :  mContainerClients )
+    {
+      if( webViewClient.mWebView == o )
+      {
+        return webViewClient.mClient;
+      }
+    }
+    return 0;
   }
 
+private:
+  WebEngineManager()
+  {
+    elm_init( 0, 0 );
+    ewk_init();
+    mWindow = ecore_evas_new( "wayland_egl", 0, 0, 1, 1, 0 );
+  }
+
+  Ecore_Evas* mWindow;
+  std::vector< WebViewContainerClientPair > mContainerClients;
+};
+
+class WebViewContainerForDali
+{
+public:
   WebViewContainerForDali( WebViewContainerClient& client, int width, int height )
       : mClient( client ),
         mWidth( width ),
         mHeight( height )
   {
-    InitGalobalIfNeeded();
     InitWebView();
 
-    mWebViewContainerClients.push_back( WebViewContainerClientPair( &mClient, mWebView ) );
-    mInstanceCount++;
+    WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
   }
 
   ~WebViewContainerForDali()
   {
-    for( auto it = mWebViewContainerClients.begin(); it != mWebViewContainerClients.end(); )
-    {
-      if( (*it).mWebView == mWebView )
-      {
-        mWebViewContainerClients.erase( it );
-        break;
-      }
-    }
+    WebEngineManager::Get().RemoveContainerClient( mWebView );
 
     evas_object_del( mWebView );
-    ClearGlobalIfNeeded();
-    mInstanceCount--;
   }
 
   void InitWebView()
   {
     Ewk_Context* context = ewk_context_default_get();
     ewk_context_max_refresh_rate_set( context, 60 );
-    mWebView = ewk_view_add( ecore_evas_get( mWindow ) );
+    mWebView = ewk_view_add( ecore_evas_get( WebEngineManager::Get().GetWindow() ) );
     ewk_view_offscreen_rendering_enabled_set( mWebView, true );
 
     evas_object_smart_callback_add( mWebView, "offscreen,frame,rendered",
@@ -263,18 +300,6 @@ public:
   }
 
 private:
-  static WebViewContainerClient* FindWebViewContainerClient( Evas_Object* o )
-  {
-    for( auto& webViewClient :  mWebViewContainerClients )
-    {
-      if( webViewClient.mWebView == o )
-      {
-        return webViewClient.mClient;
-      }
-    }
-    return 0;
-  }
-
   static void OnFrameRendered( void* data, Evas_Object*, void* buffer )
   {
     auto client = static_cast<WebViewContainerClient*>(data);
@@ -305,7 +330,7 @@ private:
 
   static void OnJavaScriptMessage( Evas_Object* o, Ewk_Script_Message message )
   {
-    auto client = FindWebViewContainerClient( o );
+    auto client = WebEngineManager::Get().FindContainerClient( o );
     if( client )
     {
       client->RunJavaScriptInterfaceCallback( message.name, static_cast<char*>( message.body ) );
@@ -313,20 +338,12 @@ private:
   }
 
 private:
-  static Ecore_Evas* mWindow;
-  static int mInstanceCount;
-  static std::vector< WebViewContainerClientPair > mWebViewContainerClients;
-
   Evas_Object* mWebView;
   WebViewContainerClient& mClient;
 
   int mWidth;
   int mHeight;
 };
-
-Ecore_Evas* WebViewContainerForDali::mWindow = 0;
-int WebViewContainerForDali::mInstanceCount = 0;
-std::vector< WebViewContainerClientPair > WebViewContainerForDali::mWebViewContainerClients;
 
 class TBMSurfaceSourceInitializer
 {
