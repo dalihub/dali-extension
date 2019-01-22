@@ -119,7 +119,7 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
 bool TizenVectorAnimationRenderer::StartRender()
 {
-  mRenderer = lottie::Animation::loadFromFile( mUrl );
+  mRenderer = rlottie::Animation::loadFromFile( mUrl );
   if( !mRenderer )
   {
     DALI_LOG_ERROR( "Failed to load a Lottie file [%s]\n", mUrl.c_str() );
@@ -183,7 +183,7 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
       unsigned char* buffer = info.planes[0].ptr;
 
       // Create Surface object
-      lottie::Surface surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
+      rlottie::Surface surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
 
       // Push the buffer
       mBuffers.push_back( SurfacePair( tbmSurface, surface ) );
