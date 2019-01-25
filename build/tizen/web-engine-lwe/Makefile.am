@@ -14,30 +14,30 @@
 # limitations under the License.
 #
 
-# Build the Dali web engine lite plugin
+# Build the Dali web engine lwe plugin
 
 extension_src_dir = ../../../dali-extension
 
-include ../../../dali-extension/web-engine-lite/file.list
+include ../../../dali-extension/web-engine-lwe/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali-web-engine-lite-plugin.la
+lib_LTLIBRARIES += libdali-web-engine-lwe-plugin.la
 
-libdali_web_engine_lite_plugin_la_SOURCES = \
-                     $(web_engine_lite_plugin_src_files)
+libdali_web_engine_lwe_plugin_la_SOURCES = \
+                     $(web_engine_lwe_plugin_src_files)
 
-libdali_web_engine_lite_plugin_la_DEPENDENCIES =
+libdali_web_engine_lwe_plugin_la_DEPENDENCIES =
 
-libdali_web_engine_lite_plugin_la_CXXFLAGS = \
+libdali_web_engine_lwe_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
-                      $(WEB_ENGINE_LITE_CFLAGS) \
+                      $(WEB_ENGINE_LWE_CFLAGS) \
                       -Werror -Wall
 
-libdali_web_engine_lite_plugin_la_LIBADD = \
+libdali_web_engine_lwe_plugin_la_LIBADD = \
                       $(DALI_LIBS) \
-                      $(WEB_ENGINE_LITE_LIBS)
+                      $(WEB_ENGINE_LWE_LIBS)
 
-libdali_web_engine_lite_plugin_la_LDFLAGS = \
+libdali_web_engine_lwe_plugin_la_LDFLAGS = \
                       -rdynamic
 

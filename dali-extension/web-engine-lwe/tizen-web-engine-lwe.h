@@ -1,5 +1,5 @@
-#ifndef DALI_TIZEN_WEB_ENGINE_LITE_H
-#define DALI_TIZEN_WEB_ENGINE_LITE_H
+#ifndef DALI_TIZEN_WEB_ENGINE_LWE_H
+#define DALI_TIZEN_WEB_ENGINE_LWE_H
 
 /*
  * Copyright (c) 2018 Samsung Electronics Co., Ltd.
@@ -45,21 +45,21 @@ namespace Plugin
 {
 
 /**
- * @brief Implementation of the Tizen WebEngineLite class which has Tizen platform dependency.
+ * @brief Implementation of the Tizen WebEngineLWE class which has Tizen platform dependency.
  */
-class TizenWebEngineLite : public Dali::WebEnginePlugin, public Dali::ConnectionTracker
+class TizenWebEngineLWE : public Dali::WebEnginePlugin, public Dali::ConnectionTracker
 {
 public:
 
   /**
    * @brief Constructor.
    */
-  TizenWebEngineLite();
+  TizenWebEngineLWE();
 
   /**
    * @brief Destructor.
    */
-  virtual ~TizenWebEngineLite();
+  virtual ~TizenWebEngineLWE();
 
   /**
    * @copydoc Dali::WebEnginePlugin::Create()

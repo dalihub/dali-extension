@@ -16,7 +16,7 @@
  */
 
 // CLASS HEADER
-#include "tizen-web-engine-lite.h"
+#include "tizen-web-engine-lwe.h"
 
 // EXTERNAL INCLUDES
 #include <dali/integration-api/debug.h>
@@ -35,7 +35,7 @@
 // The plugin factories
 extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin( void )
 {
-  return new Dali::Plugin::TizenWebEngineLite;
+  return new Dali::Plugin::TizenWebEngineLWE;
 }
 
 extern "C" DALI_EXPORT_API void DestroyWebEnginePlugin( Dali::WebEnginePlugin* plugin )
@@ -290,7 +290,7 @@ protected:
   pthread_mutex_t m_lock;
 };
 
-TizenWebEngineLite::TizenWebEngineLite()
+TizenWebEngineLWE::TizenWebEngineLWE()
 : mIsMouseLbuttonDown( false ),
   mTimer(),
   mUrl( "" ),
@@ -313,12 +313,12 @@ TizenWebEngineLite::TizenWebEngineLite()
   pthread_mutex_init( &mOutputBufferMutex, NULL );
 }
 
-TizenWebEngineLite::~TizenWebEngineLite()
+TizenWebEngineLWE::~TizenWebEngineLWE()
 {
   pthread_mutex_destroy( &mOutputBufferMutex );
 }
 
-bool TizenWebEngineLite::UpdateBuffer()
+bool TizenWebEngineLWE::UpdateBuffer()
 {
   if( mIsRunning == false )
   {
@@ -343,10 +343,10 @@ bool TizenWebEngineLite::UpdateBuffer()
   return true;
 }
 
-void TizenWebEngineLite::Create( int width, int height, const std::string& locale, const std::string& timezoneId )
+void TizenWebEngineLWE::Create( int width, int height, const std::string& locale, const std::string& timezoneId )
 {
   mTimer = Dali::Timer::New( TIMER_INTERVAL );
-  mTimer.TickSignal().Connect( this, &TizenWebEngineLite::UpdateBuffer );
+  mTimer.TickSignal().Connect( this, &TizenWebEngineLWE::UpdateBuffer );
   mTimer.Start();
 
   mIsRunning = true;
@@ -374,7 +374,7 @@ void TizenWebEngineLite::Create( int width, int height, const std::string& local
       DALI_LOG_ERROR( "Fail to map tbm_surface\n" );
     }
 
-    DALI_ASSERT_ALWAYS( tbmSurfaceInfo.format == TBM_FORMAT_ARGB8888 && "Unsupported TizenWebEngineLite tbm format" );
+    DALI_ASSERT_ALWAYS( tbmSurfaceInfo.format == TBM_FORMAT_ARGB8888 && "Unsupported TizenWebEngineLWE tbm format" );
     dstBuffer = tbmSurfaceInfo.planes[0].ptr;
     dstStride = tbmSurfaceInfo.planes[0].stride;
 #else
@@ -472,7 +472,7 @@ void TizenWebEngineLite::Create( int width, int height, const std::string& local
 
 }
 
-void TizenWebEngineLite::Destroy()
+void TizenWebEngineLWE::Destroy()
 {
   if( !mWebContainer )
   {
@@ -495,78 +495,78 @@ void TizenWebEngineLite::Destroy()
   }
 }
 
-void TizenWebEngineLite::DestroyInstance()
+void TizenWebEngineLWE::DestroyInstance()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->Destroy();
 }
 
-Dali::NativeImageInterfacePtr TizenWebEngineLite::GetNativeImageSource()
+Dali::NativeImageInterfacePtr TizenWebEngineLWE::GetNativeImageSource()
 {
   return mNativeImageSourcePtr;
 }
 
-void TizenWebEngineLite::LoadUrl( const std::string& url )
+void TizenWebEngineLWE::LoadUrl( const std::string& url )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->LoadURL( url );
 }
 
-const std::string& TizenWebEngineLite::GetUrl()
+const std::string& TizenWebEngineLWE::GetUrl()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   return mUrl;
 }
 
-void TizenWebEngineLite::LoadHTMLString( const std::string& str )
+void TizenWebEngineLWE::LoadHTMLString( const std::string& str )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->LoadData( str );
 }
 
-void TizenWebEngineLite::Reload()
+void TizenWebEngineLWE::Reload()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->Reload();
 }
 
-void TizenWebEngineLite::StopLoading()
+void TizenWebEngineLWE::StopLoading()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->StopLoading();
 }
 
-void TizenWebEngineLite::GoBack()
+void TizenWebEngineLWE::GoBack()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->GoBack();
 }
 
-void TizenWebEngineLite::GoForward()
+void TizenWebEngineLWE::GoForward()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->GoForward();
 }
 
-bool TizenWebEngineLite::CanGoBack()
+bool TizenWebEngineLWE::CanGoBack()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   return mCanGoBack;
 }
 
-bool TizenWebEngineLite::CanGoForward()
+bool TizenWebEngineLWE::CanGoForward()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   return mCanGoForward;
 }
 
-void TizenWebEngineLite::EvaluateJavaScript( const std::string& script )
+void TizenWebEngineLWE::EvaluateJavaScript( const std::string& script )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->EvaluateJavaScript( script );
 }
 
-void TizenWebEngineLite::AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > callback )
+void TizenWebEngineLWE::AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > callback )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->AddJavaScriptInterface( exposedObjectName, "postMessage", [callback]( const std::string& data )->std::string {
@@ -575,20 +575,20 @@ void TizenWebEngineLite::AddJavaScriptMessageHandler( const std::string& exposed
   } );
 }
 
-void TizenWebEngineLite::ClearHistory()
+void TizenWebEngineLWE::ClearHistory()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->ClearHistory();
   mCanGoBack = mWebContainer->CanGoBack();
 }
 
-void TizenWebEngineLite::ClearCache()
+void TizenWebEngineLWE::ClearCache()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->ClearCache();
 }
 
-void TizenWebEngineLite::SetSize( int width, int height )
+void TizenWebEngineLWE::SetSize( int width, int height )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
 
@@ -621,7 +621,7 @@ void TizenWebEngineLite::SetSize( int width, int height )
   }
 }
 
-void TizenWebEngineLite::DispatchMouseDownEvent( float x, float y )
+void TizenWebEngineLWE::DispatchMouseDownEvent( float x, float y )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   if( !mIsRunning )
@@ -632,7 +632,7 @@ void TizenWebEngineLite::DispatchMouseDownEvent( float x, float y )
   mWebContainer->DispatchMouseDownEvent( LWE::MouseButtonValue::LeftButton, LWE::MouseButtonsValue::LeftButtonDown, x, y );
 }
 
-void TizenWebEngineLite::DispatchMouseUpEvent( float x, float y )
+void TizenWebEngineLWE::DispatchMouseUpEvent( float x, float y )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   if( !mIsRunning )
@@ -643,7 +643,7 @@ void TizenWebEngineLite::DispatchMouseUpEvent( float x, float y )
   mWebContainer->DispatchMouseUpEvent( LWE::MouseButtonValue::NoButton, LWE::MouseButtonsValue::NoButtonDown, x, y );
 }
 
-void TizenWebEngineLite::DispatchMouseMoveEvent( float x, float y, bool isLButtonPressed, bool isRButtonPressed )
+void TizenWebEngineLWE::DispatchMouseMoveEvent( float x, float y, bool isLButtonPressed, bool isRButtonPressed )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   if( !mIsRunning )
@@ -658,7 +658,7 @@ void TizenWebEngineLite::DispatchMouseMoveEvent( float x, float y, bool isLButto
     : LWE::MouseButtonsValue::NoButtonDown, x, y );
 }
 
-bool TizenWebEngineLite::SendTouchEvent( const TouchData& touch )
+bool TizenWebEngineLWE::SendTouchEvent( const TouchData& touch )
 {
   size_t pointCount = touch.GetPointCount();
   if( pointCount == 1 )
@@ -686,7 +686,7 @@ bool TizenWebEngineLite::SendTouchEvent( const TouchData& touch )
   return false;
 }
 
-void TizenWebEngineLite::DispatchKeyDownEvent( LWE::KeyValue keyCode )
+void TizenWebEngineLWE::DispatchKeyDownEvent( LWE::KeyValue keyCode )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   if( !mIsRunning )
@@ -697,7 +697,7 @@ void TizenWebEngineLite::DispatchKeyDownEvent( LWE::KeyValue keyCode )
   mWebContainer->DispatchKeyDownEvent( keyCode );
 }
 
-void TizenWebEngineLite::DispatchKeyPressEvent( LWE::KeyValue keyCode )
+void TizenWebEngineLWE::DispatchKeyPressEvent( LWE::KeyValue keyCode )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   if( !mIsRunning )
@@ -708,7 +708,7 @@ void TizenWebEngineLite::DispatchKeyPressEvent( LWE::KeyValue keyCode )
   mWebContainer->DispatchKeyPressEvent( keyCode );
 }
 
-void TizenWebEngineLite::DispatchKeyUpEvent( LWE::KeyValue keyCode )
+void TizenWebEngineLWE::DispatchKeyUpEvent( LWE::KeyValue keyCode )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   if( !mIsRunning )
@@ -719,7 +719,7 @@ void TizenWebEngineLite::DispatchKeyUpEvent( LWE::KeyValue keyCode )
   mWebContainer->DispatchKeyUpEvent(keyCode);
 }
 
-bool TizenWebEngineLite::SendKeyEvent( const Dali::KeyEvent& event )
+bool TizenWebEngineLWE::SendKeyEvent( const Dali::KeyEvent& event )
 {
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
   if( 32 < event.keyPressed.c_str()[0] && 127 > event.keyPressed.c_str()[0] )

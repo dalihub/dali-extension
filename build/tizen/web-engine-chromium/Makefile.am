@@ -24,7 +24,6 @@ lib_LTLIBRARIES =
 
 lib_LTLIBRARIES += libdali-web-engine-chromium-plugin.la
 
-# Todo Web engine lite plugin separation
 libdali_web_engine_chromium_plugin_la_SOURCES = \
                      $(web_engine_chromium_plugin_src_files)
 
