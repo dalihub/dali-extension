@@ -15,7 +15,7 @@ DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
-PKG_CHECK_MODULES(RLOTTIE, rlottie)
+PKG_CHECK_MODULES(LOTTIE_PLAYER, lottie-player)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

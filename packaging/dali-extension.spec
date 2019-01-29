@@ -99,7 +99,7 @@ Image Loader plugin to image loading file for Dali
 %package vector-animation-renderer-plugin
 Summary:    Plugin to render a vector animation
 Group:      System/Libraries
-BuildRequires:  pkgconfig(rlottie)
+BuildRequires:  pkgconfig(lottie-player)
 
 %description vector-animation-renderer-plugin
 Plugin to render a vector animation
