@@ -16,16 +16,11 @@ AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 
-AC_CONFIG_SUBDIRS(key)
-AC_CONFIG_SUBDIRS(video-player)
-AC_CONFIG_SUBDIRS(web-engine-chromium)
-AC_CONFIG_SUBDIRS(image-loader)
-AC_CONFIG_SUBDIRS(vector-animation-renderer)
-AC_CONFIG_SUBDIRS(color-controller)
+devincludepath=${includedir}
+AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([
 Makefile
-dali-extension.pc
 ])
 
 AC_OUTPUT
