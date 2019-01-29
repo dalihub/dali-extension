@@ -558,13 +558,16 @@ void TizenWebEngineLite::EvaluateJavaScript( const std::string& script )
   mWebContainer->EvaluateJavaScript( script );
 }
 
-void TizenWebEngineLite::AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > callback )
+void TizenWebEngineLite::AddJavaScriptInterface( const std::string& exposedObjectName, const std::string& jsFunctionName, std::function< std::string(const std::string&) > callback )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  mWebContainer->AddJavaScriptInterface( exposedObjectName, "postMessage", [callback]( const std::string& data )->std::string {
-    callback( data );
-    return "";
-  } );
+  mWebContainer->AddJavaScriptInterface( exposedObjectName, jsFunctionName, callback );
+}
+
+void TizenWebEngineLite::RemoveJavascriptInterface( const std::string& exposedObjectName, const std::string& jsFunctionName )
+{
+  DALI_ASSERT_ALWAYS( mWebContainer );
+  mWebContainer->RemoveJavascriptInterface( exposedObjectName, jsFunctionName );
 }
 
 void TizenWebEngineLite::ClearHistory()

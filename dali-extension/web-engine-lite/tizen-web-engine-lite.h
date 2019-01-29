@@ -125,14 +125,19 @@ public:
   virtual bool CanGoForward();
 
   /**
-   * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
+   * @copydoc Dali::WebEnginePlugin::AddJavaScriptInterface()
    */
-  virtual void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void( const std::string& ) > handler );
+  virtual void AddJavaScriptInterface( const std::string& exposedObjectName, const std::string& jsFunctionName, std::function< std::string(const std::string&) > cb );
 
   /**
    * @copydoc Dali::WebEnginePlugin::EvaluateJavaScript()
    */
   virtual void EvaluateJavaScript( const std::string& script );
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RemoveJavascriptInterface()
+   */
+  virtual void RemoveJavascriptInterface( const std::string& exposedObjectName, const std::string& jsFunctionName );
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()
