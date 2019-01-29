@@ -21,7 +21,6 @@ AC_CONFIG_SUBDIRS(video-player)
 AC_CONFIG_SUBDIRS(web-engine-chromium)
 AC_CONFIG_SUBDIRS(image-loader)
 AC_CONFIG_SUBDIRS(vector-animation-renderer)
-AC_CONFIG_SUBDIRS(web-engine-lite)
 
 AC_CONFIG_FILES([
 Makefile
