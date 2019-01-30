@@ -21,6 +21,7 @@
 // EXTERNAL INCLUDES
 #include <string.h>
 #include <vector>
+#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/public-api/adaptor-framework/native-image-source.h>
 #include <dali/public-api/adaptor-framework/timer.h>
@@ -74,7 +75,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
    */
-  Dali::NativeImageInterfacePtr GetNativeImageSource();
+  virtual Dali::NativeImageInterfacePtr GetNativeImageSource();
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadUrl()
@@ -174,44 +175,48 @@ public:
 
 private:
 
-  bool UpdateBuffer();
+  void UpdateBuffer();
 
   void DestroyInstance();
 
   void DispatchMouseDownEvent(float x, float y);
+
   void DispatchMouseUpEvent(float x, float y);
+
   void DispatchMouseMoveEvent(float x, float y, bool isLButtonPressed, bool isRButtonPressed);
+
   void DispatchKeyDownEvent(LWE::KeyValue keyCode);
+
   void DispatchKeyPressEvent(LWE::KeyValue keyCode);
+
   void DispatchKeyUpEvent(LWE::KeyValue keyCode);
 
-  bool mIsMouseLbuttonDown;
-  Dali::Timer mTimer;
+private:
 
-  std::string mUrl;
-  size_t mOutputWidth;
-  size_t mOutputHeight;
-  size_t mOutputStride;
-  uint8_t* mOutputBuffer;
-  bool mCanGoBack, mCanGoForward;
-  bool mIsRunning, mIsNeedsUpdate;
-  pthread_mutex_t mOutputBufferMutex;
-
-  LWE::WebContainer* mWebContainer;
-
+  std::string                mUrl;
+  size_t                     mOutputWidth;
+  size_t                     mOutputHeight;
+  size_t                     mOutputStride;
+  uint8_t*                   mOutputBuffer;
+  bool                       mIsMouseLbuttonDown;
+  bool                       mCanGoBack;
+  bool                       mCanGoForward;
+  pthread_mutex_t            mOutputBufferMutex;
+  LWE::WebContainer*         mWebContainer;
 #ifdef DALI_USE_TBMSURFACE
-  tbm_surface_h mTbmSurface;
+  tbm_surface_h              mTbmSurface;
   Dali::NativeImageSourcePtr mNativeImageSourcePtr;
 #else
-  Dali::BufferImage mBufferImage;
+  Dali::BufferImage          mBufferImage;
 #endif
 
-  std::function<void(LWE::WebContainer*, const LWE::WebContainer::RenderResult&)> onRenderedHandler;
-  std::function<void(LWE::WebContainer*, LWE::ResourceError)> onReceivedError;
-  std::function<void(LWE::WebContainer*, const std::string&)> onPageFinishedHandler;
-  std::function<void(LWE::WebContainer*, const std::string&)> onPageStartedHandler;
-  std::function<void(LWE::WebContainer*, const std::string&)> onLoadResourceHandler;
+  std::function<void(LWE::WebContainer*, const LWE::WebContainer::RenderResult&)> mOnRenderedHandler;
+  std::function<void(LWE::WebContainer*, LWE::ResourceError)> mOnReceivedError;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnPageFinishedHandler;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnPageStartedHandler;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
+  EventThreadCallback                        mUpdateBufferTrigger;
   Dali::WebEnginePlugin::WebEngineSignalType mPageLoadStartedSignal;
   Dali::WebEnginePlugin::WebEngineSignalType mPageLoadFinishedSignal;
 };

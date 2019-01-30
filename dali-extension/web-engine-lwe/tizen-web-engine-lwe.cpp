@@ -55,8 +55,6 @@ namespace Plugin
 namespace
 {
 
-const int TIMER_INTERVAL( 20 );
-
 LWE::KeyValue KeyStringToKeyValue( const char* DALIKeyString, bool isShiftPressed )
 {
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
@@ -291,24 +289,22 @@ protected:
 };
 
 TizenWebEngineLWE::TizenWebEngineLWE()
-: mIsMouseLbuttonDown( false ),
-  mTimer(),
-  mUrl( "" ),
+: mUrl( "" ),
   mOutputWidth( 0 ),
   mOutputHeight( 0 ),
   mOutputStride( 0 ),
   mOutputBuffer ( NULL ),
+  mIsMouseLbuttonDown( false ),
   mCanGoBack( false ),
   mCanGoForward( false ),
-  mIsRunning( false ),
-  mIsNeedsUpdate( true ),
   mWebContainer( NULL ),
 #ifdef DALI_USE_TBMSURFACE
   mTbmSurface( NULL ),
-  mNativeImageSourcePtr( NULL )
+  mNativeImageSourcePtr( NULL ),
 #else
-  mBufferImage( NULL )
+  mBufferImage( NULL ),
 #endif
+  mUpdateBufferTrigger( MakeCallback( this, &TizenWebEngineLWE::UpdateBuffer ) )
 {
   pthread_mutex_init( &mOutputBufferMutex, NULL );
 }
@@ -318,44 +314,28 @@ TizenWebEngineLWE::~TizenWebEngineLWE()
   pthread_mutex_destroy( &mOutputBufferMutex );
 }
 
-bool TizenWebEngineLWE::UpdateBuffer()
+void TizenWebEngineLWE::UpdateBuffer()
 {
-  if( mIsRunning == false )
-  {
-    return true;
-  }
+  Locker l( mOutputBufferMutex );
 
-  if( mIsNeedsUpdate )
-  {
-    Locker l( mOutputBufferMutex );
 #ifdef DALI_USE_TBMSURFACE
-    Dali::Stage::GetCurrent().KeepRendering( 0.0f );
+  Dali::Stage::GetCurrent().KeepRendering( 0.0f );
 #else
-    if( !mBufferImage )
-    {
-      return false;
-    }
+  if( mBufferImage )
+  {
     mBufferImage.Update();
-#endif
-    mIsNeedsUpdate = false;
   }
-
-  return true;
+#endif
 }
 
 void TizenWebEngineLWE::Create( int width, int height, const std::string& locale, const std::string& timezoneId )
 {
-  mTimer = Dali::Timer::New( TIMER_INTERVAL );
-  mTimer.TickSignal().Connect( this, &TizenWebEngineLWE::UpdateBuffer );
-  mTimer.Start();
-
-  mIsRunning = true;
   mOutputWidth = width;
   mOutputHeight = height;
   mOutputStride = width * sizeof( uint32_t );
   mOutputBuffer = ( uint8_t* )malloc( width * height * sizeof( uint32_t ) );
 
-  onRenderedHandler = [this]( LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult )
+  mOnRenderedHandler = [this]( LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult )
   {
     size_t w = mOutputWidth;
     size_t h = mOutputHeight;
@@ -404,16 +384,19 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
       DALI_LOG_ERROR( "Fail to unmap tbm_surface\n" );
     }
 #endif
-    mIsNeedsUpdate = true;
+    mUpdateBufferTrigger.Trigger();
   };
 
-  onReceivedError = []( LWE::WebContainer* container, LWE::ResourceError error ) {
+  mOnReceivedError = []( LWE::WebContainer* container, LWE::ResourceError error ) {
   };
-  onPageStartedHandler = []( LWE::WebContainer* container, const std::string& url ) {
+
+  mOnPageStartedHandler = []( LWE::WebContainer* container, const std::string& url ) {
   };
-  onPageFinishedHandler = []( LWE::WebContainer* container, const std::string& url ) {
+
+  mOnPageFinishedHandler = []( LWE::WebContainer* container, const std::string& url ) {
   };
-  onLoadResourceHandler = []( LWE::WebContainer* container, const std::string& url ) {
+
+  mOnLoadResourceHandler = []( LWE::WebContainer* container, const std::string& url ) {
   };
 
 #ifdef DALI_USE_TBMSURFACE
@@ -436,14 +419,14 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
   mWebContainer->RegisterOnRenderedHandler(
       [ this ]( LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult )
       {
-        onRenderedHandler( container, renderResult );
+        mOnRenderedHandler( container, renderResult );
       } );
   mWebContainer->RegisterOnReceivedErrorHandler(
       [ this ]( LWE::WebContainer* container, LWE::ResourceError error )
       {
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
-        onReceivedError( container, error );
+        mOnReceivedError( container, error );
       });
   mWebContainer->RegisterOnPageStartedHandler(
       [ this ]( LWE::WebContainer* container, const std::string& url )
@@ -451,7 +434,7 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
-        onPageStartedHandler( container, url );
+        mOnPageStartedHandler( container, url );
       });
   mWebContainer->RegisterOnPageLoadedHandler(
       [ this ]( LWE::WebContainer* container, const std::string& url )
@@ -459,7 +442,7 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
-        onPageFinishedHandler( container, url );
+        mOnPageFinishedHandler( container, url );
       });
   mWebContainer->RegisterOnLoadResourceHandler(
       [ this ]( LWE::WebContainer* container, const std::string& url )
@@ -467,7 +450,7 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
-        onLoadResourceHandler( container, url );
+        mOnLoadResourceHandler( container, url );
       });
 
 }
@@ -479,20 +462,15 @@ void TizenWebEngineLWE::Destroy()
     return;
   }
 
-  if( mIsRunning == true )
-  {
-    mIsRunning = false;
-
 #ifdef DALI_USE_TBMSURFACE
-    if( mTbmSurface != NULL && tbm_surface_destroy( mTbmSurface ) != TBM_SURFACE_ERROR_NONE )
-    {
-      DALI_LOG_ERROR( "Failed to destroy tbm_surface\n" );
-    }
+  if( mTbmSurface != NULL && tbm_surface_destroy( mTbmSurface ) != TBM_SURFACE_ERROR_NONE )
+  {
+    DALI_LOG_ERROR( "Failed to destroy tbm_surface\n" );
+  }
 #endif
 
-    DestroyInstance();
-    mWebContainer = NULL;
-  }
+  DestroyInstance();
+  mWebContainer = NULL;
 }
 
 void TizenWebEngineLWE::DestroyInstance()
@@ -612,8 +590,7 @@ void TizenWebEngineLWE::SetSize( int width, int height )
     auto oldOutputBuffer = mOutputBuffer;
     mOutputBuffer = ( uint8_t* )malloc( mOutputWidth * mOutputHeight * sizeof( uint32_t ) );
     mOutputStride = mOutputWidth * sizeof( uint32_t );
-    mWebContainer->UpdateBuffer( mOutputBuffer, mOutputWidth,
-    mOutputHeight, mOutputStride );
+    mWebContainer->UpdateBuffer( mOutputBuffer, mOutputWidth, mOutputHeight, mOutputStride );
 
     if( oldOutputBuffer ) {
         free(oldOutputBuffer);
@@ -624,10 +601,6 @@ void TizenWebEngineLWE::SetSize( int width, int height )
 void TizenWebEngineLWE::DispatchMouseDownEvent( float x, float y )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  if( !mIsRunning )
-  {
-    return;
-  }
 
   mWebContainer->DispatchMouseDownEvent( LWE::MouseButtonValue::LeftButton, LWE::MouseButtonsValue::LeftButtonDown, x, y );
 }
@@ -635,10 +608,6 @@ void TizenWebEngineLWE::DispatchMouseDownEvent( float x, float y )
 void TizenWebEngineLWE::DispatchMouseUpEvent( float x, float y )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  if( !mIsRunning )
-  {
-    return;
-  }
 
   mWebContainer->DispatchMouseUpEvent( LWE::MouseButtonValue::NoButton, LWE::MouseButtonsValue::NoButtonDown, x, y );
 }
@@ -646,10 +615,6 @@ void TizenWebEngineLWE::DispatchMouseUpEvent( float x, float y )
 void TizenWebEngineLWE::DispatchMouseMoveEvent( float x, float y, bool isLButtonPressed, bool isRButtonPressed )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  if( !mIsRunning )
-  {
-    return;
-  }
 
   mWebContainer->DispatchMouseMoveEvent(
     isLButtonPressed ? LWE::MouseButtonValue::LeftButton
@@ -689,10 +654,6 @@ bool TizenWebEngineLWE::SendTouchEvent( const TouchData& touch )
 void TizenWebEngineLWE::DispatchKeyDownEvent( LWE::KeyValue keyCode )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  if( !mIsRunning )
-  {
-    return;
-  }
 
   mWebContainer->DispatchKeyDownEvent( keyCode );
 }
@@ -700,10 +661,6 @@ void TizenWebEngineLWE::DispatchKeyDownEvent( LWE::KeyValue keyCode )
 void TizenWebEngineLWE::DispatchKeyPressEvent( LWE::KeyValue keyCode )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  if( !mIsRunning )
-  {
-    return;
-  }
 
   mWebContainer->DispatchKeyPressEvent( keyCode );
 }
@@ -711,10 +668,6 @@ void TizenWebEngineLWE::DispatchKeyPressEvent( LWE::KeyValue keyCode )
 void TizenWebEngineLWE::DispatchKeyUpEvent( LWE::KeyValue keyCode )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  if( !mIsRunning )
-  {
-    return;
-  }
 
   mWebContainer->DispatchKeyUpEvent(keyCode);
 }
