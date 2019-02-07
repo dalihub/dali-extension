@@ -455,6 +455,14 @@ void TizenVideoPlayer::SetPlayPosition( int millisecond )
 
   GetPlayerState( &mPlayerState );
 
+  if( mPlayerState == PLAYER_STATE_IDLE )
+  {
+    error = player_prepare( mPlayer );
+    LogPlayerError( error );
+
+    GetPlayerState( &mPlayerState ); // Check the status again.
+  }
+
   if( mPlayerState == PLAYER_STATE_READY ||
       mPlayerState == PLAYER_STATE_PLAYING ||
       mPlayerState == PLAYER_STATE_PAUSED
