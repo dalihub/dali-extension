@@ -14,33 +14,30 @@
 # limitations under the License.
 #
 
-# Build the Dali web engine chromium plugin
+# Build the Dali web engine lwe plugin
 
 extension_src_dir = ../../../dali-extension
 
-include ../../../dali-extension/web-engine-chromium/file.list
+include ../../../dali-extension/web-engine-lwe/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali-web-engine-chromium-plugin.la
+lib_LTLIBRARIES += libdali-web-engine-lwe-plugin.la
 
-libdali_web_engine_chromium_plugin_la_SOURCES = \
-                     $(web_engine_chromium_plugin_src_files)
+libdali_web_engine_lwe_plugin_la_SOURCES = \
+                     $(web_engine_lwe_plugin_src_files)
 
-libdali_web_engine_chromium_plugin_la_DEPENDENCIES =
+libdali_web_engine_lwe_plugin_la_DEPENDENCIES =
 
-libdali_web_engine_chromium_plugin_la_CXXFLAGS = \
+libdali_web_engine_lwe_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
-                      $(WEB_ENGINE_CHROMIUM_CFLAGS) \
-                      $(ELEMENTARY_CFLAGS) \
-                      -I../../../dali-extension/web-engine-chromium \
+                      $(WEB_ENGINE_LWE_CFLAGS) \
                       -Werror -Wall
 
-libdali_web_engine_chromium_plugin_la_LIBADD = \
-                      $(DLOG_LIBS) \
+libdali_web_engine_lwe_plugin_la_LIBADD = \
                       $(DALI_LIBS) \
-                      $(WEB_ENGINE_CHROMIUM_LIBS)
+                      $(WEB_ENGINE_LWE_LIBS)
 
-libdali_web_engine_chromium_plugin_la_LDFLAGS = \
+libdali_web_engine_lwe_plugin_la_LDFLAGS = \
                       -rdynamic
 

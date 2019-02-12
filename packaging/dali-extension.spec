@@ -7,7 +7,7 @@
 
 Name:       dali-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.4.4
+Version:    1.4.6
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -111,6 +111,19 @@ Group:      System/Libraries
 Plugin to load color theme
 
 ##############################
+# Dali Web Engine LWE Plugin
+##############################
+
+%package web-engine-lwe-plugin
+Summary:    Plugin to support WebView for Dali
+Group:      System/Libraries
+BuildRequires: pkgconfig(libtbm)
+BuildRequires: pkgconfig(lightweight-web-engine)
+
+%description web-engine-lwe-plugin
+Web Engine LWE(Light-weight Web Engine) plugin to support WebView for Dali
+
+##############################
 # Preparation
 ##############################
 %prep
@@ -178,6 +191,9 @@ exit 0
 exit 0
 
 %post web-engine-chromium-plugin
+pushd %{_libdir}
+ln -sf libdali-web-engine-chromium-plugin.so libdali-web-engine-plugin.so
+popd
 /sbin/ldconfig
 exit 0
 
@@ -190,6 +206,10 @@ exit 0
 exit 0
 
 %post color-controller-plugin
+/sbin/ldconfig
+exit 0
+
+%post web-engine-lwe-plugin
 /sbin/ldconfig
 exit 0
 
@@ -227,6 +247,10 @@ exit 0
 exit 0
 
 %postun color-controller-plugin
+/sbin/ldconfig
+exit 0
+
+%postun web-engine-lwe-plugin
 /sbin/ldconfig
 exit 0
 
@@ -281,4 +305,10 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali-color-controller-plugin.so*
+%license LICENSE
+
+%files web-engine-lwe-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali-web-engine-lwe-plugin.so*
 %license LICENSE
