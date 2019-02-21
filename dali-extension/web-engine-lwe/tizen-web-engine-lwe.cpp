@@ -414,8 +414,25 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
                           ( dataPath + DB_NAME_CACHE ).c_str() );
   }
   mWebContainer = LWE::WebContainer::Create(
-      mOutputBuffer, mOutputWidth, mOutputHeight,
-      mOutputStride, 1.0, "", locale.data(), timezoneId.data() );
+      mOutputWidth, mOutputHeight,
+      1.0, "", locale.data(), timezoneId.data() );
+
+  mWebContainer->RegisterPreRenderingHandler(
+          [this]() -> LWE::WebContainer::RenderInfo {
+              if (mOutputBuffer == NULL) {
+                  mOutputBuffer = (uint8_t*)malloc(
+                      mOutputWidth *
+                      mOutputHeight * sizeof(uint32_t));
+                  mOutputStride =
+                      mOutputWidth * sizeof(uint32_t);
+              }
+              ::LWE::WebContainer::RenderInfo result;
+              result.updatedBufferAddress = mOutputBuffer;
+              result.bufferStride = mOutputStride;
+              return result;
+
+          });
+
   mWebContainer->RegisterOnRenderedHandler(
       [ this ]( LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult )
       {
@@ -590,7 +607,7 @@ void TizenWebEngineLWE::SetSize( int width, int height )
     auto oldOutputBuffer = mOutputBuffer;
     mOutputBuffer = ( uint8_t* )malloc( mOutputWidth * mOutputHeight * sizeof( uint32_t ) );
     mOutputStride = mOutputWidth * sizeof( uint32_t );
-    mWebContainer->UpdateBuffer( mOutputBuffer, mOutputWidth, mOutputHeight, mOutputStride );
+    mWebContainer->ResizeTo( mOutputWidth, mOutputHeight );
 
     if( oldOutputBuffer ) {
         free(oldOutputBuffer);
