@@ -32,12 +32,12 @@ libdali_vector_animation_renderer_plugin_la_DEPENDENCIES =
 libdali_vector_animation_renderer_plugin_la_CXXFLAGS = \
                       -I../../../ \
                       $(DALI_CFLAGS) \
-                      $(RLOTTIE_CFLAGS) \
+                      $(LOTTIE_PLAYER_CFLAGS) \
                       -Werror -Wall
 
 libdali_vector_animation_renderer_plugin_la_LIBADD = \
                       $(DALI_LIBS) \
-                      $(RLOTTIE_LIBS)
+                      $(LOTTIE_PLAYER_LIBS)
 
 libdali_vector_animation_renderer_plugin_la_LDFLAGS = \
                       -rdynamic
