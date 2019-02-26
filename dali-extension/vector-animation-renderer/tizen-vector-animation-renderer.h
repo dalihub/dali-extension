@@ -85,7 +85,12 @@ public:
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::GetTotalFrameNumber()
    */
-  uint32_t GetTotalFrameNumber() override;
+  uint32_t GetTotalFrameNumber() const override;
+
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::GetFrameRate()
+   */
+  float GetFrameRate() const override;
 
 private:
 
@@ -108,6 +113,7 @@ private:
   uint32_t                             mTotalFrameNumber;  ///< The total frame number
   uint32_t                             mWidth;             ///< The width of the surface
   uint32_t                             mHeight;            ///< The height of the surface
+  float                                mFrameRate;         ///< The frame rate of the content
 };
 
 } // namespace Plugin

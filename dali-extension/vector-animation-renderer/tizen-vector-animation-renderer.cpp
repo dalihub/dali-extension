@@ -57,7 +57,8 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mTbmQueue( NULL ),
   mTotalFrameNumber( 0 ),
   mWidth( 0 ),
-  mHeight( 0 )
+  mHeight( 0 ),
+  mFrameRate( 60.0f )
 {
 }
 
@@ -155,6 +156,7 @@ bool TizenVectorAnimationRenderer::StartRender()
   }
 
   mTotalFrameNumber = mVectorRenderer->totalFrame();
+  mFrameRate = static_cast< float >( mVectorRenderer->frameRate() );
 
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::StartRender: file [%s]\n", mUrl.c_str() );
 
@@ -230,9 +232,14 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
   }
 }
 
-uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber()
+uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber() const
 {
   return mTotalFrameNumber;
+}
+
+float TizenVectorAnimationRenderer::GetFrameRate() const
+{
+  return mFrameRate;
 }
 
 void TizenVectorAnimationRenderer::SetShader()
