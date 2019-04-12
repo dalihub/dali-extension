@@ -272,7 +272,7 @@ public:
 
     ewk_view_feed_touch_event( mWebView, type, pointList, 0 );
     eina_list_free( pointList );
-    return true;
+    return false;
   }
 
   bool SendKeyEvent( const KeyEvent& keyEvent )
@@ -296,7 +296,7 @@ public:
       evasKeyEvent = static_cast<void*>(&upEvent);
       ewk_view_send_key_event( mWebView, evasKeyEvent, false );
      }
-     return true;
+     return false;
   }
 
 private:
