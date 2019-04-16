@@ -40,7 +40,7 @@ struct EvasPlugin::Impl
   : mEvasPlugin(evasPlugin)
   , mEcoreEvas(NULL)
   , mImageEvasObject(NULL)
-  , mAccessEvasObject(NULL)
+  , mDaliAccessEvasObject(NULL)
   , mDaliEvasObject(NULL)
   {
     Evas* evas = evas_object_evas_get(parentEvasObject);
@@ -56,7 +56,7 @@ struct EvasPlugin::Impl
     evas_object_size_hint_align_set(mImageEvasObject, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
     // Register the elm access to image evas object
-    mAccessEvasObject = elm_access_object_register(mImageEvasObject, parentEvasObject);
+    mDaliAccessEvasObject = elm_access_object_register(mImageEvasObject, parentEvasObject);
 
     // Create a button and set style as "focus", if does not want to show the focus, then "transparent"
     mDaliEvasObject = elm_button_add(parentEvasObject);
@@ -85,7 +85,7 @@ struct EvasPlugin::Impl
 
     // Unregister elm_access_object
     elm_access_object_unregister(mImageEvasObject);
-    mAccessEvasObject = NULL;
+    mDaliAccessEvasObject = NULL;
 
     // Delete the image evas object
     evas_object_del(mImageEvasObject);
@@ -139,7 +139,7 @@ struct EvasPlugin::Impl
   EvasPlugin* mEvasPlugin;
   Ecore_Evas* mEcoreEvas;
   Evas_Object* mImageEvasObject;
-  Evas_Object* mAccessEvasObject;
+  Evas_Object* mDaliAccessEvasObject;
   Evas_Object* mDaliEvasObject;
 };
 
@@ -213,13 +213,14 @@ EvasPlugin::~EvasPlugin()
   delete mRenderNotification;
   mRenderNotification = NULL;
 
+  // the singleton service should be unregistered before adaptor deletion
+  mSingletonService.UnregisterAll();
+
   delete mAdaptor;
   mAdaptor = NULL;
 
   delete mTBMRenderSurface;
   mTBMRenderSurface = NULL;
-
-  mSingletonService.UnregisterAll();
 
   delete mImpl;
   mImpl = NULL;
@@ -233,7 +234,7 @@ void EvasPlugin::Run()
   {
     if (!mEvasEventHandler)
     {
-      mEvasEventHandler = new Extension::Internal::EvasEventHandler(mImpl->mImageEvasObject, mImpl->mAccessEvasObject, mImpl->mDaliEvasObject, *this);
+      mEvasEventHandler = new Extension::Internal::EvasEventHandler(mImpl->mImageEvasObject, mImpl->mDaliAccessEvasObject, mImpl->mDaliEvasObject, *this);
     }
 
     // Start the adaptor
@@ -244,6 +245,8 @@ void EvasPlugin::Run()
     mAdaptor->NotifySceneCreated();
 
     mState = RUNNING;
+
+    DALI_LOG_RELEASE_INFO("EvasPlugin::Run");
   }
 #endif
 }
@@ -257,6 +260,8 @@ void EvasPlugin::Pause()
     mAdaptor->Pause();
 
     mPauseSignal.Emit();
+
+    DALI_LOG_RELEASE_INFO("EvasPlugin::Pause");
   }
 }
 
@@ -269,6 +274,8 @@ void EvasPlugin::Resume()
     mResumeSignal.Emit();
 
     mState = RUNNING;
+
+    DALI_LOG_RELEASE_INFO("EvasPlugin::Resume");
   }
 }
 
@@ -282,13 +289,15 @@ void EvasPlugin::Stop()
     mState = STOPPED;
 
     mTerminateSignal.Emit();
+
+    DALI_LOG_RELEASE_INFO("EvasPlugin::Stop");
   }
 #endif
 }
 
-Evas_Object* EvasPlugin::GetAccessEvasObject()
+Evas_Object* EvasPlugin::GetDaliAccessEvasObject()
 {
-  return mImpl->mAccessEvasObject;
+  return mImpl->mDaliAccessEvasObject;
 }
 
 Evas_Object* EvasPlugin::GetDaliEvasObject()
@@ -372,6 +381,8 @@ void EvasPlugin::OnEvasObjectMove(const Rect<int>& geometry)
 
 void EvasPlugin::OnEvasObjectResize(const Rect<int>& geometry)
 {
+  DALI_LOG_RELEASE_INFO("EvasPlugin::OnEvasObjectResize (%d x %d)", geometry.width, geometry.height);
+
   if (geometry.width <= 1 || geometry.height <= 1)
   {
     // skip meaningless resize signal
@@ -416,6 +427,8 @@ void EvasPlugin::OnEvasObjectFocusIn()
     mFocusedSignal.Emit();
 
     mIsFocus = true;
+
+    DALI_LOG_RELEASE_INFO("EvasPlugin::OnEvasObjectFocusIn");
   }
 }
 
@@ -442,6 +455,8 @@ void EvasPlugin::OnEvasObjectFocusOut()
     Clipboard::Get().HideClipboard();
 
     mUnFocusedSignal.Emit();
+
+    DALI_LOG_RELEASE_INFO("EvasPlugin::OnEvasObjectFocusOut");
   }
 }
 
@@ -490,7 +505,7 @@ bool EvasPlugin::OnElmAccessActionScroll(AccessActionInfo& accessActionInfo)
 
   Evas_Coord rel_x, rel_y;
   Evas_Coord obj_x,  obj_y, obj_w, obj_h;
-  Evas_Object* eo = this->GetAccessEvasObject();
+  Evas_Object* eo = this->GetDaliAccessEvasObject();
 
   if(eo)
   {
