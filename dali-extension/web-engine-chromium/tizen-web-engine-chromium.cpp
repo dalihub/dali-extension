@@ -26,6 +26,7 @@
 #include <EWebKit_product.h>
 
 #include <dali/integration-api/debug.h>
+#include <dali/integration-api/adaptors/adaptor.h>
 
 using namespace Dali;
 
@@ -130,10 +131,12 @@ public:
 
   void InitWebView()
   {
+    Ecore_Wl2_Window* win = AnyCast< Ecore_Wl2_Window* >( Adaptor::Get().GetNativeWindowHandle() );
     Ewk_Context* context = ewk_context_default_get();
     ewk_context_max_refresh_rate_set( context, 60 );
     mWebView = ewk_view_add( ecore_evas_get( WebEngineManager::Get().GetWindow() ) );
     ewk_view_offscreen_rendering_enabled_set( mWebView, true );
+    ewk_view_ime_window_set( mWebView, win );
 
     evas_object_smart_callback_add( mWebView, "offscreen,frame,rendered",
                                     &WebViewContainerForDali::OnFrameRendered,
@@ -272,7 +275,7 @@ public:
 
     ewk_view_feed_touch_event( mWebView, type, pointList, 0 );
     eina_list_free( pointList );
-    return true;
+    return false;
   }
 
   bool SendKeyEvent( const KeyEvent& keyEvent )
@@ -296,7 +299,7 @@ public:
       evasKeyEvent = static_cast<void*>(&upEvent);
       ewk_view_send_key_event( mWebView, evasKeyEvent, false );
      }
-     return true;
+     return false;
   }
 
 private:

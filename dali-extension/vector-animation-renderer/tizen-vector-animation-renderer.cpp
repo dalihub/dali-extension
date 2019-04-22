@@ -78,11 +78,23 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
   }
 }
 
-void TizenVectorAnimationRenderer::SetUrl( const std::string& url )
+bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
 {
   mUrl = url;
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetUrl: file [%s]\n", url.c_str() );
+  mVectorRenderer = rlottie::Animation::loadFromFile( mUrl );
+  if( !mVectorRenderer )
+  {
+    DALI_LOG_ERROR( "Failed to load a Lottie file [%s]\n", mUrl.c_str() );
+    return false;
+  }
+
+  mTotalFrameNumber = mVectorRenderer->totalFrame();
+  mFrameRate = static_cast< float >( mVectorRenderer->frameRate() );
+
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s]\n", url.c_str() );
+
+  return true;
 }
 
 void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
@@ -144,23 +156,6 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
   mBuffers.clear();
 
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d\n", mWidth, mHeight );
-}
-
-bool TizenVectorAnimationRenderer::StartRender()
-{
-  mVectorRenderer = rlottie::Animation::loadFromFile( mUrl );
-  if( !mVectorRenderer )
-  {
-    DALI_LOG_ERROR( "Failed to load a Lottie file [%s]\n", mUrl.c_str() );
-    return false;
-  }
-
-  mTotalFrameNumber = mVectorRenderer->totalFrame();
-  mFrameRate = static_cast< float >( mVectorRenderer->frameRate() );
-
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::StartRender: file [%s]\n", mUrl.c_str() );
-
-  return true;
 }
 
 void TizenVectorAnimationRenderer::StopRender()
@@ -240,6 +235,16 @@ uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber() const
 float TizenVectorAnimationRenderer::GetFrameRate() const
 {
   return mFrameRate;
+}
+
+void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& height ) const
+{
+  size_t w, h;
+  mVectorRenderer->size( w, h );
+  width = static_cast< uint32_t >( w );
+  height = static_cast< uint32_t >( h );
+
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d\n", width, height );
 }
 
 void TizenVectorAnimationRenderer::SetShader()

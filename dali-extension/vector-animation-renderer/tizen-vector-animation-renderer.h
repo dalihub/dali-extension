@@ -53,9 +53,9 @@ public:
   virtual ~TizenVectorAnimationRenderer();
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::SetUrl()
+   * @copydoc Dali::VectorAnimationRendererPlugin::Initialize()
    */
-  void SetUrl( const std::string& url ) override;
+  bool Initialize( const std::string& url ) override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::SetRenderer()
@@ -66,11 +66,6 @@ public:
    * @copydoc Dali::VectorAnimationRendererPlugin::SetSize()
    */
   void SetSize( uint32_t width, uint32_t height ) override;
-
-  /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::StartRender()
-   */
-  bool StartRender() override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::StopRender()
@@ -91,6 +86,11 @@ public:
    * @copydoc Dali::VectorAnimationRendererPlugin::GetFrameRate()
    */
   float GetFrameRate() const override;
+
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::GetDefaultSize()
+   */
+  void GetDefaultSize( uint32_t& width, uint32_t& height ) const override;
 
 private:
 
