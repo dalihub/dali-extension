@@ -75,9 +75,9 @@ void EvasPlugin::Stop()
   Internal::GetImplementation(*this).Stop();
 }
 
-Evas_Object* EvasPlugin::GetAccessEvasObject()
+Evas_Object* EvasPlugin::GetDaliAccessEvasObject()
 {
-  return Internal::GetImplementation(*this).GetAccessEvasObject();
+  return Internal::GetImplementation(*this).GetDaliAccessEvasObject();
 }
 
 Evas_Object* EvasPlugin::GetDaliEvasObject()
