@@ -6,6 +6,6 @@ includedir=@INC_DIR@
 Name: DALi extension
 Description: The DALi extension Libaray
 Version: @VERSION@
-Requires: dali-adaptor dali-toolkit
+Requires: dali-toolkit
 Libs: -L${libdir} -ldali-extension
 Cflags: -I${includedir}/dali-extension
