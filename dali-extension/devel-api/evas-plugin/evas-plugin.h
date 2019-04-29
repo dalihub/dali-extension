@@ -246,7 +246,7 @@ public:
   void Stop();
 
   /**
-   * @brief This returns the Evas_Object* which is created internally for accessibility.
+   * @brief This returns the Evas_Object* which is created internally
    *
    * Applications should append this access object to custom focus chain for accessibility
    *
@@ -254,7 +254,7 @@ public:
    *
    * @return Evas_Object* Elm access object which Dali image Evas object is registered
    */
-  Evas_Object* GetDaliAccessEvasObject();
+  Evas_Object* GetAccessEvasObject();
 
   /**
    * @brief This returns the Evas_Object* which is created internally

@@ -122,9 +122,9 @@ public:
   void Stop();
 
   /**
-   * @copydoc Dali::Extension::EvasPlugin::GetDaliAccessEvasObject()
+   * @copydoc Dali::Extension::EvasPlugin::GetAccessEvasObject()
    */
-  Evas_Object* GetDaliAccessEvasObject();
+  Evas_Object* GetAccessEvasObject();
 
   /**
    * @copydoc Dali::Extension::EvasPlugin::GetDaliEvasObject()
