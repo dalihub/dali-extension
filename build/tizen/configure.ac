@@ -23,7 +23,7 @@ AC_CONFIG_SUBDIRS(image-loader)
 AC_CONFIG_SUBDIRS(vector-animation-renderer)
 AC_CONFIG_SUBDIRS(color-controller)
 AC_CONFIG_SUBDIRS(web-engine-lwe)
-AC_CONFIG_SUBDIRS(evas-plugin)
+AC_CONFIG_SUBDIRS(dali-extension)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
