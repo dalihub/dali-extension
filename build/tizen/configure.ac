@@ -24,6 +24,9 @@ AC_CONFIG_SUBDIRS(vector-animation-renderer)
 AC_CONFIG_SUBDIRS(color-controller)
 AC_CONFIG_SUBDIRS(web-engine-lwe)
 
+devincludepath=${includedir}
+AC_SUBST(devincludepath)
+
 AC_CONFIG_FILES([
 Makefile
 dali-extension.pc
