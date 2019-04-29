@@ -25,9 +25,6 @@ AC_CONFIG_SUBDIRS(color-controller)
 AC_CONFIG_SUBDIRS(web-engine-lwe)
 AC_CONFIG_SUBDIRS(dali-extension)
 
-devincludepath=${includedir}
-AC_SUBST(devincludepath)
-
 AC_CONFIG_FILES([
 Makefile
 dali-extension.pc

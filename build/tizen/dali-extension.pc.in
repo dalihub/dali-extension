@@ -1,11 +1,11 @@
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@devincludepath@
+prefix=@PREFIX@
+exec_prefix=@EXEC_DIR@
+libdir=@LIB_DIR@
+includedir=@INC_DIR@
 
 Name: DALi extension
 Description: The DALi extension Libaray
-Version: @DALI_EXTENSION_VERSION@
+Version: @VERSION@
 Requires: dali-adaptor dali-toolkit
 Libs: -L${libdir} -ldali-extension
 Cflags: -I${includedir}/dali-extension
