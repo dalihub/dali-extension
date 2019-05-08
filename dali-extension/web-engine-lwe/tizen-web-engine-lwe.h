@@ -65,102 +65,187 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  virtual void Create( int width, int height, const std::string& locale, const std::string& timezoneId );
+  void Create( int width, int height, const std::string& locale, const std::string& timezoneId ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
    */
-  virtual void Destroy();
+  void Destroy() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
    */
-  virtual Dali::NativeImageInterfacePtr GetNativeImageSource();
+  Dali::NativeImageInterfacePtr GetNativeImageSource() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadUrl()
    */
-  virtual void LoadUrl( const std::string& url );
+  void LoadUrl( const std::string& url ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
    */
-  virtual const std::string& GetUrl();
+  const std::string& GetUrl() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHTMLString()
    */
-  virtual void LoadHTMLString( const std::string& string );
+  void LoadHTMLString( const std::string& string ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Reload()
    */
-  virtual void Reload();
+  void Reload() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::StopLoading()
    */
-  virtual void StopLoading();
+  void StopLoading() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::Suspend()
+   */
+  void Suspend() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::Resume()
+   */
+  void Resume() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GoBack()
    */
-  virtual void GoBack();
+  void GoBack() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GoForward()
    */
-  virtual void GoForward();
+  void GoForward() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CanGoBack()
    */
-  virtual bool CanGoBack();
+  bool CanGoBack() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CanGoForward()
    */
-  virtual bool CanGoForward();
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
-   */
-  virtual void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > handler );
+  bool CanGoForward() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::EvaluateJavaScript()
    */
-  virtual void EvaluateJavaScript( const std::string& script );
+  void EvaluateJavaScript( const std::string& script, std::function< void(const std::string&) > resultHandler ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
+   */
+  void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > handler ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()
    */
-  virtual void ClearHistory();
+  void ClearHistory() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearCache()
    */
-  virtual void ClearCache();
+  void ClearCache() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ClearCookies()
+   */
+  void ClearCookies() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetCacheModel()
+   */
+  Dali::WebEnginePlugin::CacheModel GetCacheModel() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetCacheModel()
+   */
+  void SetCacheModel( Dali::WebEnginePlugin::CacheModel cacheModel ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetCookieAcceptPolicy()
+   */
+  Dali::WebEnginePlugin::CookieAcceptPolicy GetCookieAcceptPolicy() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetCookieAcceptPolicy()
+   */
+  void SetCookieAcceptPolicy( Dali::WebEnginePlugin::CookieAcceptPolicy policy ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetUserAgent()
+   */
+  const std::string& GetUserAgent() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetUserAgent()
+   */
+  void SetUserAgent( const std::string& userAgent ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::IsJavaScriptEnabled()
+   */
+  bool IsJavaScriptEnabled() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableJavaScript()
+   */
+  void EnableJavaScript( bool enabled ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AreImagesAutomaticallyLoaded()
+   */
+  bool AreImagesAutomaticallyLoaded() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::LoadImagesAutomatically()
+   */
+  void LoadImagesAutomatically( bool automatic ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetDefaultTextEncodingName()
+   */
+  const std::string& GetDefaultTextEncodingName() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetDefaultTextEncodingName()
+   */
+  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetDefaultFontSize()
+   */
+  int GetDefaultFontSize() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetDefaultFontSize()
+   */
+  void SetDefaultFontSize( int defaultFontSize ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetSize()
    */
-  virtual void SetSize( int width, int height );
+  void SetSize( int width, int height ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendTouchEvent()
    */
-  virtual bool SendTouchEvent( const Dali::TouchData& touch );
+  bool SendTouchEvent( const Dali::TouchData& touch ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendKeyEvent()
    */
-  virtual bool SendKeyEvent( const Dali::KeyEvent& event );
+  bool SendKeyEvent( const Dali::KeyEvent& event ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
    */
-  virtual Dali::WebEnginePlugin::WebEngineSignalType& PageLoadStartedSignal()
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadStartedSignal() override
   {
     return mPageLoadStartedSignal;
   }
@@ -168,9 +253,17 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadFinishedSignal()
    */
-  virtual Dali::WebEnginePlugin::WebEngineSignalType& PageLoadFinishedSignal()
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadFinishedSignal() override
   {
     return mPageLoadFinishedSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::PageLoadErrorSignal()
+   */
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& PageLoadErrorSignal() override
+  {
+    return mPageLoadErrorSignal;
   }
 
 private:
@@ -216,9 +309,10 @@ private:
   std::function<void(LWE::WebContainer*, const std::string&)> mOnPageStartedHandler;
   std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
-  EventThreadCallback                        mUpdateBufferTrigger;
-  Dali::WebEnginePlugin::WebEngineSignalType mPageLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEngineSignalType mPageLoadFinishedSignal;
+  EventThreadCallback                                     mUpdateBufferTrigger;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mPageLoadErrorSignal;
 };
 
 } // namespace Plugin

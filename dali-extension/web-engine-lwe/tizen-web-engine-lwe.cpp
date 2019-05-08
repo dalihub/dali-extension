@@ -529,6 +529,16 @@ void TizenWebEngineLWE::StopLoading()
   mWebContainer->StopLoading();
 }
 
+void TizenWebEngineLWE::Suspend()
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::Resume()
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::GoBack()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
@@ -553,17 +563,16 @@ bool TizenWebEngineLWE::CanGoForward()
   return mCanGoForward;
 }
 
-void TizenWebEngineLWE::EvaluateJavaScript( const std::string& script )
+void TizenWebEngineLWE::EvaluateJavaScript( const std::string& script, std::function< void(const std::string&) > resultHandler )
 {
-  DALI_ASSERT_ALWAYS( mWebContainer );
-  mWebContainer->EvaluateJavaScript( script );
+  // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > callback )
+void TizenWebEngineLWE::AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > handler )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
-  mWebContainer->AddJavaScriptInterface( exposedObjectName, "postMessage", [callback]( const std::string& data )->std::string {
-    callback( data );
+  mWebContainer->AddJavaScriptInterface( exposedObjectName, "postMessage", [handler]( const std::string& data )->std::string {
+    handler( data );
     return "";
   } );
 }
@@ -579,6 +588,90 @@ void TizenWebEngineLWE::ClearCache()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->ClearCache();
+}
+
+void TizenWebEngineLWE::ClearCookies()
+{
+  // NOT IMPLEMENTED
+}
+
+Dali::WebEnginePlugin::CacheModel TizenWebEngineLWE::GetCacheModel() const
+{
+  // NOT IMPLEMENTED
+  return Dali::WebEnginePlugin::CacheModel::DOCUMENT_VIEWER;
+}
+
+void TizenWebEngineLWE::SetCacheModel( Dali::WebEnginePlugin::CacheModel cacheModel )
+{
+  // NOT IMPLEMENTED
+}
+
+Dali::WebEnginePlugin::CookieAcceptPolicy TizenWebEngineLWE::GetCookieAcceptPolicy() const
+{
+  // NOT IMPLEMENTED
+  return Dali::WebEnginePlugin::CookieAcceptPolicy::NO_THIRD_PARTY;
+}
+
+void TizenWebEngineLWE::SetCookieAcceptPolicy( Dali::WebEnginePlugin::CookieAcceptPolicy policy )
+{
+  // NOT IMPLEMENTED
+}
+
+const std::string& TizenWebEngineLWE::GetUserAgent() const
+{
+  // NOT IMPLEMENTED
+  static const std::string kEmpty;
+  return kEmpty;
+}
+
+void TizenWebEngineLWE::SetUserAgent( const std::string& userAgent )
+{
+  // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::IsJavaScriptEnabled() const
+{
+  // NOT IMPLEMENTED
+  return 0;
+}
+
+void TizenWebEngineLWE::EnableJavaScript( bool enabled )
+{
+  // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::AreImagesAutomaticallyLoaded() const
+{
+  // NOT IMPLEMENTED
+  return 0;
+}
+
+void TizenWebEngineLWE::LoadImagesAutomatically( bool automatic )
+{
+  // NOT IMPLEMENTED
+}
+
+const std::string& TizenWebEngineLWE::GetDefaultTextEncodingName() const
+{
+  // NOT IMPLEMENTED
+  static const std::string kEmpty;
+  return kEmpty;
+}
+
+void TizenWebEngineLWE::SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
+{
+  // NOT IMPLEMENTED
+}
+
+int TizenWebEngineLWE::GetDefaultFontSize() const
+{
+  // NOT IMPLEMENTED
+  return 0;
+}
+
+void TizenWebEngineLWE::SetDefaultFontSize( int defaultFontSize )
+{
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::SetSize( int width, int height )
