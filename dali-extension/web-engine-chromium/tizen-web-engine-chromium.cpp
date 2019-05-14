@@ -113,9 +113,10 @@ class WebViewContainerForDali
 {
 public:
   WebViewContainerForDali( WebViewContainerClient& client, int width, int height )
-      : mClient( client ),
-        mWidth( width ),
-        mHeight( height )
+    : mClient( client ),
+      mWidth( width ),
+      mHeight( height ),
+      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY )
   {
     InitWebView();
 
@@ -146,6 +147,9 @@ public:
                                     &mClient );
     evas_object_smart_callback_add( mWebView, "load,finished",
                                     &WebViewContainerForDali::OnLoadFinished,
+                                    &mClient );
+    evas_object_smart_callback_add( mWebView, "load,error",
+                                    &WebViewContainerForDali::OnLoadError,
                                     &mClient );
     evas_object_smart_callback_add( mWebView, "console,message",
                                     &WebViewContainerForDali::OnConsoleMessage,
@@ -181,6 +185,16 @@ public:
     ewk_view_stop( mWebView );
   }
 
+  void Suspend()
+  {
+    ewk_view_suspend( mWebView );
+  }
+
+  void Resume()
+  {
+    ewk_view_resume( mWebView );
+  }
+
   void GoBack()
   {
     ewk_view_back( mWebView );
@@ -201,9 +215,9 @@ public:
     return ewk_view_forward_possible( mWebView );
   }
 
-  void EvaluateJavaScript( const std::string& script )
+  void EvaluateJavaScript( uint32_t key, const std::string& script )
   {
-    ewk_view_script_execute( mWebView, script.c_str(), 0, 0 );
+    ewk_view_script_execute( mWebView, script.c_str(), OnEvaluateJavaScript, (void*)key );
   }
 
   void AddJavaScriptMessageHandler( const std::string& exposedObjectName )
@@ -220,6 +234,84 @@ public:
   void ClearCache()
   {
     ewk_context_cache_clear( ewk_view_context_get( mWebView ) );
+  }
+
+  void ClearCookies()
+  {
+    ewk_cookie_manager_cookies_clear( ewk_context_cookie_manager_get( ewk_view_context_get( mWebView ) ) );
+  }
+
+  Ewk_Cache_Model GetCacheModel()
+  {
+    return ewk_context_cache_model_get( ewk_view_context_get( mWebView ) );
+  }
+
+  void SetCacheModel( Ewk_Cache_Model cacheModel )
+  {
+    ewk_context_cache_model_set( ewk_view_context_get( mWebView ), cacheModel );
+  }
+
+  Ewk_Cookie_Accept_Policy GetCookieAcceptPolicy()
+  {
+    return mCookieAcceptancePolicy;
+  }
+
+  void SetCookieAcceptPolicy( Ewk_Cookie_Accept_Policy policy )
+  {
+    ewk_cookie_manager_accept_policy_set( ewk_context_cookie_manager_get( ewk_view_context_get( mWebView ) ), policy );
+    mCookieAcceptancePolicy = policy;
+  }
+
+  const std::string& GetUserAgent()
+  {
+    mUserAgent = std::string( ewk_view_user_agent_get( mWebView ) );
+    return mUserAgent;
+  }
+
+  void SetUserAgent( const std::string& userAgent )
+  {
+    ewk_view_user_agent_set( mWebView, userAgent.c_str() );
+  }
+
+  bool IsJavaScriptEnabled()
+  {
+    return ewk_settings_javascript_enabled_get( ewk_view_settings_get( mWebView ) );
+  }
+
+  void EnableJavaScript( bool enabled )
+  {
+    ewk_settings_javascript_enabled_set( ewk_view_settings_get( mWebView ), enabled );
+  }
+
+  bool AreImagesAutomaticallyLoaded()
+  {
+    return ewk_settings_loads_images_automatically_get( ewk_view_settings_get( mWebView ) );
+  }
+
+  void LoadImagesAutomatically( bool automatic )
+  {
+    ewk_settings_loads_images_automatically_set( ewk_view_settings_get( mWebView ), automatic );
+  }
+
+  const std::string& GetDefaultTextEncodingName()
+  {
+    mDefaultTextEncodingName = std::string( ewk_settings_default_text_encoding_name_get( ewk_view_settings_get( mWebView ) ) );
+    return mDefaultTextEncodingName;
+  }
+
+  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
+  {
+    ewk_settings_default_text_encoding_name_set( ewk_view_settings_get( mWebView ), defaultTextEncodingName.c_str() );
+  }
+
+  int GetDefaultFontSize()
+  {
+    return ewk_settings_default_font_size_get( ewk_view_settings_get( mWebView ) );
+  }
+
+  void SetDefaultFontSize( int defaultFontSize )
+  {
+    ewk_settings_default_font_size_set( ewk_view_settings_get( mWebView ), defaultFontSize );
   }
 
   void SetSize( int width, int height )
@@ -281,7 +373,7 @@ public:
   bool SendKeyEvent( const KeyEvent& keyEvent )
   {
     void* evasKeyEvent = 0;
-    if ( keyEvent.state == KeyEvent::Down )
+    if( keyEvent.state == KeyEvent::Down )
     {
       Evas_Event_Key_Down downEvent;
       memset( &downEvent, 0, sizeof(Evas_Event_Key_Down) );
@@ -321,6 +413,14 @@ private:
     client->LoadFinished();
   }
 
+  static void OnLoadError( void* data, Evas_Object*, void* rawError )
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Error* error = static_cast< Ewk_Error* >( rawError );
+
+    client->LoadError( ewk_error_url_get( error ), ewk_error_code_get( error ) );
+  }
+
   static void OnConsoleMessage( void*, Evas_Object*, void* eventInfo )
   {
     Ewk_Console_Message* message = (Ewk_Console_Message*)eventInfo;
@@ -331,12 +431,21 @@ private:
         ewk_console_message_text_get( message ) );
   }
 
+  static void OnEvaluateJavaScript( Evas_Object* o, const char* result, void* data )
+  {
+    auto client = WebEngineManager::Get().FindContainerClient( o );
+    if( client )
+    {
+      client->RunJavaScriptEvaluationResultHandler( (int)data, result );
+    }
+  }
+
   static void OnJavaScriptMessage( Evas_Object* o, Ewk_Script_Message message )
   {
     auto client = WebEngineManager::Get().FindContainerClient( o );
     if( client )
     {
-      client->RunJavaScriptInterfaceCallback( message.name, static_cast<char*>( message.body ) );
+      client->RunJavaScriptMessageHandler( message.name, static_cast<char*>( message.body ) );
     }
   }
 
@@ -346,6 +455,10 @@ private:
 
   int mWidth;
   int mHeight;
+
+  Ewk_Cookie_Accept_Policy mCookieAcceptancePolicy;
+  std::string mUserAgent;
+  std::string mDefaultTextEncodingName;
 };
 
 class TBMSurfaceSourceInitializer
@@ -355,7 +468,7 @@ public:
                                         int width, int height )
   {
     mSurface = tbm_surface_create( width, height, TBM_FORMAT_ARGB8888 );
-    if ( !mSurface )
+    if( !mSurface )
     {
       DALI_LOG_ERROR( "Failed to create tbm surface." );
     }
@@ -368,9 +481,9 @@ public:
 
   ~TBMSurfaceSourceInitializer()
   {
-    if ( mSurface )
+    if( mSurface )
     {
-      if ( tbm_surface_destroy( mSurface ) != TBM_SURFACE_ERROR_NONE )
+      if( tbm_surface_destroy( mSurface ) != TBM_SURFACE_ERROR_NONE )
       {
         DALI_LOG_ERROR( "Failed to destroy tbm surface." );
       }
@@ -381,7 +494,8 @@ private:
 };
 
 TizenWebEngineChromium::TizenWebEngineChromium()
-    : mWebViewContainer( 0 )
+  : mWebViewContainer( 0 )
+  , mJavaScriptEvaluationCount( 0 )
 {
 }
 
@@ -403,6 +517,9 @@ void TizenWebEngineChromium::Destroy()
 {
   if (mWebViewContainer)
   {
+    mJavaScriptEvaluationResultHandlers.clear();
+    mJavaScriptMessageHandlers.clear();
+
     delete mWebViewContainer;
     mWebViewContainer = 0;
   }
@@ -410,7 +527,7 @@ void TizenWebEngineChromium::Destroy()
 
 void TizenWebEngineChromium::LoadUrl( const std::string& path )
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->LoadUrl( path );
   }
@@ -423,7 +540,7 @@ NativeImageInterfacePtr TizenWebEngineChromium::GetNativeImageSource()
 
 const std::string& TizenWebEngineChromium::GetUrl()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mUrl =  mWebViewContainer->GetUrl();
   }
@@ -432,7 +549,7 @@ const std::string& TizenWebEngineChromium::GetUrl()
 
 void TizenWebEngineChromium::LoadHTMLString( const std::string& string )
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->LoadHtml( string );
   }
@@ -440,7 +557,7 @@ void TizenWebEngineChromium::LoadHTMLString( const std::string& string )
 
 void TizenWebEngineChromium::Reload()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->Reload();
   }
@@ -448,15 +565,31 @@ void TizenWebEngineChromium::Reload()
 
 void TizenWebEngineChromium::StopLoading()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->StopLoading();
   }
 }
 
+void TizenWebEngineChromium::Suspend()
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->Suspend();
+  }
+}
+
+void TizenWebEngineChromium::Resume()
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->Resume();
+  }
+}
+
 bool TizenWebEngineChromium::CanGoForward()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     return mWebViewContainer->CanGoForward();
   }
@@ -465,7 +598,7 @@ bool TizenWebEngineChromium::CanGoForward()
 
 void TizenWebEngineChromium::GoForward()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->GoForward();
   }
@@ -473,7 +606,7 @@ void TizenWebEngineChromium::GoForward()
 
 bool TizenWebEngineChromium::CanGoBack()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     return mWebViewContainer->CanGoBack();
   }
@@ -482,17 +615,24 @@ bool TizenWebEngineChromium::CanGoBack()
 
 void TizenWebEngineChromium::GoBack()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->GoBack();
   }
 }
 
-void TizenWebEngineChromium::EvaluateJavaScript( const std::string& script )
+void TizenWebEngineChromium::EvaluateJavaScript( const std::string& script, std::function< void( const std::string& ) > resultHandler )
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
-    mWebViewContainer->EvaluateJavaScript( script );
+    if( mJavaScriptEvaluationResultHandlers.emplace( mJavaScriptEvaluationCount, resultHandler ).second )
+    {
+      mWebViewContainer->EvaluateJavaScript( mJavaScriptEvaluationCount++, script );
+    }
+    else
+    {
+      DALI_LOG_ERROR( "Too many ongoing JavaScript evaluations." );
+    }
   }
 }
 
@@ -500,22 +640,20 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler( const std::string& exp
 {
   if( mWebViewContainer )
   {
-    for( auto& callback : mJsCallbacks )
+    if( mJavaScriptMessageHandlers.emplace( exposedObjectName, handler ).second )
     {
-      if( callback.mObjectName == exposedObjectName )
-      {
-        DALI_LOG_ERROR( "Callback for (%s) already exists.", exposedObjectName.c_str() );
-        return;
-      }
+      mWebViewContainer->AddJavaScriptMessageHandler( exposedObjectName );
     }
-    mJsCallbacks.push_back( JsCallback( exposedObjectName, handler ) );
-    mWebViewContainer->AddJavaScriptMessageHandler( exposedObjectName );
+    else
+    {
+      DALI_LOG_ERROR( "Callback for (%s) already exists.", exposedObjectName.c_str() );
+    }
   }
 }
 
 void TizenWebEngineChromium::ClearHistory()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->ClearHistory();
   }
@@ -523,15 +661,144 @@ void TizenWebEngineChromium::ClearHistory()
 
 void TizenWebEngineChromium::ClearCache()
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->ClearCache();
   }
 }
 
+void TizenWebEngineChromium::ClearCookies()
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->ClearCookies();
+  }
+}
+
+Dali::WebEnginePlugin::CacheModel TizenWebEngineChromium::GetCacheModel() const
+{
+  if( mWebViewContainer )
+  {
+    return static_cast< Dali::WebEnginePlugin::CacheModel >( mWebViewContainer->GetCacheModel() );
+  }
+  return Dali::WebEnginePlugin::CacheModel::DOCUMENT_VIEWER;
+}
+
+void TizenWebEngineChromium::SetCacheModel( Dali::WebEnginePlugin::CacheModel cacheModel )
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->SetCacheModel( static_cast< Ewk_Cache_Model >( cacheModel ) );
+  }
+}
+
+Dali::WebEnginePlugin::CookieAcceptPolicy TizenWebEngineChromium::GetCookieAcceptPolicy() const
+{
+  if( mWebViewContainer )
+  {
+    return static_cast< Dali::WebEnginePlugin::CookieAcceptPolicy >( mWebViewContainer->GetCookieAcceptPolicy() );
+  }
+  return Dali::WebEnginePlugin::CookieAcceptPolicy::NO_THIRD_PARTY;
+}
+
+void TizenWebEngineChromium::SetCookieAcceptPolicy( Dali::WebEnginePlugin::CookieAcceptPolicy policy )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->SetCookieAcceptPolicy( static_cast< Ewk_Cookie_Accept_Policy >( policy ) );
+  }
+}
+
+const std::string kEmpty;
+
+const std::string& TizenWebEngineChromium::GetUserAgent() const
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->GetUserAgent();
+  }
+  return kEmpty;
+}
+
+void TizenWebEngineChromium::SetUserAgent( const std::string& userAgent )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->SetUserAgent( userAgent );
+  }
+}
+
+bool TizenWebEngineChromium::IsJavaScriptEnabled() const
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->IsJavaScriptEnabled();
+  }
+  return false;
+}
+
+void TizenWebEngineChromium::EnableJavaScript( bool enabled )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->EnableJavaScript( enabled );
+  }
+}
+
+bool TizenWebEngineChromium::AreImagesAutomaticallyLoaded() const
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->AreImagesAutomaticallyLoaded();
+  }
+  return false;
+}
+
+void TizenWebEngineChromium::LoadImagesAutomatically( bool automatic )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->LoadImagesAutomatically( automatic );
+  }
+}
+
+const std::string& TizenWebEngineChromium::GetDefaultTextEncodingName() const
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->GetDefaultTextEncodingName();
+  }
+  return kEmpty;
+}
+
+void TizenWebEngineChromium::SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->SetDefaultTextEncodingName( defaultTextEncodingName );
+  }
+}
+
+int TizenWebEngineChromium::GetDefaultFontSize() const
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->AreImagesAutomaticallyLoaded();
+  }
+  return 0;
+}
+
+void TizenWebEngineChromium::SetDefaultFontSize( int defaultFontSize )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->SetDefaultFontSize( defaultFontSize );
+  }
+}
+
 void TizenWebEngineChromium::SetSize( int width, int height )
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     mWebViewContainer->SetSize( width, height );
   }
@@ -539,7 +806,7 @@ void TizenWebEngineChromium::SetSize( int width, int height )
 
 bool TizenWebEngineChromium::SendTouchEvent( const Dali::TouchData& touch )
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     return mWebViewContainer->SendTouchEvent( touch );
   }
@@ -548,27 +815,32 @@ bool TizenWebEngineChromium::SendTouchEvent( const Dali::TouchData& touch )
 
 bool TizenWebEngineChromium::SendKeyEvent( const Dali::KeyEvent& event )
 {
-  if ( mWebViewContainer )
+  if( mWebViewContainer )
   {
     return mWebViewContainer->SendKeyEvent( event );
   }
   return false;
 }
 
-Dali::WebEnginePlugin::WebEngineSignalType& TizenWebEngineChromium::PageLoadStartedSignal()
+Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadStartedSignal()
 {
   return mLoadStartedSignal;
 }
 
-Dali::WebEnginePlugin::WebEngineSignalType& TizenWebEngineChromium::PageLoadFinishedSignal()
+Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadFinishedSignal()
 {
   return mLoadFinishedSignal;
+}
+
+Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& TizenWebEngineChromium::PageLoadErrorSignal()
+{
+  return mLoadErrorSignal;
 }
 
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage( tbm_surface_h buffer )
 {
-  if ( !buffer )
+  if( !buffer )
   {
     return;
   }
@@ -590,16 +862,35 @@ void TizenWebEngineChromium::LoadFinished()
   mLoadFinishedSignal.Emit( GetUrl() );
 }
 
-void TizenWebEngineChromium::RunJavaScriptInterfaceCallback( const std::string& objectName, const std::string& message )
+void TizenWebEngineChromium::LoadError( const char* url, int errorCode )
 {
-  for( auto& callback : mJsCallbacks )
+  std::string stdUrl( url );
+  mLoadErrorSignal.Emit( stdUrl, errorCode );
+}
+
+void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler( uint32_t key, const char* result )
+{
+  auto handler = mJavaScriptEvaluationResultHandlers.find( key );
+  if( handler == mJavaScriptEvaluationResultHandlers.end() )
   {
-    if( callback.mObjectName == objectName )
-    {
-      callback.mCallback( message );
-      return;
-    }
+    return;
   }
+
+  std::string stored( result );
+  handler->second( stored );
+
+  mJavaScriptEvaluationResultHandlers.erase( handler );
+}
+
+void TizenWebEngineChromium::RunJavaScriptMessageHandler( const std::string& objectName, const std::string& message )
+{
+  auto handler = mJavaScriptMessageHandlers.find( objectName );
+  if( handler == mJavaScriptMessageHandlers.end() )
+  {
+    return;
+  }
+
+  handler->second( message );
 }
 } // namespace Plugin
 } // namespace Dali
@@ -612,7 +903,7 @@ extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin()
 
 extern "C" DALI_EXPORT_API void DestroyWebEnginePlugin( Dali::WebEnginePlugin* plugin )
 {
-  if ( plugin )
+  if( plugin )
   {
     delete plugin;
   }

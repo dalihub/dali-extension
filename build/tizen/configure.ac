@@ -14,15 +14,24 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
+AC_ARG_WITH([tizen_55_or_greater],
+            [AC_HELP_STRING([--with-tizen-55-or-greater],
+                            [Use this conditional when Tizen version is 5.5 or greater])],
+            [with_tizen_55_or_greater=yes],
+            [with_tizen_55_or_greater=no])
+
 PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
 AC_CONFIG_SUBDIRS(video-player)
-AC_CONFIG_SUBDIRS(web-engine-chromium)
 AC_CONFIG_SUBDIRS(image-loader)
-AC_CONFIG_SUBDIRS(vector-animation-renderer)
 AC_CONFIG_SUBDIRS(color-controller)
-AC_CONFIG_SUBDIRS(web-engine-lwe)
+
+if test "x$with_tizen_55_or_greater" = "xyes"; then
+  AC_CONFIG_SUBDIRS(vector-animation-renderer)
+  AC_CONFIG_SUBDIRS(web-engine-chromium)
+  AC_CONFIG_SUBDIRS(web-engine-lwe)
+fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
