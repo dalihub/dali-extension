@@ -71,7 +71,7 @@ public:
    * @param [in] result Result string from JavaScript runtime
    * @see Dali::Plugin::TizenWebEngineChromium::EvaluateJavaScript
    */
-  virtual void RunJavaScriptEvaluationResultHandler( size_t key, const char* result ) = 0;
+  virtual void RunJavaScriptEvaluationResultHandler( uint32_t key, const char* result ) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when a message handler is called from JavaScript runtime.
@@ -328,7 +328,7 @@ public:
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::RunJavaScriptEvaluationResultHandler()
    */
-  void RunJavaScriptEvaluationResultHandler( size_t key, const char* result ) override;
+  void RunJavaScriptEvaluationResultHandler( uint32_t key, const char* result ) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::RunJavaScriptMessageHandler()
@@ -340,13 +340,13 @@ private:
   WebViewContainerForDali*                                mWebViewContainer;
   Dali::NativeImageSourcePtr                              mDaliImageSrc;
   std::string                                             mUrl;
-  size_t                                                  mJavaScriptEvaluationCount;
+  uint32_t                                                mJavaScriptEvaluationCount;
 
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mLoadStartedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mLoadFinishedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mLoadErrorSignal;
 
-  std::unordered_map< size_t, JavaScriptCallback >        mJavaScriptEvaluationResultHandlers;
+  std::unordered_map< uint32_t, JavaScriptCallback >      mJavaScriptEvaluationResultHandlers;
   std::unordered_map< std::string, JavaScriptCallback >   mJavaScriptMessageHandlers;
 };
 } // namespace Plugin

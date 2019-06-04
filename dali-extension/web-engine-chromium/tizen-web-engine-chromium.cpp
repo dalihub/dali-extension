@@ -215,7 +215,7 @@ public:
     return ewk_view_forward_possible( mWebView );
   }
 
-  void EvaluateJavaScript( size_t key, const std::string& script )
+  void EvaluateJavaScript( uint32_t key, const std::string& script )
   {
     ewk_view_script_execute( mWebView, script.c_str(), OnEvaluateJavaScript, (void*)key );
   }
@@ -436,7 +436,7 @@ private:
     auto client = WebEngineManager::Get().FindContainerClient( o );
     if( client )
     {
-      client->RunJavaScriptEvaluationResultHandler( (size_t)data, result );
+      client->RunJavaScriptEvaluationResultHandler( (int)data, result );
     }
   }
 
@@ -868,7 +868,7 @@ void TizenWebEngineChromium::LoadError( const char* url, int errorCode )
   mLoadErrorSignal.Emit( stdUrl, errorCode );
 }
 
-void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler( size_t key, const char* result )
+void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler( uint32_t key, const char* result )
 {
   auto handler = mJavaScriptEvaluationResultHandlers.find( key );
   if( handler == mJavaScriptEvaluationResultHandlers.end() )
