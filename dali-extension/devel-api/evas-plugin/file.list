@@ -1,5 +1,5 @@
-evas_plugin_devel_header_files = \
+evas_plugin_public_header_files = \
    $(extension_src_dir)/devel-api/evas-plugin/evas-plugin.h
 
-evas_plugin_devel_src_files = \
+evas_plugin_public_src_files = \
    $(extension_src_dir)/devel-api/evas-plugin/evas-plugin.cpp
