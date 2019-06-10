@@ -23,6 +23,10 @@ BuildRequires:  pkgconfig(dali-adaptor)
 BuildRequires:  pkgconfig(dali-toolkit)
 BuildRequires:  pkgconfig(dlog)
 
+# For capture
+BuildRequires:  pkgconfig(libtbm)
+BuildRequires:  pkgconfig(libpng)
+
 # For evas-plugin
 BuildRequires:  pkgconfig(dali-adaptor-integration)
 BuildRequires:  pkgconfig(elementary)
