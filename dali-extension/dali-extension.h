@@ -18,7 +18,6 @@
  *
  */
 
-#include <dali-extension/devel-api/capture/capture.h>
 #include <dali-extension/devel-api/evas-plugin/evas-plugin.h>
 
 #endif // __DALI_EXTENSION_H__
