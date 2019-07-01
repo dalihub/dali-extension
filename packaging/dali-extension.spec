@@ -23,13 +23,6 @@ BuildRequires:  pkgconfig(dali-adaptor)
 BuildRequires:  pkgconfig(dali-toolkit)
 BuildRequires:  pkgconfig(dlog)
 
-# For evas-plugin
-BuildRequires:  pkgconfig(dali-adaptor-integration)
-BuildRequires:  pkgconfig(elementary)
-BuildRequires:  pkgconfig(evas)
-BuildRequires:  pkgconfig(ecore-wl2)
-
-
 %description
 dali-extension
 
@@ -314,12 +307,11 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_sysconfdir}/profile.d/dali.sh
-%{_libdir}/libdali-extension.so*
 %license LICENSE
 
 %files devel
 %defattr(-,root,root,-)
-%{_includedir}/%{name}/*
+%{_includedir}/%{name}/
 %{_libdir}/pkgconfig/*.pc
 
 %files key-extension
