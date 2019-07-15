@@ -1,5 +1,0 @@
-capture_internal_header_files = \
-   $(extension_src_dir)/internal/capture/capture-impl.h
-
-capture_internal_src_files = \
-   $(extension_src_dir)/internal/capture/capture-impl.cpp
