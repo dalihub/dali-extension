@@ -221,10 +221,10 @@ EvasPlugin::~EvasPlugin()
 
   delete mTBMRenderSurface;
   mTBMRenderSurface = NULL;
-#endif
 
   delete mImpl;
   mImpl = NULL;
+#endif
 }
 
 void EvasPlugin::Run()
