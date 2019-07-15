@@ -32,6 +32,7 @@ if test "x$with_tizen_55_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(web-engine-chromium)
   AC_CONFIG_SUBDIRS(web-engine-lwe)
 fi
+AC_CONFIG_SUBDIRS(evas-plugin)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
