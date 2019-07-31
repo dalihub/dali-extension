@@ -2,7 +2,7 @@
 #define DALI_TIZEN_VECTOR_ANIMATION_RENDERER_PLUGIN_H
 
 /*
- * Copyright (c) 2018 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2019 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public:
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::Render()
    */
-  void Render( uint32_t frameNumber ) override;
+  bool Render( uint32_t frameNumber ) override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::GetTotalFrameNumber()
@@ -107,6 +107,7 @@ private:
   std::vector< SurfacePair >           mBuffers;           ///< EGL Image vector
   Dali::Mutex                          mMutex;             ///< Mutex
   Dali::Renderer                       mRenderer;          ///< Renderer
+  Dali::Texture                        mTexture;           ///< Texture
   NativeImageSourceQueuePtr            mTargetSurface;     ///< The target surface
   std::unique_ptr< rlottie::Animation > mVectorRenderer;    ///< The vector animation renderer
   tbm_surface_queue_h                  mTbmQueue;          ///< Tbm surface queue handle

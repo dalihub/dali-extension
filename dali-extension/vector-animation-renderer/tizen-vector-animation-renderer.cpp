@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2019 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mBuffers(),
   mMutex(),
   mRenderer(),
+  mTexture(),
   mTargetSurface(),
   mVectorRenderer(),
   mTbmQueue( NULL ),
@@ -92,7 +93,7 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
   mTotalFrameNumber = mVectorRenderer->totalFrame();
   mFrameRate = static_cast< float >( mVectorRenderer->frameRate() );
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s]\n", url.c_str() );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this );
 
   return true;
 }
@@ -105,13 +106,12 @@ void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
   {
     TextureSet textureSet = renderer.GetTextures();
 
-    Texture texture = Texture::New( *mTargetSurface );
-    textureSet.SetTexture( 0, texture );
+    textureSet.SetTexture( 0, mTexture );
 
     SetShader();
   }
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetRenderer\n" );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetRenderer [%p]\n", this );
 }
 
 void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
@@ -120,7 +120,7 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
   if( mWidth == width && mHeight == height )
   {
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: Same size (%d, %d)\n", mWidth, mHeight );
+    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: Same size (%d, %d) [%p]\n", mWidth, mHeight, this );
     return;
   }
 
@@ -128,12 +128,13 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
   {
     mTargetSurface = NativeImageSourceQueue::New( width, height, NativeImageSourceQueue::COLOR_DEPTH_DEFAULT );
 
+    mTexture = Texture::New( *mTargetSurface );
+
     if( mRenderer )
     {
       TextureSet textureSet = mRenderer.GetTextures();
 
-      Texture texture = Texture::New( *mTargetSurface );
-      textureSet.SetTexture( 0, texture );
+      textureSet.SetTexture( 0, mTexture );
 
       SetShader();
     }
@@ -155,7 +156,7 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
   }
   mBuffers.clear();
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d\n", mWidth, mHeight );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this );
 }
 
 void TizenVectorAnimationRenderer::StopRender()
@@ -166,13 +167,13 @@ void TizenVectorAnimationRenderer::StopRender()
   {
     tbm_surface_queue_flush( mTbmQueue );
 
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::StopRender: Stopped\n" );
+    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::StopRender: Stopped [%p]\n", this );
   }
 }
 
-void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
+bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 {
-  if( tbm_surface_queue_can_dequeue( mTbmQueue, 1 ) )
+  if( tbm_surface_queue_can_dequeue( mTbmQueue, 0 ) )
   {
     Dali::Mutex::ScopedLock lock( mMutex );
 
@@ -180,8 +181,8 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
     if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
     {
-      DALI_LOG_ERROR( "Failed to dequeue a tbm_surface\n" );
-      return;
+      DALI_LOG_ERROR( "Failed to dequeue a tbm_surface [%p]\n", this );
+      return false;
     }
 
     tbm_surface_info_s info;
@@ -223,8 +224,11 @@ void TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
   }
   else
   {
-    DALI_LOG_ERROR( "Cannot dequeue a tbm_surface [%d]\n", frameNumber );
+    DALI_LOG_ERROR( "Cannot dequeue a tbm_surface [%d] [%p]\n", frameNumber, this );
+    return false;
   }
+
+  return true;
 }
 
 uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber() const
@@ -244,7 +248,7 @@ void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& he
   width = static_cast< uint32_t >( w );
   height = static_cast< uint32_t >( h );
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d\n", width, height );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d [%p]\n", width, height, this );
 }
 
 void TizenVectorAnimationRenderer::SetShader()
@@ -300,7 +304,7 @@ void TizenVectorAnimationRenderer::SetShader()
 
     mRenderer.SetShader( newShader );
 
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetShader: Shader is changed\n" );
+    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetShader: Shader is changed [%p]\n", this );
   }
 }
 
