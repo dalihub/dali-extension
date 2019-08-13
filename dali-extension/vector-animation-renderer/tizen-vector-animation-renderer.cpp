@@ -72,11 +72,6 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
     tbm_surface_internal_unref( iter.first );
   }
   mBuffers.clear();
-
-  if( mTbmQueue != NULL )
-  {
-    tbm_surface_queue_destroy( mTbmQueue );
-  }
 }
 
 bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
@@ -157,18 +152,6 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
   mBuffers.clear();
 
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this );
-}
-
-void TizenVectorAnimationRenderer::StopRender()
-{
-  Dali::Mutex::ScopedLock lock( mMutex );
-
-  if( mTbmQueue )
-  {
-    tbm_surface_queue_flush( mTbmQueue );
-
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::StopRender: Stopped [%p]\n", this );
-  }
 }
 
 bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
