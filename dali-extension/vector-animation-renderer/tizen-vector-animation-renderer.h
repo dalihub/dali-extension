@@ -22,6 +22,7 @@
 #include <dali/public-api/math/uint-16-pair.h>
 #include <dali/public-api/common/vector-wrapper.h>
 #include <dali/devel-api/threading/mutex.h>
+#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
 #include <memory>
@@ -87,6 +88,11 @@ public:
    */
   void GetDefaultSize( uint32_t& width, uint32_t& height ) const override;
 
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
+   */
+  UploadCompletedSignalType& UploadCompletedSignal() override;
+
 private:
 
   /**
@@ -94,22 +100,38 @@ private:
    */
   void SetShader();
 
+  /**
+   * @brief Reset buffer list.
+   */
+  void ResetBuffers();
+
+  /**
+   * @brief Event callback from rasterize thread. This is called after the first frame is ready.
+   */
+  void OnResourceReady();
+
 private:
 
   using SurfacePair = std::pair< tbm_surface_h, rlottie::Surface >;
 
-  std::string                          mUrl;               ///< The content file path
-  std::vector< SurfacePair >           mBuffers;           ///< EGL Image vector
-  Dali::Mutex                          mMutex;             ///< Mutex
-  Dali::Renderer                       mRenderer;          ///< Renderer
-  Dali::Texture                        mTexture;           ///< Texture
-  NativeImageSourceQueuePtr            mTargetSurface;     ///< The target surface
-  std::unique_ptr< rlottie::Animation > mVectorRenderer;    ///< The vector animation renderer
-  tbm_surface_queue_h                  mTbmQueue;          ///< Tbm surface queue handle
-  uint32_t                             mTotalFrameNumber;  ///< The total frame number
-  uint32_t                             mWidth;             ///< The width of the surface
-  uint32_t                             mHeight;            ///< The height of the surface
-  float                                mFrameRate;         ///< The frame rate of the content
+  std::string                            mUrl;                   ///< The content file path
+  std::vector< SurfacePair >             mBuffers;               ///< EGL Image vector
+  Dali::Mutex                            mMutex;                 ///< Mutex
+  Dali::Renderer                         mRenderer;              ///< Renderer
+  Dali::Texture                          mTexture;               ///< Texture
+  Dali::Texture                          mRenderedTexture;       ///< Rendered Texture
+  NativeImageSourceQueuePtr              mTargetSurface;         ///< The target surface
+  std::unique_ptr< rlottie::Animation >  mVectorRenderer;        ///< The vector animation renderer
+  std::unique_ptr< EventThreadCallback > mResourceReadyTrigger;  ///< Resource ready trigger
+  UploadCompletedSignalType              mUploadCompletedSignal; ///< Upload completed signal
+  tbm_surface_queue_h                    mTbmQueue;              ///< Tbm surface queue handle
+  uint32_t                               mTotalFrameNumber;      ///< The total frame number
+  uint32_t                               mWidth;                 ///< The width of the surface
+  uint32_t                               mHeight;                ///< The height of the surface
+  uint32_t                               mDefaultWidth;          ///< The width of the surface
+  uint32_t                               mDefaultHeight;         ///< The height of the surface
+  float                                  mFrameRate;             ///< The frame rate of the content
+  bool                                   mResourceReady;         ///< Whether the resource is ready
 };
 
 } // namespace Plugin
