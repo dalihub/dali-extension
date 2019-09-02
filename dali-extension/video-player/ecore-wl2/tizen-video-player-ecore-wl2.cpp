@@ -771,6 +771,8 @@ bool TizenVideoPlayer::IsVideoTextureSupported()
 
 void TizenVideoPlayer::DestroyPlayer()
 {
+  mUrl = "";
+
   int error;
   if( mPlayerState != PLAYER_STATE_NONE )
   {
@@ -791,7 +793,6 @@ void TizenVideoPlayer::DestroyPlayer()
 
     mPlayerState = PLAYER_STATE_NONE;
     mPlayer = NULL;
-    mUrl = "";
   }
 }
 
