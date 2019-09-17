@@ -268,7 +268,7 @@ void FillIntegrationKeyEvent( Type keyEvent, Integration::KeyEvent& result )
   }
 
   // KeyCode
-  if( !strncmp( keyEvent->keyname, "Keycode-", 8 ) )
+  if( keyEvent->keyname && !strncmp( keyEvent->keyname, "Keycode-", 8 ) )
   {
     result.keyCode = atoi( keyEvent->keyname + 8 );
   }
