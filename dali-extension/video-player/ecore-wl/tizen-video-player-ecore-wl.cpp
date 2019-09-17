@@ -200,6 +200,16 @@ void LogPlayerError( int error )
         DALI_LOG_ERROR( "Player error: Buffer space\n" );
         return;
       }
+      case PLAYER_ERROR_NOT_SUPPORTED_VIDEO_CODEC:
+      {
+        DALI_LOG_ERROR( "Player error: The target should not support the codec type\n" );
+        return;
+      }
+      default :
+      {
+        DALI_LOG_ERROR( "Player error: Unknown error code ( %d ) \n", error );
+        return;
+      }
     }
   }
 }
@@ -220,7 +230,6 @@ TizenVideoPlayer::TizenVideoPlayer()
   mPacketVector(),
   mEcoreWlWindow( NULL ),
   mAlphaBitChanged( false ),
-  mCodecType( PLAYER_CODEC_TYPE_DEFAULT ),
   mStreamInfo( NULL ),
   mStreamType( SOUND_STREAM_TYPE_MEDIA )
 {
@@ -813,14 +822,26 @@ void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
 
     if( mPlayerState == PLAYER_STATE_IDLE )
     {
-      error = player_set_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, static_cast< player_codec_type_e >( type ) );
-      LogPlayerError( error );
-
-      if( error == PLAYER_ERROR_INVALID_OPERATION )
+      player_video_codec_type_ex_e codecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
+      switch( type )
       {
-        DALI_LOG_ERROR( "The target should not support the codec type\n" );
+        case Dali::VideoPlayerPlugin::CodecType::DEFAULT :
+        {
+          codecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
+          break;
+        }
+        case Dali::VideoPlayerPlugin::CodecType::HW :
+        {
+          codecType = PLAYER_VIDEO_CODEC_TYPE_EX_HW;
+          break;
+        }
+        case Dali::VideoPlayerPlugin::CodecType::SW :
+        {
+          codecType = PLAYER_VIDEO_CODEC_TYPE_EX_SW;
+          break;
+        }
       }
-      error = player_get_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, &mCodecType );
+      error = player_set_video_codec_type_ex( mPlayer, codecType );
       LogPlayerError( error );
     }
   }
@@ -828,7 +849,37 @@ void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
 
 Dali::VideoPlayerPlugin::CodecType TizenVideoPlayer::GetCodecType() const
 {
-  return static_cast< Dali::VideoPlayerPlugin::CodecType >( mCodecType );
+  Dali::VideoPlayerPlugin::CodecType type = Dali::VideoPlayerPlugin::CodecType::DEFAULT;
+  if( mPlayerState != PLAYER_STATE_NONE )
+  {
+    player_video_codec_type_ex_e codecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
+    int error = player_get_video_codec_type_ex( mPlayer, &codecType );
+    if( error != PLAYER_ERROR_NONE )
+    {
+      LogPlayerError( error );
+      return type;
+    }
+
+    switch( codecType )
+    {
+      case PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT :
+      {
+        type = Dali::VideoPlayerPlugin::CodecType::DEFAULT;
+        break;
+      }
+      case PLAYER_VIDEO_CODEC_TYPE_EX_HW :
+      {
+        type = Dali::VideoPlayerPlugin::CodecType::HW;
+        break;
+      }
+      case PLAYER_VIDEO_CODEC_TYPE_EX_SW :
+      {
+        type = Dali::VideoPlayerPlugin::CodecType::SW;
+        break;
+      }
+    }
+  }
+  return type;
 }
 
 void TizenVideoPlayer::SetDisplayMode( Dali::VideoPlayerPlugin::DisplayMode::Type mode )
