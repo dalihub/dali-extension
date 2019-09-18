@@ -249,6 +249,8 @@ private:
 
   bool mAlphaBitChanged; ///< True if underlay rendering initialization changes window alpha
 
+  player_video_codec_type_ex_e mCodecType;
+
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
 public:
