@@ -220,7 +220,7 @@ TizenVideoPlayer::TizenVideoPlayer()
   mPacketVector(),
   mEcoreWlWindow( NULL ),
   mAlphaBitChanged( false ),
-  mCodecType( PLAYER_CODEC_TYPE_DEFAULT ),
+  mCodecType( PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT ),
   mStreamInfo( NULL ),
   mStreamType( SOUND_STREAM_TYPE_MEDIA )
 {
@@ -813,14 +813,14 @@ void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
 
     if( mPlayerState == PLAYER_STATE_IDLE )
     {
-      error = player_set_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, static_cast< player_codec_type_e >( type ) );
+      error = player_set_video_codec_type_ex( mPlayer, static_cast< player_video_codec_type_ex_e >( type ) );
       LogPlayerError( error );
 
       if( error == PLAYER_ERROR_INVALID_OPERATION )
       {
         DALI_LOG_ERROR( "The target should not support the codec type\n" );
       }
-      error = player_get_codec_type( mPlayer, PLAYER_STREAM_TYPE_VIDEO, &mCodecType );
+      error = player_get_video_codec_type_ex( mPlayer, &mCodecType );
       LogPlayerError( error );
     }
   }
