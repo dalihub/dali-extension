@@ -19,6 +19,7 @@
 #include <dali-extension/vector-animation-renderer/tizen-vector-animation-renderer.h>
 
 // EXTERNAL INCLUDES
+#include <dali/public-api/object/property-array.h>
 #include <dali/integration-api/debug.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/devel-api/images/native-image-interface-extension.h>
@@ -65,7 +66,8 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mDefaultWidth( 0 ),
   mDefaultHeight( 0 ),
   mFrameRate( 60.0f ),
-  mResourceReady( false )
+  mResourceReady( false ),
+  mShaderChanged( false )
 {
 }
 
@@ -103,6 +105,7 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
 void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
 {
   mRenderer = renderer;
+  mShaderChanged = false;
 
   if( mTargetSurface )
   {
@@ -247,6 +250,19 @@ void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& he
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d [%p]\n", width, height, this );
 }
 
+void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
+{
+  auto layerInfo = mVectorRenderer->layers();
+
+  for( auto&& iter : layerInfo )
+  {
+    Property::Array frames;
+    frames.PushBack( std::get< 1 >( iter ) );
+    frames.PushBack( std::get< 2 >( iter ) );
+    map.Add( std::get< 0 >( iter ), frames );
+  }
+}
+
 VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRenderer::UploadCompletedSignal()
 {
   return mUploadCompletedSignal;
@@ -254,6 +270,11 @@ VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRe
 
 void TizenVectorAnimationRenderer::SetShader()
 {
+  if( mShaderChanged )
+  {
+    return;
+  }
+
   NativeImageInterface::Extension* extension = static_cast< NativeImageInterface* >( mTargetSurface.Get() )->GetExtension();
   if( extension )
   {
@@ -305,7 +326,7 @@ void TizenVectorAnimationRenderer::SetShader()
 
     mRenderer.SetShader( newShader );
 
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetShader: Shader is changed [%p]\n", this );
+    mShaderChanged = true;
   }
 }
 

@@ -89,6 +89,11 @@ public:
   void GetDefaultSize( uint32_t& width, uint32_t& height ) const override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::GetLayerInfo()
+   */
+  void GetLayerInfo( Property::Map& map ) const override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
@@ -132,6 +137,7 @@ private:
   uint32_t                               mDefaultHeight;         ///< The height of the surface
   float                                  mFrameRate;             ///< The frame rate of the content
   bool                                   mResourceReady;         ///< Whether the resource is ready
+  bool                                   mShaderChanged;         ///< Whether the shader is changed to support native image
 };
 
 } // namespace Plugin
