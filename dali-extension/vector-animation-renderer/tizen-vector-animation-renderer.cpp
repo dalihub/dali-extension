@@ -26,6 +26,9 @@
 #include <cstring> // for strlen()
 #include <tbm_surface_internal.h>
 
+// INTERNAL INCLUDES
+#include <dali-extension/vector-animation-renderer/tizen-vector-animation-manager.h>
+
 // The plugin factories
 extern "C" DALI_EXPORT_API Dali::VectorAnimationRendererPlugin* CreateVectorAnimationRendererPlugin( void )
 {
@@ -57,7 +60,6 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mRenderedTexture(),
   mTargetSurface(),
   mVectorRenderer(),
-  mResourceReadyTrigger( new EventThreadCallback( MakeCallback( this, &TizenVectorAnimationRenderer::OnResourceReady ) ) ),
   mUploadCompletedSignal(),
   mTbmQueue( NULL ),
   mTotalFrameNumber( 0 ),
@@ -67,7 +69,8 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mDefaultHeight( 0 ),
   mFrameRate( 60.0f ),
   mResourceReady( false ),
-  mShaderChanged( false )
+  mShaderChanged( false ),
+  mResourceReadyTriggered( false )
 {
 }
 
@@ -76,6 +79,8 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
   Dali::Mutex::ScopedLock lock( mMutex );
 
   ResetBuffers();
+
+  TizenVectorAnimationManager::Get().RemoveEventHandler( *this );
 }
 
 bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
@@ -96,6 +101,8 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
   mVectorRenderer->size( w, h );
   mDefaultWidth = static_cast< uint32_t >( w );
   mDefaultHeight = static_cast< uint32_t >( h );
+
+  TizenVectorAnimationManager::Get().AddEventHandler( *this );
 
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this );
 
@@ -157,10 +164,10 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
 bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 {
+  Dali::Mutex::ScopedLock lock( mMutex );
+
   if( tbm_surface_queue_can_dequeue( mTbmQueue, 0 ) )
   {
-    Dali::Mutex::ScopedLock lock( mMutex );
-
     tbm_surface_h tbmSurface;
 
     if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
@@ -218,18 +225,17 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
     {
       mRenderedTexture = mTexture;
       mResourceReady = true;
+      mResourceReadyTriggered = true;
 
-      mResourceReadyTrigger->Trigger();
+      TizenVectorAnimationManager::Get().TriggerEvent( *this );
 
       DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this );
     }
-  }
-  else
-  {
-    return false;
+
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber() const
@@ -252,6 +258,8 @@ void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& he
 
 void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
 {
+  Dali::Mutex::ScopedLock lock( mMutex );
+
   auto layerInfo = mVectorRenderer->layers();
 
   for( auto&& iter : layerInfo )
@@ -266,6 +274,27 @@ void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
 VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRenderer::UploadCompletedSignal()
 {
   return mUploadCompletedSignal;
+}
+
+void TizenVectorAnimationRenderer::NotifyEvent()
+{
+  Dali::Mutex::ScopedLock lock( mMutex );
+
+  if( mResourceReadyTriggered )
+  {
+    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::NotifyEvent: Set Texture [%p]\n", this );
+
+    // Set texture
+    if( mRenderer )
+    {
+      TextureSet textureSet = mRenderer.GetTextures();
+      textureSet.SetTexture( 0, mRenderedTexture );
+    }
+
+    mResourceReadyTriggered = false;
+
+    mUploadCompletedSignal.Emit();
+  }
 }
 
 void TizenVectorAnimationRenderer::SetShader()
@@ -337,20 +366,6 @@ void TizenVectorAnimationRenderer::ResetBuffers()
     tbm_surface_internal_unref( iter.first );
   }
   mBuffers.clear();
-}
-
-void TizenVectorAnimationRenderer::OnResourceReady()
-{
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::OnResourceReady: Set Texture [%p]\n", this );
-
-  // Set texture
-  if( mRenderer )
-  {
-    TextureSet textureSet = mRenderer.GetTextures();
-    textureSet.SetTexture( 0, mRenderedTexture );
-  }
-
-  mUploadCompletedSignal.Emit();
 }
 
 } // namespace Plugin
