@@ -27,7 +27,7 @@
 #include <Evas.h>
 
 #include <dali/public-api/signals/dali-signal.h>
-#include <dali/integration-api/adaptors/scene-holder.h>
+#include <dali/integration-api/adaptor-framework/scene-holder.h>
 
 namespace Dali
 {

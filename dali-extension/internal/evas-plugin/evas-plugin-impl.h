@@ -23,7 +23,7 @@
 #include <Ecore_IMF_Evas.h>
 
 #include <dali/devel-api/adaptor-framework/singleton-service.h>
-#include <dali/integration-api/adaptors/scene-holder-impl.h>
+#include <dali/integration-api/adaptor-framework/scene-holder-impl.h>
 #include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/math/rect.h>
 #include <dali/public-api/signals/connection-tracker.h>
