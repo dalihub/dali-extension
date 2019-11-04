@@ -21,7 +21,6 @@
 // EXTERNAL INCLUDES
 #include <dali/public-api/object/property-array.h>
 #include <dali/integration-api/debug.h>
-#include <dali/integration-api/adaptors/adaptor.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/devel-api/images/native-image-interface-extension.h>
 #include <cstring> // for strlen()
@@ -68,8 +67,7 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mDefaultHeight( 0 ),
   mFrameRate( 60.0f ),
   mResourceReady( false ),
-  mShaderChanged( false ),
-  mResourceReadyTriggered( false )
+  mShaderChanged( false )
 {
 }
 
@@ -78,11 +76,6 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
   Dali::Mutex::ScopedLock lock( mMutex );
 
   ResetBuffers();
-
-  if( Adaptor::IsAvailable() )
-  {
-    Adaptor::Get().UnregisterProcessor( *this );
-  }
 }
 
 bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
@@ -103,8 +96,6 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
   mVectorRenderer->size( w, h );
   mDefaultWidth = static_cast< uint32_t >( w );
   mDefaultHeight = static_cast< uint32_t >( h );
-
-  Adaptor::Get().RegisterProcessor( *this );
 
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this );
 
@@ -166,10 +157,10 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
 bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
-
   if( tbm_surface_queue_can_dequeue( mTbmQueue, 0 ) )
   {
+    Dali::Mutex::ScopedLock lock( mMutex );
+
     tbm_surface_h tbmSurface;
 
     if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
@@ -228,16 +219,17 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
       mRenderedTexture = mTexture;
       mResourceReady = true;
 
-      mResourceReadyTriggered = true;
       mResourceReadyTrigger->Trigger();
 
       DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this );
     }
-
-    return true;
+  }
+  else
+  {
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber() const
@@ -258,10 +250,8 @@ void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& he
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d [%p]\n", width, height, this );
 }
 
-void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map )
+void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
-
   auto layerInfo = mVectorRenderer->layers();
 
   for( auto&& iter : layerInfo )
@@ -276,11 +266,6 @@ void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map )
 VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRenderer::UploadCompletedSignal()
 {
   return mUploadCompletedSignal;
-}
-
-void TizenVectorAnimationRenderer::Process()
-{
-  OnResourceReady();
 }
 
 void TizenVectorAnimationRenderer::SetShader()
@@ -356,23 +341,16 @@ void TizenVectorAnimationRenderer::ResetBuffers()
 
 void TizenVectorAnimationRenderer::OnResourceReady()
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::OnResourceReady: Set Texture [%p]\n", this );
 
-  if( mResourceReadyTriggered )
+  // Set texture
+  if( mRenderer )
   {
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::OnResourceReady: Set Texture [%p]\n", this );
-
-    // Set texture
-    if( mRenderer )
-    {
-      TextureSet textureSet = mRenderer.GetTextures();
-      textureSet.SetTexture( 0, mRenderedTexture );
-    }
-
-    mResourceReadyTriggered = false;
-
-    mUploadCompletedSignal.Emit();
+    TextureSet textureSet = mRenderer.GetTextures();
+    textureSet.SetTexture( 0, mRenderedTexture );
   }
+
+  mUploadCompletedSignal.Emit();
 }
 
 } // namespace Plugin
