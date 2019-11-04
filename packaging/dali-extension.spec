@@ -38,13 +38,20 @@ dali-extension
 
 %if 0%{?tizen_version_major} >= 4
 %define tizen_40_or_greater 1
+%endif
+
 %if 0%{?tizen_version_major} >= 5
 %define tizen_50_or_greater 1
-%if 0%{?tizen_version_minor} >= 5
+%endif
+
+%if ( 0%{?tizen_version_major} == 5 && 0%{?tizen_version_minor} >= 5 ) || 0%{?tizen_version_major} >= 6
 %define tizen_55_or_greater 1
 %endif
-%endif
-%endif
+
+# # Note
+# %if 0%{?tizen_version_major} >= 6
+# %define tizen_60_or_greater 1
+# %endif
 
 ##############################
 # devel
