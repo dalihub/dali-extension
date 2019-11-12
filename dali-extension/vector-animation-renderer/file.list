@@ -1,2 +1,4 @@
 vector_animation_renderer_plugin_src_files = \
-   $(extension_src_dir)/vector-animation-renderer/tizen-vector-animation-renderer.cpp
+   $(extension_src_dir)/vector-animation-renderer/tizen-vector-animation-renderer.cpp \
+   $(extension_src_dir)/vector-animation-renderer/tizen-vector-animation-manager.cpp
+
