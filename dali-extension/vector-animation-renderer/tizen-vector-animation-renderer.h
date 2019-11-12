@@ -19,12 +19,12 @@
  */
 
 // EXTERNAL INCLUDES
+#include <dali/public-api/math/uint-16-pair.h>
 #include <dali/public-api/common/vector-wrapper.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
-#include <dali/integration-api/processor-interface.h>
 #include <memory>
 #include <rlottie.h>
 #include <tbm_surface.h>
@@ -39,7 +39,7 @@ namespace Plugin
 /**
  * @brief Implementation of the Tizen vector animation renderer class which has Tizen platform dependency.
  */
-class TizenVectorAnimationRenderer : public Dali::VectorAnimationRendererPlugin, public Integration::Processor
+class TizenVectorAnimationRenderer : public Dali::VectorAnimationRendererPlugin
 {
 public:
 
@@ -91,19 +91,12 @@ public:
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::GetLayerInfo()
    */
-  void GetLayerInfo( Property::Map& map ) override;
+  void GetLayerInfo( Property::Map& map ) const override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
-
-protected: // Implementation of Processor
-
-  /**
-   * @copydoc Dali::Integration::Processor::Process()
-   */
-  void Process() override;
 
 private:
 
@@ -145,7 +138,6 @@ private:
   float                                  mFrameRate;             ///< The frame rate of the content
   bool                                   mResourceReady;         ///< Whether the resource is ready
   bool                                   mShaderChanged;         ///< Whether the shader is changed to support native image
-  bool                                   mResourceReadyTriggered;///< Whether the resource ready is triggered
 };
 
 } // namespace Plugin
