@@ -18,7 +18,7 @@
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/clipboard.h>
 #include <dali/devel-api/adaptor-framework/clipboard-event-notifier.h>
-
+#include <dali/devel-api/adaptor-framework/accessibility-adaptor.h>
 #include <dali/integration-api/adaptors/adaptor.h>
 #include <dali/integration-api/adaptors/native-render-surface.h>
 #include <dali/integration-api/adaptors/native-render-surface-factory.h>
@@ -304,131 +304,129 @@ void EvasPlugin::OnEvasPostRender()
 bool EvasPlugin::OnElmAccessibilityActionEvent( AccessActionInfo& accessActionInfo )
 {
   bool ret = false;
-  DALI_LOG_ERROR("OnElmAccessibilityActionEvent() is not working, this will be enabled by dali-atspi later");
+
+  if( mAdaptor == nullptr )
+  {
+    return ret;
+  }
+
+  Dali::AccessibilityAdaptor accessibilityAdaptor = Dali::AccessibilityAdaptor::Get();
+  if( accessibilityAdaptor )
+  {
+    switch( accessActionInfo.actionBy )
+    {
+      case Dali::Extension::Internal::ACCESS_ACTION_HIGHLIGHT:
+      case Dali::Extension::Internal::ACCESS_ACTION_READ:
+      {
+        ret = accessibilityAdaptor.HandleActionReadEvent( (unsigned int)accessActionInfo.x, (unsigned int)accessActionInfo.y, true );
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_HIGHLIGHT_PREV:
+      {
+        // if accessActionInfo.highlight_end is true, need to handle end_of_list sound feedback
+        ret = accessibilityAdaptor.HandleActionPreviousEvent( accessActionInfo.highlightCycle );
+        if(!ret)
+        {
+          // when focus moving was failed, clear the focus
+          accessibilityAdaptor.HandleActionClearFocusEvent();
+        }
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_HIGHLIGHT_NEXT:
+      {
+        // if accessActionInfo.highlight_cycle is true, need to handle end_of_list sound feedback
+        ret = accessibilityAdaptor.HandleActionNextEvent( accessActionInfo.highlightCycle );
+        if(!ret)
+        {
+          // when focus moving was failed, clear the focus
+          accessibilityAdaptor.HandleActionClearFocusEvent();
+        }
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_ACTIVATE:
+      {
+        ret = accessibilityAdaptor.HandleActionActivateEvent();
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_UNHIGHLIGHT:
+      {
+        ret = accessibilityAdaptor.HandleActionClearFocusEvent();
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_SCROLL:
+      {
+        Evas_Object* eo = mEvasWrapper->GetAccessibilityTarget();
+
+        if( eo )
+        {
+          int touchType = accessActionInfo.mouseType;
+
+          TouchPoint::State state( TouchPoint::Down );
+
+          if( touchType == 0 )
+          {
+            state = TouchPoint::Down; // mouse down
+          }
+          else if( touchType == 1 )
+          {
+            state = TouchPoint::Motion; // mouse move
+          }
+          else if( touchType == 2 )
+          {
+            state = TouchPoint::Up; // mouse up
+          }
+          else
+          {
+            state = TouchPoint::Interrupted; // error
+          }
+
+          // Send touch event to accessibility manager.
+          Evas_Coord rel_x, rel_y, obj_x,  obj_y, obj_w, obj_h;
+
+          evas_object_geometry_get( eo, &obj_x,  &obj_y, &obj_w, &obj_h );
+
+          rel_x = accessActionInfo.x - obj_x;
+          rel_y = accessActionInfo.y - obj_y;
+
+          TouchPoint point( 0, state, (float)rel_x, (float)rel_y );
+
+          ret = accessibilityAdaptor.HandleActionScrollEvent( point, accessActionInfo.timeStamp );
+        }
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_UP:
+      {
+        ret = accessibilityAdaptor.HandleActionUpEvent();
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_DOWN:
+      {
+        ret = accessibilityAdaptor.HandleActionDownEvent();
+      }
+      break;
+
+      case Dali::Extension::Internal::ACCESS_ACTION_BACK:
+      default:
+      {
+        DALI_LOG_WARNING( "[%s:%d]\n", __FUNCTION__, __LINE__ );
+      }
+
+      break;
+    }
+  }
+  else
+  {
+    DALI_LOG_WARNING( "[%s:%d]\n", __FUNCTION__, __LINE__ );
+  }
+
   return ret;
-
-  // if( mAdaptor == nullptr )
-  // {
-  //   return ret;
-  // }
-
-  // Dali::AccessibilityAdaptor accessibilityAdaptor = Dali::AccessibilityAdaptor::Get();
-  // if( accessibilityAdaptor )
-  // {
-  //   switch( accessActionInfo.actionBy )
-  //   {
-  //     case Dali::Extension::Internal::ACCESS_ACTION_HIGHLIGHT:
-  //     case Dali::Extension::Internal::ACCESS_ACTION_READ:
-  //     {
-  //       ret = accessibilityAdaptor.HandleActionReadEvent( (unsigned int)accessActionInfo.x, (unsigned int)accessActionInfo.y, true );
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_HIGHLIGHT_PREV:
-  //     {
-  //       // if accessActionInfo.highlight_end is true, need to handle end_of_list sound feedback
-  //       ret = accessibilityAdaptor.HandleActionPreviousEvent( accessActionInfo.highlightCycle );
-  //       if(!ret)
-  //       {
-  //         // when focus moving was failed, clear the focus
-  //         accessibilityAdaptor.HandleActionClearFocusEvent();
-  //       }
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_HIGHLIGHT_NEXT:
-  //     {
-  //       // if accessActionInfo.highlight_cycle is true, need to handle end_of_list sound feedback
-  //       ret = accessibilityAdaptor.HandleActionNextEvent( accessActionInfo.highlightCycle );
-  //       if(!ret)
-  //       {
-  //         // when focus moving was failed, clear the focus
-  //         accessibilityAdaptor.HandleActionClearFocusEvent();
-  //       }
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_ACTIVATE:
-  //     {
-  //       ret = accessibilityAdaptor.HandleActionActivateEvent();
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_UNHIGHLIGHT:
-  //     {
-  //       ret = accessibilityAdaptor.HandleActionClearFocusEvent();
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_SCROLL:
-  //     {
-  //       Evas_Object* eo = mEvasWrapper->GetAccessibilityTarget();
-
-  //       if( eo )
-  //       {
-  //         int touchType = accessActionInfo.mouseType;
-
-  //         TouchPoint::State state( TouchPoint::Down );
-
-  //         if( touchType == 0 )
-  //         {
-  //           state = TouchPoint::Down; // mouse down
-  //         }
-  //         else if( touchType == 1 )
-  //         {
-  //           state = TouchPoint::Motion; // mouse move
-  //         }
-  //         else if( touchType == 2 )
-  //         {
-  //           state = TouchPoint::Up; // mouse up
-  //         }
-  //         else
-  //         {
-  //           state = TouchPoint::Interrupted; // error
-  //         }
-
-  //         // Send touch event to accessibility manager.
-  //         Evas_Coord rel_x, rel_y, obj_x,  obj_y, obj_w, obj_h;
-
-  //         evas_object_geometry_get( eo, &obj_x,  &obj_y, &obj_w, &obj_h );
-
-  //         rel_x = accessActionInfo.x - obj_x;
-  //         rel_y = accessActionInfo.y - obj_y;
-
-  //         TouchPoint point( 0, state, (float)rel_x, (float)rel_y );
-
-  //         ret = accessibilityAdaptor.HandleActionScrollEvent( point, accessActionInfo.timeStamp );
-  //       }
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_UP:
-  //     {
-  //       ret = accessibilityAdaptor.HandleActionUpEvent();
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_DOWN:
-  //     {
-  //       ret = accessibilityAdaptor.HandleActionDownEvent();
-  //     }
-  //     break;
-
-  //     case Dali::Extension::Internal::ACCESS_ACTION_BACK:
-  //     default:
-  //     {
-  //       DALI_LOG_WARNING( "[%s:%d]\n", __FUNCTION__, __LINE__ );
-  //     }
-
-  //     break;
-  //   }
-  // }
-  // else
-  // {
-  //   DALI_LOG_WARNING( "[%s:%d]\n", __FUNCTION__, __LINE__ );
-  // }
-
-  // return ret;
 }
 
 void EvasPlugin::OnEcoreWl2VisibilityChange( bool visibility )
