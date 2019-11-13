@@ -19,10 +19,10 @@
 #include <dali/devel-api/adaptor-framework/clipboard.h>
 #include <dali/devel-api/adaptor-framework/clipboard-event-notifier.h>
 #include <dali/devel-api/adaptor-framework/accessibility-adaptor.h>
-#include <dali/integration-api/adaptors/adaptor.h>
-#include <dali/integration-api/adaptors/native-render-surface.h>
-#include <dali/integration-api/adaptors/native-render-surface-factory.h>
-#include <dali/integration-api/adaptors/trigger-event-factory.h>
+#include <dali/integration-api/adaptor-framework/adaptor.h>
+#include <dali/integration-api/adaptor-framework/native-render-surface.h>
+#include <dali/integration-api/adaptor-framework/native-render-surface-factory.h>
+#include <dali/integration-api/adaptor-framework/trigger-event-factory.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/common/stage.h>
 #include <dali-toolkit/public-api/accessibility-manager/accessibility-manager.h>

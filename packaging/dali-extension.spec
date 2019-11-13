@@ -7,7 +7,7 @@
 
 Name:       dali-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.4.41
+Version:    1.4.45
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -34,13 +34,20 @@ dali-extension
 
 %if 0%{?tizen_version_major} >= 4
 %define tizen_40_or_greater 1
+%endif
+
 %if 0%{?tizen_version_major} >= 5
 %define tizen_50_or_greater 1
-%if 0%{?tizen_version_minor} >= 5
+%endif
+
+%if ( 0%{?tizen_version_major} == 5 && 0%{?tizen_version_minor} >= 5 ) || 0%{?tizen_version_major} >= 6
 %define tizen_55_or_greater 1
 %endif
-%endif
-%endif
+
+# # Note
+# %if 0%{?tizen_version_major} >= 6
+# %define tizen_60_or_greater 1
+# %endif
 
 ##############################
 # devel
