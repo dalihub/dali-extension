@@ -19,17 +19,16 @@
  */
 
 // EXTERNAL INCLUDES
+#include <dali/public-api/math/uint-16-pair.h>
 #include <dali/public-api/common/vector-wrapper.h>
 #include <dali/devel-api/threading/mutex.h>
+#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
 #include <memory>
 #include <rlottie.h>
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
-
-// INTERNAL INCLUDES
-#include <dali-extension/vector-animation-renderer/tizen-vector-animation-event-handler.h>
 
 namespace Dali
 {
@@ -40,7 +39,7 @@ namespace Plugin
 /**
  * @brief Implementation of the Tizen vector animation renderer class which has Tizen platform dependency.
  */
-class TizenVectorAnimationRenderer : public Dali::VectorAnimationRendererPlugin, public TizenVectorAnimationEventHandler
+class TizenVectorAnimationRenderer : public Dali::VectorAnimationRendererPlugin
 {
 public:
 
@@ -99,13 +98,6 @@ public:
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
 
-protected: // Implementation of TizenVectorAnimationEventHandler
-
-  /**
-   * @copydoc Dali::Plugin::TizenVectorAnimationEventHandler::NotifyEvent()
-   */
-  void NotifyEvent() override;
-
 private:
 
   /**
@@ -118,18 +110,24 @@ private:
    */
   void ResetBuffers();
 
+  /**
+   * @brief Event callback from rasterize thread. This is called after the first frame is ready.
+   */
+  void OnResourceReady();
+
 private:
 
   using SurfacePair = std::pair< tbm_surface_h, rlottie::Surface >;
 
   std::string                            mUrl;                   ///< The content file path
   std::vector< SurfacePair >             mBuffers;               ///< EGL Image vector
-  mutable Dali::Mutex                    mMutex;                 ///< Mutex
+  Dali::Mutex                            mMutex;                 ///< Mutex
   Dali::Renderer                         mRenderer;              ///< Renderer
   Dali::Texture                          mTexture;               ///< Texture
   Dali::Texture                          mRenderedTexture;       ///< Rendered Texture
   NativeImageSourceQueuePtr              mTargetSurface;         ///< The target surface
   std::unique_ptr< rlottie::Animation >  mVectorRenderer;        ///< The vector animation renderer
+  std::unique_ptr< EventThreadCallback > mResourceReadyTrigger;  ///< Resource ready trigger
   UploadCompletedSignalType              mUploadCompletedSignal; ///< Upload completed signal
   tbm_surface_queue_h                    mTbmQueue;              ///< Tbm surface queue handle
   uint32_t                               mTotalFrameNumber;      ///< The total frame number
@@ -140,7 +138,6 @@ private:
   float                                  mFrameRate;             ///< The frame rate of the content
   bool                                   mResourceReady;         ///< Whether the resource is ready
   bool                                   mShaderChanged;         ///< Whether the shader is changed to support native image
-  bool                                   mResourceReadyTriggered;///< Whether the resource ready is triggered
 };
 
 } // namespace Plugin
