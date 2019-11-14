@@ -74,6 +74,16 @@ void TizenVectorAnimationManager::RemoveEventHandler( TizenVectorAnimationEventH
       }
     }
   }
+
+  {
+    Dali::Mutex::ScopedLock lock( mMutex );
+
+    auto triggeredHandler = std::find( mTriggeredHandlers.begin(), mEventHandlers.end(), &handler );
+    if( triggeredHandler != mTriggeredHandlers.end() )
+    {
+      mTriggeredHandlers.erase( triggeredHandler );
+    }
+  }
 }
 
 void TizenVectorAnimationManager::TriggerEvent( TizenVectorAnimationEventHandler& handler )
