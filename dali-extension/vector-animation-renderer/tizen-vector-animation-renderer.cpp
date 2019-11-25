@@ -104,7 +104,7 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
 
   TizenVectorAnimationManager::Get().AddEventHandler( *this );
 
-  DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this );
 
   return true;
 }
@@ -130,7 +130,7 @@ void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
     SetShader();
   }
 
-  DALI_LOG_ERROR( "TizenVectorAnimationRenderer::SetRenderer [%p]\n", this );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetRenderer [%p]\n", this );
 }
 
 void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
@@ -139,7 +139,7 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
   if( mWidth == width && mHeight == height )
   {
-    DALI_LOG_ERROR( "TizenVectorAnimationRenderer::SetSize: Same size (%d, %d) [%p]\n", mWidth, mHeight, this );
+    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: Same size (%d, %d) [%p]\n", mWidth, mHeight, this );
     return;
   }
 
@@ -159,7 +159,7 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
   mResourceReady = false;
 
-  DALI_LOG_ERROR( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this );
 }
 
 bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
@@ -229,10 +229,8 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
       TizenVectorAnimationManager::Get().TriggerEvent( *this );
 
-      DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this );
+      DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this );
     }
-
-    DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: current = %d [%p]\n", frameNumber, this );
 
     return true;
   }
@@ -255,7 +253,7 @@ void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& he
   width = mDefaultWidth;
   height = mDefaultHeight;
 
-  DALI_LOG_ERROR( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d [%p]\n", width, height, this );
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d [%p]\n", width, height, this );
 }
 
 void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
@@ -284,7 +282,7 @@ void TizenVectorAnimationRenderer::NotifyEvent()
 
   if( mResourceReadyTriggered )
   {
-    DALI_LOG_ERROR( "TizenVectorAnimationRenderer::NotifyEvent: Set Texture [%p]\n", this );
+    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::NotifyEvent: Set Texture [%p]\n", this );
 
     // Set texture
     if( mRenderer )
