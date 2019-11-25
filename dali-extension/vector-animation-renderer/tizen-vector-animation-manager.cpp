@@ -74,6 +74,16 @@ void TizenVectorAnimationManager::RemoveEventHandler( TizenVectorAnimationEventH
       }
     }
   }
+
+  {
+    Dali::Mutex::ScopedLock lock( mMutex );
+
+    auto triggeredHandler = std::find( mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler );
+    if( triggeredHandler != mTriggeredHandlers.end() )
+    {
+      mTriggeredHandlers.erase( triggeredHandler );
+    }
+  }
 }
 
 void TizenVectorAnimationManager::TriggerEvent( TizenVectorAnimationEventHandler& handler )
@@ -93,16 +103,23 @@ void TizenVectorAnimationManager::Process()
   OnEventTriggered();
 }
 
+// This function is called in the main thread.
 void TizenVectorAnimationManager::OnEventTriggered()
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  std::vector< TizenVectorAnimationEventHandler* > handlers;
 
-  for( auto&& iter : mTriggeredHandlers )
+  {
+    Dali::Mutex::ScopedLock lock( mMutex );
+
+    // Copy the list to the local variable and clear
+    handlers = mTriggeredHandlers;
+    mTriggeredHandlers.clear();
+  }
+
+  for( auto&& iter : handlers )
   {
     iter->NotifyEvent();
   }
-
-  mTriggeredHandlers.clear();
 }
 
 } // namespace Plugin
