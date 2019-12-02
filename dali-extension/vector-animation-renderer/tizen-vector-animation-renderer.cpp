@@ -79,6 +79,8 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
   Dali::Mutex::ScopedLock lock( mMutex );
 
   ResetBuffers();
+
+  TizenVectorAnimationManager::Get().RemoveEventHandler( *this );
 }
 
 bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
@@ -105,21 +107,6 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this );
 
   return true;
-}
-
-void TizenVectorAnimationRenderer::Finalize()
-{
-  Dali::Mutex::ScopedLock lock( mMutex );
-
-  TizenVectorAnimationManager::Get().RemoveEventHandler( *this );
-
-  mRenderer.Reset();
-  mTexture.Reset();
-  mRenderedTexture.Reset();
-  mVectorRenderer.reset();
-
-  mTargetSurface = nullptr;
-  mTbmQueue = NULL;
 }
 
 void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
@@ -178,11 +165,6 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 {
   Dali::Mutex::ScopedLock lock( mMutex );
-
-  if( !mTbmQueue || !mVectorRenderer )
-  {
-    return false;
-  }
 
   if( tbm_surface_queue_can_dequeue( mTbmQueue, 0 ) )
   {
@@ -278,17 +260,14 @@ void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
 {
   Dali::Mutex::ScopedLock lock( mMutex );
 
-  if( mVectorRenderer )
-  {
-    auto layerInfo = mVectorRenderer->layers();
+  auto layerInfo = mVectorRenderer->layers();
 
-    for( auto&& iter : layerInfo )
-    {
-      Property::Array frames;
-      frames.PushBack( std::get< 1 >( iter ) );
-      frames.PushBack( std::get< 2 >( iter ) );
-      map.Add( std::get< 0 >( iter ), frames );
-    }
+  for( auto&& iter : layerInfo )
+  {
+    Property::Array frames;
+    frames.PushBack( std::get< 1 >( iter ) );
+    frames.PushBack( std::get< 2 >( iter ) );
+    map.Add( std::get< 0 >( iter ), frames );
   }
 }
 
@@ -306,7 +285,7 @@ void TizenVectorAnimationRenderer::NotifyEvent()
     DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::NotifyEvent: Set Texture [%p]\n", this );
 
     // Set texture
-    if( mRenderer && mRenderedTexture )
+    if( mRenderer )
     {
       TextureSet textureSet = mRenderer.GetTextures();
       textureSet.SetTexture( 0, mRenderedTexture );

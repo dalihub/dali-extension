@@ -60,11 +60,6 @@ public:
   bool Initialize( const std::string& url ) override;
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::Finalize()
-   */
-  void Finalize() override;
-
-  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::SetRenderer()
    */
   void SetRenderer( Renderer renderer ) override;
