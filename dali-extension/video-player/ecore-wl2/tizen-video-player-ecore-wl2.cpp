@@ -231,7 +231,8 @@ TizenVideoPlayer::TizenVideoPlayer()
   mEcoreWlWindow( NULL ),
   mAlphaBitChanged( false ),
   mStreamInfo( NULL ),
-  mStreamType( SOUND_STREAM_TYPE_MEDIA )
+  mStreamType( SOUND_STREAM_TYPE_MEDIA ),
+  mCodecType( PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT )
 {
 }
 
@@ -463,6 +464,14 @@ void TizenVideoPlayer::SetPlayPosition( int millisecond )
 
   GetPlayerState( &mPlayerState );
 
+  if( mPlayerState == PLAYER_STATE_IDLE )
+  {
+    error = player_prepare( mPlayer );
+    LogPlayerError( error );
+
+    GetPlayerState( &mPlayerState ); // Check the status again.
+  }
+
   if( mPlayerState == PLAYER_STATE_READY ||
       mPlayerState == PLAYER_STATE_PLAYING ||
       mPlayerState == PLAYER_STATE_PAUSED
@@ -572,6 +581,9 @@ void TizenVideoPlayer::InitializeTextureStreamMode( Dali::NativeImageSourcePtr n
     error = player_set_display( mPlayer, PLAYER_DISPLAY_TYPE_NONE, NULL );
     LogPlayerError( error );
 
+    error = player_set_video_codec_type_ex( mPlayer, mCodecType );
+    LogPlayerError( error );
+
     error = player_set_display_visible( mPlayer, true );
     LogPlayerError( error );
 
@@ -607,6 +619,10 @@ void TizenVideoPlayer::InitializeUnderlayMode( Ecore_Wl2_Window* ecoreWlWindow )
     LogPlayerError( error );
 
     error = player_set_display_roi_area( mPlayer, 0, 0, 1, 1 );
+    LogPlayerError( error );
+
+    error = player_set_video_codec_type_ex( mPlayer, mCodecType );
+    LogPlayerError( error );
 
     int width, height;
     Ecore_Wl2_Display *wl2_display = ecore_wl2_connected_display_get(NULL);
@@ -808,32 +824,32 @@ void TizenVideoPlayer::DestroyPlayer()
 void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
 {
   int error;
+  switch( type )
+  {
+    case Dali::VideoPlayerPlugin::CodecType::DEFAULT :
+    {
+      mCodecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
+      break;
+    }
+    case Dali::VideoPlayerPlugin::CodecType::HW :
+    {
+      mCodecType = PLAYER_VIDEO_CODEC_TYPE_EX_HW;
+      break;
+    }
+    case Dali::VideoPlayerPlugin::CodecType::SW :
+    {
+      mCodecType = PLAYER_VIDEO_CODEC_TYPE_EX_SW;
+      break;
+    }
+  }
+
   if( mPlayerState != PLAYER_STATE_NONE )
   {
     GetPlayerState( &mPlayerState );
 
     if( mPlayerState == PLAYER_STATE_IDLE )
     {
-      player_video_codec_type_ex_e codecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
-      switch( type )
-      {
-        case Dali::VideoPlayerPlugin::CodecType::DEFAULT :
-        {
-          codecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
-          break;
-        }
-        case Dali::VideoPlayerPlugin::CodecType::HW :
-        {
-          codecType = PLAYER_VIDEO_CODEC_TYPE_EX_HW;
-          break;
-        }
-        case Dali::VideoPlayerPlugin::CodecType::SW :
-        {
-          codecType = PLAYER_VIDEO_CODEC_TYPE_EX_SW;
-          break;
-        }
-      }
-      error = player_set_video_codec_type_ex( mPlayer, codecType );
+      error = player_set_video_codec_type_ex( mPlayer, mCodecType );
       LogPlayerError( error );
     }
   }
