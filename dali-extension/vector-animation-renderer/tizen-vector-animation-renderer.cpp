@@ -120,8 +120,6 @@ void TizenVectorAnimationRenderer::Finalize()
 
   mTargetSurface = nullptr;
   mTbmQueue = NULL;
-
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Finalize: [%p]\n", this );
 }
 
 void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
