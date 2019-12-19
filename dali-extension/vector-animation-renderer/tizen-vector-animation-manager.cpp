@@ -118,7 +118,12 @@ void TizenVectorAnimationManager::OnEventTriggered()
 
   for( auto&& iter : handlers )
   {
-    iter->NotifyEvent();
+    // Check if it is valid
+    auto handler = std::find( mEventHandlers.begin(), mEventHandlers.end(), iter );
+    if( handler != mEventHandlers.end() )
+    {
+      iter->NotifyEvent();
+    }
   }
 }
 
