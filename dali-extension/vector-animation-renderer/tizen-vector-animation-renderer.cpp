@@ -120,6 +120,8 @@ void TizenVectorAnimationRenderer::Finalize()
 
   mTargetSurface = nullptr;
   mTbmQueue = NULL;
+
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Finalize: [%p]\n", this );
 }
 
 void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
@@ -290,6 +292,26 @@ void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
       map.Add( std::get< 0 >( iter ), frames );
     }
   }
+}
+
+bool TizenVectorAnimationRenderer::GetMarkerInfo( const std::string& marker, uint32_t& startFrame, uint32_t& endFrame ) const
+{
+  Dali::Mutex::ScopedLock lock( mMutex );
+
+  if( mVectorRenderer )
+  {
+    auto markerList = mVectorRenderer->markers();
+    for( auto&& iter : markerList )
+    {
+      if( std::get< 0 >( iter ).compare( marker ) == 0 )
+      {
+        startFrame = static_cast< uint32_t >( std::get< 1 >( iter ) );
+        endFrame = static_cast< uint32_t >( std::get< 2 >( iter ) );
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRenderer::UploadCompletedSignal()
