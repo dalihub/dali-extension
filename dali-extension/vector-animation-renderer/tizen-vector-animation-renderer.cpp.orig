@@ -279,6 +279,17 @@ void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
   Dali::Mutex::ScopedLock lock( mMutex );
 
   if( mVectorRenderer )
+<<<<<<< HEAD
+  {
+    auto layerInfo = mVectorRenderer->layers();
+
+    for( auto&& iter : layerInfo )
+    {
+      Property::Array frames;
+      frames.PushBack( std::get< 1 >( iter ) );
+      frames.PushBack( std::get< 2 >( iter ) );
+      map.Add( std::get< 0 >( iter ), frames );
+=======
   {
     auto layerInfo = mVectorRenderer->layers();
 
@@ -307,6 +318,7 @@ bool TizenVectorAnimationRenderer::GetMarkerInfo( const std::string& marker, uin
         endFrame = static_cast< uint32_t >( std::get< 2 >( iter ) );
         return true;
       }
+>>>>>>> devel/master
     }
   }
   return false;
