@@ -105,6 +105,11 @@ public:
   bool GetMarkerInfo( const std::string& marker, uint32_t& startFrame, uint32_t& endFrame ) const override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::IgnoreRenderedFrames()
+   */
+  void IgnoreRenderedFrames() override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
