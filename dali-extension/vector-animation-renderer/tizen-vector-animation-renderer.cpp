@@ -312,6 +312,16 @@ bool TizenVectorAnimationRenderer::GetMarkerInfo( const std::string& marker, uin
   return false;
 }
 
+void TizenVectorAnimationRenderer::IgnoreRenderedFrame()
+{
+  Dali::Mutex::ScopedLock lock( mMutex );
+
+  if( mTargetSurface )
+  {
+    mTargetSurface->IgnoreSourceImage();
+  }
+}
+
 VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRenderer::UploadCompletedSignal()
 {
   return mUploadCompletedSignal;
