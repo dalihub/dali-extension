@@ -223,9 +223,15 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
     if( !existing )
     {
-      tbm_surface_internal_ref( tbmSurface );
-
       unsigned char* buffer = info.planes[0].ptr;
+      if( !buffer )
+      {
+        DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: tbm buffer pointer is null! [%p]\n", this );
+        tbm_surface_unmap( tbmSurface );
+        return false;
+      }
+
+      tbm_surface_internal_ref( tbmSurface );
 
       // Create Surface object
       surface = rlottie::Surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
