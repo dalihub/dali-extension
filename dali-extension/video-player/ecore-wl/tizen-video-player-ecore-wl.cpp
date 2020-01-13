@@ -904,6 +904,11 @@ Dali::VideoPlayerPlugin::DisplayMode::Type TizenVideoPlayer::GetDisplayMode() co
   return static_cast< Dali::VideoPlayerPlugin::DisplayMode::Type >( mode );
 }
 
+Any TizenVideoPlayer::GetMediaPlayer()
+{
+   return Any( mPlayer );
+}
+
 
 } // namespace Plugin
 } // namespace Dali;
