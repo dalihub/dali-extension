@@ -58,6 +58,7 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mRenderer(),
   mTexture(),
   mRenderedTexture(),
+  mPreviousTexture(),
   mTargetSurface(),
   mVectorRenderer(),
   mUploadCompletedSignal(),
@@ -79,6 +80,7 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
   Dali::Mutex::ScopedLock lock( mMutex );
 
   ResetBuffers();
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer: this = %p\n", this );
 }
 
 bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
@@ -88,7 +90,7 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
   mVectorRenderer = rlottie::Animation::loadFromFile( mUrl );
   if( !mVectorRenderer )
   {
-    DALI_LOG_ERROR( "Failed to load a Lottie file [%s]\n", mUrl.c_str() );
+    DALI_LOG_ERROR( "Failed to load a Lottie file [%s] [%p]\n", mUrl.c_str(), this );
     return false;
   }
 
@@ -116,6 +118,7 @@ void TizenVectorAnimationRenderer::Finalize()
   mRenderer.Reset();
   mTexture.Reset();
   mRenderedTexture.Reset();
+  mPreviousTexture.Reset();
   mVectorRenderer.reset();
 
   mTargetSurface = nullptr;
@@ -174,6 +177,9 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
   mResourceReady = false;
 
+  // Reset the previous texture to destroy it in the main thread
+  mPreviousTexture.Reset();
+
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this );
 }
 
@@ -223,9 +229,15 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
     if( !existing )
     {
-      tbm_surface_internal_ref( tbmSurface );
-
       unsigned char* buffer = info.planes[0].ptr;
+      if( !buffer )
+      {
+        DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: tbm buffer pointer is null! [%p]\n", this );
+        tbm_surface_unmap( tbmSurface );
+        return false;
+      }
+
+      tbm_surface_internal_ref( tbmSurface );
 
       // Create Surface object
       surface = rlottie::Surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
@@ -243,6 +255,7 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
     if( !mResourceReady )
     {
+      mPreviousTexture = mRenderedTexture;  // It is used to destroy the object in the main thread.
       mRenderedTexture = mTexture;
       mResourceReady = true;
       mResourceReadyTriggered = true;
@@ -348,6 +361,8 @@ void TizenVectorAnimationRenderer::NotifyEvent()
 
     mUploadCompletedSignal.Emit();
   }
+
+  mPreviousTexture.Reset();
 }
 
 void TizenVectorAnimationRenderer::SetShader()
