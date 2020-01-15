@@ -58,6 +58,7 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mRenderer(),
   mTexture(),
   mRenderedTexture(),
+  mPreviousTexture(),
   mTargetSurface(),
   mVectorRenderer(),
   mUploadCompletedSignal(),
@@ -79,6 +80,7 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
   Dali::Mutex::ScopedLock lock( mMutex );
 
   ResetBuffers();
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer: this = %p\n", this );
 }
 
 bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
@@ -88,7 +90,7 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
   mVectorRenderer = rlottie::Animation::loadFromFile( mUrl );
   if( !mVectorRenderer )
   {
-    DALI_LOG_ERROR( "Failed to load a Lottie file [%s]\n", mUrl.c_str() );
+    DALI_LOG_ERROR( "Failed to load a Lottie file [%s] [%p]\n", mUrl.c_str(), this );
     return false;
   }
 
@@ -116,6 +118,7 @@ void TizenVectorAnimationRenderer::Finalize()
   mRenderer.Reset();
   mTexture.Reset();
   mRenderedTexture.Reset();
+  mPreviousTexture.Reset();
   mVectorRenderer.reset();
 
   mTargetSurface = nullptr;
@@ -249,6 +252,7 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
     if( !mResourceReady )
     {
+      mPreviousTexture = mRenderedTexture;  // It is used to destroy the object in the main thread.
       mRenderedTexture = mTexture;
       mResourceReady = true;
       mResourceReadyTriggered = true;
@@ -354,6 +358,8 @@ void TizenVectorAnimationRenderer::NotifyEvent()
 
     mUploadCompletedSignal.Emit();
   }
+
+  mPreviousTexture.Reset();
 }
 
 void TizenVectorAnimationRenderer::SetShader()
