@@ -20,10 +20,6 @@ PKG_CHECK_MODULES(ELEMENTARY, elementary)
 PKG_CHECK_MODULES(EVAS, evas)
 PKG_CHECK_MODULES(WAYLAND, [ecore-wl2])
 
-# For capture
-PKG_CHECK_MODULES(LIBTBM, libtbm)
-PKG_CHECK_MODULES(LIBPNG, libpng)
-
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
 
