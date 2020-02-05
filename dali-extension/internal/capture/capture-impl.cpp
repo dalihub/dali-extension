@@ -303,14 +303,9 @@ void Capture::UnsetRenderTask()
   mCameraActor.Unparent();
   mCameraActor.Reset();
 
-  DALI_ASSERT_ALWAYS(mRenderTask && "RenderTask is NULL.");
+  DALI_ASSERT_ALWAYS( mRenderTask && "RenderTask is NULL." );
 
   RenderTaskList taskList = Stage::GetCurrent().GetRenderTaskList();
-  RenderTask firstTask = taskList.GetTask( 0u );
-
-  // Stop rendering via frame-buffers as empty handle is used to clear target
-  firstTask.SetFrameBuffer(FrameBuffer());
-
   taskList.RemoveTask(mRenderTask);
   mRenderTask.Reset();
 }
