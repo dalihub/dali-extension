@@ -906,7 +906,7 @@ Dali::VideoPlayerPlugin::DisplayMode::Type TizenVideoPlayer::GetDisplayMode() co
 
 Any TizenVideoPlayer::GetMediaPlayer()
 {
-   return Any( mPlayer );
+   return Any( ( void* ) mPlayer );
 }
 
 
