@@ -111,7 +111,11 @@ EvasPlugin::~EvasPlugin()
   {
     delete mAdaptor;
 
+    mAdaptor = nullptr;
+
     mSingletonService.UnregisterAll();
+
+    mSingletonService.Reset();
   }
 }
 
