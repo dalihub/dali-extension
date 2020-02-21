@@ -1,8 +1,8 @@
-#ifndef __DALI_EXTENSION_INTERNAL_EVAS_EVENT_HANDLER__
-#define __DALI_EXTENSION_INTERNAL_EVAS_EVENT_HANDLER__
+#ifndef DALI_EXTENSION_INTERNAL_EVAS_EVENT_HANDLER
+#define DALI_EXTENSION_INTERNAL_EVAS_EVENT_HANDLER
 
 /*
- * Copyright ( c ) 2019 Samsung Electronics Co., Ltd.
+ * Copyright ( c ) 2020 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 ( the "License" );
  * you may not use this file except in compliance with the License.
@@ -40,28 +40,28 @@ namespace Extension
 namespace Internal
 {
 
-class EvasPluginEventInterface;
+class EvasEventInterface;
 
-class EvasPluginEventHandler
+class EvasEventHandler
 {
 public:
   /**
    * @brief Constructor
    *
-   * @param[in] evasPluginEventInterface Used to send event to evas plugin
+   * @param[in] evasEventInterface Used to send event to evas plugin
    */
-  EvasPluginEventHandler( EvasPluginEventInterface& evasPluginEventInterface );
+  EvasEventHandler( EvasEventInterface& evasEventInterface );
 
   /**
    * Destructor.
    */
-  ~EvasPluginEventHandler();
+  ~EvasEventHandler();
 
 public:
 
-  EvasPluginEventInterface& GetEvasPluginInterface()
+  EvasEventInterface& GetEvasEventInterface()
   {
-    return mEvasPluginEventInterface;
+    return mEvasEventInterface;
   }
 
 private:
@@ -132,6 +132,20 @@ private:
    * @brief Called when resize is received
    */
   static void OnEvasObjectResize( void *data, Evas* evas, Evas_Object* evasObject, void* event );
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Visibility callbacks
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Called when show is received
+   */
+  static void OnEvasObjectShow( void *data, Evas* evas, Evas_Object* evasObject, void* event );
+
+  /**
+   * @brief Called when hide is received
+   */
+  static void OnEvasObjectHide( void *data, Evas* evas, Evas_Object* evasObject, void* event );
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////
   // Focus callbacks
@@ -206,7 +220,7 @@ private:
 
 private:
 
-  EvasPluginEventInterface&         mEvasPluginEventInterface;
+  EvasEventInterface&               mEvasEventInterface;
   std::vector<Ecore_Event_Handler*> mEcoreEventHandlers;
 };
 
