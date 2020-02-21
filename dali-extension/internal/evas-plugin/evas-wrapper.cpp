@@ -41,21 +41,23 @@ const char* ELM_OBJECT_CONTAINER_PART_NAME = "elm.swallow.content";
 
 } // unnamed namespace
 
-EvasWrapper::EvasWrapper( Evas_Object* pluginParent, int width, int height, bool transparent )
+EvasWrapper::EvasWrapper( Evas_Object* pluginParent, uint16_t width, uint16_t height, bool transparent )
 : mEcoreEvas( nullptr ),
   mImageEvasObject( nullptr ),
   mAccessibilityEvasObject( nullptr ),
   mFocusEvasObject( nullptr )
 {
+  int intWidth = static_cast<int>( width );
+  int intHeight = static_cast<int>( height );
+
   Evas* evas = evas_object_evas_get( pluginParent );
   mEcoreEvas = ecore_evas_ecore_evas_get( evas );
 
   // Create the image evas object
   mImageEvasObject = evas_object_image_filled_add( evas );
   evas_object_name_set( mImageEvasObject, IMAGE_EVAS_OBJECT_NAME );
-  evas_object_image_content_hint_set( mImageEvasObject, EVAS_IMAGE_CONTENT_HINT_DYNAMIC );
   evas_object_image_alpha_set( mImageEvasObject, transparent ? EINA_TRUE : EINA_FALSE );
-  evas_object_image_size_set( mImageEvasObject, width, height );
+  evas_object_image_size_set( mImageEvasObject, intWidth, intHeight );
   evas_object_size_hint_weight_set( mImageEvasObject, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND );
   evas_object_size_hint_align_set( mImageEvasObject, EVAS_HINT_FILL, EVAS_HINT_FILL );
 
@@ -77,7 +79,7 @@ EvasWrapper::EvasWrapper( Evas_Object* pluginParent, int width, int height, bool
   evas_object_size_hint_align_set( mFocusEvasObject, EVAS_HINT_FILL, EVAS_HINT_FILL );
 
   evas_object_move( mFocusEvasObject, 0, 0 );
-  evas_object_resize( mFocusEvasObject, width, height );
+  evas_object_resize( mFocusEvasObject, intWidth, intHeight );
   evas_object_show( mFocusEvasObject );
 }
 

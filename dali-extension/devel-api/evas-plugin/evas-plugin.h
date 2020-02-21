@@ -70,8 +70,8 @@ class EvasPlugin;
  * namespace
  * {
  * const char* const APPLICATION_TITLE = "EvasPluginExample";
- * const int EVAS_PLUGIN_WIDTH = 360;
- * const int EVAS_PLUGIN_HEIGHT = 360;
+ * const uint16_t EVAS_PLUGIN_WIDTH = 360;
+ * const uint16_t EVAS_PLUGIN_HEIGHT = 360;
  * }
  *
  * class EvasPluginExample : public ConnectionTracker
@@ -211,7 +211,7 @@ public:
    * @param[in] height The initial height of the default scene
    * @param[in] isTranslucent Whether the Evas object is translucent or not
    */
-  static EvasPlugin New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent );
+  static EvasPlugin New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
 
   /**
    * @brief Constructs an empty handle

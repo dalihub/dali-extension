@@ -34,13 +34,13 @@ namespace Extension
 namespace Internal
 {
 
-IntrusivePtr< EvasPlugin > EvasPlugin::New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
+IntrusivePtr< EvasPlugin > EvasPlugin::New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
 {
   IntrusivePtr< EvasPlugin > evasPlugin = new EvasPlugin( parentEvasObject, width, height, isTranslucent );
   return evasPlugin;
 }
 
-EvasPlugin::EvasPlugin( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
+EvasPlugin::EvasPlugin( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
 : mSingletonService( SingletonService::New() ),
   mState( READY )
 {
@@ -146,7 +146,7 @@ Evas_Object* EvasPlugin::GetDaliEvasObject()
   return mDefaultScene.GetDaliEvasObject();
 }
 
-void EvasPlugin::OnDefaultSceneResized( Extension::Scene defaultScene, int width, int height )
+void EvasPlugin::OnDefaultSceneResized( Extension::Scene defaultScene, uint16_t width, uint16_t height )
 {
   mResizeSignal.Emit();
 }

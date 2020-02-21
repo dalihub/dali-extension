@@ -56,7 +56,7 @@ public:
    * @param[in] height The initial height of the Dali view port
    * @param[in] transparent Whether the Evas object is transparent or not
    */
-  EvasWrapper( Evas_Object* pluginParent, int width, int height, bool transparent );
+  EvasWrapper( Evas_Object* pluginParent, uint16_t width, uint16_t height, bool transparent );
 
   /**
    * @brief Destructor

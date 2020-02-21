@@ -27,7 +27,7 @@ namespace Dali
 namespace Extension
 {
 
-EvasPlugin EvasPlugin::New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
+EvasPlugin EvasPlugin::New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
 {
   IntrusivePtr< Internal::EvasPlugin > impl = Internal::EvasPlugin::New( parentEvasObject, width, height, isTranslucent );
 

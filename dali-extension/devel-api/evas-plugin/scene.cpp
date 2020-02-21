@@ -31,7 +31,7 @@ namespace Dali
 namespace Extension
 {
 
-Scene Scene::New( EvasPlugin evasPlugin, Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
+Scene Scene::New( EvasPlugin evasPlugin, Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
 {
   IntrusivePtr< Internal::Scene > impl = Internal::Scene::New( parentEvasObject, width, height, isTranslucent );
 
@@ -99,7 +99,7 @@ Layer Scene::GetLayer( uint32_t depth ) const
   return Internal::GetImplementation( *this ).GetLayer( depth );
 }
 
-Size Scene::GetSize() const
+Scene::SceneSize Scene::GetSize() const
 {
   return Internal::GetImplementation( *this ).GetSize();
 }

@@ -58,7 +58,7 @@ public:
    * @param[in] height The height of Dali view port
    * @param[in] isTranslucent Whether the evas object is translucent or not
    */
-  static IntrusivePtr<EvasPlugin> New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent );
+  static IntrusivePtr<EvasPlugin> New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
 
 public:
 
@@ -197,7 +197,7 @@ private:
    * @param[in] height The height of Dali view port
    * @param[in] isTranslucent Whether the evas object is translucent or not
    */
-  EvasPlugin( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent );
+  EvasPlugin( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
 
   /**
    * Destructor
@@ -211,7 +211,7 @@ private:
   /**
    * This callback is for supporting legacy API EvasPlugin::ResizeSignal
    */
-  void OnDefaultSceneResized( Extension::Scene defaultScene, int width, int height );
+  void OnDefaultSceneResized( Extension::Scene defaultScene, uint16_t width, uint16_t height );
 
   /**
    * This callback is for supporting legacy API EvasPlugin::FocusedSignal, EvasPlugin::UnFocusedSignal

@@ -54,6 +54,7 @@ class Scene : public Dali::Internal::Adaptor::SceneHolder,
               public Extension::Internal::EvasEventInterface
 {
 public:
+  typedef Dali::Extension::Scene::SceneSize SceneSize;
 
   typedef Dali::Extension::Scene::VisibilityChangedSignalType VisibilityChangedSignalType;
 
@@ -69,7 +70,7 @@ public:
    * @param[in] height The initial height of the scene
    * @param[in] isTranslucent Whether the Evas object is translucent or not
    */
-  static IntrusivePtr<Scene> New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent );
+  static IntrusivePtr<Scene> New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
 
 public:
 
@@ -86,7 +87,7 @@ public:
   /**
    * @copydoc Dali::Extension::Scene::GetSize
    */
-  Size GetSize() const;
+  SceneSize GetSize() const;
 
   /**
    * @brief Gets the native handle.
@@ -143,7 +144,7 @@ private:
    * @param[in] width The width value
    * @param[in] height The height value
    */
-  void ResizeSurface( int width, int height );
+  void ResizeSurface( uint16_t width, uint16_t height );
 
   /**
    * This function is called after drawing by dali.
@@ -234,7 +235,7 @@ private:
    * @param[in] height The initial height of the scene
    * @param[in] isTranslucent Whether the Evas object is translucent or not
    */
-  Scene( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent );
+  Scene( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
 
   /**
    * Destructor

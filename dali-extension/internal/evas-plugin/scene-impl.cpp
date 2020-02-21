@@ -44,13 +44,13 @@ namespace Extension
 namespace Internal
 {
 
-IntrusivePtr< Scene > Scene::New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
+IntrusivePtr< Scene > Scene::New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
 {
   IntrusivePtr< Scene > scene = new Scene( parentEvasObject, width, height, isTranslucent );
   return scene;
 }
 
-Scene::Scene( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
+Scene::Scene( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
 : mAdaptor( nullptr ),
   mEvasWrapper( new EvasWrapper( parentEvasObject, width, height, isTranslucent ) ),
   mEvasEventHandler(),
@@ -61,7 +61,7 @@ Scene::Scene( Evas_Object* parentEvasObject, int width, int height, bool isTrans
   DALI_ASSERT_ALWAYS( parentEvasObject && "No parent object for the scene" );
 
   // Create surface
-  mSurface = std::unique_ptr< RenderSurfaceInterface >( CreateNativeSurface( PositionSize( 0, 0, width, height ), isTranslucent ) );
+  mSurface = std::unique_ptr< RenderSurfaceInterface >( CreateNativeSurface( PositionSize( 0, 0, static_cast<int>( width ), static_cast<int>( height ) ), isTranslucent ) );
 }
 
 void Scene::Initialize( EvasPlugin* evasPlugin, bool isDefaultScene )
@@ -130,9 +130,11 @@ Layer Scene::GetLayer( uint32_t depth ) const
   return mScene.GetLayer( depth );
 }
 
-Size Scene::GetSize() const
+Scene::SceneSize Scene::GetSize() const
 {
-  return mScene.GetSize();
+  Size size = mScene.GetSize();
+
+  return Scene::SceneSize( static_cast<uint16_t>( size.width ), static_cast<uint16_t>( size.height ) );
 }
 
 Dali::Any Scene::GetNativeHandle() const
@@ -155,20 +157,23 @@ Evas_Object* Scene::GetDaliEvasObject()
   return mEvasWrapper->GetFocusTarget();
 }
 
-void Scene::ResizeSurface( int width, int height )
+void Scene::ResizeSurface( uint16_t width, uint16_t height )
 {
   if( !mSurface || !mAdaptor || width <= 1 || height <= 1 )
   {
     return;
   }
 
+  int intWidth = static_cast<int>( width );
+  int intHeight = static_cast<int>( height );
+
   PositionSize currentSize = mSurface->GetPositionSize();
-  if( currentSize.width == width && currentSize.height == height )
+  if( currentSize.width == intWidth && currentSize.height == intHeight )
   {
     return;
   }
 
-  mSurface->MoveResize( PositionSize( 0, 0, width, height ) );
+  mSurface->MoveResize( PositionSize( 0, 0, intWidth, intHeight ) );
 
   SurfaceResized( true );
 
@@ -229,7 +234,7 @@ void Scene::OnEvasObjectMove( const Rect<int>& geometry )
 
 void Scene::OnEvasObjectResize( const Rect<int>& geometry )
 {
-  ResizeSurface( geometry.width, geometry.height );
+  ResizeSurface( static_cast<uint16_t>( geometry.width ), static_cast<uint16_t>( geometry.height ) );
 }
 
 void Scene::OnEvasObjectVisiblityChanged( bool visible )

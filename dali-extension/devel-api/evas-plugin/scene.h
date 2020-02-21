@@ -27,6 +27,7 @@
 #include <Evas.h>
 
 #include <dali/public-api/actors/actor.h>
+#include <dali/public-api/math/uint-16-pair.h>
 #include <dali/public-api/signals/dali-signal.h>
 
 // INTERNAL INCLUDES
@@ -64,11 +65,13 @@ class DALI_IMPORT_API Scene : public Dali::BaseHandle
 {
 public:
 
+  typedef Uint16Pair SceneSize;
+
   typedef Signal<void (Scene, bool)> VisibilityChangedSignalType;
 
   typedef Signal<void (Scene, bool)> FocusChangedSignalType;
 
-  typedef Signal<void (Scene, int width, int height)> ResizedSignalType;
+  typedef Signal<void (Scene, uint16_t, uint16_t)> ResizedSignalType;
 
 public:
 
@@ -82,7 +85,7 @@ public:
    * @param[in] height The initial height of the scene
    * @param[in] isTranslucent Whether the Evas object is translucent or not
    */
-  static Scene New( EvasPlugin evasPlugin, Evas_Object* parentEvasObject, int width, int height, bool isTranslucent );
+  static Scene New( EvasPlugin evasPlugin, Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
 
   /**
    * @brief Constructs an empty handle
@@ -174,7 +177,7 @@ public:
    *
    * @return The size of the Scene as a Vector
    */
-  Size GetSize() const;
+  SceneSize GetSize() const;
 
   /**
    * @brief This returns the Evas_Object* for accessibility which is created internally
