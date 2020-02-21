@@ -1,5 +1,5 @@
-#ifndef __DALI_EXTENSION_INTERNAL_EVAS_WRAPPER__
-#define __DALI_EXTENSION_INTERNAL_EVAS_WRAPPER__
+#ifndef DALI_EXTENSION_INTERNAL_EVAS_WRAPPER
+#define DALI_EXTENSION_INTERNAL_EVAS_WRAPPER
 
 /*
  * Copyright ( c ) 2019 Samsung Electronics Co., Ltd.
@@ -56,7 +56,7 @@ public:
    * @param[in] height The initial height of the Dali view port
    * @param[in] transparent Whether the Evas object is transparent or not
    */
-  EvasWrapper( Evas_Object* pluginParent, int width, int height, bool transparent );
+  EvasWrapper( Evas_Object* pluginParent, uint16_t width, uint16_t height, bool transparent );
 
   /**
    * @brief Destructor
@@ -122,4 +122,4 @@ private:
 
 }  // namespace Dali
 
-#endif // __DALI_EXTENSION_INTERNAL_EVAS_WRAPPER__
+#endif // DALI_EXTENSION_INTERNAL_EVAS_WRAPPER

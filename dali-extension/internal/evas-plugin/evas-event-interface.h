@@ -1,8 +1,8 @@
-#ifndef __DALI_EXTENSION_INTERNAL_EVAS_EVENT_INTERFACE_H__
-#define __DALI_EXTENSION_INTERNAL_EVAS_EVENT_INTERFACE_H__
+#ifndef DALI_EXTENSION_INTERNAL_EVAS_EVENT_INTERFACE_H
+#define DALI_EXTENSION_INTERNAL_EVAS_EVENT_INTERFACE_H
 
 /*
- * Copyright ( c ) 2019 Samsung Electronics Co., Ltd.
+ * Copyright ( c ) 2020 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 ( the "License" );
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ struct AccessActionInfo
    unsigned int     timeStamp;
 };
 
-class EvasPluginEventInterface
+class EvasEventInterface
 {
 public:
    /**
@@ -128,6 +128,13 @@ public:
   virtual void OnEvasObjectResize( const Rect<int>& geometry ) = 0;
 
   /**
+   * @brief Handle evas object visibility
+   *
+   * @param visible is the visibility information of evas object
+   */
+  virtual void OnEvasObjectVisiblityChanged( bool visible ) = 0;
+
+  /**
    * @brief Handle evas object focus in
    */
   virtual void OnEvasObjectFocusIn() = 0;
@@ -152,9 +159,9 @@ public:
   /**
    * @brief Process the ecore wayland visibility.
    *
-   * @param[in] visibility True is that ecore wayland window is show up and false is not
+   * @param[in] visible True is that ecore wayland window is show up and false is not
    */
-  virtual void OnEcoreWl2VisibilityChange( bool visibility ) = 0;
+  virtual void OnEcoreWl2VisibilityChange( bool visible ) = 0;
 };
 
 }  // namespace Internal
