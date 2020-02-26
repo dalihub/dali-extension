@@ -31,7 +31,12 @@ EvasPlugin EvasPlugin::New( Evas_Object* parentEvasObject, int width, int height
 {
   IntrusivePtr< Internal::EvasPlugin > impl = Internal::EvasPlugin::New( parentEvasObject, width, height, isTranslucent );
 
+  // When Initialize(), EvasPlugin creates Adaptor which needs BaseHandle of Internal::EvasPlugin.
+  // In that process, EvasPlugin can be deleted when destroying BaseHandle
+  // so it is needed to count reference before calling Initialize()
   EvasPlugin evasPlugin = EvasPlugin( impl.Get() );
+
+  impl->Initialize();
 
   return evasPlugin;
 }
@@ -41,7 +46,7 @@ EvasPlugin::EvasPlugin()
 }
 
 EvasPlugin::EvasPlugin( const EvasPlugin& evasPlugin )
-: BaseHandle( evasPlugin )
+: SceneHolder( evasPlugin )
 {
 }
 
@@ -76,11 +81,6 @@ void EvasPlugin::Resume()
 void EvasPlugin::Stop()
 {
   Internal::GetImplementation( *this ).Stop();
-}
-
-Scene EvasPlugin::GetDefaultScene()
-{
-  return Internal::GetImplementation( *this ).GetDefaultScene();
 }
 
 Evas_Object* EvasPlugin::GetAccessEvasObject()
@@ -129,7 +129,7 @@ EvasPlugin::EvasPluginSignalType& EvasPlugin::UnFocusedSignal()
 }
 
 EvasPlugin::EvasPlugin( Internal::EvasPlugin* evasPlugin )
-: BaseHandle( evasPlugin )
+: SceneHolder( evasPlugin )
 {
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright ( c ) 2020 Samsung Electronics Co., Ltd.
+ * Copyright ( c ) 2019 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 ( the "License" );
  * you may not use this file except in compliance with the License.
@@ -440,66 +440,60 @@ void FillIntegrationKeyEvent( Type keyEvent, Integration::KeyEvent& result )
 
 } // anonymous namespace
 
-EvasEventHandler::EvasEventHandler( EvasEventInterface& evasEventInterface )
-: mEvasEventInterface( evasEventInterface )
+EvasPluginEventHandler::EvasPluginEventHandler( EvasPluginEventInterface& evasPluginEventInterface )
+: mEvasPluginEventInterface( evasPluginEventInterface )
 {
-  EvasWrapper* evasWrapper = mEvasEventInterface.GetEvasWrapper();
+  EvasWrapper* evasWrapper = mEvasPluginEventInterface.GetEvasWrapper();
   Evas_Object* renderTarget = evasWrapper->GetRenderTarget();
   Evas_Object* accessibilityTarget = evasWrapper->GetAccessibilityTarget();
   Evas_Object* focusTarget = evasWrapper->GetFocusTarget();
   Evas* renderTargetAsEvas = evas_object_evas_get( renderTarget );
 
   // Register the evas event callbacks
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_DOWN,  OnEvasObjectMouseDown,      &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_UP,    OnEvasObjectMouseUp,        &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_MOVE,  OnEvasObjectMouseMove,      &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_WHEEL, OnEvasObjectMouseWheel,     &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MULTI_DOWN,  OnEvasObjectMultiTouchDown, &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MULTI_UP,    OnEvasObjectMultiTouchUp,   &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MULTI_MOVE,  OnEvasObjectMultiTouchMove, &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_KEY_DOWN,    OnEvasObjectKeyDown,        &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_KEY_UP,      OnEvasObjectKeyUp,          &evasEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_DOWN,  OnEvasObjectMouseDown,      &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_UP,    OnEvasObjectMouseUp,        &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_MOVE,  OnEvasObjectMouseMove,      &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOUSE_WHEEL, OnEvasObjectMouseWheel,     &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MULTI_DOWN,  OnEvasObjectMultiTouchDown, &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MULTI_UP,    OnEvasObjectMultiTouchUp,   &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MULTI_MOVE,  OnEvasObjectMultiTouchMove, &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_KEY_DOWN,    OnEvasObjectKeyDown,        &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_KEY_UP,      OnEvasObjectKeyUp,          &evasPluginEventInterface );
 
   // Register the evas geometry callbacks
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOVE,   OnEvasObjectMove,   &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_RESIZE, OnEvasObjectResize, &evasEventInterface );
-
-  // Register the evas visibility callbacks
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_SHOW, OnEvasObjectShow, &evasEventInterface );
-  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_HIDE, OnEvasObjectHide, &evasEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_MOVE,   OnEvasObjectMove,   &evasPluginEventInterface );
+  evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_RESIZE, OnEvasObjectResize, &evasPluginEventInterface );
 
   // Register the evas focus callbacks
   evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_FOCUS_IN,  OnEvasObjectFocusIn,  this );
   evas_object_event_callback_add( renderTarget, EVAS_CALLBACK_FOCUS_OUT, OnEvasObjectFocusOut, this );
 
-  evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_IN,  OnEvasFocusIn,  &evasEventInterface );
-  evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_OUT, OnEvasFocusOut, &evasEventInterface );
+  evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_IN,  OnEvasFocusIn,  &evasPluginEventInterface );
+  evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_OUT, OnEvasFocusOut, &evasPluginEventInterface );
 
   // Register the evas render callbacks
-  evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_RENDER_POST, OnEvasRenderPost, &evasEventInterface );
+  evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_RENDER_POST, OnEvasRenderPost, &evasPluginEventInterface );
 
   // Register the elm access action callbacks and these callbacks are disconnected when mElmAccessEvasObject is unregistred
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_HIGHLIGHT,      OnElmAccessActionHighlight,      &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_UNHIGHLIGHT,    OnElmAccessActionUnhighlight,    &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_HIGHLIGHT_NEXT, OnElmAccessActionHighlightNext,  &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_HIGHLIGHT_PREV, OnElmAccessActionHighlightPrev,  &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_ACTIVATE,       OnElmAccessActionActivate,       &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_UP,             OnElmAccessActionUp,             &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_DOWN,           OnElmAccessActionDown,           &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_SCROLL,         OnElmAccessActionScroll,         &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_BACK,           OnElmAccessActionBack,           &evasEventInterface );
-  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_READ,           OnElmAccessActionRead,           &evasEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_HIGHLIGHT,      OnElmAccessActionHighlight,      &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_UNHIGHLIGHT,    OnElmAccessActionUnhighlight,    &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_HIGHLIGHT_NEXT, OnElmAccessActionHighlightNext,  &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_HIGHLIGHT_PREV, OnElmAccessActionHighlightPrev,  &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_ACTIVATE,       OnElmAccessActionActivate,       &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_UP,             OnElmAccessActionUp,             &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_DOWN,           OnElmAccessActionDown,           &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_SCROLL,         OnElmAccessActionScroll,         &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_BACK,           OnElmAccessActionBack,           &evasPluginEventInterface );
+  elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_READ,           OnElmAccessActionRead,           &evasPluginEventInterface );
 
   // Register the elm focus callbacks
   evas_object_smart_callback_add( focusTarget, EVAS_OBJECT_FOCUSED_EVENT_NAME,   OnEvasObjectSmartFocused,   this );
   evas_object_smart_callback_add( focusTarget, EVAS_OBJECT_UNFOCUSED_EVENT_NAME, OnEvasObjectSmartUnfocused, this );
-
-  EnableEcoreWl2Events();
 }
 
-EvasEventHandler::~EvasEventHandler()
+EvasPluginEventHandler::~EvasPluginEventHandler()
 {
-  EvasWrapper* evasWrapper = mEvasEventInterface.GetEvasWrapper();
+  EvasWrapper* evasWrapper = mEvasPluginEventInterface.GetEvasWrapper();
   Evas_Object* renderTarget = evasWrapper->GetRenderTarget();
   Evas_Object* focusTarget = evasWrapper->GetFocusTarget();
   Evas* renderTargetAsEvas = evas_object_evas_get( renderTarget );
@@ -519,10 +513,6 @@ EvasEventHandler::~EvasEventHandler()
   evas_object_event_callback_del( renderTarget, EVAS_CALLBACK_MOVE,   OnEvasObjectMove );
   evas_object_event_callback_del( renderTarget, EVAS_CALLBACK_RESIZE, OnEvasObjectResize );
 
-  // Unregister the evas visibility callbacks
-  evas_object_event_callback_del( renderTarget, EVAS_CALLBACK_SHOW, OnEvasObjectShow );
-  evas_object_event_callback_del( renderTarget, EVAS_CALLBACK_HIDE, OnEvasObjectHide );
-
   // Unregister the evas focus callbacks
   evas_object_event_callback_del( renderTarget, EVAS_CALLBACK_FOCUS_IN,  OnEvasObjectFocusIn );
   evas_object_event_callback_del( renderTarget, EVAS_CALLBACK_FOCUS_OUT, OnEvasObjectFocusOut );
@@ -536,20 +526,18 @@ EvasEventHandler::~EvasEventHandler()
   // Unregister the elm focus callbacks
   evas_object_smart_callback_del( focusTarget, EVAS_OBJECT_FOCUSED_EVENT_NAME,   OnEvasObjectSmartFocused );
   evas_object_smart_callback_del( focusTarget, EVAS_OBJECT_UNFOCUSED_EVENT_NAME, OnEvasObjectSmartUnfocused );
-
-  DisableEcoreWl2Events();
 }
 
-void EvasEventHandler::EnableEcoreWl2Events()
+void EvasPluginEventHandler::EnableEcoreWl2Events()
 {
   if( !mEcoreEventHandlers.size() )
   {
     // Register Window visibility change events
-    mEcoreEventHandlers.push_back( ecore_event_handler_add( ECORE_WL2_EVENT_WINDOW_VISIBILITY_CHANGE, OnEcoreWl2EventWindowVisibilityChange, &mEvasEventInterface ) );
+    mEcoreEventHandlers.push_back( ecore_event_handler_add( ECORE_WL2_EVENT_WINDOW_VISIBILITY_CHANGE, OnEcoreWl2EventWindowVisibilityChange, &mEvasPluginEventInterface ) );
   }
 }
 
-void EvasEventHandler::DisableEcoreWl2Events()
+void EvasPluginEventHandler::DisableEcoreWl2Events()
 {
   if( mEcoreEventHandlers.size() )
   {
@@ -566,7 +554,7 @@ void EvasEventHandler::DisableEcoreWl2Events()
 // Event callbacks
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EvasEventHandler::OnEvasObjectMouseDown( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMouseDown( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Mouse_Down* eventMouseDown = static_cast<Evas_Event_Mouse_Down*>( event );
 
@@ -580,11 +568,11 @@ void EvasEventHandler::OnEvasObjectMouseDown( void *data, Evas* evas, Evas_Objec
     timeStamp = GetCurrentMilliSeconds();
   }
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectTouchEvent( point, timeStamp );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectTouchEvent( point, timeStamp );
 }
 
-void EvasEventHandler::OnEvasObjectMouseUp( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMouseUp( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Mouse_Up* eventMouseUp = static_cast<Evas_Event_Mouse_Up*>( event );
 
@@ -598,11 +586,11 @@ void EvasEventHandler::OnEvasObjectMouseUp( void *data, Evas* evas, Evas_Object*
     timeStamp = GetCurrentMilliSeconds();
   }
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectTouchEvent( point, timeStamp );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectTouchEvent( point, timeStamp );
 }
 
-void EvasEventHandler::OnEvasObjectMouseMove( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMouseMove( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Mouse_Move* eventMouseMove = static_cast<Evas_Event_Mouse_Move*>( event );
 
@@ -616,11 +604,11 @@ void EvasEventHandler::OnEvasObjectMouseMove( void *data, Evas* evas, Evas_Objec
     timeStamp = GetCurrentMilliSeconds();
   }
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectTouchEvent( point, timeStamp );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectTouchEvent( point, timeStamp );
 }
 
-void EvasEventHandler::OnEvasObjectMouseWheel( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMouseWheel( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Mouse_Wheel* eventMouseWheel = static_cast<Evas_Event_Mouse_Wheel*>( event );
 
@@ -639,11 +627,11 @@ void EvasEventHandler::OnEvasObjectMouseWheel( void *data, Evas* evas, Evas_Obje
 
   Dali::Integration::WheelEvent wheelEvent( Dali::Integration::WheelEvent::MOUSE_WHEEL, direction, modifiers, point, z, timeStamp );
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectWheelEvent( wheelEvent );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectWheelEvent( wheelEvent );
 }
 
-void EvasEventHandler::OnEvasObjectMultiTouchDown( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMultiTouchDown( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Multi_Down* eventMultiDown = static_cast<Evas_Event_Multi_Down*>( event );
 
@@ -657,11 +645,11 @@ void EvasEventHandler::OnEvasObjectMultiTouchDown( void *data, Evas* evas, Evas_
     timeStamp = GetCurrentMilliSeconds();
   }
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectTouchEvent( point, timeStamp );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectTouchEvent( point, timeStamp );
 }
 
-void EvasEventHandler::OnEvasObjectMultiTouchUp( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMultiTouchUp( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Multi_Up* eventMultiUp = static_cast<Evas_Event_Multi_Up*>( event );
 
@@ -675,11 +663,11 @@ void EvasEventHandler::OnEvasObjectMultiTouchUp( void *data, Evas* evas, Evas_Ob
     timeStamp = GetCurrentMilliSeconds();
   }
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectTouchEvent( point, timeStamp );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectTouchEvent( point, timeStamp );
 }
 
-void EvasEventHandler::OnEvasObjectMultiTouchMove( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMultiTouchMove( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Multi_Move* eventMultiMove = static_cast<Evas_Event_Multi_Move*>( event );
 
@@ -693,11 +681,11 @@ void EvasEventHandler::OnEvasObjectMultiTouchMove( void *data, Evas* evas, Evas_
     timeStamp = GetCurrentMilliSeconds();
   }
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectTouchEvent( point, timeStamp );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectTouchEvent( point, timeStamp );
 }
 
-void EvasEventHandler::OnEvasObjectKeyDown( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectKeyDown( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Key_Down* keyEvent = static_cast<Evas_Event_Key_Down*>( event );
 
@@ -709,10 +697,10 @@ void EvasEventHandler::OnEvasObjectKeyDown( void *data, Evas* evas, Evas_Object*
   FillIntegrationKeyEvent( keyEvent, integKeyEvent );
 
   // Feed to EvasPlugin
-  ( static_cast<EvasEventInterface*>( data ) )->OnEvasObjectKeyEvent( integKeyEvent );
+  ( static_cast<EvasPluginEventInterface*>( data ) )->OnEvasObjectKeyEvent( integKeyEvent );
 }
 
-void EvasEventHandler::OnEvasObjectKeyUp( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectKeyUp( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Evas_Event_Key_Up* keyEvent = static_cast<Evas_Event_Key_Up*>( event );
 
@@ -724,70 +712,56 @@ void EvasEventHandler::OnEvasObjectKeyUp( void *data, Evas* evas, Evas_Object* e
   FillIntegrationKeyEvent( keyEvent, integKeyEvent );
 
   // Feed to EvasPlugin
-  ( static_cast<EvasEventInterface*>( data ) )->OnEvasObjectKeyEvent( integKeyEvent );
+  ( static_cast<EvasPluginEventInterface*>( data ) )->OnEvasObjectKeyEvent( integKeyEvent );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Geometry callbacks
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EvasEventHandler::OnEvasObjectMove( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectMove( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Rect<int> geometry;
   evas_object_geometry_get( evasObject, &geometry.x, &geometry.y, &geometry.width, &geometry.height );
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectMove( geometry );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectMove( geometry );
 }
 
-void EvasEventHandler::OnEvasObjectResize( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectResize( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
   Rect<int> geometry;
   evas_object_geometry_get( evasObject, &geometry.x, &geometry.y, &geometry.width, &geometry.height );
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectResize( geometry );
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// Visibility callbacks
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void EvasEventHandler::OnEvasObjectShow( void *data, Evas* evas, Evas_Object* evasObject, void* event )
-{
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectVisiblityChanged( true );
-}
-
-void EvasEventHandler::OnEvasObjectHide( void *data, Evas* evas, Evas_Object* evasObject, void* event )
-{
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasObjectVisiblityChanged( false );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasObjectResize( geometry );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Focus callbacks
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EvasEventHandler::OnEvasObjectFocusIn( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectFocusIn( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
-  EvasEventHandler* eventHandler = static_cast<EvasEventHandler*>( data );
+  EvasPluginEventHandler* eventHandler = static_cast<EvasPluginEventHandler*>( data );
 
-  eventHandler->GetEvasEventInterface().OnEvasObjectFocusIn();
+  eventHandler->EnableEcoreWl2Events();
+  eventHandler->GetEvasPluginInterface().OnEvasObjectFocusIn();
 }
 
-void EvasEventHandler::OnEvasObjectFocusOut( void *data, Evas* evas, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectFocusOut( void *data, Evas* evas, Evas_Object* evasObject, void* event )
 {
-  EvasEventHandler* eventHandler = static_cast<EvasEventHandler*>( data );
+  EvasPluginEventHandler* eventHandler = static_cast<EvasPluginEventHandler*>( data );
 
-  eventHandler->GetEvasEventInterface().OnEvasObjectFocusOut();
+  eventHandler->DisableEcoreWl2Events();
+  eventHandler->GetEvasPluginInterface().OnEvasObjectFocusOut();
 }
 
-void EvasEventHandler::OnEvasFocusIn( void *data, Evas* evas, void* event )
+void EvasPluginEventHandler::OnEvasFocusIn( void *data, Evas* evas, void* event )
 {
 }
 
-void EvasEventHandler::OnEvasFocusOut( void *data, Evas* evas, void* event )
+void EvasPluginEventHandler::OnEvasFocusOut( void *data, Evas* evas, void* event )
 {
 }
 
@@ -795,116 +769,116 @@ void EvasEventHandler::OnEvasFocusOut( void *data, Evas* evas, void* event )
 // Render callbacks
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EvasEventHandler::OnEvasRenderPost( void *data, Evas* evas, void* event )
+void EvasPluginEventHandler::OnEvasRenderPost( void *data, Evas* evas, void* event )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasPostRender();
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
+  pEvasPlugin->OnEvasPostRender();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Elm Access callbacks
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Eina_Bool EvasEventHandler::OnElmAccessActionHighlight( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionHighlight( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionUnhighlight( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionUnhighlight( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionHighlightNext( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionHighlightNext( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionHighlightPrev( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionHighlightPrev( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionActivate( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionActivate( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionScroll( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionScroll( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionUp( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionUp( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionDown( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionDown( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionBack( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionBack( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
-Eina_Bool EvasEventHandler::OnElmAccessActionRead( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
+Eina_Bool EvasPluginEventHandler::OnElmAccessActionRead( void* data, Evas_Object* evasObject, Elm_Access_Action_Info* actionInfo )
 {
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
   Dali::Extension::Internal::AccessActionInfo daliActionInfo;
   ConvertActionInfo( actionInfo, daliActionInfo );
 
-  return eventInterface->OnElmAccessibilityActionEvent( daliActionInfo );
+  return pEvasPlugin->OnElmAccessibilityActionEvent( daliActionInfo );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Elm Focus callbacks
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EvasEventHandler::OnEvasObjectSmartFocused( void *data, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectSmartFocused( void *data, Evas_Object* evasObject, void* event )
 {
-  EvasEventHandler* eventHandler = static_cast<EvasEventHandler*>( data );
-  EvasEventInterface& evasPlugin = eventHandler->GetEvasEventInterface();
+  EvasPluginEventHandler* eventHandler = static_cast<EvasPluginEventHandler*>( data );
+  EvasPluginEventInterface& evasPlugin = eventHandler->GetEvasPluginInterface();
 
-  if( eventHandler->mEvasEventInterface.GetEvasWrapper()->GetFocusTarget() == evasObject )
+  if( eventHandler->mEvasPluginEventInterface.GetEvasWrapper()->GetFocusTarget() == evasObject )
   {
     Evas_Object* topWidget = elm_object_top_widget_get( evasObject );
 
@@ -919,16 +893,16 @@ void EvasEventHandler::OnEvasObjectSmartFocused( void *data, Evas_Object* evasOb
       }
     }
 
-    evas_object_focus_set( eventHandler->mEvasEventInterface.GetEvasWrapper()->GetRenderTarget(), EINA_TRUE );
+    evas_object_focus_set( eventHandler->mEvasPluginEventInterface.GetEvasWrapper()->GetRenderTarget(), EINA_TRUE );
   }
 }
 
-void EvasEventHandler::OnEvasObjectSmartUnfocused( void *data, Evas_Object* evasObject, void* event )
+void EvasPluginEventHandler::OnEvasObjectSmartUnfocused( void *data, Evas_Object* evasObject, void* event )
 {
-  EvasEventHandler* eventHandler = static_cast<EvasEventHandler*>( data );
-  if( eventHandler->mEvasEventInterface.GetEvasWrapper()->GetFocusTarget() == evasObject )
+  EvasPluginEventHandler* eventHandler = static_cast<EvasPluginEventHandler*>( data );
+  if( eventHandler->mEvasPluginEventInterface.GetEvasWrapper()->GetFocusTarget() == evasObject )
   {
-    evas_object_focus_set( eventHandler->mEvasEventInterface.GetEvasWrapper()->GetRenderTarget(), EINA_FALSE );
+    evas_object_focus_set( eventHandler->mEvasPluginEventInterface.GetEvasWrapper()->GetRenderTarget(), EINA_FALSE );
   }
 }
 
@@ -936,14 +910,14 @@ void EvasEventHandler::OnEvasObjectSmartUnfocused( void *data, Evas_Object* evas
 // Ecore Wl2 callbacks
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Eina_Bool EvasEventHandler::OnEcoreWl2EventWindowVisibilityChange( void* data, int type, void* event )
+Eina_Bool EvasPluginEventHandler::OnEcoreWl2EventWindowVisibilityChange( void* data, int type, void* event )
 {
   Ecore_Wl2_Event_Window_Visibility_Change* eventWindowVisibilityChange = static_cast<Ecore_Wl2_Event_Window_Visibility_Change*>( event );
 
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
+  EvasPluginEventInterface* pEvasPlugin = static_cast<EvasPluginEventInterface*>( data );
 
   // 0 is visible and 1 is invisible
-  eventInterface->OnEcoreWl2VisibilityChange( !eventWindowVisibilityChange->fully_obscured );
+  pEvasPlugin->OnEcoreWl2VisibilityChange( !eventWindowVisibilityChange->fully_obscured );
 
   return ECORE_CALLBACK_PASS_ON;
 }

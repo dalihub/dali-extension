@@ -1,5 +1,5 @@
-#ifndef DALI_EXTENSION_H
-#define DALI_EXTENSION_H
+#ifndef __DALI_EXTENSION_H__
+#define __DALI_EXTENSION_H__
 
 /*
  * Copyright (c) 2019 Samsung Electronics Co., Ltd.
@@ -19,6 +19,5 @@
  */
 
 #include <dali-extension/devel-api/evas-plugin/evas-plugin.h>
-#include <dali-extension/devel-api/evas-plugin/scene.h>
 
-#endif // DALI_EXTENSION_H
+#endif // __DALI_EXTENSION_H__
