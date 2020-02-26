@@ -22,7 +22,6 @@
 #include <memory>
 #include <Ecore_IMF_Evas.h>
 
-#include <dali/devel-api/adaptor-framework/singleton-service.h>
 #include <dali/integration-api/adaptor-framework/scene-holder-impl.h>
 #include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/math/rect.h>
@@ -283,7 +282,6 @@ private:
 
   static Adaptor*                           mAdaptor;
   static uint32_t                           mEvasPluginCount;
-  static SingletonService                   mSingletonService;
 
   std::unique_ptr< EvasWrapper >            mEvasWrapper;
   std::unique_ptr< TriggerEventInterface >  mRenderNotification;

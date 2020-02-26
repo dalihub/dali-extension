@@ -50,9 +50,6 @@ Adaptor* EvasPlugin::mAdaptor = nullptr;
 
 uint32_t EvasPlugin::mEvasPluginCount = 0;
 
-SingletonService EvasPlugin::mSingletonService = SingletonService();
-
-
 IntrusivePtr< EvasPlugin > EvasPlugin::New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
 {
   IntrusivePtr< EvasPlugin > evasPlugin = new EvasPlugin( parentEvasObject, width, height, isTranslucent );
@@ -84,9 +81,6 @@ void EvasPlugin::Initialize()
 
   if( !mAdaptor )
   {
-    // Create the singleton service
-    mSingletonService = SingletonService::New();
-
     // Create an adaptor or add new scene holder to the adaptor
     mAdaptor = &Adaptor::New( sceneHolderHandler, *surface, Configuration::APPLICATION_DOES_NOT_HANDLE_CONTEXT_LOSS );
   }
@@ -110,8 +104,6 @@ EvasPlugin::~EvasPlugin()
   if( !mEvasPluginCount )
   {
     delete mAdaptor;
-
-    mSingletonService.UnregisterAll();
   }
 }
 
