@@ -22,6 +22,7 @@
 #include <memory>
 #include <Ecore_IMF_Evas.h>
 
+#include <dali/devel-api/adaptor-framework/singleton-service.h>
 #include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/object/base-object.h>
 #include <dali/public-api/signals/connection-tracker.h>
@@ -220,6 +221,7 @@ private:
 private:
 
   Adaptor*                                  mAdaptor;
+  SingletonService                          mSingletonService;
   Extension::Scene                          mDefaultScene;
 
   EvasPluginSignalType                      mPreInitSignal;

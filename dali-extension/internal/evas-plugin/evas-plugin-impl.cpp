@@ -41,7 +41,8 @@ IntrusivePtr< EvasPlugin > EvasPlugin::New( Evas_Object* parentEvasObject, int w
 }
 
 EvasPlugin::EvasPlugin( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent )
-: mState( READY )
+: mSingletonService( SingletonService::New() ),
+  mState( READY )
 {
   DALI_ASSERT_ALWAYS( parentEvasObject && "No parent object for the EvasPlugin." );
 
@@ -67,6 +68,9 @@ EvasPlugin::~EvasPlugin()
 {
   delete mAdaptor;
   mAdaptor = nullptr;
+
+  mSingletonService.UnregisterAll();
+  mSingletonService.Reset();
 }
 
 Adaptor* EvasPlugin::GetAdaptor()
