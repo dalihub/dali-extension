@@ -1,5 +1,5 @@
-#ifndef DALI_EXTENSION_INTERNAL_EVAS_PLUGIN_H
-#define DALI_EXTENSION_INTERNAL_EVAS_PLUGIN_H
+#ifndef __DALI_EXTENSION_INTERNAL_EVAS_PLUGIN_H__
+#define __DALI_EXTENSION_INTERNAL_EVAS_PLUGIN_H__
 
 /*
  * Copyright (c) 2019 Samsung Electronics Co., Ltd.
@@ -23,17 +23,20 @@
 #include <Ecore_IMF_Evas.h>
 
 #include <dali/devel-api/adaptor-framework/singleton-service.h>
+#include <dali/integration-api/adaptor-framework/scene-holder-impl.h>
 #include <dali/public-api/common/intrusive-ptr.h>
-#include <dali/public-api/object/base-object.h>
+#include <dali/public-api/math/rect.h>
 #include <dali/public-api/signals/connection-tracker.h>
 
 // INTERNAL INCLUDES
+#include <dali-extension/internal/evas-plugin/evas-event-interface.h>
 #include <dali-extension/devel-api/evas-plugin/evas-plugin.h>
-#include <dali-extension/devel-api/evas-plugin/scene.h>
 
 namespace Dali
 {
 class Adaptor;
+class NativeRenderSurface;
+class TriggerEventInterface;
 
 namespace Extension
 {
@@ -41,11 +44,15 @@ namespace Extension
 namespace Internal
 {
 
+class EvasPluginEventHandler;
+class EvasWrapper;
+
 /**
  * Implementation of the EvasPlugin class.
  */
-class EvasPlugin : public BaseObject,
-                   public ConnectionTracker
+class EvasPlugin : public Dali::Internal::Adaptor::SceneHolder,
+                   public ConnectionTracker,
+                   public Extension::Internal::EvasPluginEventInterface
 {
 public:
 
@@ -83,9 +90,17 @@ public:
   void Stop();
 
   /**
-   * @copydoc Dali::Extension::EvasPlugin::GetDefaultScene()
+   * @brief Gets the native handle.
+   * @note When users call this function, it wraps the actual type used by the underlying system.
+   * @return The native handle or an empty handle
    */
-  Extension::Scene GetDefaultScene();
+  Dali::Any GetNativeHandle() const override;
+
+  /**
+   * @brief Get the native render surface
+   * @return The render surface
+   */
+  NativeRenderSurface* GetNativeRenderSurface() const;
 
   /**
    * @copydoc Dali::Extension::EvasPlugin::GetAccessEvasObject()
@@ -153,41 +168,89 @@ public:
     return mUnFocusedSignal;
   }
 
-public:
-  /**
-   * All methods here are for the internal use
-   */
-
-  enum State
-  {
-    READY,
-    RUNNING,
-    SUSPENDED,
-    STOPPED,
-  };
-
-  /**
-   * @brief This is for internal use to get notified before InitSignal() emits
-   */
-  EvasPluginSignalType& PreInitSignal()
-  {
-    return mPreInitSignal;
-  }
-
-  /**
-   * @brief Get EvasPlugin's current state
-   *
-   * @return The state
-   */
-  const State GetState() const
-  {
-    return mState;
-  }
-
   /*
-   * @bried Get currently working Adaptor. It can be null.
+   * @bried Initialize EvasPlugin
    */
-  Adaptor* GetAdaptor();
+  void Initialize();
+
+private:
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::GetEvasWrapper
+   */
+  EvasWrapper* GetEvasWrapper() const override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasObjectTouchEvent
+   */
+  void OnEvasObjectTouchEvent( Dali::Integration::Point& touchPoint, unsigned long timeStamp ) override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasObjectWheelEvent
+   */
+  void OnEvasObjectWheelEvent( Dali::Integration::WheelEvent& wheelEvent ) override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasObjectKeyEvent
+   */
+  void OnEvasObjectKeyEvent( Dali::Integration::KeyEvent& keyEvent ) override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasObjectMove
+   */
+  void OnEvasObjectMove( const Rect<int>& geometry ) override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasObjectResize
+   */
+  void OnEvasObjectResize( const Rect<int>& geometry ) override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasObjectFocusIn
+   */
+  void OnEvasObjectFocusIn() override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasObjectFocusOut
+   */
+  void OnEvasObjectFocusOut() override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEvasRenderPost
+   */
+  void OnEvasPostRender() override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnElmAccessibilityActionEvent
+   */
+  bool OnElmAccessibilityActionEvent( AccessActionInfo& actionInfo ) override;
+
+  /**
+   * @copydoc Dali::Extension::Internal::EvasPluginEventInterface::OnEcoreWl2VisibilityChange
+   */
+  void OnEcoreWl2VisibilityChange( bool visibility ) override;
+
+  /**
+   * @brief Resize the surface
+   * @param[in] width The width value
+   * @param[in] height The height value
+   */
+  void ResizeSurface( int width, int height );
+
+  /**
+   * This function is called after drawing by dali.
+   */
+  void OnPostRender();
+
+  /**
+   * @brief Shows the EvasPlugin if it is hidden.
+   */
+  void Show();
+
+  /**
+   * @brief Hides the EvasPlugin if it is showing.
+   */
+  void Hide();
 
 private:
   /**
@@ -208,37 +271,40 @@ private:
   EvasPlugin( const EvasPlugin& );
   EvasPlugin& operator=( EvasPlugin& );
 
-  /**
-   * This callback is for supporting legacy API EvasPlugin::ResizeSignal
-   */
-  void OnDefaultSceneResized( Extension::Scene defaultScene, int width, int height );
-
-  /**
-   * This callback is for supporting legacy API EvasPlugin::FocusedSignal, EvasPlugin::UnFocusedSignal
-   */
-  void OnDefaultSceneFocusChanged( Extension::Scene defaultScene, bool focused );
-
 private:
 
-  Adaptor*                                  mAdaptor;
-  SingletonService                          mSingletonService;
-  Extension::Scene                          mDefaultScene;
+  enum State
+  {
+    READY,
+    RUNNING,
+    SUSPENDED,
+    STOPPED,
+  };
 
-  EvasPluginSignalType                      mPreInitSignal;
+  static Adaptor*                           mAdaptor;
+  static uint32_t                           mEvasPluginCount;
+  static SingletonService                   mSingletonService;
+
+  std::unique_ptr< EvasWrapper >            mEvasWrapper;
+  std::unique_ptr< TriggerEventInterface >  mRenderNotification;
+  std::unique_ptr< EvasPluginEventHandler > mEvasPluginEventHandler;
+
   EvasPluginSignalType                      mInitSignal;
   EvasPluginSignalType                      mTerminateSignal;
   EvasPluginSignalType                      mPauseSignal;
   EvasPluginSignalType                      mResumeSignal;
-  EvasPluginSignalType                      mResizeSignal;    // Connect to DefaultScene.ResizedSignal
-  EvasPluginSignalType                      mFocusedSignal;   // Connect to DefaultScene.FocusChangedSignal
-  EvasPluginSignalType                      mUnFocusedSignal; // Connect to DefaultScene.FocusChangedSignal
+  EvasPluginSignalType                      mResizeSignal;
+  EvasPluginSignalType                      mFocusedSignal;
+  EvasPluginSignalType                      mUnFocusedSignal;
 
   State                                     mState;
+  bool                                      mIsFocus;
+  bool                                      mIsTranslucent;
 };
 
 inline EvasPlugin& GetImplementation( Extension::EvasPlugin& evasPlugin )
 {
-  DALI_ASSERT_ALWAYS( evasPlugin && "EvasPlugin handle is empty" );
+  DALI_ASSERT_ALWAYS( evasPlugin && "evasPluing handle is empty" );
 
   BaseObject& handle = evasPlugin.GetBaseObject();
 
@@ -247,7 +313,7 @@ inline EvasPlugin& GetImplementation( Extension::EvasPlugin& evasPlugin )
 
 inline const EvasPlugin& GetImplementation( const Extension::EvasPlugin& evasPlugin )
 {
-  DALI_ASSERT_ALWAYS( evasPlugin && "EvasPlugin handle is empty" );
+  DALI_ASSERT_ALWAYS( evasPlugin && "evasPlugin handle is empty" );
 
   const BaseObject& handle = evasPlugin.GetBaseObject();
 
@@ -260,4 +326,4 @@ inline const EvasPlugin& GetImplementation( const Extension::EvasPlugin& evasPlu
 
 } // namespace Dali
 
-#endif // DALI_EXTENSION_INTERNAL_EVAS_PLUGIN_H
+#endif // __DALI_EXTENSION_INTERNAL_EVAS_PLUGIN_H__

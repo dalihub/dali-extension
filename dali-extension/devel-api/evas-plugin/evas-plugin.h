@@ -1,8 +1,8 @@
-#ifndef DALI_EXTENSION_EVAS_PLUGIN_H
-#define DALI_EXTENSION_EVAS_PLUGIN_H
+#ifndef __DALI_EXTENSION_EVAS_PLUGIN_H__
+#define __DALI_EXTENSION_EVAS_PLUGIN_H__
 
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2019 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,13 @@
 #include <Evas.h>
 
 #include <dali/public-api/signals/dali-signal.h>
+#include <dali/integration-api/adaptor-framework/scene-holder.h>
 
 namespace Dali
 {
 
 namespace Extension
 {
-
-class Scene;
 
 namespace Internal
 {
@@ -91,8 +90,8 @@ class EvasPlugin;
  *
  *   void OnInitialize()
  *   {
- *     Scene scene = mEvasPlugin.GetDefaultScene();
- *     scene.SetBackgroundColor( Color::WHITE );
+ *     Stage stage = Stage::GetCurrent();
+ *     stage.SetBackgroundColor( Color::WHITE );
  *
  *     TextLabel textLabel = TextLabel::New( "Hello World" );
  *     textLabel.SetParentOrigin( ParentOrigin::CENTER );
@@ -100,7 +99,7 @@ class EvasPlugin;
  *     textLabel.SetProperty( TextLabel::Property::HORIZONTAL_ALIGNMENT, HorizontalAlignment::CENTER );
  *     textLabel.SetProperty( TextLabel::Property::POINT_SIZE, 40 );
  *     textLabel.SetName( "helloWorldLabel" );
- *     scene.Add( textLabel );
+ *     stage.Add( textLabel );
  *
  *     Animation anim = Animation::New( 3.f );
  *     anim.SetLooping( true );
@@ -195,7 +194,7 @@ class EvasPlugin;
  *
  * @endcode
  */
-class DALI_IMPORT_API EvasPlugin : public Dali::BaseHandle
+class DALI_IMPORT_API EvasPlugin : public Dali::Integration::SceneHolder
 {
 public:
 
@@ -204,11 +203,11 @@ public:
 public:
 
   /**
-   * @brief This is the constructor of EvasPlugin for Tizen EFL applications
+   * @brief This is the constructor for Tizen EFL applications
    *
-   * @param[in] parentEvasObject Parent Evas object of the default scene
-   * @param[in] width The initial width of the default scene
-   * @param[in] height The initial height of the default scene
+   * @param[in] parentEvasObject Parent of the new Evas object
+   * @param[in] width The initial width of the Dali view port
+   * @param[in] height The initial height of the Dali view port
    * @param[in] isTranslucent Whether the Evas object is translucent or not
    */
   static EvasPlugin New( Evas_Object* parentEvasObject, int width, int height, bool isTranslucent );
@@ -241,13 +240,11 @@ public:
   void Run();
 
   /**
-   * @note DEPRECATED. Instead, hide corresponding Evas object.
    * @brief Pauses the Evas plugin
    */
   void Pause();
 
   /**
-   * @note DEPRECATED. Instead, show corresponding Evas object.
    * @brief Resumes the Evas plugin
    */
   void Resume();
@@ -257,17 +254,8 @@ public:
    */
   void Stop();
 
-
   /**
-   * @brief Get the default Scene handle
-   * @return The default Scene
-   */
-  Scene GetDefaultScene();
-
-  /**
-   * @note DEPRECATED. This is same as evasPlugin.GetDefaultScene().GetAccessEvasObject()
-   *
-   * @brief This returns the Evas_Object* for accessibility which is created internally
+   * @brief This returns the Evas_Object* which is created internally
    *
    * Applications should append this access object to custom focus chain for accessibility
    *
@@ -278,8 +266,6 @@ public:
   Evas_Object* GetAccessEvasObject();
 
   /**
-   * @note DEPRECATED. This is same as evasPlugin.GetDefaultScene().GetDaliEvasObject()
-   *
    * @brief This returns the Evas_Object* which is created internally
    *
    * @return Evas_Object* Evas object which is rendered by Dali
@@ -290,8 +276,6 @@ public:  // Signals
 
   /**
    * @brief Signal to notify the client when the application is ready to be initialized
-   *
-   * @note EvasPlugin::Run() should be called to be initialized
    *
    * @return The signal
    */
@@ -305,7 +289,6 @@ public:  // Signals
   EvasPluginSignalType& TerminateSignal();
 
   /**
-   * @note DEPRECATED
    * @brief Signal to notify the client when the EvasPlugin is about to be paused
    *
    * The user should connect to this signal if the user needs to perform any special
@@ -315,7 +298,6 @@ public:  // Signals
   EvasPluginSignalType& PauseSignal();
 
   /**
-   * @note DEPRECATED
    * @brief Signal to notify the client when the adpator has resumed
    *
    * The user should connect to this signal if the user needs to perform any special
@@ -325,8 +307,6 @@ public:  // Signals
   EvasPluginSignalType& ResumeSignal();
 
   /**
-   * @note DEPRECATED. Use Scene::ResizedSignal()
-   *
    * @brief Signal to notify the client when the Evas object is resized
    *
    * @return The signal
@@ -334,8 +314,6 @@ public:  // Signals
   EvasPluginSignalType& ResizeSignal();
 
   /**
-   * @note DEPRECATED. Use Scene::FocusChangedSignal()
-   *
    * @brief Signal to notify the client when the Evas object gets the keyboard focus
    *
    * @return The signal
@@ -343,8 +321,6 @@ public:  // Signals
   EvasPluginSignalType& FocusedSignal();
 
   /**
-   * @note DEPRECATED. Use Scene::FocusChangedSignal()
-   *
    * @brief Signal to notify the client when the Evas object loses the keyboard focus
    *
    * @return The signal
@@ -367,4 +343,4 @@ public: // Not intended for application developers
 
 }  // namespace Dali
 
-#endif // DALI_EXTENSION_EVAS_PLUGIN_H
+#endif // __DALI_EXTENSION_EVAS_PLUGIN_H__
