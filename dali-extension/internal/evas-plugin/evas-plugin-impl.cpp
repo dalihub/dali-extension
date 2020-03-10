@@ -198,7 +198,7 @@ void EvasPlugin::ResizeSurface( int width, int height )
 
   mSurface->MoveResize( PositionSize( 0, 0, width, height ) );
 
-  SurfaceResized( true );
+  SurfaceResized();
 
   Adaptor::SurfaceSize newSize( width, height );
 
