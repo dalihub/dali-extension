@@ -98,6 +98,11 @@ void Scene::Initialize()
 
   NativeRenderSurface* surface = GetNativeRenderSurface();
 
+  if( !surface )
+  {
+    return;
+  }
+
   surface->SetRenderNotification( mRenderNotification.get() );
 
   if( !mEvasEventHandler )
@@ -116,8 +121,13 @@ void Scene::OnPreInitEvasPlugin()
 
 Scene::~Scene()
 {
-  // To prevent notification triggering in NativeRenderSurface::PostRender while deleting SceneHolder
-  GetNativeRenderSurface()->SetRenderNotification( nullptr );
+  NativeRenderSurface* surface = GetNativeRenderSurface();
+
+  if( surface )
+  {
+    // To prevent notification triggering in NativeRenderSurface::PostRender while deleting SceneHolder
+    surface->SetRenderNotification( nullptr );
+  }
 }
 
 uint32_t Scene::GetLayerCount() const
@@ -192,7 +202,10 @@ void Scene::OnPostRender()
   // Bind offscreen surface to the evas object
   NativeRenderSurface* surface = GetNativeRenderSurface();
 
-  DALI_ASSERT_DEBUG( surface && "Surface is null in the Scene" );
+  if( !surface )
+  {
+    return;
+  }
 
   tbm_surface_h tbmSurface = AnyCast<tbm_surface_h>( surface->GetDrawable() );
 
