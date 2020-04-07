@@ -629,13 +629,21 @@ void TizenWebEngineChromium::EvaluateJavaScript( const std::string& script, std:
 {
   if( mWebViewContainer )
   {
-    if( mJavaScriptEvaluationResultHandlers.emplace( mJavaScriptEvaluationCount, resultHandler ).second )
+    bool badAlloc = false;
+
+    try
+    {
+      mJavaScriptEvaluationResultHandlers.emplace( mJavaScriptEvaluationCount, resultHandler );
+    }
+    catch( std::bad_alloc &e )
+    {
+      badAlloc = true;
+      DALI_LOG_ERROR( "Too many ongoing JavaScript evaluations." );
+    }
+
+    if( !badAlloc )
     {
       mWebViewContainer->EvaluateJavaScript( mJavaScriptEvaluationCount++, script );
-    }
-    else
-    {
-      DALI_LOG_ERROR( "Too many ongoing JavaScript evaluations." );
     }
   }
 }
@@ -880,8 +888,11 @@ void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler( size_t key, c
     return;
   }
 
-  std::string stored( result );
-  handler->second( stored );
+  if( handler->second )
+  {
+    std::string stored( result );
+    handler->second( stored );
+  }
 
   mJavaScriptEvaluationResultHandlers.erase( handler );
 }
