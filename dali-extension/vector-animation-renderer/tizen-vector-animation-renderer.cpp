@@ -177,6 +177,9 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
 
   mResourceReady = false;
 
+  // Reset the previous texture to destroy it in the main thread
+  mPreviousTexture.Reset();
+
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this );
 }
 
