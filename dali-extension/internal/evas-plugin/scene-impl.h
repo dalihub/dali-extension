@@ -211,11 +211,6 @@ private:
   void OnEvasObjectFocusOut() override;
 
   /**
-   * @copydoc Dali::Extension::Internal::EvasEventInterface::OnEvasRenderPost
-   */
-  void OnEvasPostRender() override;
-
-  /**
    * @copydoc Dali::Extension::Internal::EvasEventInterface::OnElmAccessibilityActionEvent
    */
   bool OnElmAccessibilityActionEvent( AccessActionInfo& actionInfo ) override;
