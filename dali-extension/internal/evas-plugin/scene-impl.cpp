@@ -290,10 +290,6 @@ void Scene::OnEvasObjectFocusOut()
   }
 }
 
-void Scene::OnEvasPostRender()
-{
-}
-
 bool Scene::OnElmAccessibilityActionEvent( AccessActionInfo& accessActionInfo )
 {
   bool ret = false;

@@ -144,11 +144,6 @@ public:
    */
   virtual void OnEvasObjectFocusOut() = 0;
 
-  /**
-   * @brief Handle evas object render post
-   */
-  virtual void OnEvasPostRender() = 0;
-
    /**
    * @brief Called when the accessibility action event dispatched from elm_access.
    * @param[in] accessActionInfo elm accessibility action information structure

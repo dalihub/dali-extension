@@ -475,9 +475,6 @@ EvasEventHandler::EvasEventHandler( EvasEventInterface& evasEventInterface )
   evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_IN,  OnEvasFocusIn,  &evasEventInterface );
   evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_OUT, OnEvasFocusOut, &evasEventInterface );
 
-  // Register the evas render callbacks
-  evas_event_callback_add( renderTargetAsEvas, EVAS_CALLBACK_RENDER_POST, OnEvasRenderPost, &evasEventInterface );
-
   // Register the elm access action callbacks and these callbacks are disconnected when mElmAccessEvasObject is unregistred
   elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_HIGHLIGHT,      OnElmAccessActionHighlight,      &evasEventInterface );
   elm_access_action_cb_set( accessibilityTarget, ELM_ACCESS_ACTION_UNHIGHLIGHT,    OnElmAccessActionUnhighlight,    &evasEventInterface );
@@ -529,9 +526,6 @@ EvasEventHandler::~EvasEventHandler()
 
   evas_event_callback_del( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_IN,  OnEvasFocusIn );
   evas_event_callback_del( renderTargetAsEvas, EVAS_CALLBACK_CANVAS_FOCUS_OUT, OnEvasFocusOut );
-
-  // Register the evas render callbacks
-  evas_event_callback_del( renderTargetAsEvas, EVAS_CALLBACK_RENDER_POST, OnEvasRenderPost );
 
   // Unregister the elm focus callbacks
   evas_object_smart_callback_del( focusTarget, EVAS_OBJECT_FOCUSED_EVENT_NAME,   OnEvasObjectSmartFocused );
@@ -789,16 +783,6 @@ void EvasEventHandler::OnEvasFocusIn( void *data, Evas* evas, void* event )
 
 void EvasEventHandler::OnEvasFocusOut( void *data, Evas* evas, void* event )
 {
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// Render callbacks
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void EvasEventHandler::OnEvasRenderPost( void *data, Evas* evas, void* event )
-{
-  EvasEventInterface* eventInterface = static_cast<EvasEventInterface*>( data );
-  eventInterface->OnEvasPostRender();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
