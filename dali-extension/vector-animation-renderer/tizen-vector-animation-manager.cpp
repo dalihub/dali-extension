@@ -38,12 +38,13 @@ TizenVectorAnimationManager::TizenVectorAnimationManager()
 : mEventHandlers(),
   mTriggeredHandlers(),
   mMutex(),
-  mEventTrigger( new EventThreadCallback( MakeCallback( this, &TizenVectorAnimationManager::OnEventTriggered ) ) )
+  mEventTrigger()
 {
 }
 
 TizenVectorAnimationManager::~TizenVectorAnimationManager()
 {
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationManager::~TizenVectorAnimationManager: this = %p\n", this );
 }
 
 void TizenVectorAnimationManager::AddEventHandler( TizenVectorAnimationEventHandler& handler )
@@ -53,6 +54,11 @@ void TizenVectorAnimationManager::AddEventHandler( TizenVectorAnimationEventHand
     if( mEventHandlers.empty() )
     {
       Adaptor::Get().RegisterProcessor( *this );
+    }
+
+    if( !mEventTrigger )
+    {
+      mEventTrigger = std::unique_ptr< EventThreadCallback >( new EventThreadCallback( MakeCallback( this, &TizenVectorAnimationManager::OnEventTriggered ) ) );
     }
 
     mEventHandlers.push_back( &handler );
@@ -72,6 +78,8 @@ void TizenVectorAnimationManager::RemoveEventHandler( TizenVectorAnimationEventH
       {
         Adaptor::Get().UnregisterProcessor( *this );
       }
+
+      mEventTrigger.release();
     }
   }
 
