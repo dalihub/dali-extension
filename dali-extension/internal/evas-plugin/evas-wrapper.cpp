@@ -56,13 +56,11 @@ EvasWrapper::EvasWrapper( Evas_Object* pluginParent, uint16_t width, uint16_t he
   // Create the image evas object
   mImageEvasObject = evas_object_image_filled_add( evas );
   evas_object_name_set( mImageEvasObject, IMAGE_EVAS_OBJECT_NAME );
+  evas_object_image_content_hint_set(mImageEvasObject, EVAS_IMAGE_CONTENT_HINT_DYNAMIC);
   evas_object_image_alpha_set( mImageEvasObject, transparent ? EINA_TRUE : EINA_FALSE );
   evas_object_image_size_set( mImageEvasObject, intWidth, intHeight );
   evas_object_size_hint_weight_set( mImageEvasObject, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND );
   evas_object_size_hint_align_set( mImageEvasObject, EVAS_HINT_FILL, EVAS_HINT_FILL );
-
-  // Register the elm access to image evas object
-  mAccessibilityEvasObject = elm_access_object_register( mImageEvasObject, pluginParent );
 
   // Create a button and set style as "focus", if does not want to show the focus, then "transparent"
   mFocusEvasObject = elm_button_add( pluginParent );
@@ -81,6 +79,9 @@ EvasWrapper::EvasWrapper( Evas_Object* pluginParent, uint16_t width, uint16_t he
   evas_object_move( mFocusEvasObject, 0, 0 );
   evas_object_resize( mFocusEvasObject, intWidth, intHeight );
   evas_object_show( mFocusEvasObject );
+
+  // Register the elm access to image evas object
+  mAccessibilityEvasObject = elm_access_object_register( mImageEvasObject, pluginParent );
 }
 
 EvasWrapper::~EvasWrapper()
