@@ -22,7 +22,7 @@ AC_ARG_ENABLE([imageloader-extension],
 
 AM_CONDITIONAL([USE_IMAGELOADER_EXTENSION], [test x$enable_imageloader_extension = xyes])
 
-PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
+PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
