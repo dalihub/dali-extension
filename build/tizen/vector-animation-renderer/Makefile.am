@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Samsung Electronics Co., Ltd.
+# Copyright (c) 2020 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,23 +22,23 @@ include ../../../dali-extension/vector-animation-renderer/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali-vector-animation-renderer-plugin.la
+lib_LTLIBRARIES += libdali2-vector-animation-renderer-plugin.la
 
-libdali_vector_animation_renderer_plugin_la_SOURCES = \
+libdali2_vector_animation_renderer_plugin_la_SOURCES = \
                      $(vector_animation_renderer_plugin_src_files)
 
-libdali_vector_animation_renderer_plugin_la_DEPENDENCIES =
+libdali2_vector_animation_renderer_plugin_la_DEPENDENCIES =
 
-libdali_vector_animation_renderer_plugin_la_CXXFLAGS = \
+libdali2_vector_animation_renderer_plugin_la_CXXFLAGS = \
                       -I../../../ \
                       $(DALI_CFLAGS) \
                       $(RLOTTIE_CFLAGS) \
                       -Werror -Wall
 
-libdali_vector_animation_renderer_plugin_la_LIBADD = \
+libdali2_vector_animation_renderer_plugin_la_LIBADD = \
                       $(DALI_LIBS) \
                       $(RLOTTIE_LIBS)
 
-libdali_vector_animation_renderer_plugin_la_LDFLAGS = \
+libdali2_vector_animation_renderer_plugin_la_LDFLAGS = \
                       -rdynamic
 

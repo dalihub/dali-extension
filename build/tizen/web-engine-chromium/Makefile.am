@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Samsung Electronics Co., Ltd.
+# Copyright (c) 2020 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,25 +22,25 @@ include ../../../dali-extension/web-engine-chromium/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali-web-engine-chromium-plugin.la
+lib_LTLIBRARIES += libdali2-web-engine-chromium-plugin.la
 
-libdali_web_engine_chromium_plugin_la_SOURCES = \
+libdali2_web_engine_chromium_plugin_la_SOURCES = \
                      $(web_engine_chromium_plugin_src_files)
 
-libdali_web_engine_chromium_plugin_la_DEPENDENCIES =
+libdali2_web_engine_chromium_plugin_la_DEPENDENCIES =
 
-libdali_web_engine_chromium_plugin_la_CXXFLAGS = \
+libdali2_web_engine_chromium_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
                       $(WEB_ENGINE_CHROMIUM_CFLAGS) \
                       $(ELEMENTARY_CFLAGS) \
                       -I../../../dali-extension/web-engine-chromium \
                       -Werror -Wall
 
-libdali_web_engine_chromium_plugin_la_LIBADD = \
+libdali2_web_engine_chromium_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
                       $(WEB_ENGINE_CHROMIUM_LIBS)
 
-libdali_web_engine_chromium_plugin_la_LDFLAGS = \
+libdali2_web_engine_chromium_plugin_la_LDFLAGS = \
                       -rdynamic
 
