@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015 Samsung Electronics Co., Ltd.
+# Copyright (c) 2020 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,26 +23,26 @@ include ../../../dali-extension/integration-api/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali-key-extension.la
+lib_LTLIBRARIES += libdali2-key-extension.la
 
 # key extension
-libdali_key_extension_la_SOURCES = \
+libdali2_key_extension_la_SOURCES = \
 			$(key_extension_src_files)
 
-libdali_key_extension_la_DEPENDENCIES =
+libdali2_key_extension_la_DEPENDENCIES =
 
-libdali_key_extension_la_CXXFLAGS = \
+libdali2_key_extension_la_CXXFLAGS = \
 			-I../../../dali-extension/ \
 			-I../../../dali-extension/integration-api \
 			$(DLOG_CFLAGS) \
 			$(DALI_CFLAGS) \
 			-Werror -Wall
 
-libdali_key_extension_la_LIBADD = \
+libdali2_key_extension_la_LIBADD = \
 			$(DLOG_LIBS)
 
-libdali_key_extension_la_LDFLAGS = \
+libdali2_key_extension_la_LDFLAGS = \
 			-rdynamic
 
-libdali_key_extensiondir = $(devincludepath)/dali-extension/integration-api
-libdali_key_extension_HEADERS = $(key_extension_header_files)
+libdali2_key_extensiondir = $(devincludepath)/dali-extension/integration-api
+libdali2_key_extension_HEADERS = $(key_extension_header_files)

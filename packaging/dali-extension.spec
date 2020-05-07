@@ -5,9 +5,9 @@
 # performing a gbs build ( use gbs build -v to see it download location) E.g.
 # http://download.tizen.org/snapshots/tizen/tv/tizen-tv/repos/arm-wayland/packages/repodata/xxxx-build.conf.gz
 
-Name:       dali-extension
+Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.5.8
+Version:    1.9.10
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -18,13 +18,13 @@ Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
 BuildRequires:  pkgconfig
-BuildRequires:  pkgconfig(dali-core)
-BuildRequires:  pkgconfig(dali-adaptor)
-BuildRequires:  pkgconfig(dali-toolkit)
+BuildRequires:  pkgconfig(dali2-core)
+BuildRequires:  pkgconfig(dali2-adaptor)
+BuildRequires:  pkgconfig(dali2-toolkit)
 BuildRequires:  pkgconfig(dlog)
 
 # For evas-plugin
-BuildRequires:  pkgconfig(dali-adaptor-integration)
+BuildRequires:  pkgconfig(dali2-adaptor-integration)
 BuildRequires:  pkgconfig(elementary)
 BuildRequires:  pkgconfig(evas)
 BuildRequires:  pkgconfig(ecore-wl2)
@@ -239,7 +239,7 @@ exit 0
 %if 0%{?tizen_55_or_greater}
 %post web-engine-chromium-plugin
 pushd %{_libdir}
-ln -sf libdali-web-engine-chromium-plugin.so libdali-web-engine-plugin.so
+ln -sf libdali2-web-engine-chromium-plugin.so libdali2-web-engine-plugin.so
 popd
 /sbin/ldconfig
 exit 0
@@ -320,31 +320,31 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_sysconfdir}/profile.d/dali.sh
-%{_libdir}/libdali-extension.so*
+%{_libdir}/libdali2-extension.so*
 %license LICENSE
 
 %files devel
 %defattr(-,root,root,-)
-%{_includedir}/%{name}/*
+%{_includedir}/dali-extension/*
 %{_libdir}/pkgconfig/*.pc
 
 %files key-extension
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali-key-extension.so*
+%{_libdir}/libdali2-key-extension.so*
 %license LICENSE
 
 %files video-player-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali-video-player-plugin.so*
+%{_libdir}/libdali2-video-player-plugin.so*
 %license LICENSE
 
 %if 0%{?tizen_55_or_greater}
 %files web-engine-chromium-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali-web-engine-chromium-plugin.so*
+%{_libdir}/libdali2-web-engine-chromium-plugin.so*
 %license LICENSE
 %endif
 
@@ -352,7 +352,7 @@ exit 0
 %files image-loader-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali-image-loader-plugin.so*
+%{_libdir}/libdali2-image-loader-plugin.so*
 %license LICENSE
 %endif
 
@@ -360,20 +360,20 @@ exit 0
 %files vector-animation-renderer-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali-vector-animation-renderer-plugin.so*
+%{_libdir}/libdali2-vector-animation-renderer-plugin.so*
 %license LICENSE
 %endif
 
 %files color-controller-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali-color-controller-plugin.so*
+%{_libdir}/libdali2-color-controller-plugin.so*
 %license LICENSE
 
 %if 0%{?tizen_55_or_greater}
 %files web-engine-lwe-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali-web-engine-lwe-plugin.so*
+%{_libdir}/libdali2-web-engine-lwe-plugin.so*
 %license LICENSE
 %endif

@@ -20,7 +20,7 @@ AC_ARG_WITH([tizen_55_or_greater],
             [with_tizen_55_or_greater=yes],
             [with_tizen_55_or_greater=no])
 
-PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
+PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
 AC_CONFIG_SUBDIRS(video-player)
@@ -39,7 +39,7 @@ AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([
 Makefile
-dali-extension.pc
+dali2-extension.pc
 ])
 
 AC_OUTPUT

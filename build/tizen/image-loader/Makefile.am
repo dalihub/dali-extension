@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Samsung Electronics Co., Ltd.
+# Copyright (c) 2020 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,27 +23,27 @@ include ../../../dali-extension/image-loader/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali-image-loader-plugin.la
+lib_LTLIBRARIES += libdali2-image-loader-plugin.la
 
-libdali_image_loader_plugin_la_includes =
+libdali2_image_loader_plugin_la_includes =
 
-libdali_image_loader_plugin_la_SOURCES = \
+libdali2_image_loader_plugin_la_SOURCES = \
                      $(image_loader_plugin_src_files)
 
-libdali_image_loader_plugin_la_DEPENDENCIES =
+libdali2_image_loader_plugin_la_DEPENDENCIES =
 
-libdali_image_loader_plugin_la_CXXFLAGS = \
+libdali2_image_loader_plugin_la_CXXFLAGS = \
                       $(DLOG_CFLAGS) \
                       $(DALI_CFLAGS) \
                       -Werror -Wall
 
-libdali_image_loader_plugin_la_CXXFLAGS+= \
+libdali2_image_loader_plugin_la_CXXFLAGS+= \
                       -I../../../dali-extension/image-loader
 
-libdali_image_loader_plugin_la_LIBADD = \
+libdali2_image_loader_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS)
 
-libdali_image_loader_plugin_la_LDFLAGS = \
+libdali2_image_loader_plugin_la_LDFLAGS = \
                       -rdynamic
 endif

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Samsung Electronics Co., Ltd.
+# Copyright (c) 2020 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,24 +22,24 @@ include ../../../dali-extension/color-controller/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali-color-controller-plugin.la
+lib_LTLIBRARIES += libdali2-color-controller-plugin.la
 
-libdali_color_controller_plugin_la_includes =
+libdali2_color_controller_plugin_la_includes =
 
-libdali_color_controller_plugin_la_SOURCES = \
+libdali2_color_controller_plugin_la_SOURCES = \
                      $(color_controller_plugin_src_files)
 
-libdali_color_controller_plugin_la_DEPENDENCIES =
+libdali2_color_controller_plugin_la_DEPENDENCIES =
 
-libdali_color_controller_plugin_la_CXXFLAGS = \
+libdali2_color_controller_plugin_la_CXXFLAGS = \
                       $(DLOG_CFLAGS) \
                       $(DALI_CFLAGS) \
                       -I../../../dali-extension/color-controller \
                       -Werror -Wall
 
-libdali_color_controller_plugin_la_LIBADD = \
+libdali2_color_controller_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS)
 
-libdali_color_controller_plugin_la_LDFLAGS = \
+libdali2_color_controller_plugin_la_LDFLAGS = \
                       -rdynamic

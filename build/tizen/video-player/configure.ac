@@ -14,7 +14,7 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
-PKG_CHECK_MODULES([DALI], [dali-core dali-adaptor dali-toolkit])
+PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
 PKG_CHECK_MODULES(CAPI_SYSTEM_INFO, capi-system-info)
 
