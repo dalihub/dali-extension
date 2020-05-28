@@ -95,8 +95,8 @@ class EvasPlugin;
  *     scene.SetBackgroundColor( Color::WHITE );
  *
  *     TextLabel textLabel = TextLabel::New( "Hello World" );
- *     textLabel.SetParentOrigin( ParentOrigin::CENTER );
- *     textLabel.SetAnchorPoint( AnchorPoint::CENTER );
+ *     textLabel.SetProperty( Actor::Property::PARENT_ORIGIN, ParentOrigin::CENTER );
+ *     textLabel.SetProperty( Actor::Property::ANCHOR_POINT, AnchorPoint::CENTER );
  *     textLabel.SetProperty( TextLabel::Property::HORIZONTAL_ALIGNMENT, HorizontalAlignment::CENTER );
  *     textLabel.SetProperty( TextLabel::Property::POINT_SIZE, 40 );
  *     textLabel.SetName( "helloWorldLabel" );

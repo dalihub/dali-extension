@@ -105,6 +105,11 @@ public:
   bool GetMarkerInfo( const std::string& marker, uint32_t& startFrame, uint32_t& endFrame ) const override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::IgnoreRenderedFrame()
+   */
+  void IgnoreRenderedFrame() override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
@@ -138,6 +143,7 @@ private:
   Dali::Renderer                         mRenderer;              ///< Renderer
   Dali::Texture                          mTexture;               ///< Texture
   Dali::Texture                          mRenderedTexture;       ///< Rendered Texture
+  Dali::Texture                          mPreviousTexture;       ///< Previous rendered texture
   NativeImageSourceQueuePtr              mTargetSurface;         ///< The target surface
   std::unique_ptr< rlottie::Animation >  mVectorRenderer;        ///< The vector animation renderer
   UploadCompletedSignalType              mUploadCompletedSignal; ///< Upload completed signal
