@@ -27,7 +27,7 @@
 // INTERNAL INCLUDES
 
 // The plugin factories
-extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPlugin( void )
+extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPlugin( Dali::Actor actor, Dali::VideoSyncMode syncMode )
 {
   return new Dali::Plugin::TizenVideoPlayer;
 }
@@ -216,7 +216,7 @@ void LogPlayerError( int error )
 
 } // unnamed namespace
 
-TizenVideoPlayer::TizenVideoPlayer()
+TizenVideoPlayer::TizenVideoPlayer( Dali::Actor actor, Dali::VideoSyncMode syncMode )
 : mUrl(),
   mPlayer( NULL ),
   mPlayerState( PLAYER_STATE_NONE ),
@@ -229,7 +229,6 @@ TizenVideoPlayer::TizenVideoPlayer()
   mPacketMutex(),
   mPacketVector(),
   mEcoreWlWindow( NULL ),
-  mAlphaBitChanged( false ),
   mStreamInfo( NULL ),
   mStreamType( SOUND_STREAM_TYPE_MEDIA ),
   mCodecType( PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT )
@@ -547,12 +546,6 @@ void TizenVideoPlayer::InitializeTextureStreamMode( Dali::NativeImageSourcePtr n
   int error;
 
   mNativeImageSourcePtr = nativeImageSourcePtr;
-
-  if( mAlphaBitChanged )
-  {
-    ecore_wl_window_alpha_set( mEcoreWlWindow, false );
-    mAlphaBitChanged = false;
-  }
 
   if( mPlayerState == PLAYER_STATE_NONE )
   {

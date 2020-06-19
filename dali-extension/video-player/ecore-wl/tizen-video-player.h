@@ -23,6 +23,7 @@
 #include <dali/public-api/adaptor-framework/timer.h>
 #include <dali/public-api/adaptor-framework/native-image-source.h>
 #include <dali/devel-api/adaptor-framework/video-player-plugin.h>
+#include <dali/devel-api/adaptor-framework/video-sync-mode.h>
 #include <player.h>
 #include <string>
 
@@ -58,9 +59,8 @@ public:
 
   /**
    * @brief Constructor.
-   * @SINCE_1_1.38
    */
-  TizenVideoPlayer();
+  TizenVideoPlayer( Dali::Actor actor, Dali::VideoSyncMode syncMode );
 
   /**
    * @brief Destructor.
@@ -251,8 +251,6 @@ private:
   Dali::Vector< media_packet_h > mPacketVector; ///< Container for media packet handle from Tizen player callback
 
   Ecore_Wl_Window* mEcoreWlWindow;
-
-  bool mAlphaBitChanged; ///< True if underlay rendering initialization changes window alpha
 
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
