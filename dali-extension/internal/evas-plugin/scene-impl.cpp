@@ -24,7 +24,7 @@
 #include <dali/integration-api/adaptor-framework/trigger-event-factory.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/actors/layer.h>
-#include <dali-toolkit/public-api/accessibility-manager/accessibility-manager.h>
+#include <dali-toolkit/devel-api/accessibility-manager/accessibility-manager.h>
 #include <dali-toolkit/devel-api/focus-manager/keyinput-focus-manager.h>
 
 // INTERNAL INCLUDES
