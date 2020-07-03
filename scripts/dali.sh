@@ -60,15 +60,6 @@
 # @ Set the maximum texture size that GL can handle
 #export DALI_MAX_TEXTURE_SIZE=512
 
-# @ Set the mode of indicator visible
-#  IndicatorVisibleMode
-#  {
-#    INVISIBLE = 0, ///< Hide indicator
-#    VISIBLE = 1, ///< Show indicator
-#    AUTO = 2 ///< Hide in default, will show when necessary
-#  };
-#export DALI_INDICATOR_VISIBLE_MODE=1
-
 # @ Set the number of frames
 #  The number of frames that are going to be rendered into the Frame Buffer Object
 #  but the last one which is going to be rendered into the Frame Buffer.
