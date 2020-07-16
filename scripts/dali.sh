@@ -122,4 +122,7 @@
 #export LOG_TEXT_RENDERING=3
 #export LOG_WINDOW=3
 
+# @ Disable partial update
+#export DALI_DISABLE_PARTIAL_UPDATE=1
+
 
