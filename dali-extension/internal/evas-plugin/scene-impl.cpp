@@ -61,8 +61,7 @@ Scene::Scene( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bo
   DALI_ASSERT_ALWAYS( parentEvasObject && "No parent object for the scene" );
 
   // Create surface
-  Any surface;
-  mSurface = std::unique_ptr< RenderSurfaceInterface >( CreateNativeSurface( SurfaceSize( width, height ), surface, isTranslucent ) );
+  mSurface = std::unique_ptr< RenderSurfaceInterface >( CreateNativeSurface( PositionSize( 0, 0, static_cast<int>( width ), static_cast<int>( height ) ), isTranslucent ) );
 }
 
 void Scene::Initialize( EvasPlugin* evasPlugin, bool isDefaultScene )
