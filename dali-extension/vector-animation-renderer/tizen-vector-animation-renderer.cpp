@@ -22,7 +22,6 @@
 #include <dali/public-api/object/property-array.h>
 #include <dali/integration-api/debug.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
-#include <dali/devel-api/images/native-image-interface-extension.h>
 #include <cstring> // for strlen()
 #include <tbm_surface_internal.h>
 
@@ -372,59 +371,55 @@ void TizenVectorAnimationRenderer::SetShader()
     return;
   }
 
-  NativeImageInterface::Extension* extension = static_cast< NativeImageInterface* >( mTargetSurface.Get() )->GetExtension();
-  if( extension )
+  Shader shader = mRenderer.GetShader();
+
+  std::string fragmentShader;
+  std::string vertexShader;
+
+  // Get custom fragment shader prefix
+  const char* fragmentPreFix = mTargetSurface->GetCustomFragmentPrefix();
+  if( fragmentPreFix )
   {
-    Shader shader = mRenderer.GetShader();
-
-    std::string fragmentShader;
-    std::string vertexShader;
-
-    // Get custom fragment shader prefix
-    const char* fragmentPreFix = extension->GetCustomFragmentPreFix();
-    if( fragmentPreFix )
-    {
-      fragmentShader = fragmentPreFix;
-      fragmentShader += "\n";
-    }
-
-    // Get the current fragment shader source
-    Property::Value program = shader.GetProperty( Shader::Property::PROGRAM );
-    Property::Map* map = program.GetMap();
-    if( map )
-    {
-      Property::Value* fragment = map->Find( "fragment" );
-      if( fragment )
-      {
-        fragmentShader += fragment->Get< std::string >();
-      }
-
-      Property::Value* vertex = map->Find( "vertex" );
-      if( vertex )
-      {
-        vertexShader = vertex->Get< std::string >();
-      }
-    }
-
-    // Get custom sampler type name
-    const char* customSamplerTypename = extension->GetCustomSamplerTypename();
-    if( customSamplerTypename )
-    {
-      size_t position = fragmentShader.find( DEFAULT_SAMPLER_TYPENAME );
-      if( position != std::string::npos )
-      {
-        fragmentShader.replace( position, strlen( DEFAULT_SAMPLER_TYPENAME ), customSamplerTypename );
-      }
-    }
-
-    // Set the modified shader again
-    Shader newShader = Shader::New( vertexShader, fragmentShader );
-    newShader.RegisterProperty( PIXEL_AREA_UNIFORM_NAME, FULL_TEXTURE_RECT );
-
-    mRenderer.SetShader( newShader );
-
-    mShaderChanged = true;
+    fragmentShader = fragmentPreFix;
+    fragmentShader += "\n";
   }
+
+  // Get the current fragment shader source
+  Property::Value program = shader.GetProperty( Shader::Property::PROGRAM );
+  Property::Map* map = program.GetMap();
+  if( map )
+  {
+    Property::Value* fragment = map->Find( "fragment" );
+    if( fragment )
+    {
+      fragmentShader += fragment->Get< std::string >();
+    }
+
+    Property::Value* vertex = map->Find( "vertex" );
+    if( vertex )
+    {
+      vertexShader = vertex->Get< std::string >();
+    }
+  }
+
+  // Get custom sampler type name
+  const char* customSamplerTypename = mTargetSurface->GetCustomSamplerTypename();
+  if( customSamplerTypename )
+  {
+    size_t position = fragmentShader.find( DEFAULT_SAMPLER_TYPENAME );
+    if( position != std::string::npos )
+    {
+      fragmentShader.replace( position, strlen( DEFAULT_SAMPLER_TYPENAME ), customSamplerTypename );
+    }
+  }
+
+  // Set the modified shader again
+  Shader newShader = Shader::New( vertexShader, fragmentShader );
+  newShader.RegisterProperty( PIXEL_AREA_UNIFORM_NAME, FULL_TEXTURE_RECT );
+
+  mRenderer.SetShader( newShader );
+
+  mShaderChanged = true;
 }
 
 void TizenVectorAnimationRenderer::ResetBuffers()
