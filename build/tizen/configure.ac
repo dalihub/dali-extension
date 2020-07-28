@@ -29,6 +29,7 @@ AC_CONFIG_SUBDIRS(color-controller)
 
 if test "x$with_tizen_55_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(vector-animation-renderer)
+  AC_CONFIG_SUBDIRS(vector-image-renderer)
   AC_CONFIG_SUBDIRS(web-engine-chromium)
   AC_CONFIG_SUBDIRS(web-engine-lwe)
 fi

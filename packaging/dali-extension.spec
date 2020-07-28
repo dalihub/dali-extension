@@ -131,6 +131,20 @@ BuildRequires:  pkgconfig(rlottie)
 Plugin to render a vector animation
 
 ####################################
+# Vector Image Renderer Plugin
+####################################
+%package vector-image-renderer-plugin
+Summary:    Plugin to render a vector image
+Group:      System/Libraries
+# tizen_55 is temporary
+%if 0%{?tizen_55_or_greater}
+BuildRequires:  pkgconfig(thorvg)
+%endif
+
+%description vector-image-renderer-plugin
+Plugin to render a vector image
+
+####################################
 # color controller Plugin
 ####################################
 
@@ -255,6 +269,12 @@ exit 0
 exit 0
 %endif
 
+%if 0%{?tizen_60_or_greater}
+%post vector-image-renderer-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
 %post color-controller-plugin
 /sbin/ldconfig
 exit 0
@@ -298,6 +318,12 @@ exit 0
 
 %if 0%{?tizen_55_or_greater}
 %postun vector-animation-renderer-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_60_or_greater}
+%postun vector-image-renderer-plugin
 /sbin/ldconfig
 exit 0
 %endif
@@ -361,6 +387,14 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-vector-animation-renderer-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_60_or_greater}
+%files vector-image-renderer-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-vector-image-renderer-plugin.so*
 %license LICENSE
 %endif
 
