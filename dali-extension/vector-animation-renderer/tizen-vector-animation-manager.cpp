@@ -56,12 +56,16 @@ void TizenVectorAnimationManager::AddEventHandler( TizenVectorAnimationEventHand
       Adaptor::Get().RegisterProcessor( *this );
     }
 
-    if( !mEventTrigger )
-    {
-      mEventTrigger = std::unique_ptr< EventThreadCallback >( new EventThreadCallback( MakeCallback( this, &TizenVectorAnimationManager::OnEventTriggered ) ) );
-    }
-
     mEventHandlers.push_back( &handler );
+
+    {
+      Dali::Mutex::ScopedLock lock( mMutex );
+
+      if( !mEventTrigger )
+      {
+        mEventTrigger = std::unique_ptr< EventThreadCallback >( new EventThreadCallback( MakeCallback( this, &TizenVectorAnimationManager::OnEventTriggered ) ) );
+      }
+    }
   }
 }
 
@@ -71,16 +75,18 @@ void TizenVectorAnimationManager::RemoveEventHandler( TizenVectorAnimationEventH
   if( iter != mEventHandlers.end() )
   {
     mEventHandlers.erase( iter );
+  }
 
-    if( mEventHandlers.empty() )
+  bool releaseEventTrigger = false;
+
+  if( mEventHandlers.empty() )
+  {
+    if( Adaptor::IsAvailable() )
     {
-      if( Adaptor::IsAvailable() )
-      {
-        Adaptor::Get().UnregisterProcessor( *this );
-      }
-
-      mEventTrigger.release();
+      Adaptor::Get().UnregisterProcessor( *this );
     }
+
+    releaseEventTrigger = true;
   }
 
   {
@@ -90,6 +96,11 @@ void TizenVectorAnimationManager::RemoveEventHandler( TizenVectorAnimationEventH
     if( triggeredHandler != mTriggeredHandlers.end() )
     {
       mTriggeredHandlers.erase( triggeredHandler );
+    }
+
+    if( releaseEventTrigger )
+    {
+      mEventTrigger.reset();
     }
   }
 }
@@ -102,7 +113,10 @@ void TizenVectorAnimationManager::TriggerEvent( TizenVectorAnimationEventHandler
   {
     mTriggeredHandlers.push_back( &handler );
 
-    mEventTrigger->Trigger();
+    if( mEventTrigger )
+    {
+      mEventTrigger->Trigger();
+    }
   }
 }
 
