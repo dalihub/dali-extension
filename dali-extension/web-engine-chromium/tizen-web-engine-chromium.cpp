@@ -322,7 +322,7 @@ public:
     evas_object_resize( mWebView, mWidth, mHeight );
   }
 
-  bool SendTouchEvent( const TouchEvent& touch )
+  bool SendTouchEvent( const TouchData& touch )
   {
     Ewk_Touch_Event_Type type = EWK_TOUCH_START;
     Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
@@ -813,7 +813,7 @@ void TizenWebEngineChromium::SetSize( int width, int height )
   }
 }
 
-bool TizenWebEngineChromium::SendTouchEvent( const Dali::TouchEvent& touch )
+bool TizenWebEngineChromium::SendTouchEvent( const Dali::TouchData& touch )
 {
   if( mWebViewContainer )
   {

@@ -22,7 +22,7 @@
 #include <dali/integration-api/debug.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/public-api/events/key-event.h>
-#include <dali/public-api/events/touch-event.h>
+#include <dali/public-api/events/touch-data.h>
 #include <dali/devel-api/adaptor-framework/application-devel.h>
 
 #include <unistd.h>
@@ -731,7 +731,7 @@ void TizenWebEngineLWE::DispatchMouseMoveEvent( float x, float y, bool isLButton
     : LWE::MouseButtonsValue::NoButtonDown, x, y );
 }
 
-bool TizenWebEngineLWE::SendTouchEvent( const TouchEvent& touch )
+bool TizenWebEngineLWE::SendTouchEvent( const TouchData& touch )
 {
   size_t pointCount = touch.GetPointCount();
   if( pointCount == 1 )
