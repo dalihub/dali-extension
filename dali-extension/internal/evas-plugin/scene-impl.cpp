@@ -85,7 +85,7 @@ void Scene::Initialize( EvasPlugin* evasPlugin, bool isDefaultScene )
   }
 
   Dali::Integration::SceneHolder sceneHolderHandler = Dali::Integration::SceneHolder( this );
-  mAdaptor->AddWindow( sceneHolderHandler, "", "", mIsTranslucent );
+  mAdaptor->AddWindow( sceneHolderHandler );
 
   Initialize();
 }
@@ -115,7 +115,7 @@ void Scene::Initialize()
 void Scene::OnPreInitEvasPlugin()
 {
   Dali::Integration::SceneHolder sceneHolderHandler = Dali::Integration::SceneHolder( this );
-  mAdaptor->AddWindow( sceneHolderHandler, "", "", mIsTranslucent );
+  mAdaptor->AddWindow( sceneHolderHandler );
 
   Initialize();
 }
