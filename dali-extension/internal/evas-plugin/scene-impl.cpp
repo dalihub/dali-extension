@@ -186,7 +186,7 @@ void Scene::ResizeSurface( uint16_t width, uint16_t height )
 
   mSurface->MoveResize( PositionSize( 0, 0, intWidth, intHeight ) );
 
-  SurfaceResized();
+  SurfaceResized( true );
 
   Adaptor::SurfaceSize newSize( width, height );
 
