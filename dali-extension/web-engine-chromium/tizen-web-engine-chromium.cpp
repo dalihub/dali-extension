@@ -374,7 +374,7 @@ public:
   bool SendKeyEvent( const Dali::KeyEvent& keyEvent )
   {
     void* evasKeyEvent = 0;
-    if( keyEvent.GetState() == Dali::KeyEvent::Down )
+    if( keyEvent.GetState() == Dali::KeyEvent::DOWN )
     {
       Evas_Event_Key_Down downEvent;
       memset( &downEvent, 0, sizeof(Evas_Event_Key_Down) );
