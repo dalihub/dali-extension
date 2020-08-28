@@ -225,7 +225,7 @@ TizenVideoPlayer::TizenVideoPlayer( Dali::Actor actor, Dali::VideoSyncMode syncM
   mNativeImageSourcePtr( NULL ),
   mTimer(),
   mBackgroundColor( Dali::Vector4( 1.0f, 1.0f, 1.0f, 0.0f ) ),
-  mTargetType( NativeImage ),
+  mTargetType( NATIVE_IMAGE ),
   mPacketMutex(),
   mPacketVector(),
   mEcoreWlWindow( NULL ),
@@ -315,7 +315,7 @@ void TizenVideoPlayer::SetRenderingTarget( Any target )
 
   if( target.GetType() == typeid( Dali::NativeImageSourcePtr ) )
   {
-    mTargetType = TizenVideoPlayer::NativeImage;
+    mTargetType = TizenVideoPlayer::NATIVE_IMAGE;
 
     Dali::NativeImageSourcePtr nativeImageSourcePtr = AnyCast< Dali::NativeImageSourcePtr >( target );
 
@@ -323,7 +323,7 @@ void TizenVideoPlayer::SetRenderingTarget( Any target )
   }
   else if( target.GetType() == typeid( Ecore_Wl_Window* ) )
   {
-    mTargetType = TizenVideoPlayer::WindowSurface;
+    mTargetType = TizenVideoPlayer::WINDOW_SURFACE;
 
     Ecore_Wl_Window* nativeWindow = Dali::AnyCast< Ecore_Wl_Window* >( target );
     InitializeUnderlayMode( nativeWindow );
