@@ -567,7 +567,7 @@ void EvasEventHandler::OnEvasObjectMouseDown( void *data, Evas* evas, Evas_Objec
   Evas_Coord screenX = 0.0f, screenY = 0.0f;
   GetScreenPosition( eventMouseDown->canvas.x, eventMouseDown->canvas.y, evasObject, screenX, screenY );
 
-  Dali::Integration::Point point( TouchPoint( TOUCH_DEVICE_ID, TouchPoint::Down, screenX, screenY ) );
+  Dali::Integration::Point point( TouchPoint( TOUCH_DEVICE_ID, PointState::DOWN, screenX, screenY ) );
   unsigned long timeStamp = eventMouseDown->timestamp;
   if( timeStamp < 1 )
   {
@@ -585,7 +585,7 @@ void EvasEventHandler::OnEvasObjectMouseUp( void *data, Evas* evas, Evas_Object*
   Evas_Coord screenX = 0.0f, screenY = 0.0f;
   GetScreenPosition( eventMouseUp->canvas.x, eventMouseUp->canvas.y, evasObject, screenX, screenY );
 
-  Dali::Integration::Point point( TouchPoint( TOUCH_DEVICE_ID, TouchPoint::Up, screenX, screenY ) );
+  Dali::Integration::Point point( TouchPoint( TOUCH_DEVICE_ID, PointState::UP, screenX, screenY ) );
   unsigned long timeStamp = eventMouseUp->timestamp;
   if( timeStamp < 1 )
   {
@@ -603,7 +603,7 @@ void EvasEventHandler::OnEvasObjectMouseMove( void *data, Evas* evas, Evas_Objec
   Evas_Coord screenX = 0.0f, screenY = 0.0f;
   GetScreenPosition( eventMouseMove->cur.canvas.x, eventMouseMove->cur.canvas.y, evasObject, screenX, screenY );
 
-  Dali::Integration::Point point( TouchPoint( TOUCH_DEVICE_ID, TouchPoint::Motion, screenX, screenY ) );
+  Dali::Integration::Point point( TouchPoint( TOUCH_DEVICE_ID, PointState::MOTION, screenX, screenY ) );
   unsigned long timeStamp = eventMouseMove->timestamp;
   if( timeStamp < 1 )
   {
@@ -644,7 +644,7 @@ void EvasEventHandler::OnEvasObjectMultiTouchDown( void *data, Evas* evas, Evas_
   Evas_Coord screenX = 0.0f, screenY = 0.0f;
   GetScreenPosition( eventMultiDown->canvas.x, eventMultiDown->canvas.y, evasObject, screenX, screenY );
 
-  Dali::Integration::Point point( TouchPoint( eventMultiDown->device, TouchPoint::Down, screenX, screenY ) );
+  Dali::Integration::Point point( TouchPoint( eventMultiDown->device, PointState::DOWN, screenX, screenY ) );
   unsigned long timeStamp = eventMultiDown->timestamp;
   if( timeStamp < 1 )
   {
@@ -662,7 +662,7 @@ void EvasEventHandler::OnEvasObjectMultiTouchUp( void *data, Evas* evas, Evas_Ob
   Evas_Coord screenX = 0.0f, screenY = 0.0f;
   GetScreenPosition( eventMultiUp->canvas.x, eventMultiUp->canvas.y, evasObject, screenX, screenY );
 
-  Dali::Integration::Point point( TouchPoint( eventMultiUp->device, TouchPoint::Up, screenX, screenY ) );
+  Dali::Integration::Point point( TouchPoint( eventMultiUp->device, PointState::UP, screenX, screenY ) );
   unsigned long timeStamp = eventMultiUp->timestamp;
   if( timeStamp < 1 )
   {
@@ -680,7 +680,7 @@ void EvasEventHandler::OnEvasObjectMultiTouchMove( void *data, Evas* evas, Evas_
   Evas_Coord screenX = 0.0f, screenY = 0.0f;
   GetScreenPosition( eventMultiMove->cur.canvas.x, eventMultiMove->cur.canvas.y, evasObject, screenX, screenY );
 
-  Dali::Integration::Point point( TouchPoint( eventMultiMove->device, TouchPoint::Motion, screenX, screenY ) );
+  Dali::Integration::Point point( TouchPoint( eventMultiMove->device, PointState::MOTION, screenX, screenY ) );
   unsigned long timeStamp = eventMultiMove->timestamp;
   if( timeStamp < 1 )
   {
