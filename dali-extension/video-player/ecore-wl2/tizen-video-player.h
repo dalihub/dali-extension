@@ -54,8 +54,8 @@ public:
    */
   enum RenderingTargetType
   {
-    WindowSurface, ///< HW underlay
-    NativeImage ///< texture stream
+    WINDOW_SURFACE, ///< HW underlay @SINCE_1_9.28
+    NATIVE_IMAGE ///< texture stream @SINCE_1_9.28
   };
 
   /**
