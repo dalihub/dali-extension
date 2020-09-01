@@ -791,12 +791,12 @@ bool TizenWebEngineLWE::SendKeyEvent( const Dali::KeyEvent& event )
   {
     keyValue = KeyStringToKeyValue( event.GetKeyName().c_str(), event.GetKeyModifier() & 1 );
   }
-  if( event.GetState() == Dali::KeyEvent::DOWN )
+  if( event.GetState() == Dali::KeyEvent::Down )
   {
     DispatchKeyDownEvent( keyValue );
     DispatchKeyPressEvent( keyValue );
   }
-  else if( event.GetState() == Dali::KeyEvent::UP )
+  else if( event.GetState() == Dali::KeyEvent::Up )
   {
     DispatchKeyUpEvent( keyValue );
   }

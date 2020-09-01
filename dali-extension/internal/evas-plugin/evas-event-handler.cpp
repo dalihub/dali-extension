@@ -698,7 +698,7 @@ void EvasEventHandler::OnEvasObjectKeyDown( void *data, Evas* evas, Evas_Object*
   // Create KeyEvent
   Integration::KeyEvent integKeyEvent;
 
-  integKeyEvent.state = Integration::KeyEvent::DOWN;
+  integKeyEvent.state = Integration::KeyEvent::Down;
 
   FillIntegrationKeyEvent( keyEvent, integKeyEvent );
 
@@ -713,7 +713,7 @@ void EvasEventHandler::OnEvasObjectKeyUp( void *data, Evas* evas, Evas_Object* e
   // Create KeyEvent
   Integration::KeyEvent integKeyEvent;
 
-  integKeyEvent.state = Integration::KeyEvent::UP;
+  integKeyEvent.state = Integration::KeyEvent::Up;
 
   FillIntegrationKeyEvent( keyEvent, integKeyEvent );
 
@@ -897,7 +897,7 @@ void EvasEventHandler::OnEvasObjectSmartFocused( void *data, Evas_Object* evasOb
       if( elm_win_focus_highlight_enabled_get( topWidget ) == EINA_TRUE )
       {
         // To allow that KeyboardFocusManager can handle the keyboard focus
-        Dali::Integration::KeyEvent fakeKeyEvent( "", "", "", 0, 0, 100, Dali::Integration::KeyEvent::DOWN, "", "", Device::Class::NONE, Device::Subclass::NONE );
+        Dali::Integration::KeyEvent fakeKeyEvent( "", "", "", 0, 0, 100, Dali::Integration::KeyEvent::Down, "", "", Device::Class::NONE, Device::Subclass::NONE );
 
         evasPlugin.OnEvasObjectKeyEvent( fakeKeyEvent );
       }
