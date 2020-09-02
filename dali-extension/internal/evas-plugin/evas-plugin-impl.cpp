@@ -53,7 +53,7 @@ EvasPlugin::EvasPlugin( Evas_Object* parentEvasObject, uint16_t width, uint16_t 
   // Generate DALi adaptor
   NativeRenderSurface* surface = static_cast<NativeRenderSurface*>( scenePtr->GetSurface() );
 
-  mAdaptor = &Adaptor::New( Dali::Integration::SceneHolder( scenePtr.Get() ), *surface, Configuration::APPLICATION_DOES_NOT_HANDLE_CONTEXT_LOSS );
+  mAdaptor = &Adaptor::New( Dali::Integration::SceneHolder( scenePtr.Get() ), *surface );
 
   // Initialize default scene
   scenePtr->Initialize( this, true );
