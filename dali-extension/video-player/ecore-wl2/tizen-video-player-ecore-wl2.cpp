@@ -472,12 +472,12 @@ void TizenVideoPlayer::Stop()
   {
     int error = player_stop( mPlayer );
     LogPlayerError( error );
-  }
 
-  if( mNativeImageSourcePtr != NULL && mTimer )
-  {
-    mTimer.Stop();
-    DestroyPackets();
+    if( mNativeImageSourcePtr != NULL && mTimer )
+    {
+      mTimer.Stop();
+      DestroyPackets();
+    }
   }
 }
 
