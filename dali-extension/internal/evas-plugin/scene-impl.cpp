@@ -356,23 +356,23 @@ bool Scene::OnElmAccessibilityActionEvent( AccessActionInfo& accessActionInfo )
         {
           int touchType = accessActionInfo.mouseType;
 
-          TouchPoint::State state( TouchPoint::Down );
+          PointState::Type state( PointState::DOWN );
 
           if( touchType == 0 )
           {
-            state = TouchPoint::Down; // mouse down
+            state = PointState::DOWN; // mouse down
           }
           else if( touchType == 1 )
           {
-            state = TouchPoint::Motion; // mouse move
+            state = PointState::MOTION; // mouse move
           }
           else if( touchType == 2 )
           {
-            state = TouchPoint::Up; // mouse up
+            state = PointState::UP; // mouse up
           }
           else
           {
-            state = TouchPoint::Interrupted; // error
+            state = PointState::INTERRUPTED; // error
           }
 
           // Send touch event to accessibility manager.
