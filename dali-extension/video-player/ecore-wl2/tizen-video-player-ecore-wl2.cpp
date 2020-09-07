@@ -262,7 +262,7 @@ TizenVideoPlayer::TizenVideoPlayer( Dali::Actor actor, Dali::VideoSyncMode syncM
   mNativeImageSourcePtr( NULL ),
   mTimer(),
   mBackgroundColor( Dali::Vector4( 1.0f, 1.0f, 1.0f, 0.0f ) ),
-  mTargetType( NativeImage ),
+  mTargetType( NATIVE_IMAGE ),
   mPacketMutex(),
   mPacketVector(),
   mStreamInfo( NULL ),
@@ -383,7 +383,7 @@ void TizenVideoPlayer::SetRenderingTarget( Any target )
     {
       DestroyConstraint();
     }
-    mTargetType = TizenVideoPlayer::NativeImage;
+    mTargetType = TizenVideoPlayer::NATIVE_IMAGE;
 
     Dali::NativeImageSourcePtr nativeImageSourcePtr = AnyCast< Dali::NativeImageSourcePtr >( target );
 
@@ -391,7 +391,7 @@ void TizenVideoPlayer::SetRenderingTarget( Any target )
   }
   else if( target.GetType() == typeid( Ecore_Wl2_Window* ) )
   {
-    mTargetType = TizenVideoPlayer::WindowSurface;
+    mTargetType = TizenVideoPlayer::WINDOW_SURFACE;
 
     InitializeUnderlayMode( Dali::AnyCast< Ecore_Wl2_Window* >( target ) );
 
@@ -472,12 +472,12 @@ void TizenVideoPlayer::Stop()
   {
     int error = player_stop( mPlayer );
     LogPlayerError( error );
-  }
 
-  if( mNativeImageSourcePtr != NULL && mTimer )
-  {
-    mTimer.Stop();
-    DestroyPackets();
+    if( mNativeImageSourcePtr != NULL && mTimer )
+    {
+      mTimer.Stop();
+      DestroyPackets();
+    }
   }
 }
 
