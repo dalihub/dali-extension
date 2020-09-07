@@ -897,7 +897,7 @@ void EvasEventHandler::OnEvasObjectSmartFocused( void *data, Evas_Object* evasOb
       if( elm_win_focus_highlight_enabled_get( topWidget ) == EINA_TRUE )
       {
         // To allow that KeyboardFocusManager can handle the keyboard focus
-        Dali::Integration::KeyEvent fakeKeyEvent( Dali::KeyEvent( "", "", 0, 0, 100, KeyEvent::Down ) );
+        Dali::Integration::KeyEvent fakeKeyEvent( "", "", "", 0, 0, 100, Dali::Integration::KeyEvent::Down, "", "", Device::Class::NONE, Device::Subclass::NONE );
 
         evasPlugin.OnEvasObjectKeyEvent( fakeKeyEvent );
       }

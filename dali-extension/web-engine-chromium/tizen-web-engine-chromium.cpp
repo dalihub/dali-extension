@@ -371,15 +371,15 @@ public:
     return false;
   }
 
-  bool SendKeyEvent( const KeyEvent& keyEvent )
+  bool SendKeyEvent( const Dali::KeyEvent& keyEvent )
   {
     void* evasKeyEvent = 0;
-    if( keyEvent.state == KeyEvent::Down )
+    if( keyEvent.GetState() == Dali::KeyEvent::Down )
     {
       Evas_Event_Key_Down downEvent;
       memset( &downEvent, 0, sizeof(Evas_Event_Key_Down) );
-      downEvent.key = keyEvent.keyPressedName.c_str();
-      downEvent.string = keyEvent.keyPressed.c_str();
+      downEvent.key = keyEvent.GetKeyName().c_str();
+      downEvent.string = keyEvent.GetKeyString().c_str();
       evasKeyEvent = static_cast<void*>(&downEvent);
       ewk_view_send_key_event( mWebView, evasKeyEvent, true );
     }
@@ -387,8 +387,8 @@ public:
     {
       Evas_Event_Key_Up upEvent;
       memset(&upEvent, 0, sizeof(Evas_Event_Key_Up));
-      upEvent.key = keyEvent.keyPressedName.c_str();
-      upEvent.string = keyEvent.keyPressed.c_str();
+      upEvent.key = keyEvent.GetKeyName().c_str();
+      upEvent.string = keyEvent.GetKeyString().c_str();
       evasKeyEvent = static_cast<void*>(&upEvent);
       ewk_view_send_key_event( mWebView, evasKeyEvent, false );
      }
