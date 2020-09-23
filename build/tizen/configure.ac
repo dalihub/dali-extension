@@ -20,6 +20,12 @@ AC_ARG_WITH([tizen_55_or_greater],
             [with_tizen_55_or_greater=yes],
             [with_tizen_55_or_greater=no])
 
+AC_ARG_WITH([tizen_65_or_greater],
+            [AC_HELP_STRING([--with-tizen-65-or-greater],
+                            [Use this conditional when Tizen version is 6.5 or greater])],
+            [with_tizen_65_or_greater=yes],
+            [with_tizen_65_or_greater=no])
+
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
@@ -29,10 +35,14 @@ AC_CONFIG_SUBDIRS(color-controller)
 
 if test "x$with_tizen_55_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(vector-animation-renderer)
-  AC_CONFIG_SUBDIRS(vector-image-renderer)
   AC_CONFIG_SUBDIRS(web-engine-chromium)
   AC_CONFIG_SUBDIRS(web-engine-lwe)
 fi
+
+if test "x$with_tizen_65_or_greater" = "xyes"; then
+  AC_CONFIG_SUBDIRS(vector-image-renderer)
+fi
+
 AC_CONFIG_SUBDIRS(dali-extension)
 
 devincludepath=${includedir}
