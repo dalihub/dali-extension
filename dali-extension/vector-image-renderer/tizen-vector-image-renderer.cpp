@@ -33,8 +33,7 @@ namespace Dali
 namespace Plugin
 {
 
-static uint32_t engineInitCnt = 0;   //tvg engine intialize call count.
-
+uint32_t TizenVectorImageRenderer::mCount = 0;
 
 TizenVectorImageRenderer::TizenVectorImageRenderer()
 : mPicture(nullptr),
@@ -42,151 +41,49 @@ TizenVectorImageRenderer::TizenVectorImageRenderer()
   mDefaultHeight(0),
   mIsFirstRender(true)
 {
-  if (engineInitCnt == 0)
+  if(mCount++ == 0)
   {
     tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
   }
-  ++engineInitCnt;
 
   mSwCanvas = tvg::SwCanvas::gen();
 }
 
 TizenVectorImageRenderer::~TizenVectorImageRenderer()
 {
-   //Not yet pushed to Canvas
-  if (mIsFirstRender && mPicture)
+  //Not yet pushed to Canvas
+  if(mIsFirstRender && mPicture)
   {
     delete(mPicture);
   }
+
   mSwCanvas->clear();
 
-  if (engineInitCnt > 0)
+  if(--mCount == 0)
   {
-    --engineInitCnt;
-    if (engineInitCnt == 0)
-    {
-      tvg::Initializer::term(tvg::CanvasEngine::Sw);
-    }
+    tvg::Initializer::term(tvg::CanvasEngine::Sw);
   }
 }
 
-bool TizenVectorImageRenderer::Initialize()
+bool TizenVectorImageRenderer::Load(const Vector<uint8_t>& data)
 {
-  //DO NOTHING
-
-  return true;
-}
-
-void TizenVectorImageRenderer::SetBuffer( Dali::Devel::PixelBuffer &buffer )
-{
-  unsigned char *pBuffer;
-  pBuffer = buffer.GetBuffer();
-
-  if (!pBuffer)
-  {
-    DALI_LOG_ERROR("TizenVectorImageRenderer::SetBuffer: pixel buffer is null [%p]\n", this);
-    return;
-  }
-
-  auto width = buffer.GetWidth();
-  auto height = buffer.GetHeight();
-
-  mSwCanvas->target((uint32_t *)pBuffer, width, width, height, tvg::SwCanvas::ABGR8888);
-
-  DALI_LOG_ERROR("TizenVectorImageRenderer::Buffer[%p] size[%d x %d]! [%p]\n", pBuffer, width, height, this);
-}
-
-bool TizenVectorImageRenderer::Render( float scale )
-{
-  if (!mSwCanvas || !mPicture)
-  {
-    DALI_LOG_ERROR("TizenVectorImageRenderer::Render: either Canvas[%p] or Picture[%p] is invalid [%p]\n", mSwCanvas.get(), mPicture, this);
-    return false;
-  }
-
-  mPicture->scale(scale);
-
-  /* We need to push picture first time, after that we only update its properties. */
-  if (mIsFirstRender)
-  {
-    if (mSwCanvas->push(std::unique_ptr<tvg::Picture>(mPicture)) != tvg::Result::Success)
-    {
-      DALI_LOG_ERROR("TizenVectorImageRenderer::Render: Picture push fail [%p]\n", this);
-      return false;
-    }
-    mIsFirstRender = false;
-  }
-  else
-  {
-    if (mSwCanvas->update(mPicture) != tvg::Result::Success)
-    {
-      DALI_LOG_ERROR("TizenVectorImageRenderer::Render: Picture update fail [%p]\n", this);
-      return false;
-    }
-  }
-
-  if (mSwCanvas->draw() != tvg::Result::Success)
-  {
-    DALI_LOG_ERROR("TizenVectorImageRenderer::Render: Draw fail [%p]\n", this);
-    return false;
-  }
-
-  mSwCanvas->sync();
-
-  return true;
-}
-
-bool TizenVectorImageRenderer::Load( const std::string &url )
-{
-  if (!mSwCanvas)
+  if(!mSwCanvas)
   {
     DALI_LOG_ERROR("TizenVectorImageRenderer::Load Canvas Object is null [%p]\n", this);
     return false;
   }
 
-  if (!mPicture)
+  if(!mPicture)
   {
     mPicture = tvg::Picture::gen().release();
-    if (!mPicture)
+    if(!mPicture)
     {
       DALI_LOG_ERROR("TizenVectorImageRenderer::Load: Picture gen Fail [%p]\n", this);
       return false;
     }
   }
 
-  if (mPicture->load(url) != tvg::Result::Success)
-  {
-    DALI_LOG_ERROR("TizenVectorImageRenderer::Load File load Fail %s [%p]\n", url.c_str(), this);
-    return false;
-  }
-
-  float w, h;
-  mPicture->viewbox(nullptr, nullptr, &w, &h);
-  mDefaultWidth = static_cast<uint32_t>(w);
-  mDefaultHeight = static_cast<uint32_t>(h);
-
-  return true;
-}
-
-bool TizenVectorImageRenderer::Load( const char *data, uint32_t size )
-{
-  if (!mSwCanvas)
-  {
-    DALI_LOG_ERROR("TizenVectorImageRenderer::Load Canvas Object is null [%p]\n", this);
-    return false;
-  }
-
-  if (!mPicture)
-  {
-    mPicture = tvg::Picture::gen().release();
-    if (!mPicture)
-    {
-      DALI_LOG_ERROR("TizenVectorImageRenderer::Load: Picture gen Fail [%p]\n", this);
-      return false;
-    }
-  }
-
-  if (mPicture->load(data, size) != tvg::Result::Success)
+  if(mPicture->load(reinterpret_cast<char*>(data.Begin()), data.Size()) != tvg::Result::Success)
   {
     DALI_LOG_ERROR("TizenVectorImageRenderer::Load Data load Fail %s [%p]\n", data, this);
     return false;
@@ -196,6 +93,62 @@ bool TizenVectorImageRenderer::Load( const char *data, uint32_t size )
   mPicture->viewbox(nullptr, nullptr, &w, &h);
   mDefaultWidth = static_cast<uint32_t>(w);
   mDefaultHeight = static_cast<uint32_t>(h);
+
+  return true;
+}
+
+bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer, float scale)
+{
+  if(!mSwCanvas || !mPicture)
+  {
+    DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: either Canvas[%p] or Picture[%p] is invalid [%p]\n", mSwCanvas.get(), mPicture, this);
+    return false;
+  }
+
+  unsigned char* pBuffer;
+  pBuffer = buffer.GetBuffer();
+
+  if(!pBuffer)
+  {
+    DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: pixel buffer is null [%p]\n", this);
+    return false;
+  }
+
+  auto width = buffer.GetWidth();
+  auto height = buffer.GetHeight();
+
+  mSwCanvas->target(reinterpret_cast<uint32_t*>(pBuffer), width, width, height, tvg::SwCanvas::ABGR8888);
+
+  DALI_LOG_RELEASE_INFO("TizenVectorImageRenderer::Rasterize: Buffer[%p] size[%d x %d]! [%p]\n", pBuffer, width, height, this);
+
+  mPicture->scale(scale);
+
+  /* We need to push picture first time, after that we only update its properties. */
+  if(mIsFirstRender)
+  {
+    if(mSwCanvas->push(std::unique_ptr<tvg::Picture>(mPicture)) != tvg::Result::Success)
+    {
+      DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: Picture push fail [%p]\n", this);
+      return false;
+    }
+    mIsFirstRender = false;
+  }
+  else
+  {
+    if(mSwCanvas->update(mPicture) != tvg::Result::Success)
+    {
+      DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: Picture update fail [%p]\n", this);
+      return false;
+    }
+  }
+
+  if(mSwCanvas->draw() != tvg::Result::Success)
+  {
+    DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: Draw fail [%p]\n", this);
+    return false;
+  }
+
+  mSwCanvas->sync();
 
   return true;
 }
