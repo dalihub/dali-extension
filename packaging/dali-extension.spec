@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.9.30
+Version:    1.9.32
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -43,6 +43,11 @@ dali-extension
 %if ( 0%{?tizen_version_major} == 5 && 0%{?tizen_version_minor} >= 5 ) || 0%{?tizen_version_major} >= 6
 %define tizen_55_or_greater 1
 %endif
+
+%if ( 0%{?tizen_version_major} == 6 && 0%{?tizen_version_minor} >= 5 ) || 0%{?tizen_version_major} >= 7
+%define tizen_65_or_greater 1
+%endif
+
 
 # # Note
 # %if 0%{?tizen_version_major} >= 6
@@ -130,19 +135,21 @@ BuildRequires:  pkgconfig(rlottie)
 %description vector-animation-renderer-plugin
 Plugin to render a vector animation
 
+# tizen_65 is temporary
+%if 0%{?tizen_65_or_greater}
 ####################################
 # Vector Image Renderer Plugin
 ####################################
 %package vector-image-renderer-plugin
 Summary:    Plugin to render a vector image
 Group:      System/Libraries
-# tizen_55 is temporary
-%if 0%{?tizen_55_or_greater}
 BuildRequires:  pkgconfig(thorvg)
-%endif
+#define enable_vector_image_renderer_build 1
 
 %description vector-image-renderer-plugin
 Plugin to render a vector image
+
+%endif
 
 ####################################
 # color controller Plugin
@@ -269,7 +276,7 @@ exit 0
 exit 0
 %endif
 
-%if 0%{?tizen_60_or_greater}
+%if 0%{?tizen_65_or_greater}
 %post vector-image-renderer-plugin
 /sbin/ldconfig
 exit 0
@@ -322,7 +329,7 @@ exit 0
 exit 0
 %endif
 
-%if 0%{?tizen_60_or_greater}
+%if 0%{?tizen_65_or_greater}
 %postun vector-image-renderer-plugin
 /sbin/ldconfig
 exit 0
@@ -390,7 +397,7 @@ exit 0
 %license LICENSE
 %endif
 
-%if 0%{?tizen_60_or_greater}
+%if 0%{?tizen_65_or_greater}
 %files vector-image-renderer-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
