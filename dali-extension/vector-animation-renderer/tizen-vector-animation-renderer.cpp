@@ -146,6 +146,8 @@ void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
 
     SetShader();
   }
+
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetRenderer [%p]\n", this );
 }
 
 void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
@@ -184,97 +186,88 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 {
   Dali::Mutex::ScopedLock lock( mMutex );
 
-  if( !mTbmQueue || !mVectorRenderer || !mTargetSurface )
+  if( !mTbmQueue || !mVectorRenderer )
   {
     return false;
   }
 
-  int canDequeue = tbm_surface_queue_can_dequeue( mTbmQueue, 0 );
-  if( !canDequeue )
+  if( tbm_surface_queue_can_dequeue( mTbmQueue, 0 ) )
   {
-    // Ignore the previous image which is inserted to the queue.
-    mTargetSurface->IgnoreSourceImage();
+    tbm_surface_h tbmSurface;
 
-    // Check again
-    canDequeue = tbm_surface_queue_can_dequeue( mTbmQueue, 0 );
-    if( !canDequeue )
+    if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
     {
+      DALI_LOG_ERROR( "Failed to dequeue a tbm_surface [%p]\n", this );
       return false;
     }
-  }
 
-  tbm_surface_h tbmSurface;
+    tbm_surface_info_s info;
+    tbm_surface_map( tbmSurface, TBM_OPTION_WRITE, &info );
 
-  if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
-  {
-    DALI_LOG_ERROR( "Failed to dequeue a tbm_surface [%p]\n", this );
-    return false;
-  }
+    rlottie::Surface surface;
+    bool existing = false;
 
-  tbm_surface_info_s info;
-  tbm_surface_map( tbmSurface, TBM_OPTION_WRITE, &info );
-
-  rlottie::Surface surface;
-  bool existing = false;
-
-  if( !mResourceReady )
-  {
-    // Need to reset buffer list
-    ResetBuffers();
-  }
-  else
-  {
-    for( auto&& iter : mBuffers )
+    if( !mResourceReady )
     {
-      if( iter.first == tbmSurface )
+      // Need to reset buffer list
+      ResetBuffers();
+    }
+    else
+    {
+      for( auto&& iter : mBuffers )
       {
-        // Find the buffer in the existing list
-        existing = true;
-        surface = iter.second;
-        break;
+        if( iter.first == tbmSurface )
+        {
+          // Find the buffer in the existing list
+          existing = true;
+          surface = iter.second;
+          break;
+        }
       }
     }
-  }
 
-  if( !existing )
-  {
-    unsigned char* buffer = info.planes[0].ptr;
-    if( !buffer )
+    if( !existing )
     {
-      DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: tbm buffer pointer is null! [%p]\n", this );
-      tbm_surface_unmap( tbmSurface );
-      return false;
+      unsigned char* buffer = info.planes[0].ptr;
+      if( !buffer )
+      {
+        DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: tbm buffer pointer is null! [%p]\n", this );
+        tbm_surface_unmap( tbmSurface );
+        return false;
+      }
+
+      tbm_surface_internal_ref( tbmSurface );
+
+      // Create Surface object
+      surface = rlottie::Surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
+
+      // Push the buffer
+      mBuffers.push_back( SurfacePair( tbmSurface, surface ) );
     }
 
-    tbm_surface_internal_ref( tbmSurface );
+    // Render the frame
+    mVectorRenderer->renderSync( frameNumber, surface );
 
-    // Create Surface object
-    surface = rlottie::Surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
+    tbm_surface_unmap( tbmSurface );
 
-    // Push the buffer
-    mBuffers.push_back( SurfacePair( tbmSurface, surface ) );
+    tbm_surface_queue_enqueue( mTbmQueue, tbmSurface );
+
+    if( !mResourceReady )
+    {
+      mPreviousTexture = mRenderedTexture;  // It is used to destroy the object in the main thread.
+      mRenderedTexture = mTexture;
+      mResourceReady = true;
+      mResourceReadyTriggered = true;
+
+      TizenVectorAnimationManager::Get().TriggerEvent( *this );
+
+      DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this );
+    }
+
+    return true;
   }
 
-  // Render the frame
-  mVectorRenderer->renderSync( frameNumber, surface );
-
-  tbm_surface_unmap( tbmSurface );
-
-  tbm_surface_queue_enqueue( mTbmQueue, tbmSurface );
-
-  if( !mResourceReady )
-  {
-    mPreviousTexture = mRenderedTexture;  // It is used to destroy the object in the main thread.
-    mRenderedTexture = mTexture;
-    mResourceReady = true;
-    mResourceReadyTriggered = true;
-
-    TizenVectorAnimationManager::Get().TriggerEvent( *this );
-
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this );
-  }
-
-  return true;
+  return false;
 }
 
 uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber() const
@@ -291,6 +284,8 @@ void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& he
 {
   width = mDefaultWidth;
   height = mDefaultHeight;
+
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::GetDefaultSize: width = %d, height = %d [%p]\n", width, height, this );
 }
 
 void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
