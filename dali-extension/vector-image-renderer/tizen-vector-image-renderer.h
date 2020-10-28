@@ -48,43 +48,30 @@ public:
   virtual ~TizenVectorImageRenderer();
 
   /**
-   * @copydoc Dali::VectorImageRendererPlugin::Initialize()
+   * @copydoc Dali::VectorImageRendererPlugin::Load()
    */
-  bool Initialize() override;
-
-  /**
-   * @copydoc Dali::VectorImageRendererPlugin::SetBuffer()
-   */
-  void SetBuffer( Dali::Devel::PixelBuffer &buffer ) override;
+  bool Load(const Vector<uint8_t>& data) override;
 
   /**
    * @copydoc Dali::VectorImageRendererPlugin::Render()
    */
-  bool Render( float scale ) override;
-
-  /**
-   * @copydoc Dali::VectorImageRendererPlugin::Load()
-   */
-  bool Load( const std::string& url ) override;
-
-  /**
-   * @copydoc Dali::VectorImageRendererPlugin::Load()
-   */
-  bool Load( const char *data, uint32_t size ) override;
+  bool Rasterize(Dali::Devel::PixelBuffer& buffer, float scale) override;
 
   /**
    * @copydoc Dali::VectorImageRendererPlugin::GetDefaultSize()
    */
-  void GetDefaultSize( uint32_t& width, uint32_t& height ) const override;
+  void GetDefaultSize(uint32_t& width, uint32_t& height) const override;
 
 private:
 
   std::unique_ptr< tvg::SwCanvas >       mSwCanvas;
-  tvg::Picture*                          mPicture;               ///< The pointer to the picture
+  tvg::Picture*                          mPicture;        ///< The pointer to the picture
 
-  uint32_t                               mDefaultWidth;          ///< The width of the surface
-  uint32_t                               mDefaultHeight;         ///< The height of the surface
+  uint32_t                               mDefaultWidth;   ///< The width of the surface
+  uint32_t                               mDefaultHeight;  ///< The height of the surface
   bool                                   mIsFirstRender;
+
+  static uint32_t                        mCount;          ///< tvg engine intialize call count
 };
 
 } // namespace Plugin

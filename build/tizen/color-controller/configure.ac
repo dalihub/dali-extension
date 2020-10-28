@@ -2,12 +2,14 @@
 AC_INIT([dali], [dali_version])
 AM_INIT_AUTOMAKE([-Wall foreign])
 
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIRS([m4 ../m4])
 
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+
+AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])
 
 LT_INIT
 
