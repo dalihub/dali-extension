@@ -245,6 +245,18 @@ public:
   void SetFocus( bool focused ) override;
 
   /**
+   * @brief Update display area.
+   * @param[in] displayArea A display area to be updated.
+   */
+  void UpdateDisplayArea( Dali::Rect< int > displayArea ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableVideoHole()
+   * @param[in] enabled True if video hole is enabled, false otherwise.
+   */
+  void EnableVideoHole( bool enabled ) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
    */
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadStartedSignal() override
