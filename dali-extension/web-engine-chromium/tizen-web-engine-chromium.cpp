@@ -24,6 +24,7 @@
 
 #include <Ecore.h>
 #include <Ecore_Evas.h>
+#include <Ecore_Wl2.h>
 #include <Evas.h>
 #include <Elementary.h>
 
@@ -174,7 +175,9 @@ public:
     ewk_context_max_refresh_rate_set( context, 60 );
     mWebView = ewk_view_add( ecore_evas_get( WebEngineManager::Get().GetWindow() ) );
     ewk_view_offscreen_rendering_enabled_set( mWebView, true );
+    ecore_wl2_window_alpha_set( win, false );
     ewk_view_ime_window_set( mWebView, win );
+    ewk_view_set_support_video_hole( mWebView, win, EINA_TRUE, EINA_FALSE );
 
     Ewk_Settings* settings = ewk_view_settings_get( mWebView );
     mWebEngineSettings = TizenWebEngineSettings( settings );
@@ -474,6 +477,20 @@ public:
   {
     ecore_evas_focus_set( WebEngineManager::Get().GetWindow(), focused );
     ewk_view_focus_set( mWebView, focused );
+  }
+
+  void UpdateDisplayArea( Dali::Rect< int > displayArea )
+  {
+    evas_object_move( mWebView, displayArea.x, displayArea.y );
+    SetSize( displayArea.width, displayArea.height );
+    evas_object_geometry_set ( mWebView, displayArea.x, displayArea.y, displayArea.width, displayArea.height );
+  }
+
+  void EnableVideoHole( bool enabled )
+  {
+    Ecore_Wl2_Window* win = AnyCast< Ecore_Wl2_Window* >( Adaptor::Get().GetNativeWindowHandle() );
+    ewk_view_set_support_video_hole( mWebView, win, enabled, EINA_FALSE );
+    ecore_wl2_window_alpha_set( win, !enabled );
   }
 
 private:
@@ -926,6 +943,22 @@ void TizenWebEngineChromium::SetFocus( bool focused )
   if( mWebViewContainer )
   {
     return mWebViewContainer->SetFocus( focused );
+  }
+}
+
+void TizenWebEngineChromium::UpdateDisplayArea( Dali::Rect< int > displayArea )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->UpdateDisplayArea( displayArea );
+  }
+}
+
+void TizenWebEngineChromium::EnableVideoHole( bool enabled )
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->EnableVideoHole( enabled );
   }
 }
 

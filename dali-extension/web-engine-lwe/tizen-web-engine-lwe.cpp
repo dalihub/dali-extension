@@ -882,5 +882,15 @@ void TizenWebEngineLWE::SetFocus( bool focused )
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::UpdateDisplayArea( Dali::Rect< int > displayArea )
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::EnableVideoHole( bool enabled )
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali
