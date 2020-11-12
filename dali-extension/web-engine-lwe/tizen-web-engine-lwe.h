@@ -243,6 +243,11 @@ public:
   bool SendKeyEvent( const Dali::KeyEvent& event ) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SetFocus()
+   */
+  void SetFocus( bool focused ) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
    */
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadStartedSignal() override

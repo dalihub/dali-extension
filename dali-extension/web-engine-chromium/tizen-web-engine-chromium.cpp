@@ -163,7 +163,6 @@ public:
   void LoadUrl( const std::string& url )
   {
     ewk_view_url_set( mWebView, url.c_str() );
-    ewk_view_focus_set( mWebView, true );
   }
 
   void LoadHtml( const std::string& html )
@@ -393,6 +392,12 @@ public:
       ewk_view_send_key_event( mWebView, evasKeyEvent, false );
      }
      return false;
+  }
+
+  void SetFocus( bool focused )
+  {
+    ecore_evas_focus_set( WebEngineManager::Get().GetWindow(), focused );
+    ewk_view_focus_set( mWebView, focused );
   }
 
 private:
@@ -829,6 +834,14 @@ bool TizenWebEngineChromium::SendKeyEvent( const Dali::KeyEvent& event )
     return mWebViewContainer->SendKeyEvent( event );
   }
   return false;
+}
+
+void TizenWebEngineChromium::SetFocus( bool focused )
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->SetFocus( focused );
+  }
 }
 
 Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadStartedSignal()
