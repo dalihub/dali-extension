@@ -140,6 +140,9 @@ public:
     ewk_view_offscreen_rendering_enabled_set( mWebView, true );
     ewk_view_ime_window_set( mWebView, win );
 
+    Ewk_Settings* setting = ewk_view_settings_get(mWebView);
+    ewk_settings_viewport_meta_tag_set(setting, false);
+
     evas_object_smart_callback_add( mWebView, "offscreen,frame,rendered",
                                     &WebViewContainerForDali::OnFrameRendered,
                                     &mClient );
