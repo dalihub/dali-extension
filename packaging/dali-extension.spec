@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    1.9.36
+Version:    2.0.1
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -135,21 +135,19 @@ BuildRequires:  pkgconfig(rlottie)
 %description vector-animation-renderer-plugin
 Plugin to render a vector animation
 
-# tizen_65 is temporary
-%if 0%{?tizen_65_or_greater}
 ####################################
 # Vector Image Renderer Plugin
 ####################################
 %package vector-image-renderer-plugin
 Summary:    Plugin to render a vector image
 Group:      System/Libraries
+%if 0%{?tizen_65_or_greater}
 BuildRequires:  pkgconfig(thorvg)
-#define enable_vector_image_renderer_build 1
+%endif
 
 %description vector-image-renderer-plugin
 Plugin to render a vector image
 
-%endif
 
 ####################################
 # color controller Plugin
@@ -216,6 +214,9 @@ autoreconf --install
 %endif
 %if 0%{?tizen_55_or_greater}
            --with-tizen-55-or-greater \
+%endif
+%if 0%{?tizen_65_or_greater}
+           --with-tizen-65-or-greater \
 %endif
            --enable-ecore-wl2 \
            --enable-keyextension

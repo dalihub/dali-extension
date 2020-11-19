@@ -381,14 +381,6 @@ void TizenVectorAnimationRenderer::SetShader()
   std::string fragmentShader;
   std::string vertexShader;
 
-  // Get custom fragment shader prefix
-  const char* fragmentPreFix = mTargetSurface->GetCustomFragmentPrefix();
-  if( fragmentPreFix )
-  {
-    fragmentShader = fragmentPreFix;
-    fragmentShader += "\n";
-  }
-
   // Get the current fragment shader source
   Property::Value program = shader.GetProperty( Shader::Property::PROGRAM );
   Property::Map* map = program.GetMap();
@@ -397,13 +389,29 @@ void TizenVectorAnimationRenderer::SetShader()
     Property::Value* fragment = map->Find( "fragment" );
     if( fragment )
     {
-      fragmentShader += fragment->Get< std::string >();
+      fragmentShader = fragment->Get< std::string >();
     }
 
     Property::Value* vertex = map->Find( "vertex" );
     if( vertex )
     {
       vertexShader = vertex->Get< std::string >();
+    }
+  }
+
+  // Get custom fragment shader prefix
+  const char* fragmentPrefix = mTargetSurface->GetCustomFragmentPrefix();
+
+  size_t prefixIndex = fragmentShader.find(Dali::Shader::GetShaderVersionPrefix());
+  if(fragmentPrefix != nullptr)
+  {
+    if(prefixIndex == std::string::npos)
+    {
+      fragmentShader = fragmentPrefix + fragmentShader;
+    }
+    else
+    {
+      fragmentShader.insert(prefixIndex + Dali::Shader::GetShaderVersionPrefix().length(), std::string(fragmentPrefix) + "\n");
     }
   }
 
