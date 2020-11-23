@@ -234,7 +234,15 @@ rm -rf %{buildroot}
 
 # install dali.sh
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d
+
+%if "%{?profile}" != "wearable" && "%{?profile}" != "tv" && "%{?profile}" != "mobile"
+install -m 0644 scripts/other/dali.sh %{buildroot}%{_sysconfdir}/profile.d
+%endif
+
+%if "%{?profile}" != "common" && "%{?profile}" != "ivi"
 install -m 0644 scripts/dali.sh %{buildroot}%{_sysconfdir}/profile.d
+%endif
+
 
 cd build/tizen
 %make_install DALI_DATA_RW_DIR="%{dali_data_rw_dir}" DALI_DATA_RO_DIR="%{dali_data_ro_dir}"
