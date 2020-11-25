@@ -15,6 +15,8 @@
  *
  */
 
+#ifndef DA_PROFILE
+
 // CLASS HEADER
 #include "tizen-web-engine-lwe.h"
 
@@ -806,3 +808,5 @@ bool TizenWebEngineLWE::SendKeyEvent( const Dali::KeyEvent& event )
 
 } // namespace Plugin
 } // namespace Dali
+
+#endif // DA_PROFILE

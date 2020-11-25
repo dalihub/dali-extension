@@ -169,7 +169,7 @@ Plugin to load color theme
 %package web-engine-lwe-plugin
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && "%{?_with_da_profile}" != "1"
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(lightweight-web-engine)
 %endif
@@ -206,6 +206,11 @@ CXXFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 configure_flags="--enable-ecore-wl2"
 %endif
 
+%if "%{?_with_da_profile}" == "1"
+CFLAGS+=" -DDA_PROFILE"
+CXXFLAGS+=" -DDA_PROFILE"
+%endif
+
 libtoolize --force
 cd %{_builddir}/%{name}-%{version}/build/tizen
 autoreconf --install
@@ -216,6 +221,9 @@ autoreconf --install
 %endif
 %if 0%{?tizen_55_or_greater}
            --with-tizen-55-or-greater \
+%endif
+%if "%{?_with_da_profile}" == "1"
+           --with-da-profile \
 %endif
            --enable-ecore-wl2 \
            --enable-keyextension

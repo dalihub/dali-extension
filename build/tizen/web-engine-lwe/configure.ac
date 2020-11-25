@@ -16,9 +16,18 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
+AC_ARG_WITH([da_profile],
+            [AC_HELP_STRING([--with-da-profile],
+                            [Use this conditional when use da profile])],
+            [with_da_profile=yes],
+            [with_da_profile=no])
+
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
+
+if test "x$with_da_profile" = "xno"; then
 PKG_CHECK_MODULES(WAYLAND, libtbm)
 PKG_CHECK_MODULES([WEB_ENGINE_LWE], [lightweight-web-engine-dali-plugin])
+fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
