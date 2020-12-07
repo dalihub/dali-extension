@@ -55,7 +55,7 @@ public:
   /**
    * @copydoc Dali::VectorImageRendererPlugin::Render()
    */
-  bool Rasterize(Dali::Devel::PixelBuffer& buffer, float scale) override;
+  bool Rasterize(Dali::Devel::PixelBuffer& buffer) override;
 
   /**
    * @copydoc Dali::VectorImageRendererPlugin::GetDefaultSize()

@@ -97,7 +97,7 @@ bool TizenVectorImageRenderer::Load(const Vector<uint8_t>& data)
   return true;
 }
 
-bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer, float scale)
+bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer)
 {
   if(!mSwCanvas || !mPicture)
   {
@@ -121,7 +121,7 @@ bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer, float
 
   DALI_LOG_RELEASE_INFO("TizenVectorImageRenderer::Rasterize: Buffer[%p] size[%d x %d]! [%p]\n", pBuffer, width, height, this);
 
-  mPicture->scale(scale);
+  mPicture->size(width, height);
 
   /* We need to push picture first time, after that we only update its properties. */
   if(mIsFirstRender)
