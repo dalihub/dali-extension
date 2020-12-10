@@ -15,7 +15,12 @@
  *
  */
 
-#include <tizen-web-engine-chromium.h>
+#include "tizen-web-engine-chromium.h"
+
+#include "tizen-web-engine-back-forward-list.h"
+#include "tizen-web-engine-context.h"
+#include "tizen-web-engine-cookie-manager.h"
+#include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
 #include <Ecore_Evas.h>
@@ -117,7 +122,11 @@ public:
     : mClient( client ),
       mWidth( width ),
       mHeight( height ),
-      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY )
+      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY ),
+      mWebEngineSettings( 0 ),
+      mWebEngineContext( 0 ),
+      mWebEngineCookieManager( 0 ),
+      mWebEngineBackForwardList( 0 )
   {
     InitWebView();
 
@@ -140,8 +149,19 @@ public:
     ewk_view_offscreen_rendering_enabled_set( mWebView, true );
     ewk_view_ime_window_set( mWebView, win );
 
-    Ewk_Settings* setting = ewk_view_settings_get(mWebView);
-    ewk_settings_viewport_meta_tag_set(setting, false);
+    Ewk_Settings* settings = ewk_view_settings_get( mWebView );
+    mWebEngineSettings = TizenWebEngineSettings( settings );
+
+    context = ewk_view_context_get( mWebView );
+    mWebEngineContext = TizenWebEngineContext( context );
+
+    Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get( context );
+    mWebEngineCookieManager = TizenWebEngineCookieManager( manager );
+
+    Ewk_Back_Forward_List* backForwardList = ewk_view_back_forward_list_get( mWebView );
+    mWebEngineBackForwardList = TizenWebEngineBackForwardList( backForwardList );
+
+    ewk_settings_viewport_meta_tag_set(settings, false);
 
     evas_object_smart_callback_add( mWebView, "offscreen,frame,rendered",
                                     &WebViewContainerForDali::OnFrameRendered,
@@ -271,37 +291,6 @@ public:
     ewk_view_back_forward_list_clear( mWebView );
   }
 
-  void ClearCache()
-  {
-    ewk_context_cache_clear( ewk_view_context_get( mWebView ) );
-  }
-
-  void ClearCookies()
-  {
-    ewk_cookie_manager_cookies_clear( ewk_context_cookie_manager_get( ewk_view_context_get( mWebView ) ) );
-  }
-
-  Ewk_Cache_Model GetCacheModel()
-  {
-    return ewk_context_cache_model_get( ewk_view_context_get( mWebView ) );
-  }
-
-  void SetCacheModel( Ewk_Cache_Model cacheModel )
-  {
-    ewk_context_cache_model_set( ewk_view_context_get( mWebView ), cacheModel );
-  }
-
-  Ewk_Cookie_Accept_Policy GetCookieAcceptPolicy()
-  {
-    return mCookieAcceptancePolicy;
-  }
-
-  void SetCookieAcceptPolicy( Ewk_Cookie_Accept_Policy policy )
-  {
-    ewk_cookie_manager_accept_policy_set( ewk_context_cookie_manager_get( ewk_view_context_get( mWebView ) ), policy );
-    mCookieAcceptancePolicy = policy;
-  }
-
   const std::string& GetUserAgent()
   {
     mUserAgent = std::string( ewk_view_user_agent_get( mWebView ) );
@@ -313,45 +302,24 @@ public:
     ewk_view_user_agent_set( mWebView, userAgent.c_str() );
   }
 
-  bool IsJavaScriptEnabled()
+  Dali::WebEngineSettings& GetSettings()
   {
-    return ewk_settings_javascript_enabled_get( ewk_view_settings_get( mWebView ) );
+    return mWebEngineSettings;
   }
 
-  void EnableJavaScript( bool enabled )
+  Dali::WebEngineContext& GetContext()
   {
-    ewk_settings_javascript_enabled_set( ewk_view_settings_get( mWebView ), enabled );
+    return mWebEngineContext;
   }
 
-  bool AreImagesAutomaticallyLoaded()
+  Dali::WebEngineCookieManager& GetCookieManager()
   {
-    return ewk_settings_loads_images_automatically_get( ewk_view_settings_get( mWebView ) );
+    return mWebEngineCookieManager;
   }
 
-  void LoadImagesAutomatically( bool automatic )
+  Dali::WebEngineBackForwardList& GetBackForwardList()
   {
-    ewk_settings_loads_images_automatically_set( ewk_view_settings_get( mWebView ), automatic );
-  }
-
-  const std::string& GetDefaultTextEncodingName()
-  {
-    mDefaultTextEncodingName = std::string( ewk_settings_default_text_encoding_name_get( ewk_view_settings_get( mWebView ) ) );
-    return mDefaultTextEncodingName;
-  }
-
-  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
-  {
-    ewk_settings_default_text_encoding_name_set( ewk_view_settings_get( mWebView ), defaultTextEncodingName.c_str() );
-  }
-
-  int GetDefaultFontSize()
-  {
-    return ewk_settings_default_font_size_get( ewk_view_settings_get( mWebView ) );
-  }
-
-  void SetDefaultFontSize( int defaultFontSize )
-  {
-    ewk_settings_default_font_size_set( ewk_view_settings_get( mWebView ), defaultFontSize );
+    return mWebEngineBackForwardList;
   }
 
   void SetSize( int width, int height )
@@ -400,8 +368,8 @@ public:
     Eina_List* pointList = 0;
     Ewk_Touch_Point* point = new Ewk_Touch_Point;
     point->id = 0;
-    point->x = touch.GetLocalPosition( 0 ).x;
-    point->y = touch.GetLocalPosition( 0 ).y;
+    point->x = touch.GetScreenPosition( 0 ).x;
+    point->y = touch.GetScreenPosition( 0 ).y;
     point->state = state;
     pointList = eina_list_append( pointList, point );
 
@@ -529,6 +497,11 @@ private:
   Ewk_Cookie_Accept_Policy mCookieAcceptancePolicy;
   std::string mUserAgent;
   std::string mDefaultTextEncodingName;
+
+  TizenWebEngineSettings mWebEngineSettings;
+  TizenWebEngineContext mWebEngineContext;
+  TizenWebEngineCookieManager mWebEngineCookieManager;
+  TizenWebEngineBackForwardList mWebEngineBackForwardList;
 };
 
 class TBMSurfaceSourceInitializer
@@ -578,8 +551,7 @@ void TizenWebEngineChromium::Create( int width, int height,
                                      const std::string& locale,
                                      const std::string& timezoneID )
 {
-  mWebViewContainer =
-      new WebViewContainerForDali( *this, width, height );
+  mWebViewContainer = new WebViewContainerForDali( *this, width, height );
   TBMSurfaceSourceInitializer initializer( mDaliImageSrc, width, height );
 }
 
@@ -617,7 +589,7 @@ const std::string& TizenWebEngineChromium::GetUrl()
   return mUrl;
 }
 
-void TizenWebEngineChromium::LoadHTMLString( const std::string& string )
+void TizenWebEngineChromium::LoadHtmlString( const std::string& string )
 {
   if( mWebViewContainer )
   {
@@ -777,56 +749,6 @@ void TizenWebEngineChromium::ClearHistory()
   }
 }
 
-void TizenWebEngineChromium::ClearCache()
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->ClearCache();
-  }
-}
-
-void TizenWebEngineChromium::ClearCookies()
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->ClearCookies();
-  }
-}
-
-Dali::WebEnginePlugin::CacheModel TizenWebEngineChromium::GetCacheModel() const
-{
-  if( mWebViewContainer )
-  {
-    return static_cast< Dali::WebEnginePlugin::CacheModel >( mWebViewContainer->GetCacheModel() );
-  }
-  return Dali::WebEnginePlugin::CacheModel::DOCUMENT_VIEWER;
-}
-
-void TizenWebEngineChromium::SetCacheModel( Dali::WebEnginePlugin::CacheModel cacheModel )
-{
-  if( mWebViewContainer )
-  {
-    return mWebViewContainer->SetCacheModel( static_cast< Ewk_Cache_Model >( cacheModel ) );
-  }
-}
-
-Dali::WebEnginePlugin::CookieAcceptPolicy TizenWebEngineChromium::GetCookieAcceptPolicy() const
-{
-  if( mWebViewContainer )
-  {
-    return static_cast< Dali::WebEnginePlugin::CookieAcceptPolicy >( mWebViewContainer->GetCookieAcceptPolicy() );
-  }
-  return Dali::WebEnginePlugin::CookieAcceptPolicy::NO_THIRD_PARTY;
-}
-
-void TizenWebEngineChromium::SetCookieAcceptPolicy( Dali::WebEnginePlugin::CookieAcceptPolicy policy )
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->SetCookieAcceptPolicy( static_cast< Ewk_Cookie_Accept_Policy >( policy ) );
-  }
-}
-
 const std::string kEmpty;
 
 const std::string& TizenWebEngineChromium::GetUserAgent() const
@@ -846,72 +768,40 @@ void TizenWebEngineChromium::SetUserAgent( const std::string& userAgent )
   }
 }
 
-bool TizenWebEngineChromium::IsJavaScriptEnabled() const
+Dali::WebEngineSettings& TizenWebEngineChromium::GetSettings() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    return mWebViewContainer->IsJavaScriptEnabled();
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
-  return false;
+  return mWebViewContainer->GetSettings();
 }
 
-void TizenWebEngineChromium::EnableJavaScript( bool enabled )
+Dali::WebEngineContext& TizenWebEngineChromium::GetContext() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    mWebViewContainer->EnableJavaScript( enabled );
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
+  return mWebViewContainer->GetContext();
 }
 
-bool TizenWebEngineChromium::AreImagesAutomaticallyLoaded() const
+Dali::WebEngineCookieManager& TizenWebEngineChromium::GetCookieManager() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    return mWebViewContainer->AreImagesAutomaticallyLoaded();
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
-  return false;
+  return mWebViewContainer->GetCookieManager();
 }
 
-void TizenWebEngineChromium::LoadImagesAutomatically( bool automatic )
+Dali::WebEngineBackForwardList& TizenWebEngineChromium::GetBackForwardList() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    mWebViewContainer->LoadImagesAutomatically( automatic );
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
-}
-
-const std::string& TizenWebEngineChromium::GetDefaultTextEncodingName() const
-{
-  if( mWebViewContainer )
-  {
-    return mWebViewContainer->GetDefaultTextEncodingName();
-  }
-  return kEmpty;
-}
-
-void TizenWebEngineChromium::SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->SetDefaultTextEncodingName( defaultTextEncodingName );
-  }
-}
-
-int TizenWebEngineChromium::GetDefaultFontSize() const
-{
-  if( mWebViewContainer )
-  {
-    return mWebViewContainer->AreImagesAutomaticallyLoaded();
-  }
-  return 0;
-}
-
-void TizenWebEngineChromium::SetDefaultFontSize( int defaultFontSize )
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->SetDefaultFontSize( defaultFontSize );
-  }
+  return mWebViewContainer->GetBackForwardList();
 }
 
 void TizenWebEngineChromium::SetSize( int width, int height )

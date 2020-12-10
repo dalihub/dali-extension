@@ -111,7 +111,6 @@ public:
 
   // WebEnginePlugin Interface
 
-
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
@@ -121,6 +120,26 @@ public:
    * @copydoc Dali::WebEnginePlugin::Destroy()
    */
   void Destroy() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetSettings()
+   */
+  Dali::WebEngineSettings& GetSettings() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetContext()
+   */
+  Dali::WebEngineContext& GetContext() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetCookieManager()
+   */
+  Dali::WebEngineCookieManager& GetCookieManager() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetBackForwardList()
+   */
+  Dali::WebEngineBackForwardList& GetBackForwardList() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadUrl()
@@ -138,9 +157,9 @@ public:
   const std::string& GetUrl() override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::LoadHTMLString()
+   * @copydoc Dali::WebEnginePlugin::LoadHtmlString()
    */
-  void LoadHTMLString( const std::string& string ) override;
+  void LoadHtmlString( const std::string& string ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Reload()
@@ -223,36 +242,6 @@ public:
   void ClearHistory() override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ClearCache()
-   */
-  void ClearCache() override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::ClearCookies()
-   */
-  void ClearCookies() override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::GetCacheModel()
-   */
-  Dali::WebEnginePlugin::CacheModel GetCacheModel() const override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::SetCacheModel()
-   */
-  void SetCacheModel( Dali::WebEnginePlugin::CacheModel cacheModel ) override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::GetCookieAcceptPolicy()
-   */
-  Dali::WebEnginePlugin::CookieAcceptPolicy GetCookieAcceptPolicy() const override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::SetCookieAcceptPolicy()
-   */
-  void SetCookieAcceptPolicy( Dali::WebEnginePlugin::CookieAcceptPolicy policy ) override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::GetUserAgent()
    */
   const std::string& GetUserAgent() const override;
@@ -261,46 +250,6 @@ public:
    * @copydoc Dali::WebEnginePlugin::SetUserAgent()
    */
   void SetUserAgent( const std::string& userAgent ) override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::IsJavaScriptEnabled()
-   */
-  bool IsJavaScriptEnabled() const override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::EnableJavaScript()
-   */
-  void EnableJavaScript( bool enabled ) override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::AreImagesAutomaticallyLoaded()
-   */
-  bool AreImagesAutomaticallyLoaded() const override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::LoadImagesAutomatically()
-   */
-  void LoadImagesAutomatically( bool automatic ) override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::GetDefaultTextEncodingName()
-   */
-  const std::string& GetDefaultTextEncodingName() const override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::SetDefaultTextEncodingName()
-   */
-  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::GetDefaultFontSize()
-   */
-  int GetDefaultFontSize() const override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::SetDefaultFontSize()
-   */
-  void SetDefaultFontSize( int defaultFontSize ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetSize()
