@@ -21,11 +21,18 @@
 #include "tizen-web-engine-lwe.h"
 
 // EXTERNAL INCLUDES
-#include <dali/integration-api/debug.h>
+#include <dali/devel-api/adaptor-framework/application-devel.h>
 #include <dali/devel-api/common/stage.h>
+#include <dali/integration-api/debug.h>
 #include <dali/public-api/events/key-event.h>
 #include <dali/public-api/events/touch-event.h>
 #include <dali/devel-api/adaptor-framework/application-devel.h>
+#include <dali/devel-api/adaptor-framework/web-engine-back-forward-list.h>
+#include <dali/devel-api/adaptor-framework/web-engine-back-forward-list-item.h>
+#include <dali/devel-api/adaptor-framework/web-engine-context.h>
+#include <dali/devel-api/adaptor-framework/web-engine-cookie-manager.h>
+#include <dali/devel-api/adaptor-framework/web-engine-settings.h>
+#include <dali/public-api/images/pixel-data.h>
 
 #include <unistd.h>
 #include <pthread.h>
@@ -56,6 +63,8 @@ namespace Plugin
 
 namespace
 {
+
+const std::string EMPTY_STRING;
 
 LWE::KeyValue KeyStringToKeyValue( const char* DALIKeyString, bool isShiftPressed )
 {
@@ -472,6 +481,11 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
 
 }
 
+void TizenWebEngineLWE::Create( int width, int height, int argc, char** argv )
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::Destroy()
 {
   if( !mWebContainer )
@@ -488,6 +502,101 @@ void TizenWebEngineLWE::Destroy()
 
   DestroyInstance();
   mWebContainer = NULL;
+}
+
+// NOT IMPLEMENTED
+class NullWebEngineSettings : public Dali::WebEngineSettings
+{
+public:
+  void AllowMixedContents( bool allowed ) override { }
+  void EnableSpatialNavigation( bool enabled ) override { }
+  uint32_t GetDefaultFontSize() const override { return 0; }
+  void SetDefaultFontSize( uint32_t size ) override { }
+  void EnableWebSecurity( bool enabled ) override { }
+  void AllowFileAccessFromExternalUrl( bool allowed ) override { }
+  bool IsJavaScriptEnabled() const override { return false; }
+  void EnableJavaScript( bool enabled ) override { }
+  void AllowScriptsOpenWindows( bool allowed ) override { }
+  bool AreImagesLoadedAutomatically() const override { return false; }
+  void AllowImagesLoadAutomatically( bool automatic ) override { }
+  std::string GetDefaultTextEncodingName() const override { return EMPTY_STRING; }
+  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override { }
+};
+
+Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
+{
+  // NOT IMPLEMENTED
+  static NullWebEngineSettings settings;
+  return settings;
+}
+
+// NOT IMPLEMENTED
+class NullWebEngineContext : public Dali::WebEngineContext
+{
+public:
+  CacheModel GetCacheModel() const override { return Dali::WebEngineContext::CacheModel::DOCUMENT_VIEWER; }
+  void SetCacheModel( CacheModel cacheModel ) override { }
+  void SetProxyUri( const std::string& uri ) override { }
+  void SetDefaultProxyAuth( const std::string& username, const std::string& password ) override { }
+  void SetCertificateFilePath( const std::string& certificatePath ) override { }
+  void DeleteWebDatabase() override { }
+  void DeleteWebStorage() override { }
+  void DeleteLocalFileSystem() override { }
+  void DisableCache( bool cacheDisabled ) override { }
+  void ClearCache() override { }
+};
+
+Dali::WebEngineContext& TizenWebEngineLWE::GetContext() const
+{
+  // NOT IMPLEMENTED
+  static NullWebEngineContext context;
+  return context;
+}
+
+// NOT IMPLEMENTED
+class NullWebEngineCookieManager : public Dali::WebEngineCookieManager
+{
+public:
+  void SetCookieAcceptPolicy( CookieAcceptPolicy policy ) override { }
+  CookieAcceptPolicy GetCookieAcceptPolicy() const override { return Dali::WebEngineCookieManager::CookieAcceptPolicy::ALWAYS; }
+  void SetPersistentStorage( const std::string& path, CookiePersistentStorage storage ) override { }
+  void ClearCookies() override { }
+};
+
+Dali::WebEngineCookieManager& TizenWebEngineLWE::GetCookieManager() const
+{
+  // NOT IMPLEMENTED
+  static NullWebEngineCookieManager cookieManager;
+  return cookieManager;
+}
+
+// NOT IMPLEMENTED
+class NullWebEngineBackForwardListItem : public Dali::WebEngineBackForwardListItem
+{
+public:
+  std::string GetUrl() const override { return EMPTY_STRING; }
+  std::string GetTitle() const override { return EMPTY_STRING; }
+  std::string GetOriginalUrl() const override { return EMPTY_STRING; }
+};
+
+// NOT IMPLEMENTED
+class NullWebEngineBackForwardList : public Dali::WebEngineBackForwardList
+{
+public:
+  NullWebEngineBackForwardList( WebEngineBackForwardListItem* pItem ) : item( pItem ) { }
+  Dali::WebEngineBackForwardListItem& GetCurrentItem() const override { return *item; }
+  Dali::WebEngineBackForwardListItem& GetItemAtIndex( uint32_t index ) const override { return *item; }
+  uint32_t GetItemCount() const override { return 1; }
+private:
+  WebEngineBackForwardListItem* item;
+};
+
+Dali::WebEngineBackForwardList& TizenWebEngineLWE::GetBackForwardList() const
+{
+  // NOT IMPLEMENTED
+  static NullWebEngineBackForwardListItem item;
+  static NullWebEngineBackForwardList list( &item );
+  return list;
 }
 
 void TizenWebEngineLWE::DestroyInstance()
@@ -507,13 +616,26 @@ void TizenWebEngineLWE::LoadUrl( const std::string& url )
   mWebContainer->LoadURL( url );
 }
 
+std::string TizenWebEngineLWE::GetTitle() const
+{
+  // NOT IMPLEMENTED
+  static const std::string kEmpty;
+  return kEmpty;
+}
+
+Dali::PixelData TizenWebEngineLWE::GetFavicon() const
+{
+  // NOT IMPLEMENTED
+  return Dali::PixelData();
+}
+
 const std::string& TizenWebEngineLWE::GetUrl()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   return mUrl;
 }
 
-void TizenWebEngineLWE::LoadHTMLString( const std::string& str )
+void TizenWebEngineLWE::LoadHtmlString( const std::string& str )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->LoadData( str );
@@ -604,6 +726,11 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler( const std::string& exposedO
   } );
 }
 
+void TizenWebEngineLWE::ClearAllTilesResources()
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::ClearHistory()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
@@ -611,92 +738,13 @@ void TizenWebEngineLWE::ClearHistory()
   mCanGoBack = mWebContainer->CanGoBack();
 }
 
-void TizenWebEngineLWE::ClearCache()
-{
-  DALI_ASSERT_ALWAYS( mWebContainer );
-  mWebContainer->ClearCache();
-}
-
-void TizenWebEngineLWE::ClearCookies()
-{
-  // NOT IMPLEMENTED
-}
-
-Dali::WebEnginePlugin::CacheModel TizenWebEngineLWE::GetCacheModel() const
-{
-  // NOT IMPLEMENTED
-  return Dali::WebEnginePlugin::CacheModel::DOCUMENT_VIEWER;
-}
-
-void TizenWebEngineLWE::SetCacheModel( Dali::WebEnginePlugin::CacheModel cacheModel )
-{
-  // NOT IMPLEMENTED
-}
-
-Dali::WebEnginePlugin::CookieAcceptPolicy TizenWebEngineLWE::GetCookieAcceptPolicy() const
-{
-  // NOT IMPLEMENTED
-  return Dali::WebEnginePlugin::CookieAcceptPolicy::NO_THIRD_PARTY;
-}
-
-void TizenWebEngineLWE::SetCookieAcceptPolicy( Dali::WebEnginePlugin::CookieAcceptPolicy policy )
-{
-  // NOT IMPLEMENTED
-}
-
 const std::string& TizenWebEngineLWE::GetUserAgent() const
 {
   // NOT IMPLEMENTED
-  static const std::string kEmpty;
-  return kEmpty;
+  return EMPTY_STRING;
 }
 
 void TizenWebEngineLWE::SetUserAgent( const std::string& userAgent )
-{
-  // NOT IMPLEMENTED
-}
-
-bool TizenWebEngineLWE::IsJavaScriptEnabled() const
-{
-  // NOT IMPLEMENTED
-  return 0;
-}
-
-void TizenWebEngineLWE::EnableJavaScript( bool enabled )
-{
-  // NOT IMPLEMENTED
-}
-
-bool TizenWebEngineLWE::AreImagesAutomaticallyLoaded() const
-{
-  // NOT IMPLEMENTED
-  return 0;
-}
-
-void TizenWebEngineLWE::LoadImagesAutomatically( bool automatic )
-{
-  // NOT IMPLEMENTED
-}
-
-const std::string& TizenWebEngineLWE::GetDefaultTextEncodingName() const
-{
-  // NOT IMPLEMENTED
-  static const std::string kEmpty;
-  return kEmpty;
-}
-
-void TizenWebEngineLWE::SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
-{
-  // NOT IMPLEMENTED
-}
-
-int TizenWebEngineLWE::GetDefaultFontSize() const
-{
-  // NOT IMPLEMENTED
-  return 0;
-}
-
-void TizenWebEngineLWE::SetDefaultFontSize( int defaultFontSize )
 {
   // NOT IMPLEMENTED
 }

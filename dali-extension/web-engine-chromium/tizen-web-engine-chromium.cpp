@@ -15,7 +15,12 @@
  *
  */
 
-#include <tizen-web-engine-chromium.h>
+#include "tizen-web-engine-chromium.h"
+
+#include "tizen-web-engine-back-forward-list.h"
+#include "tizen-web-engine-context.h"
+#include "tizen-web-engine-cookie-manager.h"
+#include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
 #include <Ecore_Evas.h>
@@ -28,6 +33,7 @@
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
+#include <dali/public-api/images/pixel-data.h>
 
 using namespace Dali;
 
@@ -35,6 +41,12 @@ namespace Dali
 {
 namespace Plugin
 {
+
+namespace
+{
+// const
+const std::string EMPTY_STRING;
+}
 
 class WebViewContainerClientPair {
 public:
@@ -117,9 +129,28 @@ public:
     : mClient( client ),
       mWidth( width ),
       mHeight( height ),
-      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY )
+      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY ),
+      mWebEngineSettings( 0 ),
+      mWebEngineContext( 0 ),
+      mWebEngineCookieManager( 0 ),
+      mWebEngineBackForwardList( 0 )
   {
-    InitWebView();
+    InitWebView( 0, 0 );
+
+    WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
+  }
+
+  WebViewContainerForDali( WebViewContainerClient& client, int width, int height, int argc, char** argv )
+    : mClient( client ),
+      mWidth( width ),
+      mHeight( height ),
+      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY ),
+      mWebEngineSettings( 0 ),
+      mWebEngineContext( 0 ),
+      mWebEngineCookieManager( 0 ),
+      mWebEngineBackForwardList( 0 )
+  {
+    InitWebView( argc, argv );
 
     WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
   }
@@ -131,14 +162,33 @@ public:
     evas_object_del( mWebView );
   }
 
-  void InitWebView()
+  void InitWebView( int argc, char** argv )
   {
+    if ( argc > 0 )
+    {
+      ewk_set_arguments( argc, argv );
+    }
+
     Ecore_Wl2_Window* win = AnyCast< Ecore_Wl2_Window* >( Adaptor::Get().GetNativeWindowHandle() );
     Ewk_Context* context = ewk_context_default_get();
     ewk_context_max_refresh_rate_set( context, 60 );
     mWebView = ewk_view_add( ecore_evas_get( WebEngineManager::Get().GetWindow() ) );
     ewk_view_offscreen_rendering_enabled_set( mWebView, true );
     ewk_view_ime_window_set( mWebView, win );
+
+    Ewk_Settings* settings = ewk_view_settings_get( mWebView );
+    mWebEngineSettings = TizenWebEngineSettings( settings );
+
+    context = ewk_view_context_get( mWebView );
+    mWebEngineContext = TizenWebEngineContext( context );
+
+    Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get( context );
+    mWebEngineCookieManager = TizenWebEngineCookieManager( manager );
+
+    Ewk_Back_Forward_List* backForwardList = ewk_view_back_forward_list_get( mWebView );
+    mWebEngineBackForwardList = TizenWebEngineBackForwardList( backForwardList );
+
+    ewk_settings_viewport_meta_tag_set(settings, false);
 
     evas_object_smart_callback_add( mWebView, "offscreen,frame,rendered",
                                     &WebViewContainerForDali::OnFrameRendered,
@@ -185,6 +235,42 @@ public:
   std::string GetUrl()
   {
     return std::string( ewk_view_url_get( mWebView ) );
+  }
+
+  std::string GetTitle()
+  {
+    return std::string( ewk_view_title_get( mWebView ) );
+  }
+
+  Dali::PixelData GetFavicon()
+  {
+    Evas_Object* iconObject = ewk_view_favicon_get( mWebView );
+    if ( !iconObject )
+    {
+      return Dali::PixelData();
+    }
+
+    int width = 0, height = 0;
+    evas_object_image_size_get( iconObject, &width, &height );
+
+    uint32_t bufferSize = width * height * 4;
+    uint8_t* convertedBuffer = new uint8_t[ bufferSize ];
+
+    // color-space is argb8888.
+    uint8_t* pixelBuffer = ( uint8_t* ) evas_object_image_data_get( iconObject, false );
+
+    // convert the color-space to rgba8888.
+    for( uint32_t i = 0; i < bufferSize; i += 4 )
+    {
+      convertedBuffer[ i ] = pixelBuffer[ i + 1 ];
+      convertedBuffer[ i + 1 ] = pixelBuffer[ i + 2 ];
+      convertedBuffer[ i + 2 ] = pixelBuffer[ i + 3 ];
+      convertedBuffer[ i + 3 ] = pixelBuffer[ i ];
+    }
+
+    return Dali::PixelData::New( convertedBuffer, bufferSize, width, height,
+                                 Dali::Pixel::Format::RGBA8888,
+                                 Dali::PixelData::ReleaseFunction::DELETE_ARRAY );
   }
 
   void Reload()
@@ -263,40 +349,14 @@ public:
     ewk_view_javascript_message_handler_add( mWebView, &WebViewContainerForDali::OnJavaScriptMessage, exposedObjectName.c_str() );
   }
 
+  void ClearAllTilesResources()
+  {
+    ewk_view_clear_all_tiles_resources( mWebView );
+  }
+
   void ClearHistory()
   {
     ewk_view_back_forward_list_clear( mWebView );
-  }
-
-  void ClearCache()
-  {
-    ewk_context_cache_clear( ewk_view_context_get( mWebView ) );
-  }
-
-  void ClearCookies()
-  {
-    ewk_cookie_manager_cookies_clear( ewk_context_cookie_manager_get( ewk_view_context_get( mWebView ) ) );
-  }
-
-  Ewk_Cache_Model GetCacheModel()
-  {
-    return ewk_context_cache_model_get( ewk_view_context_get( mWebView ) );
-  }
-
-  void SetCacheModel( Ewk_Cache_Model cacheModel )
-  {
-    ewk_context_cache_model_set( ewk_view_context_get( mWebView ), cacheModel );
-  }
-
-  Ewk_Cookie_Accept_Policy GetCookieAcceptPolicy()
-  {
-    return mCookieAcceptancePolicy;
-  }
-
-  void SetCookieAcceptPolicy( Ewk_Cookie_Accept_Policy policy )
-  {
-    ewk_cookie_manager_accept_policy_set( ewk_context_cookie_manager_get( ewk_view_context_get( mWebView ) ), policy );
-    mCookieAcceptancePolicy = policy;
   }
 
   const std::string& GetUserAgent()
@@ -310,45 +370,24 @@ public:
     ewk_view_user_agent_set( mWebView, userAgent.c_str() );
   }
 
-  bool IsJavaScriptEnabled()
+  Dali::WebEngineSettings& GetSettings()
   {
-    return ewk_settings_javascript_enabled_get( ewk_view_settings_get( mWebView ) );
+    return mWebEngineSettings;
   }
 
-  void EnableJavaScript( bool enabled )
+  Dali::WebEngineContext& GetContext()
   {
-    ewk_settings_javascript_enabled_set( ewk_view_settings_get( mWebView ), enabled );
+    return mWebEngineContext;
   }
 
-  bool AreImagesAutomaticallyLoaded()
+  Dali::WebEngineCookieManager& GetCookieManager()
   {
-    return ewk_settings_loads_images_automatically_get( ewk_view_settings_get( mWebView ) );
+    return mWebEngineCookieManager;
   }
 
-  void LoadImagesAutomatically( bool automatic )
+  Dali::WebEngineBackForwardList& GetBackForwardList()
   {
-    ewk_settings_loads_images_automatically_set( ewk_view_settings_get( mWebView ), automatic );
-  }
-
-  const std::string& GetDefaultTextEncodingName()
-  {
-    mDefaultTextEncodingName = std::string( ewk_settings_default_text_encoding_name_get( ewk_view_settings_get( mWebView ) ) );
-    return mDefaultTextEncodingName;
-  }
-
-  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
-  {
-    ewk_settings_default_text_encoding_name_set( ewk_view_settings_get( mWebView ), defaultTextEncodingName.c_str() );
-  }
-
-  int GetDefaultFontSize()
-  {
-    return ewk_settings_default_font_size_get( ewk_view_settings_get( mWebView ) );
-  }
-
-  void SetDefaultFontSize( int defaultFontSize )
-  {
-    ewk_settings_default_font_size_set( ewk_view_settings_get( mWebView ), defaultFontSize );
+    return mWebEngineBackForwardList;
   }
 
   void SetSize( int width, int height )
@@ -397,8 +436,8 @@ public:
     Eina_List* pointList = 0;
     Ewk_Touch_Point* point = new Ewk_Touch_Point;
     point->id = 0;
-    point->x = touch.GetLocalPosition( 0 ).x;
-    point->y = touch.GetLocalPosition( 0 ).y;
+    point->x = touch.GetScreenPosition( 0 ).x;
+    point->y = touch.GetScreenPosition( 0 ).y;
     point->state = state;
     pointList = eina_list_append( pointList, point );
 
@@ -526,6 +565,11 @@ private:
   Ewk_Cookie_Accept_Policy mCookieAcceptancePolicy;
   std::string mUserAgent;
   std::string mDefaultTextEncodingName;
+
+  TizenWebEngineSettings mWebEngineSettings;
+  TizenWebEngineContext mWebEngineContext;
+  TizenWebEngineCookieManager mWebEngineCookieManager;
+  TizenWebEngineBackForwardList mWebEngineBackForwardList;
 };
 
 class TBMSurfaceSourceInitializer
@@ -575,8 +619,14 @@ void TizenWebEngineChromium::Create( int width, int height,
                                      const std::string& locale,
                                      const std::string& timezoneID )
 {
-  mWebViewContainer =
-      new WebViewContainerForDali( *this, width, height );
+  mWebViewContainer = new WebViewContainerForDali( *this, width, height );
+  TBMSurfaceSourceInitializer initializer( mDaliImageSrc, width, height );
+}
+
+void TizenWebEngineChromium::Create( int width, int height,
+                                     int argc, char** argv )
+{
+  mWebViewContainer = new WebViewContainerForDali( *this, width, height, argc, argv );
   TBMSurfaceSourceInitializer initializer( mDaliImageSrc, width, height );
 }
 
@@ -600,6 +650,16 @@ void TizenWebEngineChromium::LoadUrl( const std::string& path )
   }
 }
 
+std::string TizenWebEngineChromium::GetTitle() const
+{
+  return mWebViewContainer ? mWebViewContainer->GetTitle() : EMPTY_STRING;
+}
+
+Dali::PixelData TizenWebEngineChromium::GetFavicon() const
+{
+  return mWebViewContainer ? mWebViewContainer->GetFavicon() : Dali::PixelData();
+}
+
 NativeImageInterfacePtr TizenWebEngineChromium::GetNativeImageSource()
 {
   return mDaliImageSrc;
@@ -614,7 +674,7 @@ const std::string& TizenWebEngineChromium::GetUrl()
   return mUrl;
 }
 
-void TizenWebEngineChromium::LoadHTMLString( const std::string& string )
+void TizenWebEngineChromium::LoadHtmlString( const std::string& string )
 {
   if( mWebViewContainer )
   {
@@ -766,6 +826,14 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler( const std::string& exp
   }
 }
 
+void TizenWebEngineChromium::ClearAllTilesResources()
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->ClearAllTilesResources();
+  }
+}
+
 void TizenWebEngineChromium::ClearHistory()
 {
   if( mWebViewContainer )
@@ -774,65 +842,13 @@ void TizenWebEngineChromium::ClearHistory()
   }
 }
 
-void TizenWebEngineChromium::ClearCache()
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->ClearCache();
-  }
-}
-
-void TizenWebEngineChromium::ClearCookies()
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->ClearCookies();
-  }
-}
-
-Dali::WebEnginePlugin::CacheModel TizenWebEngineChromium::GetCacheModel() const
-{
-  if( mWebViewContainer )
-  {
-    return static_cast< Dali::WebEnginePlugin::CacheModel >( mWebViewContainer->GetCacheModel() );
-  }
-  return Dali::WebEnginePlugin::CacheModel::DOCUMENT_VIEWER;
-}
-
-void TizenWebEngineChromium::SetCacheModel( Dali::WebEnginePlugin::CacheModel cacheModel )
-{
-  if( mWebViewContainer )
-  {
-    return mWebViewContainer->SetCacheModel( static_cast< Ewk_Cache_Model >( cacheModel ) );
-  }
-}
-
-Dali::WebEnginePlugin::CookieAcceptPolicy TizenWebEngineChromium::GetCookieAcceptPolicy() const
-{
-  if( mWebViewContainer )
-  {
-    return static_cast< Dali::WebEnginePlugin::CookieAcceptPolicy >( mWebViewContainer->GetCookieAcceptPolicy() );
-  }
-  return Dali::WebEnginePlugin::CookieAcceptPolicy::NO_THIRD_PARTY;
-}
-
-void TizenWebEngineChromium::SetCookieAcceptPolicy( Dali::WebEnginePlugin::CookieAcceptPolicy policy )
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->SetCookieAcceptPolicy( static_cast< Ewk_Cookie_Accept_Policy >( policy ) );
-  }
-}
-
-const std::string kEmpty;
-
 const std::string& TizenWebEngineChromium::GetUserAgent() const
 {
   if( mWebViewContainer )
   {
     return mWebViewContainer->GetUserAgent();
   }
-  return kEmpty;
+  return EMPTY_STRING;
 }
 
 void TizenWebEngineChromium::SetUserAgent( const std::string& userAgent )
@@ -843,72 +859,40 @@ void TizenWebEngineChromium::SetUserAgent( const std::string& userAgent )
   }
 }
 
-bool TizenWebEngineChromium::IsJavaScriptEnabled() const
+Dali::WebEngineSettings& TizenWebEngineChromium::GetSettings() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    return mWebViewContainer->IsJavaScriptEnabled();
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
-  return false;
+  return mWebViewContainer->GetSettings();
 }
 
-void TizenWebEngineChromium::EnableJavaScript( bool enabled )
+Dali::WebEngineContext& TizenWebEngineChromium::GetContext() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    mWebViewContainer->EnableJavaScript( enabled );
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
+  return mWebViewContainer->GetContext();
 }
 
-bool TizenWebEngineChromium::AreImagesAutomaticallyLoaded() const
+Dali::WebEngineCookieManager& TizenWebEngineChromium::GetCookieManager() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    return mWebViewContainer->AreImagesAutomaticallyLoaded();
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
-  return false;
+  return mWebViewContainer->GetCookieManager();
 }
 
-void TizenWebEngineChromium::LoadImagesAutomatically( bool automatic )
+Dali::WebEngineBackForwardList& TizenWebEngineChromium::GetBackForwardList() const
 {
-  if( mWebViewContainer )
+  if( !mWebViewContainer )
   {
-    mWebViewContainer->LoadImagesAutomatically( automatic );
+    DALI_LOG_ERROR( "Web engine is not created successfully!" );
   }
-}
-
-const std::string& TizenWebEngineChromium::GetDefaultTextEncodingName() const
-{
-  if( mWebViewContainer )
-  {
-    return mWebViewContainer->GetDefaultTextEncodingName();
-  }
-  return kEmpty;
-}
-
-void TizenWebEngineChromium::SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->SetDefaultTextEncodingName( defaultTextEncodingName );
-  }
-}
-
-int TizenWebEngineChromium::GetDefaultFontSize() const
-{
-  if( mWebViewContainer )
-  {
-    return mWebViewContainer->AreImagesAutomaticallyLoaded();
-  }
-  return 0;
-}
-
-void TizenWebEngineChromium::SetDefaultFontSize( int defaultFontSize )
-{
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->SetDefaultFontSize( defaultFontSize );
-  }
+  return mWebViewContainer->GetBackForwardList();
 }
 
 void TizenWebEngineChromium::SetSize( int width, int height )
