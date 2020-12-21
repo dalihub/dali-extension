@@ -29,6 +29,9 @@
 
 namespace Dali
 {
+
+class PixelData;
+
 namespace Plugin
 {
 
@@ -117,6 +120,11 @@ public:
   void Create( int width, int height, const std::string& locale, const std::string& timezoneID ) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::Create()
+   */
+  void Create( int width, int height, int argc, char** argv ) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
    */
   void Destroy() override;
@@ -150,6 +158,16 @@ public:
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
    */
   NativeImageInterfacePtr GetNativeImageSource() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetTitle()
+   */
+  std::string GetTitle() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetFavicon()
+   */
+  Dali::PixelData GetFavicon() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
@@ -235,6 +253,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
    */
   void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void( const std::string& ) > handler ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ClearAllTilesResources()
+   */
+  void ClearAllTilesResources() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()

@@ -33,6 +33,7 @@
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
+#include <dali/public-api/images/pixel-data.h>
 
 using namespace Dali;
 
@@ -40,6 +41,12 @@ namespace Dali
 {
 namespace Plugin
 {
+
+namespace
+{
+// const
+const std::string EMPTY_STRING;
+}
 
 class WebViewContainerClientPair {
 public:
@@ -128,7 +135,22 @@ public:
       mWebEngineCookieManager( 0 ),
       mWebEngineBackForwardList( 0 )
   {
-    InitWebView();
+    InitWebView( 0, 0 );
+
+    WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
+  }
+
+  WebViewContainerForDali( WebViewContainerClient& client, int width, int height, int argc, char** argv )
+    : mClient( client ),
+      mWidth( width ),
+      mHeight( height ),
+      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY ),
+      mWebEngineSettings( 0 ),
+      mWebEngineContext( 0 ),
+      mWebEngineCookieManager( 0 ),
+      mWebEngineBackForwardList( 0 )
+  {
+    InitWebView( argc, argv );
 
     WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
   }
@@ -140,8 +162,13 @@ public:
     evas_object_del( mWebView );
   }
 
-  void InitWebView()
+  void InitWebView( int argc, char** argv )
   {
+    if ( argc > 0 )
+    {
+      ewk_set_arguments( argc, argv );
+    }
+
     Ecore_Wl2_Window* win = AnyCast< Ecore_Wl2_Window* >( Adaptor::Get().GetNativeWindowHandle() );
     Ewk_Context* context = ewk_context_default_get();
     ewk_context_max_refresh_rate_set( context, 60 );
@@ -208,6 +235,42 @@ public:
   std::string GetUrl()
   {
     return std::string( ewk_view_url_get( mWebView ) );
+  }
+
+  std::string GetTitle()
+  {
+    return std::string( ewk_view_title_get( mWebView ) );
+  }
+
+  Dali::PixelData GetFavicon()
+  {
+    Evas_Object* iconObject = ewk_view_favicon_get( mWebView );
+    if ( !iconObject )
+    {
+      return Dali::PixelData();
+    }
+
+    int width = 0, height = 0;
+    evas_object_image_size_get( iconObject, &width, &height );
+
+    uint32_t bufferSize = width * height * 4;
+    uint8_t* convertedBuffer = new uint8_t[ bufferSize ];
+
+    // color-space is argb8888.
+    uint8_t* pixelBuffer = ( uint8_t* ) evas_object_image_data_get( iconObject, false );
+
+    // convert the color-space to rgba8888.
+    for( uint32_t i = 0; i < bufferSize; i += 4 )
+    {
+      convertedBuffer[ i ] = pixelBuffer[ i + 1 ];
+      convertedBuffer[ i + 1 ] = pixelBuffer[ i + 2 ];
+      convertedBuffer[ i + 2 ] = pixelBuffer[ i + 3 ];
+      convertedBuffer[ i + 3 ] = pixelBuffer[ i ];
+    }
+
+    return Dali::PixelData::New( convertedBuffer, bufferSize, width, height,
+                                 Dali::Pixel::Format::RGBA8888,
+                                 Dali::PixelData::ReleaseFunction::DELETE_ARRAY );
   }
 
   void Reload()
@@ -284,6 +347,11 @@ public:
   {
     // |jsFunctionName| is fixed as "postMessage" so we don't use this.
     ewk_view_javascript_message_handler_add( mWebView, &WebViewContainerForDali::OnJavaScriptMessage, exposedObjectName.c_str() );
+  }
+
+  void ClearAllTilesResources()
+  {
+    ewk_view_clear_all_tiles_resources( mWebView );
   }
 
   void ClearHistory()
@@ -555,6 +623,13 @@ void TizenWebEngineChromium::Create( int width, int height,
   TBMSurfaceSourceInitializer initializer( mDaliImageSrc, width, height );
 }
 
+void TizenWebEngineChromium::Create( int width, int height,
+                                     int argc, char** argv )
+{
+  mWebViewContainer = new WebViewContainerForDali( *this, width, height, argc, argv );
+  TBMSurfaceSourceInitializer initializer( mDaliImageSrc, width, height );
+}
+
 void TizenWebEngineChromium::Destroy()
 {
   if (mWebViewContainer)
@@ -573,6 +648,16 @@ void TizenWebEngineChromium::LoadUrl( const std::string& path )
   {
     mWebViewContainer->LoadUrl( path );
   }
+}
+
+std::string TizenWebEngineChromium::GetTitle() const
+{
+  return mWebViewContainer ? mWebViewContainer->GetTitle() : EMPTY_STRING;
+}
+
+Dali::PixelData TizenWebEngineChromium::GetFavicon() const
+{
+  return mWebViewContainer ? mWebViewContainer->GetFavicon() : Dali::PixelData();
 }
 
 NativeImageInterfacePtr TizenWebEngineChromium::GetNativeImageSource()
@@ -741,6 +826,14 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler( const std::string& exp
   }
 }
 
+void TizenWebEngineChromium::ClearAllTilesResources()
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->ClearAllTilesResources();
+  }
+}
+
 void TizenWebEngineChromium::ClearHistory()
 {
   if( mWebViewContainer )
@@ -749,15 +842,13 @@ void TizenWebEngineChromium::ClearHistory()
   }
 }
 
-const std::string kEmpty;
-
 const std::string& TizenWebEngineChromium::GetUserAgent() const
 {
   if( mWebViewContainer )
   {
     return mWebViewContainer->GetUserAgent();
   }
-  return kEmpty;
+  return EMPTY_STRING;
 }
 
 void TizenWebEngineChromium::SetUserAgent( const std::string& userAgent )
