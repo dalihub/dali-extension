@@ -212,7 +212,22 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
   }
 
   tbm_surface_info_s info;
-  tbm_surface_map( tbmSurface, TBM_OPTION_WRITE, &info );
+  int ret = tbm_surface_map( tbmSurface, TBM_OPTION_WRITE, &info );
+  if( ret != TBM_SURFACE_ERROR_NONE )
+  {
+    DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this );
+    tbm_surface_queue_cancel_dequeue( mTbmQueue, tbmSurface );
+    return false;
+  }
+
+  unsigned char* buffer = info.planes[0].ptr;
+  if( info.width != mWidth || info.height != mHeight || !buffer )
+  {
+    DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: Invalid tbm surface! [%d, %d, %p] [%p]\n", info.width, info.height, buffer, this );
+    tbm_surface_unmap( tbmSurface );
+    tbm_surface_queue_cancel_dequeue( mTbmQueue, tbmSurface );
+    return false;
+  }
 
   rlottie::Surface surface;
   bool existing = false;
@@ -238,14 +253,6 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
   if( !existing )
   {
-    unsigned char* buffer = info.planes[0].ptr;
-    if( !buffer )
-    {
-      DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: tbm buffer pointer is null! [%p]\n", this );
-      tbm_surface_unmap( tbmSurface );
-      return false;
-    }
-
     tbm_surface_internal_ref( tbmSurface );
 
     // Create Surface object
