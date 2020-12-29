@@ -727,7 +727,32 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler( const std::string& exposedO
   } );
 }
 
-void TizenWebEngineLWE::ClearAllTilesResources()
+void TizenWebEngineLWE::RegisterJavaScriptAlertCallback( Dali::WebEnginePlugin::JavaScriptAlertCallback callback )
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::JavaScriptAlertReply()
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterJavaScriptConfirmCallback( Dali::WebEnginePlugin::JavaScriptConfirmCallback callback )
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::JavaScriptConfirmReply( bool confirmed )
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterJavaScriptPromptCallback( Dali::WebEnginePlugin::JavaScriptPromptCallback callback )
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::JavaScriptPromptReply( const std::string& result )
 {
   // NOT IMPLEMENTED
 }
@@ -737,6 +762,11 @@ void TizenWebEngineLWE::ClearHistory()
   DALI_ASSERT_ALWAYS( mWebContainer );
   mWebContainer->ClearHistory();
   mCanGoBack = mWebContainer->CanGoBack();
+}
+
+void TizenWebEngineLWE::ClearAllTilesResources()
+{
+  // NOT IMPLEMENTED
 }
 
 const std::string& TizenWebEngineLWE::GetUserAgent() const
