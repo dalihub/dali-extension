@@ -204,6 +204,11 @@ CXXFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 configure_flags="--enable-ecore-wl2"
 %endif
 
+%if "%{?profile}" == "tv"
+CFLAGS+=" -DOS_TIZEN_TV"
+CXXFLAGS+=" -DOS_TIZEN_TV"
+%endif
+
 libtoolize --force
 cd %{_builddir}/%{name}-%{version}/build/tizen
 autoreconf --install
