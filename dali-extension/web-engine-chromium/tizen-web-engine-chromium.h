@@ -66,6 +66,12 @@ public:
   virtual void LoadError( const char* url, int errorCode ) = 0;
 
   /**
+   * @brief Callback function to be called by WebViewContainer when scroll edge is reached.
+   * @param [in] e Scroll edge reached.
+   */
+  virtual void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) = 0;
+
+  /**
    * @brief Callback function to be called by WebViewContainer when it gets JavaScript evalution result.
    * @param [in] key An unsigned integer representing the result handler
    * @param [in] result Result string from JavaScript runtime
@@ -155,6 +161,31 @@ public:
    * @copydoc Dali::WebEnginePlugin::Resume()
    */
   void Resume() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollBy()
+   */
+  void ScrollBy( int deltaX, int deltaY ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
+   */
+  void SetScrollPosition( int x, int y ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
+   */
+  void GetScrollPosition( int& x, int& y ) const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScrollSize()
+   */
+  void GetScrollSize( int& width, int& height ) const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetContentSize()
+   */
+  void GetContentSize( int& width, int& height ) const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CanGoForward()
@@ -306,6 +337,11 @@ public:
    */
   Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& PageLoadErrorSignal() override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollEdgeReachedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override;
+
 
   // WebViewContainerClient Interface
 
@@ -331,6 +367,11 @@ public:
   void LoadError( const char* url, int errorCode ) override;
 
   /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::ScrollEdgeReached()
+   */
+  void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) override;
+
+  /**
    * @copydoc Dali::Plugin::WebViewContainerClient::RunJavaScriptEvaluationResultHandler()
    */
   void RunJavaScriptEvaluationResultHandler( size_t key, const char* result ) override;
@@ -350,6 +391,8 @@ private:
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mLoadStartedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mLoadFinishedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mLoadErrorSignal;
+
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType mScrollEdgeReachedSignal;
 
   std::unordered_map< size_t, JavaScriptCallback >        mJavaScriptEvaluationResultHandlers;
   std::unordered_map< std::string, JavaScriptCallback >   mJavaScriptMessageHandlers;
