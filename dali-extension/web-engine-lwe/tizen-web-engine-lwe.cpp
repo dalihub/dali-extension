@@ -539,6 +539,31 @@ void TizenWebEngineLWE::Resume()
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::ScrollBy( int deltaX, int deltaY )
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::SetScrollPosition( int x, int y )
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::GetScrollPosition(int& x, int& y) const
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::GetScrollSize( int& width, int& height ) const
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::GetContentSize( int& width, int& height ) const
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::GoBack()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
