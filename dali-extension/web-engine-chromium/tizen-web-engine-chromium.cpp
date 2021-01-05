@@ -118,7 +118,18 @@ public:
       mHeight( height ),
       mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY )
   {
-    InitWebView();
+    InitWebView( 0, 0 );
+
+    WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
+  }
+
+  WebViewContainerForDali( WebViewContainerClient& client, int width, int height, int argc, char** argv )
+    : mClient( client ),
+      mWidth( width ),
+      mHeight( height ),
+      mCookieAcceptancePolicy( EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY )
+  {
+    InitWebView( argc, argv );
 
     WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
   }
@@ -130,8 +141,13 @@ public:
     evas_object_del( mWebView );
   }
 
-  void InitWebView()
+  void InitWebView( int argc, char** argv )
   {
+    if ( argc > 0 )
+    {
+      ewk_set_arguments( argc, argv );
+    }
+
     Ecore_Wl2_Window* win = AnyCast< Ecore_Wl2_Window* >( Adaptor::Get().GetNativeWindowHandle() );
     Ewk_Context* context = ewk_context_default_get();
     ewk_context_max_refresh_rate_set( context, 60 );
@@ -158,6 +174,18 @@ public:
     evas_object_smart_callback_add( mWebView, "console,message",
                                     &WebViewContainerForDali::OnConsoleMessage,
                                     this );
+    evas_object_smart_callback_add( mWebView, "edge,left",
+                                    &WebViewContainerForDali::OnEdgeLeft,
+                                    &mClient );
+    evas_object_smart_callback_add( mWebView, "edge,right",
+                                    &WebViewContainerForDali::OnEdgeRight,
+                                    &mClient );
+    evas_object_smart_callback_add( mWebView, "edge,top",
+                                    &WebViewContainerForDali::OnEdgeTop,
+                                    &mClient );
+    evas_object_smart_callback_add( mWebView, "edge,bottom",
+                                    &WebViewContainerForDali::OnEdgeBottom,
+                                    &mClient );
 
     evas_object_resize( mWebView, mWidth, mHeight );
     evas_object_show( mWebView );
@@ -166,7 +194,6 @@ public:
   void LoadUrl( const std::string& url )
   {
     ewk_view_url_set( mWebView, url.c_str() );
-    ewk_view_focus_set( mWebView, true );
   }
 
   void LoadHtml( const std::string& html )
@@ -197,6 +224,37 @@ public:
   void Resume()
   {
     ewk_view_resume( mWebView );
+  }
+
+  void ScrollBy( int deltaX, int deltaY )
+  {
+    ewk_view_scroll_by( mWebView, deltaX, deltaY );
+  }
+
+  void SetScrollPosition( int x, int y )
+  {
+    ewk_view_scroll_set( mWebView, x, y );
+  }
+
+  Dali::Vector2 GetScrollPosition() const
+  {
+    int x = 0, y = 0;
+    ewk_view_scroll_pos_get( mWebView, &x, &y );
+    return Dali::Vector2( x, y );
+  }
+
+  Dali::Vector2 GetScrollSize() const
+  {
+    int width = 0, height = 0;
+    ewk_view_scroll_size_get( mWebView, &width, &height );
+    return Dali::Vector2( width, height );
+  }
+
+  Dali::Vector2 GetContentSize() const
+  {
+    int width = 0, height = 0;
+    ewk_view_contents_size_get( mWebView, &width, &height );
+    return Dali::Vector2( width, height );
   }
 
   void GoBack()
@@ -398,6 +456,12 @@ public:
      return false;
   }
 
+  void SetFocus( bool focused )
+  {
+    ecore_evas_focus_set( WebEngineManager::Get().GetWindow(), focused );
+    ewk_view_focus_set( mWebView, focused );
+  }
+
 private:
   static void OnFrameRendered( void* data, Evas_Object*, void* buffer )
   {
@@ -433,6 +497,30 @@ private:
         ewk_console_message_line_get( message ),
         ewk_console_message_level_get( message ),
         ewk_console_message_text_get( message ) );
+  }
+
+  static void OnEdgeLeft( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::LEFT );
+  }
+
+  static void OnEdgeRight( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::RIGHT );
+  }
+
+  static void OnEdgeTop( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::TOP );
+  }
+
+  static void OnEdgeBottom( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::BOTTOM );
   }
 
   static void OnEvaluateJavaScript( Evas_Object* o, const char* result, void* data )
@@ -517,6 +605,13 @@ void TizenWebEngineChromium::Create( int width, int height,
   TBMSurfaceSourceInitializer initializer( mDaliImageSrc, width, height );
 }
 
+void TizenWebEngineChromium::Create( int width, int height,
+                                     int argc, char** argv )
+{
+  mWebViewContainer = new WebViewContainerForDali( *this, width, height, argc, argv );
+  TBMSurfaceSourceInitializer initializer( mDaliImageSrc, width, height );
+}
+
 void TizenWebEngineChromium::Destroy()
 {
   if (mWebViewContainer)
@@ -589,6 +684,37 @@ void TizenWebEngineChromium::Resume()
   {
     mWebViewContainer->Resume();
   }
+}
+
+void TizenWebEngineChromium::ScrollBy( int deltaX, int deltaY )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->ScrollBy( deltaX, deltaY );
+  }
+}
+
+void TizenWebEngineChromium::SetScrollPosition( int x, int y )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->SetScrollPosition( x, y );
+  }
+}
+
+Dali::Vector2 TizenWebEngineChromium::GetScrollPosition() const
+{
+  return mWebViewContainer ? mWebViewContainer->GetScrollPosition() : Dali::Vector2::ZERO;
+}
+
+Dali::Vector2 TizenWebEngineChromium::GetScrollSize() const
+{
+  return mWebViewContainer ? mWebViewContainer->GetScrollSize() : Dali::Vector2::ZERO;
+}
+
+Dali::Vector2 TizenWebEngineChromium::GetContentSize() const
+{
+  return mWebViewContainer ? mWebViewContainer->GetContentSize() : Dali::Vector2::ZERO;
 }
 
 bool TizenWebEngineChromium::CanGoForward()
@@ -834,6 +960,14 @@ bool TizenWebEngineChromium::SendKeyEvent( const Dali::KeyEvent& event )
   return false;
 }
 
+void TizenWebEngineChromium::SetFocus( bool focused )
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->SetFocus( focused );
+  }
+}
+
 Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadStartedSignal()
 {
   return mLoadStartedSignal;
@@ -847,6 +981,11 @@ Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::Page
 Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& TizenWebEngineChromium::PageLoadErrorSignal()
 {
   return mLoadErrorSignal;
+}
+
+Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& TizenWebEngineChromium::ScrollEdgeReachedSignal()
+{
+  return mScrollEdgeReachedSignal;
 }
 
 // WebViewContainerClient Interface
@@ -878,6 +1017,12 @@ void TizenWebEngineChromium::LoadError( const char* url, int errorCode )
 {
   std::string stdUrl( url );
   mLoadErrorSignal.Emit( stdUrl, errorCode );
+}
+
+void TizenWebEngineChromium::ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge )
+{
+  DALI_LOG_RELEASE_INFO( "#ScrollEdgeReached : %d\n", edge );
+  mScrollEdgeReachedSignal.Emit( edge );
 }
 
 void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler( size_t key, const char* result )

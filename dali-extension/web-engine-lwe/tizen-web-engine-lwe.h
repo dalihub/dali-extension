@@ -68,6 +68,11 @@ public:
   void Create( int width, int height, const std::string& locale, const std::string& timezoneId ) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::Create()
+   */
+  void Create( int width, int height, int argc, char** argv ) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
    */
   void Destroy() override;
@@ -111,6 +116,31 @@ public:
    * @copydoc Dali::WebEnginePlugin::Resume()
    */
   void Resume() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollBy()
+   */
+  void ScrollBy( int deltaX, int deltaY ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
+   */
+  void SetScrollPosition( int x, int y ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
+   */
+  Dali::Vector2 GetScrollPosition() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScrollSize()
+   */
+  Dali::Vector2 GetScrollSize() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetContentSize()
+   */
+  Dali::Vector2 GetContentSize() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GoBack()
@@ -243,6 +273,11 @@ public:
   bool SendKeyEvent( const Dali::KeyEvent& event ) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SetFocus()
+   */
+  void SetFocus( bool focused ) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
    */
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadStartedSignal() override
@@ -264,6 +299,14 @@ public:
   Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& PageLoadErrorSignal() override
   {
     return mPageLoadErrorSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollEdgeReachedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override
+  {
+    return mScrollEdgeReachedSignal;
   }
 
 private:
@@ -313,6 +356,7 @@ private:
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadStartedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadFinishedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mPageLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType mScrollEdgeReachedSignal;
 };
 
 } // namespace Plugin
