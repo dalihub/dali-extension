@@ -804,5 +804,10 @@ bool TizenWebEngineLWE::SendKeyEvent( const Dali::KeyEvent& event )
   return false;
 }
 
+void TizenWebEngineLWE::SetFocus( bool focused )
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali
