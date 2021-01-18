@@ -158,6 +158,18 @@ public:
     evas_object_smart_callback_add( mWebView, "console,message",
                                     &WebViewContainerForDali::OnConsoleMessage,
                                     this );
+    evas_object_smart_callback_add( mWebView, "edge,left",
+                                    &WebViewContainerForDali::OnEdgeLeft,
+                                    &mClient );
+    evas_object_smart_callback_add( mWebView, "edge,right",
+                                    &WebViewContainerForDali::OnEdgeRight,
+                                    &mClient );
+    evas_object_smart_callback_add( mWebView, "edge,top",
+                                    &WebViewContainerForDali::OnEdgeTop,
+                                    &mClient );
+    evas_object_smart_callback_add( mWebView, "edge,bottom",
+                                    &WebViewContainerForDali::OnEdgeBottom,
+                                    &mClient );
 
     evas_object_resize( mWebView, mWidth, mHeight );
     evas_object_show( mWebView );
@@ -196,6 +208,31 @@ public:
   void Resume()
   {
     ewk_view_resume( mWebView );
+  }
+
+  void ScrollBy( int deltaX, int deltaY )
+  {
+    ewk_view_scroll_by( mWebView, deltaX, deltaY );
+  }
+
+  void SetScrollPosition( int x, int y )
+  {
+    ewk_view_scroll_set( mWebView, x, y );
+  }
+
+  void GetScrollPosition( int& x, int& y ) const
+  {
+    ewk_view_scroll_pos_get( mWebView, &x, &y );
+  }
+
+  void GetScrollSize( int& width, int& height ) const
+  {
+    ewk_view_scroll_size_get( mWebView, &width, &height );
+  }
+
+  void GetContentSize( int& width, int& height ) const
+  {
+    ewk_view_contents_size_get( mWebView, &width, &height );
   }
 
   void GoBack()
@@ -440,6 +477,30 @@ private:
         ewk_console_message_text_get( message ) );
   }
 
+  static void OnEdgeLeft( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::LEFT );
+  }
+
+  static void OnEdgeRight( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::RIGHT );
+  }
+
+  static void OnEdgeTop( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::TOP );
+  }
+
+  static void OnEdgeBottom( void* data, Evas_Object*, void* )
+  {
+    auto client = static_cast<WebViewContainerClient*>( data );
+    client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::BOTTOM );
+  }
+
   static void OnEvaluateJavaScript( Evas_Object* o, const char* result, void* data )
   {
     auto client = WebEngineManager::Get().FindContainerClient( o );
@@ -593,6 +654,46 @@ void TizenWebEngineChromium::Resume()
   if( mWebViewContainer )
   {
     mWebViewContainer->Resume();
+  }
+}
+
+void TizenWebEngineChromium::ScrollBy( int deltaX, int deltaY )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->ScrollBy( deltaX, deltaY );
+  }
+}
+
+void TizenWebEngineChromium::SetScrollPosition( int x, int y )
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->SetScrollPosition( x, y );
+  }
+}
+
+void TizenWebEngineChromium::GetScrollPosition(int& x, int& y) const
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->GetScrollPosition( x, y );
+  }
+}
+
+void TizenWebEngineChromium::GetScrollSize( int& width, int& height ) const
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->GetScrollSize( width, height );
+  }
+}
+
+void TizenWebEngineChromium::GetContentSize( int& width, int& height ) const
+{
+  if( mWebViewContainer )
+  {
+    mWebViewContainer->GetContentSize( width, height );
   }
 }
 
@@ -862,6 +963,11 @@ Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& TizenWebEngineChromium:
   return mLoadErrorSignal;
 }
 
+Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& TizenWebEngineChromium::ScrollEdgeReachedSignal()
+{
+  return mScrollEdgeReachedSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage( tbm_surface_h buffer )
 {
@@ -891,6 +997,12 @@ void TizenWebEngineChromium::LoadError( const char* url, int errorCode )
 {
   std::string stdUrl( url );
   mLoadErrorSignal.Emit( stdUrl, errorCode );
+}
+
+void TizenWebEngineChromium::ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge )
+{
+  DALI_LOG_RELEASE_INFO( "#ScrollEdgeReached : %d\n", edge );
+  mScrollEdgeReachedSignal.Emit( edge );
 }
 
 void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler( size_t key, const char* result )

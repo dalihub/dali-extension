@@ -113,6 +113,31 @@ public:
   void Resume() override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::ScrollBy()
+   */
+  void ScrollBy( int deltaX, int deltaY ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
+   */
+  void SetScrollPosition( int x, int y ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
+   */
+  void GetScrollPosition( int& x, int& y ) const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScrollSize()
+   */
+  void GetScrollSize( int& width, int& height ) const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetContentSize()
+   */
+  void GetContentSize( int& width, int& height ) const override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::GoBack()
    */
   void GoBack() override;
@@ -271,6 +296,14 @@ public:
     return mPageLoadErrorSignal;
   }
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollEdgeReachedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override
+  {
+    return mScrollEdgeReachedSignal;
+  }
+
 private:
 
   void UpdateBuffer();
@@ -318,6 +351,7 @@ private:
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadStartedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadFinishedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mPageLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType mScrollEdgeReachedSignal;
 };
 
 } // namespace Plugin
