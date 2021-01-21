@@ -671,19 +671,22 @@ void TizenWebEngineLWE::SetScrollPosition( int x, int y )
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::GetScrollPosition(int& x, int& y) const
+Dali::Vector2 TizenWebEngineLWE::GetScrollPosition() const
 {
   // NOT IMPLEMENTED
+  return Dali::Vector2::ZERO;
 }
 
-void TizenWebEngineLWE::GetScrollSize( int& width, int& height ) const
+Dali::Vector2 TizenWebEngineLWE::GetScrollSize() const
 {
   // NOT IMPLEMENTED
+  return Dali::Vector2::ZERO;
 }
 
-void TizenWebEngineLWE::GetContentSize( int& width, int& height ) const
+Dali::Vector2 TizenWebEngineLWE::GetContentSize() const
 {
   // NOT IMPLEMENTED
+  return Dali::Vector2::ZERO;
 }
 
 void TizenWebEngineLWE::GoBack()

@@ -162,17 +162,17 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
    */
-  void GetScrollPosition( int& x, int& y ) const override;
+  Dali::Vector2 GetScrollPosition() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollSize()
    */
-  void GetScrollSize( int& width, int& height ) const override;
+  Dali::Vector2 GetScrollSize() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetContentSize()
    */
-  void GetContentSize( int& width, int& height ) const override;
+  Dali::Vector2 GetContentSize() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GoBack()

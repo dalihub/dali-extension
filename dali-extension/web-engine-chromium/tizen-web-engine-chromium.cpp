@@ -303,19 +303,25 @@ public:
     ewk_view_scroll_set( mWebView, x, y );
   }
 
-  void GetScrollPosition( int& x, int& y ) const
+  Dali::Vector2 GetScrollPosition() const
   {
+    int x = 0, y = 0;
     ewk_view_scroll_pos_get( mWebView, &x, &y );
+    return Dali::Vector2( x, y );
   }
 
-  void GetScrollSize( int& width, int& height ) const
+  Dali::Vector2 GetScrollSize() const
   {
+    int width = 0, height = 0;
     ewk_view_scroll_size_get( mWebView, &width, &height );
+    return Dali::Vector2( width, height );
   }
 
-  void GetContentSize( int& width, int& height ) const
+  Dali::Vector2 GetContentSize() const
   {
+    int width = 0, height = 0;
     ewk_view_contents_size_get( mWebView, &width, &height );
+    return Dali::Vector2( width, height );
   }
 
   void GoBack()
@@ -730,28 +736,19 @@ void TizenWebEngineChromium::SetScrollPosition( int x, int y )
   }
 }
 
-void TizenWebEngineChromium::GetScrollPosition(int& x, int& y) const
+Dali::Vector2 TizenWebEngineChromium::GetScrollPosition() const
 {
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->GetScrollPosition( x, y );
-  }
+  return mWebViewContainer ? mWebViewContainer->GetScrollPosition() : Dali::Vector2::ZERO;
 }
 
-void TizenWebEngineChromium::GetScrollSize( int& width, int& height ) const
+Dali::Vector2 TizenWebEngineChromium::GetScrollSize() const
 {
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->GetScrollSize( width, height );
-  }
+  return mWebViewContainer ? mWebViewContainer->GetScrollSize() : Dali::Vector2::ZERO;
 }
 
-void TizenWebEngineChromium::GetContentSize( int& width, int& height ) const
+Dali::Vector2 TizenWebEngineChromium::GetContentSize() const
 {
-  if( mWebViewContainer )
-  {
-    mWebViewContainer->GetContentSize( width, height );
-  }
+  return mWebViewContainer ? mWebViewContainer->GetContentSize() : Dali::Vector2::ZERO;
 }
 
 bool TizenWebEngineChromium::CanGoForward()

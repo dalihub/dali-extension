@@ -70,7 +70,7 @@ public:
 
   /**
    * @brief Callback function to be called by WebViewContainer when scroll edge is reached.
-   * @param [in] e Scroll edge reached.
+   * @param [in] edge Scroll edge reached.
    */
   virtual void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) = 0;
 
@@ -212,17 +212,17 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
    */
-  void GetScrollPosition( int& x, int& y ) const override;
+  Dali::Vector2 GetScrollPosition() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollSize()
    */
-  void GetScrollSize( int& width, int& height ) const override;
+  Dali::Vector2 GetScrollSize() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetContentSize()
    */
-  void GetContentSize( int& width, int& height ) const override;
+  Dali::Vector2 GetContentSize() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CanGoForward()
