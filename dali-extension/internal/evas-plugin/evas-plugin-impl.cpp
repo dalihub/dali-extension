@@ -66,11 +66,11 @@ EvasPlugin::EvasPlugin( Evas_Object* parentEvasObject, uint16_t width, uint16_t 
 
 EvasPlugin::~EvasPlugin()
 {
-  delete mAdaptor;
-  mAdaptor = nullptr;
-
   mSingletonService.UnregisterAll();
   mSingletonService.Reset();
+
+  delete mAdaptor;
+  mAdaptor = nullptr;
 }
 
 Adaptor* EvasPlugin::GetAdaptor()
