@@ -14,8 +14,12 @@
  * limitations under the License.
  *
  */
+// CLASS HEADER
+#include <dali-extension/internal/evas-plugin/scene-impl.h>
 
 // EXTERNAL INCLUDES
+#include <tbm_surface_queue.h>
+#include <tbm_surface_internal.h>
 #include <dali/devel-api/adaptor-framework/clipboard.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/adaptor-framework/native-render-surface.h>
@@ -30,9 +34,6 @@
 #include <dali-extension/internal/evas-plugin/evas-event-handler.h>
 #include <dali-extension/internal/evas-plugin/evas-plugin-impl.h>
 #include <dali-extension/internal/evas-plugin/evas-wrapper.h>
-
-// CLASS HEADER
-#include <dali-extension/internal/evas-plugin/scene-impl.h>
 
 namespace Dali
 {
@@ -55,7 +56,8 @@ Scene::Scene( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bo
   mEvasEventHandler(),
   mRenderNotification(),
   mIsFocus( false ),
-  mIsTranslucent( isTranslucent )
+  mIsTranslucent( isTranslucent ),
+  mConsumeSurface( nullptr )
 {
   DALI_ASSERT_ALWAYS( parentEvasObject && "No parent object for the scene" );
 
@@ -207,14 +209,31 @@ void Scene::OnPostRender()
     return;
   }
 
-  tbm_surface_h tbmSurface = AnyCast<tbm_surface_h>( surface->GetDrawable() );
+  tbm_surface_queue_h tbmQueue = AnyCast<tbm_surface_queue_h>( surface->GetNativeRenderable() );
 
-  if( !tbmSurface )
+  if( tbm_surface_queue_can_acquire( tbmQueue, 1 ) )
   {
-    return;
+    tbm_surface_h oldSurface = mConsumeSurface;
+
+    if( tbm_surface_queue_acquire( tbmQueue, &mConsumeSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
+    {
+      DALI_LOG_ERROR( "Failed to acquire a tbm_surface\n" );
+      return;
+    }
+
+    if ( mConsumeSurface )
+    {
+      tbm_surface_internal_ref( mConsumeSurface );
+
+      tbm_surface_internal_unref( oldSurface );
+      if( tbm_surface_internal_is_valid( oldSurface ) )
+      {
+        tbm_surface_queue_release( tbmQueue, oldSurface );
+      }
+    }
   }
 
-  mEvasWrapper->BindTBMSurface( tbmSurface );
+  mEvasWrapper->BindTBMSurface( mConsumeSurface );
 
   mEvasWrapper->RequestRender();
 
