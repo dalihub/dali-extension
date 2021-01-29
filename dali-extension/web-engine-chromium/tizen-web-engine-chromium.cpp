@@ -878,38 +878,54 @@ void TizenWebEngineChromium::SetUserAgent( const std::string& userAgent )
 
 Dali::WebEngineSettings& TizenWebEngineChromium::GetSettings() const
 {
-  if( !mWebViewContainer )
+  if( mWebViewContainer )
   {
-    DALI_LOG_ERROR( "Web engine is not created successfully!" );
+    return mWebViewContainer->GetSettings();
   }
-  return mWebViewContainer->GetSettings();
+
+  DALI_LOG_ERROR( "Web engine is not created successfully!" );
+  static TizenWebEngineSettings dummy( nullptr );
+
+  return dummy;
 }
 
 Dali::WebEngineContext& TizenWebEngineChromium::GetContext() const
 {
-  if( !mWebViewContainer )
+  if( mWebViewContainer )
   {
-    DALI_LOG_ERROR( "Web engine is not created successfully!" );
+    return mWebViewContainer->GetContext();
   }
-  return mWebViewContainer->GetContext();
+
+  DALI_LOG_ERROR( "Web engine is not created successfully!" );
+  static TizenWebEngineContext dummy( nullptr );
+
+  return dummy;
 }
 
 Dali::WebEngineCookieManager& TizenWebEngineChromium::GetCookieManager() const
 {
-  if( !mWebViewContainer )
+  if( mWebViewContainer )
   {
-    DALI_LOG_ERROR( "Web engine is not created successfully!" );
+    return mWebViewContainer->GetCookieManager();
   }
-  return mWebViewContainer->GetCookieManager();
+
+  DALI_LOG_ERROR( "Web engine is not created successfully!" );
+  static TizenWebEngineCookieManager dummy( nullptr );
+
+  return dummy;
 }
 
 Dali::WebEngineBackForwardList& TizenWebEngineChromium::GetBackForwardList() const
 {
-  if( !mWebViewContainer )
+  if( mWebViewContainer )
   {
-    DALI_LOG_ERROR( "Web engine is not created successfully!" );
+    return mWebViewContainer->GetBackForwardList();
   }
-  return mWebViewContainer->GetBackForwardList();
+
+  DALI_LOG_ERROR( "Web engine is not created successfully!" );
+  static TizenWebEngineBackForwardList dummy( nullptr );
+
+  return dummy;
 }
 
 void TizenWebEngineChromium::SetSize( int width, int height )
