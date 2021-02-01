@@ -29,6 +29,9 @@
 
 namespace Dali
 {
+
+class PixelData;
+
 namespace Plugin
 {
 
@@ -67,7 +70,7 @@ public:
 
   /**
    * @brief Callback function to be called by WebViewContainer when scroll edge is reached.
-   * @param [in] e Scroll edge reached.
+   * @param [in] edge Scroll edge reached.
    */
   virtual void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) = 0;
 
@@ -117,6 +120,11 @@ public:
   void Create( int width, int height, const std::string& locale, const std::string& timezoneID ) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::Create()
+   */
+  void Create( int width, int height, int argc, char** argv ) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
    */
   void Destroy() override;
@@ -150,6 +158,16 @@ public:
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
    */
   NativeImageInterfacePtr GetNativeImageSource() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetTitle()
+   */
+  std::string GetTitle() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetFavicon()
+   */
+  Dali::PixelData GetFavicon() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
@@ -194,17 +212,17 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
    */
-  void GetScrollPosition( int& x, int& y ) const override;
+  Dali::Vector2 GetScrollPosition() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollSize()
    */
-  void GetScrollSize( int& width, int& height ) const override;
+  Dali::Vector2 GetScrollSize() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetContentSize()
    */
-  void GetContentSize( int& width, int& height ) const override;
+  Dali::Vector2 GetContentSize() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CanGoForward()
@@ -235,6 +253,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
    */
   void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void( const std::string& ) > handler ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ClearAllTilesResources()
+   */
+  void ClearAllTilesResources() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()

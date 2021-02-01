@@ -242,6 +242,13 @@ private:
   void InitializeUnderlayMode( Ecore_Wl2_Window* ecoreWlWindow );
 
   /**
+   * @brief Initializes player for video rendering with synchronization mode.
+   *
+   * @param[in] ecoreWlWindow The window for synchronization mode.
+   */
+  void InitializeEnableSyncMode( Ecore_Wl2_Window* ecoreWlWindow );
+
+  /**
    * @brief Destroys player handle
    */
   void DestroyPlayer();
@@ -276,11 +283,14 @@ private:
 
   player_video_codec_type_ex_e mCodecType;
 
-  Ecore_Wl2_Window*                              mEcoreWlWindow;
+  Ecore_Wl2_Window*                              mEcoreWlWindow;  ///< ecore native window handle
+  Ecore_Wl2_Subsurface*                          mEcoreSubVideoWindow;  ///< ecore native subsurface for synchronization with video player
   Actor                                          mSyncActor;
   Constraint                                     mVideoSizePropertyConstraint;
   Property::Index                                mVideoSizePropertyIndex;
   Dali::VideoSyncMode                            mSyncMode;
+
+  bool                                           mIsInitForSyncMode;  ///< the flag for synchronization with video player
 
 public:
 

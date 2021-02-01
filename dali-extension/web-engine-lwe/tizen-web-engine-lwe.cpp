@@ -19,8 +19,9 @@
 #include "tizen-web-engine-lwe.h"
 
 // EXTERNAL INCLUDES
-#include <dali/integration-api/debug.h>
+#include <dali/devel-api/adaptor-framework/application-devel.h>
 #include <dali/devel-api/common/stage.h>
+#include <dali/integration-api/debug.h>
 #include <dali/public-api/events/key-event.h>
 #include <dali/public-api/events/touch-event.h>
 #include <dali/devel-api/adaptor-framework/application-devel.h>
@@ -29,6 +30,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
 #include <dali/devel-api/adaptor-framework/web-engine-cookie-manager.h>
 #include <dali/devel-api/adaptor-framework/web-engine-settings.h>
+#include <dali/public-api/images/pixel-data.h>
 
 #include <unistd.h>
 #include <pthread.h>
@@ -477,6 +479,11 @@ void TizenWebEngineLWE::Create( int width, int height, const std::string& locale
 
 }
 
+void TizenWebEngineLWE::Create( int width, int height, int argc, char** argv )
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::Destroy()
 {
   if( !mWebContainer )
@@ -607,6 +614,19 @@ void TizenWebEngineLWE::LoadUrl( const std::string& url )
   mWebContainer->LoadURL( url );
 }
 
+std::string TizenWebEngineLWE::GetTitle() const
+{
+  // NOT IMPLEMENTED
+  static const std::string kEmpty;
+  return kEmpty;
+}
+
+Dali::PixelData TizenWebEngineLWE::GetFavicon() const
+{
+  // NOT IMPLEMENTED
+  return Dali::PixelData();
+}
+
 const std::string& TizenWebEngineLWE::GetUrl()
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
@@ -651,19 +671,22 @@ void TizenWebEngineLWE::SetScrollPosition( int x, int y )
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::GetScrollPosition(int& x, int& y) const
+Dali::Vector2 TizenWebEngineLWE::GetScrollPosition() const
 {
   // NOT IMPLEMENTED
+  return Dali::Vector2::ZERO;
 }
 
-void TizenWebEngineLWE::GetScrollSize( int& width, int& height ) const
+Dali::Vector2 TizenWebEngineLWE::GetScrollSize() const
 {
   // NOT IMPLEMENTED
+  return Dali::Vector2::ZERO;
 }
 
-void TizenWebEngineLWE::GetContentSize( int& width, int& height ) const
+Dali::Vector2 TizenWebEngineLWE::GetContentSize() const
 {
   // NOT IMPLEMENTED
+  return Dali::Vector2::ZERO;
 }
 
 void TizenWebEngineLWE::GoBack()
@@ -702,6 +725,11 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler( const std::string& exposedO
     handler( data );
     return "";
   } );
+}
+
+void TizenWebEngineLWE::ClearAllTilesResources()
+{
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::ClearHistory()
