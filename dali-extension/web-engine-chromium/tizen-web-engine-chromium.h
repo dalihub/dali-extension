@@ -291,8 +291,22 @@ public:
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetFocus()
+   * @param[in] focused True if web view is focused, false otherwise.
    */
   void SetFocus( bool focused ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
+   * @brief Update display area.
+   * @param[in] displayArea A display area to be updated.
+   */
+  void UpdateDisplayArea( Dali::Rect< int > displayArea ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableVideoHole()
+   * @param[in] enabled True if video hole is enabled, false otherwise.
+   */
+  void EnableVideoHole( bool enabled ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
