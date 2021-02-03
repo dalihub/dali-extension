@@ -111,6 +111,13 @@ public:
   virtual void OnConsoleMessage(std::shared_ptr<Dali::WebEngineConsoleMessage> message) = 0;
 
   /**
+   * @brief Callback function to be called by WebViewContainer when new window
+   * policy would be decided.
+   * @param [in] decision Policy need be decided.
+   */
+  virtual void NewWindowPolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
+
+  /**
    * @brief Callback function to be called by WebViewContainer when it gets
    * JavaScript evalution result.
    * @param [in] key An unsigned integer representing the result handler
@@ -640,6 +647,11 @@ public:
    */
   Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& ConsoleMessageSignal() override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::PolicyDecisionSignal()
+   */
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& PolicyDecisionSignal() override;
+
   // WebViewContainerClient Interface
 
   /**
@@ -676,6 +688,11 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::RequestFormRepostDecision()
    */
   void RequestFormRepostDecision(std::shared_ptr<Dali::WebEngineFormRepostDecision> decision) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::NewWindowPolicyDecided()
+   */
+  void NewWindowPolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> policy) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
@@ -750,6 +767,7 @@ private:
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
   Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
   Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType     mConsoleMessageSignal;
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType     mPolicyDecisionSignal;
 
   std::unordered_map<size_t, JavaScriptCallback>               mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptCallback>          mJavaScriptMessageHandlers;

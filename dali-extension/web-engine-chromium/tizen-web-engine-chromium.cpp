@@ -22,6 +22,7 @@
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
 #include "tizen-web-engine-form-repost-decision.h"
+#include "tizen-web-engine-policy-decision.h"
 #include "tizen-web-engine-request-interceptor.h"
 #include "tizen-web-engine-load-error.h"
 #include "tizen-web-engine-settings.h"
@@ -78,9 +79,9 @@ public:
     return instance;
   }
 
-  WebEngineManager(WebEngineManager const& ) = delete;
+  WebEngineManager(WebEngineManager const&) = delete;
 
-  void operator=(WebEngineManager const& ) = delete;
+  void operator=(WebEngineManager const&) = delete;
 
   Ecore_Evas* GetWindow()
   {
@@ -191,7 +192,7 @@ public:
       ewk_set_arguments(argc, argv);
     }
 
-    Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window* >(Adaptor::Get().GetNativeWindowHandle());
+    Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
     Ewk_Context* context = ewk_context_default_get();
     ewk_context_max_refresh_rate_set(context, 60);
     mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
@@ -250,6 +251,9 @@ public:
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "form,repost,warning,show",
                                    &WebViewContainerForDali::OnFormRepostDecisionRequest,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "policy,newwindow,decide",
+                                   &WebViewContainerForDali::OnNewWindowPolicyDecide,
                                    &mClient);
 
     evas_object_resize(mWebView, mWidth, mHeight);
@@ -412,7 +416,7 @@ public:
 
   void EvaluateJavaScript(size_t key, const std::string& script)
   {
-    ewk_view_script_execute(mWebView, script.c_str(), OnEvaluateJavaScript, (void* )key);
+    ewk_view_script_execute(mWebView, script.c_str(), OnEvaluateJavaScript, (void*)key);
   }
 
   void AddJavaScriptMessageHandler(const std::string& exposedObjectName)
@@ -592,7 +596,7 @@ public:
       memset(&downEvent, 0, sizeof(Evas_Event_Key_Down));
       downEvent.key = keyEvent.GetKeyName().c_str();
       downEvent.string = keyEvent.GetKeyString().c_str();
-      evasKeyEvent = static_cast<void* >(&downEvent);
+      evasKeyEvent = static_cast<void*>(&downEvent);
       ewk_view_send_key_event(mWebView, evasKeyEvent, true);
     }
     else
@@ -601,7 +605,7 @@ public:
       memset(&upEvent, 0, sizeof(Evas_Event_Key_Up));
       upEvent.key = keyEvent.GetKeyName().c_str();
       upEvent.string = keyEvent.GetKeyString().c_str();
-      evasKeyEvent = static_cast<void* >(&upEvent);
+      evasKeyEvent = static_cast<void*>(&upEvent);
       ewk_view_send_key_event(mWebView, evasKeyEvent, false);
     }
     return false;
@@ -708,7 +712,7 @@ public:
 
   void EnableVideoHole(bool enabled)
   {
-    Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window* >(Adaptor::Get().GetNativeWindowHandle());
+    Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
     ewk_view_set_support_video_hole(mWebView, win, enabled, EINA_FALSE);
     ecore_wl2_window_alpha_set(win, !enabled);
   }
@@ -789,27 +793,27 @@ private:
                                 Dali::PixelData::ReleaseFunction::DELETE_ARRAY);
   }
 
-  static void OnFrameRendered(void *data, Evas_Object *, void *buffer)
+  static void OnFrameRendered(void* data, Evas_Object*, void* buffer)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     client->UpdateImage(static_cast<tbm_surface_h>(buffer));
   }
 
-  static void OnLoadStarted(void* data, Evas_Object* , void* )
+  static void OnLoadStarted(void* data, Evas_Object*, void*)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
+    auto client = static_cast<WebViewContainerClient*>(data);
     client->LoadStarted();
   }
 
-  static void OnLoadInProgress(void* data, Evas_Object* , void* )
+  static void OnLoadInProgress(void* data, Evas_Object*, void*)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
+    auto client = static_cast<WebViewContainerClient*>(data);
     client->LoadInProgress();
   }
 
-  static void OnLoadFinished(void* data, Evas_Object* , void* )
+  static void OnLoadFinished(void* data, Evas_Object*, void*)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
+    auto client = static_cast<WebViewContainerClient*>(data);
     client->LoadFinished();
   }
 
@@ -843,27 +847,27 @@ private:
     client->OnConsoleMessage(std::move(webConsoleMessage));
   }
 
-  static void OnEdgeLeft(void* data, Evas_Object* , void* )
+  static void OnEdgeLeft(void* data, Evas_Object*, void*)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
+    auto client = static_cast<WebViewContainerClient*>(data);
     client->ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge::LEFT);
   }
 
-  static void OnEdgeRight(void* data, Evas_Object* , void* )
+  static void OnEdgeRight(void* data, Evas_Object*, void*)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
+    auto client = static_cast<WebViewContainerClient*>(data);
     client->ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge::RIGHT);
   }
 
-  static void OnEdgeTop(void* data, Evas_Object* , void* )
+  static void OnEdgeTop(void* data, Evas_Object*, void*)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
+    auto client = static_cast<WebViewContainerClient*>(data);
     client->ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge::TOP);
   }
 
-  static void OnEdgeBottom(void* data, Evas_Object*, void* )
+  static void OnEdgeBottom(void* data, Evas_Object*, void*)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
+    auto client = static_cast<WebViewContainerClient*>(data);
     client->ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge::BOTTOM);
   }
 
@@ -897,6 +901,14 @@ private:
     return client->GeolocationPermission(host, protocol);
   }
 
+  static void OnNewWindowPolicyDecide(void* data, Evas_Object*, void* policy)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
+    std::shared_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
+    client->NewWindowPolicyDecided(webPolicyDecision);
+  }
+
   static void OnEvaluateJavaScript(Evas_Object* o, const char* result, void* data)
   {
     auto client = WebEngineManager::Get().FindContainerClient(o);
@@ -911,7 +923,7 @@ private:
     auto client = WebEngineManager::Get().FindContainerClient(o);
     if (client)
     {
-      client->RunJavaScriptMessageHandler(message.name, static_cast<char* >(message.body));
+      client->RunJavaScriptMessageHandler(message.name, static_cast<char*>(message.body));
     }
   }
 
@@ -921,7 +933,7 @@ private:
     auto client = WebEngineManager::Get().FindContainerClient(o);
     if (client)
     {
-      result = client->JavaScriptAlert(const_cast<char* >(alert_text));
+      result = client->JavaScriptAlert(const_cast<char*>(alert_text));
     }
     return result;
   }
@@ -932,12 +944,12 @@ private:
     auto client = WebEngineManager::Get().FindContainerClient(o);
     if (client)
     {
-      result = client->JavaScriptConfirm(const_cast<char* >(message));
+      result = client->JavaScriptConfirm(const_cast<char*>(message));
     }
     return result;
   }
 
-  static Eina_Bool OnJavaScriptPrompt(Evas_Object* o, const char* message, const char* default_value, void* )
+  static Eina_Bool OnJavaScriptPrompt(Evas_Object* o, const char* message, const char* default_value, void*)
   {
     bool result = false;
     auto client = WebEngineManager::Get().FindContainerClient(o);
@@ -1282,7 +1294,7 @@ void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, std::
   }
 }
 
-void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string& )> handler)
+void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string&)> handler)
 {
   if (mWebViewContainer)
   {
@@ -1740,6 +1752,11 @@ Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& TizenWebEngineChromium
   return mConsoleMessageSignal;
 }
 
+Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& TizenWebEngineChromium::PolicyDecisionSignal()
+{
+  return mPolicyDecisionSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -1818,6 +1835,15 @@ void TizenWebEngineChromium::OnConsoleMessage(std::shared_ptr<Dali::WebEngineCon
   if (!mConsoleMessageSignal.Empty())
   {
     mConsoleMessageSignal.Emit(std::move(message));
+  }
+}
+
+void TizenWebEngineChromium::NewWindowPolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision)
+{
+  DALI_LOG_RELEASE_INFO("#NewWindowPolicyDecided.\n");
+  if (!mPolicyDecisionSignal.Empty())
+  {
+    mPolicyDecisionSignal.Emit(std::move(decision));
   }
 }
 
