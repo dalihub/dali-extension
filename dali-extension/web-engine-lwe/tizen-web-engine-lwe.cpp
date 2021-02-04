@@ -602,22 +602,24 @@ public:
 class NullWebEngineBackForwardList : public Dali::WebEngineBackForwardList
 {
 public:
-  NullWebEngineBackForwardList(WebEngineBackForwardListItem* pItem)
-    : item(pItem)
-  {
-  }
-  Dali::WebEngineBackForwardListItem& GetCurrentItem() const override
-  {
-    return *item;
-  }
-  Dali::WebEngineBackForwardListItem& GetItemAtIndex(uint32_t index) const override
-  {
-    return *item;
-  }
+  NullWebEngineBackForwardList( WebEngineBackForwardListItem* pItem ) : mItem( pItem ) { }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetCurrentItem() const override { return NULL; }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetPreviousItem() const override { return NULL; }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetNextItem() const override { return NULL; }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetItemAtIndex( uint32_t index ) const override { return NULL; }
   uint32_t GetItemCount() const override { return 1; }
-
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetBackwardItems(int limit)
+  {
+    std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
+    return vec;
+  }
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetForwardItems(int limit)
+  {
+    std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
+    return vec;
+  }
 private:
-  WebEngineBackForwardListItem* item;
+  WebEngineBackForwardListItem* mItem;
 };
 
 Dali::WebEngineBackForwardList& TizenWebEngineLWE::GetBackForwardList() const
