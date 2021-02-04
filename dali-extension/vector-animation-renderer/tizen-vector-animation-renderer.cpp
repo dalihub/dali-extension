@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,25 @@ TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
   DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer: this = %p\n", this );
 }
 
-bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
+void TizenVectorAnimationRenderer::Finalize()
+{
+  Dali::Mutex::ScopedLock lock( mMutex );
+
+  TizenVectorAnimationManager::Get().RemoveEventHandler( *this );
+
+  mRenderer.Reset();
+  mTexture.Reset();
+  mRenderedTexture.Reset();
+  mPreviousTexture.Reset();
+  mVectorRenderer.reset();
+
+  mTargetSurface = nullptr;
+  mTbmQueue = NULL;
+
+  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Finalize: [%p]\n", this );
+}
+
+bool TizenVectorAnimationRenderer::Load(const std::string &url)
 {
   mUrl = url;
 
@@ -103,27 +121,9 @@ bool TizenVectorAnimationRenderer::Initialize( const std::string& url )
 
   TizenVectorAnimationManager::Get().AddEventHandler( *this );
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this );
+  DALI_LOG_RELEASE_INFO("TizenVectorAnimationRenderer::Load: file [%s] [%p]\n", url.c_str(), this);
 
   return true;
-}
-
-void TizenVectorAnimationRenderer::Finalize()
-{
-  Dali::Mutex::ScopedLock lock( mMutex );
-
-  TizenVectorAnimationManager::Get().RemoveEventHandler( *this );
-
-  mRenderer.Reset();
-  mTexture.Reset();
-  mRenderedTexture.Reset();
-  mPreviousTexture.Reset();
-  mVectorRenderer.reset();
-
-  mTargetSurface = nullptr;
-  mTbmQueue = NULL;
-
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Finalize: [%p]\n", this );
 }
 
 void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
