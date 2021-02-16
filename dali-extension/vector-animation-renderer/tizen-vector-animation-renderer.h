@@ -2,7 +2,7 @@
 #define DALI_TIZEN_VECTOR_ANIMATION_RENDERER_PLUGIN_H
 
 /*
- * Copyright (c) 2019 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,14 +55,14 @@ public:
   virtual ~TizenVectorAnimationRenderer();
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::Initialize()
-   */
-  bool Initialize( const std::string& url ) override;
-
-  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::Finalize()
    */
   void Finalize() override;
+
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::Load()
+   */
+  bool Load(const std::string &url) override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::SetRenderer()
