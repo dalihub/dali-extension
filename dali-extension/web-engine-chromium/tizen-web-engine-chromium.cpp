@@ -96,6 +96,10 @@ public:
         mContainerClients.erase( it );
         break;
       }
+      else
+      {
+        ++it;
+      }
     }
   }
 
