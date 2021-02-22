@@ -528,6 +528,14 @@ public:
     return mRequestInterceptorSignal;
   }
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::ConsoleMessageSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& ConsoleMessageSignal() override
+  {
+    return mConsoleMessageSignal;
+  }
+
 private:
   void UpdateBuffer();
 
@@ -581,6 +589,7 @@ private:
   Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
   Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType     mConsoleMessageSignal;
 };
 
 } // namespace Plugin

@@ -18,10 +18,12 @@
 #include "tizen-web-engine-chromium.h"
 
 #include "tizen-web-engine-back-forward-list.h"
+#include "tizen-web-engine-console-message.h"
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
 #include "tizen-web-engine-form-repost-decision.h"
 #include "tizen-web-engine-request-interceptor.h"
+#include "tizen-web-engine-load-error.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
@@ -233,7 +235,7 @@ public:
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "console,message",
                                    &WebViewContainerForDali::OnConsoleMessage,
-                                   this);
+                                   &mClient);
     evas_object_smart_callback_add(mWebView, "edge,left",
                                    &WebViewContainerForDali::OnEdgeLeft,
                                    &mClient);
@@ -811,11 +813,12 @@ private:
     client->LoadFinished();
   }
 
-  static void OnLoadError(void* data, Evas_Object* , void* rawError)
+  static void OnLoadError(void* data, Evas_Object*, void* rawError)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
-    Ewk_Error* error = static_cast<Ewk_Error* >(rawError);
-    client->LoadError(ewk_error_url_get(error), ewk_error_code_get(error));
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Error* error = static_cast<Ewk_Error*>(rawError);
+    std::shared_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
+    client->LoadError(std::move(loadError));
   }
 
   static void OnInterceptRequest(Ewk_Context*, Ewk_Intercept_Request* request, void* data)
@@ -832,14 +835,12 @@ private:
     client->UrlChanged(url);
   }
 
-  static void OnConsoleMessage(void*, Evas_Object*, void* eventInfo)
+  static void OnConsoleMessage(void* data, Evas_Object*, void* eventInfo)
   {
-    Ewk_Console_Message* message = (Ewk_Console_Message*)eventInfo;
-    DALI_LOG_RELEASE_INFO("console message:%s: %d: %d: %s",
-                          ewk_console_message_source_get(message),
-                          ewk_console_message_line_get(message),
-                          ewk_console_message_level_get(message),
-                          ewk_console_message_text_get(message));
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(eventInfo);
+    std::shared_ptr<Dali::WebEngineConsoleMessage> webConsoleMessage(new TizenWebEngineConsoleMessage(message));
+    client->OnConsoleMessage(std::move(webConsoleMessage));
   }
 
   static void OnEdgeLeft(void* data, Evas_Object* , void* )
@@ -1734,6 +1735,11 @@ Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& TizenWebEngineChro
   return mRequestInterceptorSignal;
 }
 
+Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& TizenWebEngineChromium::ConsoleMessageSignal()
+{
+  return mConsoleMessageSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -1767,10 +1773,13 @@ void TizenWebEngineChromium::LoadFinished()
   mLoadFinishedSignal.Emit(GetUrl());
 }
 
-void TizenWebEngineChromium::LoadError(const char* url, int errorCode)
+void TizenWebEngineChromium::LoadError(std::shared_ptr<Dali::WebEngineLoadError> error)
 {
-  std::string stdUrl(url);
-  mLoadErrorSignal.Emit(stdUrl, errorCode);
+  DALI_LOG_RELEASE_INFO("#LoadError : %s\n", error->GetUrl().c_str());
+  if (!mLoadErrorSignal.Empty())
+  {
+    mLoadErrorSignal.Emit(std::move(error));
+  }
 }
 
 void TizenWebEngineChromium::ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge edge)
@@ -1800,6 +1809,15 @@ void TizenWebEngineChromium::InterceptRequest(std::shared_ptr<Dali::WebEngineReq
   if (!mRequestInterceptorSignal.Empty())
   {
     mRequestInterceptorSignal.Emit(std::move(interceptor));
+  }
+}
+
+void TizenWebEngineChromium::OnConsoleMessage(std::shared_ptr<Dali::WebEngineConsoleMessage> message)
+{
+  DALI_LOG_RELEASE_INFO("#OnConsoleMessage : %s\n", message->GetText());
+  if (!mConsoleMessageSignal.Empty())
+  {
+    mConsoleMessageSignal.Emit(std::move(message));
   }
 }
 

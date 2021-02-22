@@ -71,10 +71,9 @@ public:
   /**
    * @brief Callback function to be called by WebViewContainer when an error
    * occurs in page loading.
-   * @param [in] url Failing URL for this error
-   * @param [in] errorCode The error code
+   * @param [in] error The error when loading a page.
    */
-  virtual void LoadError(const char *url, int errorCode) = 0;
+  virtual void LoadError(std::shared_ptr<Dali::WebEngineLoadError> error) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when scroll edge
@@ -103,6 +102,13 @@ public:
    * @param [in] request The http request interceptor.
    */
   virtual void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when console
+   * message is logged out.
+   * @param [in] message Message need be logged out.
+   */
+  virtual void OnConsoleMessage(std::shared_ptr<Dali::WebEngineConsoleMessage> message) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when it gets
@@ -629,6 +635,11 @@ public:
    */
   Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& RequestInterceptorSignal() override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::ConsoleMessageSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& ConsoleMessageSignal() override;
+
   // WebViewContainerClient Interface
 
   /**
@@ -654,7 +665,7 @@ public:
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::LoadError()
    */
-  void LoadError(const char* url, int errorCode) override;
+  void LoadError(std::shared_ptr<Dali::WebEngineLoadError> error) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::ScrollEdgeReached()
@@ -675,6 +686,11 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::InterceptRequest()
    */
   void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::OnConsoleMessage()
+   */
+  void OnConsoleMessage(std::shared_ptr<Dali::WebEngineConsoleMessage> message) override;
 
   /**
    * @copydoc
@@ -733,6 +749,7 @@ private:
   Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
   Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType     mConsoleMessageSignal;
 
   std::unordered_map<size_t, JavaScriptCallback>               mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptCallback>          mJavaScriptMessageHandlers;
