@@ -205,14 +205,44 @@ public:
   void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void(const std::string&) > handler ) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ClearAllTilesResources()
+   * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptAlertCallback()
    */
-  void ClearAllTilesResources() override;
+  void RegisterJavaScriptAlertCallback( Dali::WebEnginePlugin::JavaScriptAlertCallback callback ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::JavaScriptAlertReply()
+   */
+  void JavaScriptAlertReply() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptConfirmCallback()
+   */
+  void RegisterJavaScriptConfirmCallback( Dali::WebEnginePlugin::JavaScriptConfirmCallback callback ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::JavaScriptConfirmReply()
+   */
+  void JavaScriptConfirmReply( bool confirmed ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptPromptCallback()
+   */
+  void RegisterJavaScriptPromptCallback( Dali::WebEnginePlugin::JavaScriptPromptCallback callback ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::JavaScriptPromptReply()
+   */
+  void JavaScriptPromptReply( const std::string& result ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()
    */
   void ClearHistory() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ClearAllTilesResources()
+   */
+  void ClearAllTilesResources() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetUserAgent()
@@ -265,6 +295,14 @@ public:
   }
 
   /**
+   * @copydoc Dali::WebEnginePlugin::PageLoadInProgressSignal()
+   */
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadInProgressSignal() override
+  {
+    return mPageLoadInProgressSignal;
+  }
+
+  /**
    * @copydoc Dali::WebEnginePlugin::PageLoadFinishedSignal()
    */
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadFinishedSignal() override
@@ -286,6 +324,14 @@ public:
   Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override
   {
     return mScrollEdgeReachedSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::UrlChangedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType& UrlChangedSignal() override
+  {
+    return mUrlChangedSignal;
   }
 
 private:
@@ -333,9 +379,11 @@ private:
 
   EventThreadCallback                                     mUpdateBufferTrigger;
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadInProgressSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mPageLoadFinishedSignal;
   Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mPageLoadErrorSignal;
   Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType    mUrlChangedSignal;
 };
 
 } // namespace Plugin
