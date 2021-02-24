@@ -20,6 +20,7 @@
 #include "tizen-web-engine-back-forward-list.h"
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
+#include "tizen-web-engine-form-repost-decision.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
@@ -242,6 +243,9 @@ public:
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "edge,bottom",
                                    &WebViewContainerForDali::OnEdgeBottom,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "form,repost,warning,show",
+                                   &WebViewContainerForDali::OnFormRepostDecisionRequest,
                                    &mClient);
 
     evas_object_resize(mWebView, mWidth, mHeight);
@@ -708,6 +712,14 @@ private:
   {
     auto client = static_cast<WebViewContainerClient* >(data);
     client->ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge::BOTTOM);
+  }
+
+  static void OnFormRepostDecisionRequest(void* data, Evas_Object*, void* eventInfo)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Form_Repost_Decision_Request* decisionRequest = static_cast<Ewk_Form_Repost_Decision_Request*>(eventInfo);
+    std::shared_ptr<Dali::WebEngineFormRepostDecision> webDecisionRequest(new TizenWebEngineFormRepostDecision(decisionRequest));
+    client->RequestFormRepostDecision(webDecisionRequest);
   }
 
   static void OnEvaluateJavaScript(Evas_Object* o, const char* result, void* data)
@@ -1312,6 +1324,16 @@ Dali::WebEnginePlugin::WebEngineUrlChangedSignalType& TizenWebEngineChromium::Ur
   return mUrlChangedSignal;
 }
 
+Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType& TizenWebEngineChromium::FormRepostDecisionSignal()
+{
+  return mFormRepostDecisionSignal;
+}
+
+Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& TizenWebEngineChromium::FrameRenderedSignal()
+{
+  return mFrameRenderedSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -1323,6 +1345,8 @@ void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
   Any source(buffer);
   mDaliImageSrc->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
+
+  mFrameRenderedSignal.Emit();
 }
 
 void TizenWebEngineChromium::LoadStarted()
@@ -1359,6 +1383,15 @@ void TizenWebEngineChromium::UrlChanged(const std::string& url)
 {
   DALI_LOG_RELEASE_INFO("#UrlChanged : %s\n", url.c_str());
   mUrlChangedSignal.Emit(url);
+}
+
+void TizenWebEngineChromium::RequestFormRepostDecision(std::shared_ptr<Dali::WebEngineFormRepostDecision> decision)
+{
+  DALI_LOG_RELEASE_INFO("#FormRepostDecisionRequest\n");
+  if (!mFormRepostDecisionSignal.Empty())
+  {
+    mFormRepostDecisionSignal.Emit(std::move(decision));
+  }
 }
 
 void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler(size_t key, const char* result)
