@@ -118,6 +118,27 @@ public:
   virtual void NewWindowPolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
 
   /**
+   * @brief Callback function to be called by WebViewContainer when certificate
+   * need be confirmed.
+   * @param [in] confirm Policy confirm request.
+   */
+  virtual void CertificateConfirm(std::shared_ptr<Dali::WebEngineCertificate> confirm) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when certificate
+   * is changed.
+   * @param [in] info Certificate information.
+   */
+  virtual void SslCertificateChanged(std::shared_ptr<Dali::WebEngineCertificate> info) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when
+   * authentication need be confirmed.
+   * @param [in] handler Http authentication challenge handler.
+   */
+  virtual void AuthenticationChallenge(std::shared_ptr<Dali::WebEngineHttpAuthHandler> handler) = 0;
+
+  /**
    * @brief Callback function to be called by WebViewContainer when it gets
    * JavaScript evalution result.
    * @param [in] key An unsigned integer representing the result handler
@@ -652,6 +673,21 @@ public:
    */
   Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& PolicyDecisionSignal() override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::CertificateConfirmSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType& CertificateConfirmSignal() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SslCertificateChangedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType& SslCertificateChangedSignal() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::HttpAuthHandlerSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& HttpAuthHandlerSignal() override;
+
   // WebViewContainerClient Interface
 
   /**
@@ -708,6 +744,21 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::OnConsoleMessage()
    */
   void OnConsoleMessage(std::shared_ptr<Dali::WebEngineConsoleMessage> message) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::CertificateConfirm()
+   */
+  void CertificateConfirm(std::shared_ptr<Dali::WebEngineCertificate> confirm) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::SslCertificateChanged()
+   */
+  void SslCertificateChanged(std::shared_ptr<Dali::WebEngineCertificate> info) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::AuthenticationChallenge()
+   */
+  void AuthenticationChallenge(std::shared_ptr<Dali::WebEngineHttpAuthHandler> handler) override;
 
   /**
    * @copydoc
@@ -768,6 +819,9 @@ private:
   Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
   Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType     mConsoleMessageSignal;
   Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType     mPolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType        mCertificateConfirmSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType        mSslCertificateChangedSignal;
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType    mHttpAuthHandlerSignal;
 
   std::unordered_map<size_t, JavaScriptCallback>               mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptCallback>          mJavaScriptMessageHandlers;

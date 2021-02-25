@@ -18,13 +18,15 @@
 #include "tizen-web-engine-chromium.h"
 
 #include "tizen-web-engine-back-forward-list.h"
+#include "tizen-web-engine-certificate.h"
 #include "tizen-web-engine-console-message.h"
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
 #include "tizen-web-engine-form-repost-decision.h"
+#include "tizen-web-engine-http-auth-handler.h"
+#include "tizen-web-engine-load-error.h"
 #include "tizen-web-engine-policy-decision.h"
 #include "tizen-web-engine-request-interceptor.h"
-#include "tizen-web-engine-load-error.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
@@ -253,8 +255,16 @@ public:
                                    &WebViewContainerForDali::OnFormRepostDecisionRequest,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "policy,newwindow,decide",
-                                   &WebViewContainerForDali::OnNewWindowPolicyDecide,
+                                   &WebViewContainerForDali::OnNewWindowPolicyDecided,
                                    &mClient);
+    evas_object_smart_callback_add(mWebView, "request,certificate,confirm",
+                                   &WebViewContainerForDali::OnCertificateConfirmRequest,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "ssl,certificate,changed",
+                                   &WebViewContainerForDali::OnSslCertificateChanged,
+                                   &mClient);
+
+    ewk_view_authentication_callback_set(mWebView, &WebViewContainerForDali::OnAuthenticationChallenge, &mClient);
 
     evas_object_resize(mWebView, mWidth, mHeight);
     evas_object_show(mWebView);
@@ -901,12 +911,35 @@ private:
     return client->GeolocationPermission(host, protocol);
   }
 
-  static void OnNewWindowPolicyDecide(void* data, Evas_Object*, void* policy)
+  static void OnNewWindowPolicyDecided(void* data, Evas_Object*, void* policy)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
     std::shared_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
     client->NewWindowPolicyDecided(webPolicyDecision);
+  }
+
+  static void OnCertificateConfirmRequest(void* data, Evas_Object*, void* eventInfo)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Certificate_Policy_Decision* policyDecision = static_cast<Ewk_Certificate_Policy_Decision*>(eventInfo);
+    std::shared_ptr<Dali::WebEngineCertificate> webPolicyDecision(new TizenWebEngineCertificate(policyDecision));
+    client->CertificateConfirm(std::move(webPolicyDecision));
+  }
+
+  static void OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Certificate_Info* info = static_cast<Ewk_Certificate_Info*>(eventInfo);
+    std::shared_ptr<Dali::WebEngineCertificate> webCertiInfo(new TizenWebEngineCertificate(info));
+    client->SslCertificateChanged(std::move(webCertiInfo));
+  }
+
+  static void OnAuthenticationChallenge(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::shared_ptr<Dali::WebEngineHttpAuthHandler> authHandler(new TizenWebEngineHttpAuthHandler(authChallenge));
+    client->AuthenticationChallenge(std::move(authHandler));
   }
 
   static void OnEvaluateJavaScript(Evas_Object* o, const char* result, void* data)
@@ -1757,6 +1790,21 @@ Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& TizenWebEngineChromium
   return mPolicyDecisionSignal;
 }
 
+Dali::WebEnginePlugin::WebEngineCertificateSignalType& TizenWebEngineChromium::CertificateConfirmSignal()
+{
+  return mCertificateConfirmSignal;
+}
+
+Dali::WebEnginePlugin::WebEngineCertificateSignalType& TizenWebEngineChromium::SslCertificateChangedSignal()
+{
+  return mSslCertificateChangedSignal;
+}
+
+Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& TizenWebEngineChromium::HttpAuthHandlerSignal()
+{
+  return mHttpAuthHandlerSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -1844,6 +1892,33 @@ void TizenWebEngineChromium::NewWindowPolicyDecided(std::shared_ptr<Dali::WebEng
   if (!mPolicyDecisionSignal.Empty())
   {
     mPolicyDecisionSignal.Emit(std::move(decision));
+  }
+}
+
+void TizenWebEngineChromium::CertificateConfirm(std::shared_ptr<Dali::WebEngineCertificate> confirm)
+{
+  DALI_LOG_RELEASE_INFO("#CertificateConfirm.\n");
+  if (!mCertificateConfirmSignal.Empty())
+  {
+    mCertificateConfirmSignal.Emit(std::move(confirm));
+  }
+}
+
+void TizenWebEngineChromium::SslCertificateChanged(std::shared_ptr<Dali::WebEngineCertificate> info)
+{
+  DALI_LOG_RELEASE_INFO("#SslCertificateChanged.\n");
+  if (!mSslCertificateChangedSignal.Empty())
+  {
+    mSslCertificateChangedSignal.Emit(std::move(info));
+  }
+}
+
+void TizenWebEngineChromium::AuthenticationChallenge(std::shared_ptr<Dali::WebEngineHttpAuthHandler> handler)
+{
+  DALI_LOG_RELEASE_INFO("#AuthenticationChallenge.\n");
+  if (!mHttpAuthHandlerSignal.Empty())
+  {
+    mHttpAuthHandlerSignal.Emit(std::move(handler));
   }
 }
 
