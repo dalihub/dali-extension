@@ -520,6 +520,14 @@ public:
     return mFrameRenderedSignal;
   }
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RequestInterceptorSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& RequestInterceptorSignal() override
+  {
+    return mRequestInterceptorSignal;
+  }
+
 private:
   void UpdateBuffer();
 
@@ -572,6 +580,7 @@ private:
   Dali::WebEnginePlugin::WebEngineUrlChangedSignalType         mUrlChangedSignal;
   Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
 };
 
 } // namespace Plugin

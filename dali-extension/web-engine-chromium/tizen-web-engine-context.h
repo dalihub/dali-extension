@@ -34,13 +34,11 @@ namespace Plugin
  */
 class TizenWebEngineContext : public Dali::WebEngineContext
 {
-
 public:
-
   /**
    * @brief Constructor.
    */
-  TizenWebEngineContext( Ewk_Context* );
+  TizenWebEngineContext(Ewk_Context*);
 
   /**
    * @brief Destructor.
@@ -59,14 +57,14 @@ public:
    *
    * @param[in] cacheModel The cache model
    */
-  void SetCacheModel( CacheModel cacheModel ) override;
+  void SetCacheModel(CacheModel cacheModel) override;
 
   /**
    * @brief Sets the given proxy URI to network backend of specific context.
    *
    * @param[in] uri, proxy URI to set
    */
-  void SetProxyUri( const std::string& uri ) override;
+  void SetProxyUri(const std::string& uri) override;
 
   /**
    * @brief Sets a proxy auth credential to network backend of specific context.
@@ -79,10 +77,10 @@ public:
    * @param[in] username username to set
    * @param[in] password password to set
    */
-  void SetDefaultProxyAuth( const std::string& username, const std::string& password ) override;
+  void SetDefaultProxyAuth(const std::string& username, const std::string& password) override;
 
   /**
-   * Adds CA certificates to persistent NSS certificate database
+   * @brief Adds CA certificates to persistent NSS certificate database
    *
    * Function accepts a path to a CA certificate file, a path to a directory
    * containing CA certificate files, or a colon-seprarated list of those.
@@ -93,10 +91,10 @@ public:
    *
    * @param[in] certificatePath path to a CA certificate file(s), see above for details
    */
-  void SetCertificateFilePath( const std::string& certificatePath ) override;
+  void SetCertificateFilePath(const std::string& certificatePath) override;
 
   /**
-   * Requests for deleting all web databases.
+   * @brief Requests for deleting all web databases.
    */
   void DeleteWebDatabase() override;
 
@@ -116,14 +114,14 @@ public:
   void DeleteLocalFileSystem() override;
 
   /**
-   * Toggles the cache to be enabled or disabled
+   * @brief Toggles the cache to be enabled or disabled
    *
    * Function works asynchronously.
    * By default the cache is disabled resulting in not storing network data on disk.
    *
    * @param[in] cacheDisabled enable or disable cache
    */
-  void DisableCache( bool cacheDisabled ) override;
+  void DisableCache(bool cacheDisabled) override;
 
   /**
    * @brief Requests to clear cache
@@ -131,10 +129,9 @@ public:
   void ClearCache() override;
 
 private:
-
   Ewk_Context* ewkContext;
-
 };
+
 } // namespace Plugin
 } // namespace Dali
 
