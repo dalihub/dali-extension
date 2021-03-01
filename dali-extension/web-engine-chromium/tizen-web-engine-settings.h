@@ -87,6 +87,30 @@ public:
   void EnableWebSecurity( bool enabled ) override;
 
   /**
+   * @brief Enables/disables cache builder.
+   *
+   * @param[in] enabled if true, to enable cache builder
+   *        otherwise to disable
+   */
+  void EnableCacheBuilder( bool enabled ) override;
+
+  /**
+   * @brief Enables/disables use scrollbar thumb focus notifications.
+   *
+   * @param[in] used if true, to enable use scrollbar thumb focus notifications
+   *        otherwise to disable
+   */
+  void UseScrollbarThumbFocusNotifications( bool used ) override;
+
+  /**
+   * @brief Enables/disables do not track.
+   *
+   * @param[in] enabled if true, to enable do not track
+   *        otherwise to disable
+   */
+  void EnableDoNotTrack( bool enabled ) override;
+
+  /**
    * @brief Allow/Disallow file access from external url
    *
    * @param[in] allowed if true, to allow file access from external url
@@ -108,6 +132,186 @@ public:
    *       otherwise to disable
    */
   void EnableJavaScript( bool enabled ) override;
+
+  /**
+   * @brief Check if auto fitting is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsAutoFittingEnabled() const override;
+
+  /**
+   * @brief Enable/Disable auto fitting
+   *
+   * @param[in] enabled if true, to enable auto fitting
+   *       otherwise to disable
+   */
+  void EnableAutoFitting( bool enabled ) override;
+
+  /**
+   * @brief Check if plugins are enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool ArePluginsEnabled() const override;
+
+  /**
+   * @brief Enable/Disable plugins
+   *
+   * @param[in] enabled if true, to enable plugins
+   *       otherwise to disable
+   */
+  void EnablePlugins( bool enabled ) override;
+
+  /**
+   * @brief Check if private browsing is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsPrivateBrowsingEnabled() const override;
+
+  /**
+   * @brief Enable/Disable private browsing
+   *
+   * @param[in] enabled if true, to enable private browsing
+   *       otherwise to disable
+   */
+  void EnablePrivateBrowsing( bool enabled ) override;
+
+  /**
+   * @brief Check if link magnifier is enabled or not.
+   *
+   * @return  true if enabled, false if disabled.
+   */
+  bool IsLinkMagnifierEnabled() const override;
+
+  /**
+   * @brief Enable/Disable link magnifier
+   *
+   * @param[in] enabled if true, to enable link magnifier
+   *        otherwise to disable
+   */
+  void EnableLinkMagnifier( bool enabled ) override;
+
+  /**
+   * @brief Check if keypad without user action is used or not.
+   *
+   * @return true if used, false if unused.
+   */
+  bool IsKeypadWithoutUserActionUsed() const override;
+
+  /**
+   * @brief Used/Unused keypad without user action
+   *
+   * @param[in] used if true, to use keypad without user action
+   *       otherwise to unused
+   */
+  void UseKeypadWithoutUserAction( bool used ) override;
+
+  /**
+   * @brief Check if autofill password form is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsAutofillPasswordFormEnabled() const override;
+
+  /**
+   * @brief Enable/Disable autofill password form
+   *
+   * @param[in] enabled if true, to enable autofill password form
+   *       otherwise to disable
+   */
+  void EnableAutofillPasswordForm( bool enabled ) override;
+
+  /**
+   * @brief Check if form candidate data is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsFormCandidateDataEnabled() const override;
+
+  /**
+   * @brief Enable/Disable form candidate data
+   *
+   * @param[in] enabled if true, to enable form candidate data
+   *       otherwise to disable
+   */
+  void EnableFormCandidateData( bool enabled ) override;
+
+  /**
+   * @brief Check if text selection is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsTextSelectionEnabled() const override;
+
+  /**
+   * @brief Enable/Disable text selection
+   *
+   * @param[in] enabled if true, to enable text selection
+   *       otherwise to disable
+   */
+  void EnableTextSelection( bool enabled ) override;
+
+  /**
+   * @brief Check if text autosizing is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsTextAutosizingEnabled() const override;
+
+  /**
+   * @brief Enable/Disable text autosizing
+   *
+   * @param[in] enabled if true, to enable text autosizing
+   *       otherwise to disable
+   */
+  void EnableTextAutosizing( bool enabled ) override;
+
+  /**
+   * @brief Check if arrow scroll is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsArrowScrollEnabled() const override;
+
+  /**
+   * @brief Enable/Disable arrow scroll
+   *
+   * @param[in] enabled if true, to enable arrow scroll
+   *        otherwise to disable
+   */
+  void EnableArrowScroll( bool enabled ) override;
+
+  /**
+   * @brief Check if clipboard is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsClipboardEnabled() const override;
+
+  /**
+   * @brief Enable/Disable clipboard
+   *
+   * @param[in] enabled if true, to enable clipboard
+   *        otherwise to disable
+   */
+  void EnableClipboard( bool enabled ) override;
+
+  /**
+   * @brief Check if ime panel is enabled or not.
+   *
+   * @return true if enabled, false if disabled.
+   */
+  bool IsImePanelEnabled() const override;
+
+  /**
+   * @brief Enable/Disable ime panel
+   *
+   * @param[in] enabled if true, to enable ime panel
+   *        otherwise to disable
+   */
+  void EnableImePanel( bool enabled ) override;
 
   /**
    * @brief Enables/disables if the scripts can open new windows.

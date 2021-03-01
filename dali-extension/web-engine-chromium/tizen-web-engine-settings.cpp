@@ -59,6 +59,21 @@ void TizenWebEngineSettings::EnableWebSecurity( bool enabled )
   ewk_settings_web_security_enabled_set( ewkSettings, enabled );
 }
 
+void TizenWebEngineSettings::EnableCacheBuilder( bool enabled )
+{
+  ewk_settings_cache_builder_enabled_set( ewkSettings, enabled );
+}
+
+void TizenWebEngineSettings::UseScrollbarThumbFocusNotifications( bool used )
+{
+  ewk_settings_uses_scrollbar_thumb_focus_notifications_set( ewkSettings, used );
+}
+
+void TizenWebEngineSettings::EnableDoNotTrack( bool enabled )
+{
+  ewk_settings_do_not_track_set( ewkSettings, enabled );
+}
+
 void TizenWebEngineSettings::AllowFileAccessFromExternalUrl( bool allowed )
 {
   ewk_settings_allow_file_access_from_external_url_set( ewkSettings, allowed );
@@ -72,6 +87,126 @@ bool TizenWebEngineSettings::IsJavaScriptEnabled() const
 void TizenWebEngineSettings::EnableJavaScript( bool enabled )
 {
   ewk_settings_javascript_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsAutoFittingEnabled() const
+{
+  return ewk_settings_auto_fitting_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableAutoFitting( bool enabled )
+{
+  ewk_settings_auto_fitting_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::ArePluginsEnabled() const
+{
+  return ewk_settings_plugins_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnablePlugins( bool enabled )
+{
+  ewk_settings_plugins_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsPrivateBrowsingEnabled() const
+{
+  return ewk_settings_private_browsing_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnablePrivateBrowsing( bool enabled )
+{
+  ewk_settings_private_browsing_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsLinkMagnifierEnabled() const
+{
+  return ewk_settings_link_magnifier_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableLinkMagnifier( bool enabled )
+{
+  ewk_settings_link_magnifier_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsKeypadWithoutUserActionUsed() const
+{
+  return ewk_settings_uses_keypad_without_user_action_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::UseKeypadWithoutUserAction( bool used )
+{
+  ewk_settings_uses_keypad_without_user_action_set( ewkSettings, used );
+}
+
+bool TizenWebEngineSettings::IsAutofillPasswordFormEnabled() const
+{
+  return ewk_settings_autofill_password_form_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableAutofillPasswordForm( bool enabled )
+{
+  ewk_settings_autofill_password_form_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsFormCandidateDataEnabled() const
+{
+  return ewk_settings_form_candidate_data_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableFormCandidateData( bool enabled )
+{
+  ewk_settings_form_candidate_data_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsTextSelectionEnabled() const
+{
+  return ewk_settings_text_selection_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableTextSelection( bool enabled )
+{
+  ewk_settings_text_selection_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsTextAutosizingEnabled() const
+{
+  return ewk_settings_text_autosizing_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableTextAutosizing( bool enabled )
+{
+  ewk_settings_text_autosizing_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsArrowScrollEnabled() const
+{
+  return ewk_settings_uses_arrow_scroll_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableArrowScroll( bool enabled)
+{
+  ewk_settings_uses_arrow_scroll_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsClipboardEnabled() const
+{
+  return ewk_settings_clipboard_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableClipboard( bool enabled)
+{
+  ewk_settings_clipboard_enabled_set( ewkSettings, enabled );
+}
+
+bool TizenWebEngineSettings::IsImePanelEnabled() const
+{
+  return ewk_settings_ime_panel_enabled_get( ewkSettings );
+}
+
+void TizenWebEngineSettings::EnableImePanel( bool enabled)
+{
+  ewk_settings_ime_panel_enabled_set( ewkSettings, enabled );
 }
 
 void TizenWebEngineSettings::AllowScriptsOpenWindows( bool allowed )
