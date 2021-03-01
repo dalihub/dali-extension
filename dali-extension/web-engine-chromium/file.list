@@ -10,6 +10,7 @@ web_engine_chromium_plugin_src_files = \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-cookie-manager.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-form-repost-decision.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-frame.cpp \
+   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-hit-test.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-http-auth-handler.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-load-error.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-policy-decision.cpp \

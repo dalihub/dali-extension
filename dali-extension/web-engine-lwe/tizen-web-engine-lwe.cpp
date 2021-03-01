@@ -24,6 +24,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine-back-forward-list.h>
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
 #include <dali/devel-api/adaptor-framework/web-engine-cookie-manager.h>
+#include <dali/devel-api/adaptor-framework/web-engine-hit-test.h>
 #include <dali/devel-api/adaptor-framework/web-engine-security-origin.h>
 #include <dali/devel-api/adaptor-framework/web-engine-settings.h>
 #include <dali/devel-api/common/stage.h>
@@ -335,7 +336,7 @@ void TizenWebEngineLWE::UpdateBuffer()
 #endif
 }
 
-void TizenWebEngineLWE::Create(int width, int height, const std::string& locale, const std::string& timezoneId)
+void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
 {
   mOutputWidth = width;
   mOutputHeight = height;
@@ -470,7 +471,7 @@ void TizenWebEngineLWE::Create(int width, int height, const std::string& locale,
       });
 }
 
-void TizenWebEngineLWE::Create(int width, int height, int argc, char** argv)
+void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
   // NOT IMPLEMENTED
 }
@@ -779,18 +780,18 @@ bool TizenWebEngineLWE::StopInspectorServer()
   return false;
 }
 
-void TizenWebEngineLWE::ScrollBy(int deltaX, int deltaY)
+void TizenWebEngineLWE::ScrollBy(int32_t deltaX, int32_t deltaY)
 {
   // NOT IMPLEMENTED
 }
 
-bool TizenWebEngineLWE::ScrollEdgeBy(int deltaX, int deltaY)
+bool TizenWebEngineLWE::ScrollEdgeBy(int32_t deltaX, int32_t deltaY)
 {
   // NOT IMPLEMENTED
   return false;
 }
 
-void TizenWebEngineLWE::SetScrollPosition(int x, int y)
+void TizenWebEngineLWE::SetScrollPosition(int32_t x, int32_t y)
 {
   // NOT IMPLEMENTED
 }
@@ -882,6 +883,18 @@ void TizenWebEngineLWE::JavaScriptPromptReply(const std::string& result)
   // NOT IMPLEMENTED
 }
 
+std::unique_ptr<Dali::WebEngineHitTest> TizenWebEngineLWE::CreateHitTest(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode)
+{
+  // NOT IMPLEMENTED
+  return nullptr;
+}
+
+bool TizenWebEngineLWE::CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, Dali::WebEnginePlugin::WebEngineHitTestCreatedCallback callback)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
 void TizenWebEngineLWE::ClearHistory()
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
@@ -915,7 +928,7 @@ void TizenWebEngineLWE::EnableKeyEvents(bool enabled)
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::SetSize(int width, int height)
+void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
 
@@ -1078,7 +1091,7 @@ void TizenWebEngineLWE::SetFocus(bool focused)
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int> displayArea)
+void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
 {
   // NOT IMPLEMENTED
 }
@@ -1144,13 +1157,13 @@ void TizenWebEngineLWE::AddDynamicCertificatePath(const std::string& host, const
   // NOT IMPLEMENTED
 }
 
-Dali::PixelData TizenWebEngineLWE::GetScreenshot(Dali::Rect<int> viewArea, float scaleFactor)
+Dali::PixelData TizenWebEngineLWE::GetScreenshot(Dali::Rect<int32_t> viewArea, float scaleFactor)
 {
   // NOT IMPLEMENTED
   return Dali::PixelData();
 }
 
-bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::Rect<int> viewArea, float scaleFactor, Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
+bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
 {
   // NOT IMPLEMENTED
   return false;

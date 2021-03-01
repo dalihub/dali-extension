@@ -217,6 +217,11 @@ public:
    * @return true if a pop-up is shown, false otherwise
    */
   virtual bool GeolocationPermission(const std::string& host, const std::string& protocol) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer after hit test is created.
+   */
+  virtual bool HitTestCreated(std::unique_ptr<Dali::WebEngineHitTest> hitTest) = 0;
 };
 
 /**
@@ -243,12 +248,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create(int width, int height, const std::string& locale, const std::string& timezoneID) override;
+  void Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneID) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create(int width, int height, int argc, char** argv) override;
+  void Create(uint32_t width, uint32_t height, uint32_t argc, char** argv) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
@@ -375,17 +380,17 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::ScrollBy()
    */
-  void ScrollBy(int deltaX, int deltaY) override;
+  void ScrollBy(int32_t deltaX, int32_t deltaY) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ScrollEdgeBy()
    */
-  bool ScrollEdgeBy(int deltaX, int deltaY) override;
+  bool ScrollEdgeBy(int32_t deltaX, int32_t deltaY) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
    */
-  void SetScrollPosition(int x, int y) override;
+  void SetScrollPosition(int32_t x, int32_t y) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
@@ -463,6 +468,16 @@ public:
   void JavaScriptPromptReply(const std::string& result) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::CreateHitTest()
+   */
+  std::unique_ptr<Dali::WebEngineHitTest> CreateHitTest(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::CreateHitTestAsynchronously()
+   */
+  bool CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, WebEngineHitTestCreatedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()
    */
   void ClearHistory() override;
@@ -485,7 +500,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::SetSize()
    */
-  void SetSize(int width, int height) override;
+  void SetSize(uint32_t width, uint32_t height) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetDocumentBackgroundColor()
@@ -595,12 +610,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetScreenshot()
    */
-  Dali::PixelData GetScreenshot(Dali::Rect<int> viewArea, float scaleFactor) override;
+  Dali::PixelData GetScreenshot(Dali::Rect<int32_t> viewArea, float scaleFactor) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScreenshotAsynchronously()
    */
-  bool GetScreenshotAsynchronously(Dali::Rect<int> viewArea, float scaleFactor, ScreenshotCapturedCallback callback) override;
+  bool GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, ScreenshotCapturedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CheckVideoPlayingAsynchronously()
@@ -615,7 +630,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
    */
-  void UpdateDisplayArea(Dali::Rect<int> displayArea) override;
+  void UpdateDisplayArea(Dali::Rect<int32_t> displayArea) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::EnableVideoHole()
@@ -836,6 +851,11 @@ public:
    */
   bool GeolocationPermission(const std::string& host, const std::string& protocol) override;
 
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::HitTestCreated()
+   */
+  bool HitTestCreated(std::unique_ptr<Dali::WebEngineHitTest> hitTest) override;
+
 private:
   WebViewContainerForDali*   mWebViewContainer;
   Dali::NativeImageSourcePtr mDaliImageSrc;
@@ -862,12 +882,13 @@ private:
   std::unordered_map<size_t, JavaScriptCallback>      mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptCallback> mJavaScriptMessageHandlers;
 
-  Dali::WebEnginePlugin::JavaScriptAlertCallback       mJavaScriptAlertCallback;
-  Dali::WebEnginePlugin::JavaScriptConfirmCallback     mJavaScriptConfirmCallback;
-  Dali::WebEnginePlugin::JavaScriptPromptCallback      mJavaScriptPromptCallback;
-  Dali::WebEnginePlugin::ScreenshotCapturedCallback    mScreenshotCapturedCallback;
-  Dali::WebEnginePlugin::VideoPlayingCallback          mVideoPlayingCallback;
-  Dali::WebEnginePlugin::GeolocationPermissionCallback mGeolocationPermissionCallback;
+  Dali::WebEnginePlugin::JavaScriptAlertCallback         mJavaScriptAlertCallback;
+  Dali::WebEnginePlugin::JavaScriptConfirmCallback       mJavaScriptConfirmCallback;
+  Dali::WebEnginePlugin::JavaScriptPromptCallback        mJavaScriptPromptCallback;
+  Dali::WebEnginePlugin::ScreenshotCapturedCallback      mScreenshotCapturedCallback;
+  Dali::WebEnginePlugin::VideoPlayingCallback            mVideoPlayingCallback;
+  Dali::WebEnginePlugin::GeolocationPermissionCallback   mGeolocationPermissionCallback;
+  Dali::WebEnginePlugin::WebEngineHitTestCreatedCallback mHitTestCreatedCallback;
 };
 } // namespace Plugin
 } // namespace Dali
