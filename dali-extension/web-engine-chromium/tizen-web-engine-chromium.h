@@ -139,6 +139,20 @@ public:
   virtual void AuthenticationChallenge(std::shared_ptr<Dali::WebEngineHttpAuthHandler> handler) = 0;
 
   /**
+   * @brief Callback function to be called by WebViewContainer when context menu
+   * would be customized.
+   * @param [in] url New url after url is changed.
+   */
+  virtual void ContextMenuCustomized(std::shared_ptr<Dali::WebEngineContextMenu> menu) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when context menu
+   * item is selected.
+   * @param [in] url New url after url is changed.
+   */
+  virtual void ContextMenuItemSelected(std::shared_ptr<Dali::WebEngineContextMenuItem> item) = 0;
+
+  /**
    * @brief Callback function to be called by WebViewContainer when it gets
    * JavaScript evalution result.
    * @param [in] key An unsigned integer representing the result handler
@@ -688,6 +702,16 @@ public:
    */
   Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& HttpAuthHandlerSignal() override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::ContextMenuCustomizedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType& ContextMenuCustomizedSignal() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ContextMenuItemSelectedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType& ContextMenuItemSelectedSignal() override;
+
   // WebViewContainerClient Interface
 
   /**
@@ -761,6 +785,16 @@ public:
   void AuthenticationChallenge(std::shared_ptr<Dali::WebEngineHttpAuthHandler> handler) override;
 
   /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::ContextMenuCustomized()
+   */
+  void ContextMenuCustomized(std::shared_ptr<Dali::WebEngineContextMenu> menu) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::ContextMenuItemSelected()
+   */
+  void ContextMenuItemSelected(std::shared_ptr<Dali::WebEngineContextMenuItem> item) override;
+
+  /**
    * @copydoc
    * Dali::Plugin::WebViewContainerClient::RunJavaScriptEvaluationResultHandler()
    */
@@ -808,23 +842,25 @@ private:
   std::string                mUrl;
   size_t                     mJavaScriptEvaluationCount;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType      mLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType         mUrlChangedSignal;
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType  mScrollEdgeReachedSignal;
-  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
-  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
-  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType     mConsoleMessageSignal;
-  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType     mPolicyDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType        mCertificateConfirmSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType        mSslCertificateChangedSignal;
-  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType    mHttpAuthHandlerSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mLoadInProgressSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType           mLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType              mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType       mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType      mFormRepostDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType           mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType      mRequestInterceptorSignal;
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType          mConsoleMessageSignal;
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType          mPolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mCertificateConfirmSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mSslCertificateChangedSignal;
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType         mHttpAuthHandlerSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType   mContextMenuCustomizedSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType mContextMenuItemSelectedSignal;
 
-  std::unordered_map<size_t, JavaScriptCallback>               mJavaScriptEvaluationResultHandlers;
-  std::unordered_map<std::string, JavaScriptCallback>          mJavaScriptMessageHandlers;
+  std::unordered_map<size_t, JavaScriptCallback>      mJavaScriptEvaluationResultHandlers;
+  std::unordered_map<std::string, JavaScriptCallback> mJavaScriptMessageHandlers;
 
   Dali::WebEnginePlugin::JavaScriptAlertCallback       mJavaScriptAlertCallback;
   Dali::WebEnginePlugin::JavaScriptConfirmCallback     mJavaScriptConfirmCallback;

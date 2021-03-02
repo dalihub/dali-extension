@@ -21,6 +21,8 @@
 #include "tizen-web-engine-certificate.h"
 #include "tizen-web-engine-console-message.h"
 #include "tizen-web-engine-context.h"
+#include "tizen-web-engine-context-menu.h"
+#include "tizen-web-engine-context-menu-item.h"
 #include "tizen-web-engine-cookie-manager.h"
 #include "tizen-web-engine-form-repost-decision.h"
 #include "tizen-web-engine-http-auth-handler.h"
@@ -151,14 +153,14 @@ class WebViewContainerForDali
 {
 public:
   WebViewContainerForDali(WebViewContainerClient& client, int width, int height)
-      : mClient(client)
-      , mWidth(width)
-      , mHeight(height)
-      , mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
-      , mWebEngineSettings(0)
-      , mWebEngineContext(0)
-      , mWebEngineCookieManager(0)
-      , mWebEngineBackForwardList(0)
+    : mClient(client)
+    , mWidth(width)
+    , mHeight(height)
+    , mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
+    , mWebEngineSettings(0)
+    , mWebEngineContext(0)
+    , mWebEngineCookieManager(0)
+    , mWebEngineBackForwardList(0)
   {
     InitWebView(0, 0);
 
@@ -166,14 +168,14 @@ public:
   }
 
   WebViewContainerForDali(WebViewContainerClient& client, int width, int height, int argc, char** argv)
-      : mClient(client)
-      , mWidth(width)
-      , mHeight(height)
-      , mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
-      , mWebEngineSettings(0)
-      , mWebEngineContext(0)
-      , mWebEngineCookieManager(0)
-      , mWebEngineBackForwardList(0)
+    : mClient(client)
+    , mWidth(width)
+    , mHeight(height)
+    , mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
+    , mWebEngineSettings(0)
+    , mWebEngineContext(0)
+    , mWebEngineCookieManager(0)
+    , mWebEngineBackForwardList(0)
   {
     InitWebView(argc, argv);
 
@@ -262,6 +264,12 @@ public:
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "ssl,certificate,changed",
                                    &WebViewContainerForDali::OnSslCertificateChanged,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "contextmenu,customize",
+                                   &WebViewContainerForDali::OnContextMenuCustomized,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "contextmenu,selected",
+                                   &WebViewContainerForDali::OnContextMenuItemSelected,
                                    &mClient);
 
     ewk_view_authentication_callback_set(mWebView, &WebViewContainerForDali::OnAuthenticationChallenge, &mClient);
@@ -886,7 +894,7 @@ private:
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Form_Repost_Decision_Request* decisionRequest = static_cast<Ewk_Form_Repost_Decision_Request*>(eventInfo);
     std::shared_ptr<Dali::WebEngineFormRepostDecision> webDecisionRequest(new TizenWebEngineFormRepostDecision(decisionRequest));
-    client->RequestFormRepostDecision(webDecisionRequest);
+    client->RequestFormRepostDecision(std::move(webDecisionRequest));
   }
 
   static void OnScreenshotCaptured(Evas_Object* image, void* data)
@@ -916,7 +924,7 @@ private:
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
     std::shared_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
-    client->NewWindowPolicyDecided(webPolicyDecision);
+    client->NewWindowPolicyDecided(std::move(webPolicyDecision));
   }
 
   static void OnCertificateConfirmRequest(void* data, Evas_Object*, void* eventInfo)
@@ -940,6 +948,22 @@ private:
     auto client = static_cast<WebViewContainerClient*>(data);
     std::shared_ptr<Dali::WebEngineHttpAuthHandler> authHandler(new TizenWebEngineHttpAuthHandler(authChallenge));
     client->AuthenticationChallenge(std::move(authHandler));
+  }
+
+  static void OnContextMenuCustomized(void* data, Evas_Object*, void* eventInfo)
+  {
+    auto client = static_cast<WebViewContainerClient *>(data);
+    Ewk_Context_Menu* menu = (Ewk_Context_Menu *)eventInfo;
+    std::shared_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
+    client->ContextMenuCustomized(std::move(contextMenu));
+  }
+
+  static void OnContextMenuItemSelected(void* data, Evas_Object*, void* eventInfo)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Context_Menu_Item* item = (Ewk_Context_Menu_Item*)eventInfo;
+    std::shared_ptr<Dali::WebEngineContextMenuItem> contextMenuItem(new TizenWebEngineContextMenuItem(item));
+    client->ContextMenuItemSelected(std::move(contextMenuItem));
   }
 
   static void OnEvaluateJavaScript(Evas_Object* o, const char* result, void* data)
@@ -1043,8 +1067,8 @@ private:
 };
 
 TizenWebEngineChromium::TizenWebEngineChromium()
-    : mWebViewContainer(0)
-    , mJavaScriptEvaluationCount(0)
+  : mWebViewContainer(0)
+  , mJavaScriptEvaluationCount(0)
 {
 }
 
@@ -1805,6 +1829,16 @@ Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& TizenWebEngineChromiu
   return mHttpAuthHandlerSignal;
 }
 
+Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType& TizenWebEngineChromium::ContextMenuCustomizedSignal()
+{
+  return mContextMenuCustomizedSignal;
+}
+
+Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType& TizenWebEngineChromium::ContextMenuItemSelectedSignal()
+{
+  return mContextMenuItemSelectedSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -1919,6 +1953,24 @@ void TizenWebEngineChromium::AuthenticationChallenge(std::shared_ptr<Dali::WebEn
   if (!mHttpAuthHandlerSignal.Empty())
   {
     mHttpAuthHandlerSignal.Emit(std::move(handler));
+  }
+}
+
+void TizenWebEngineChromium::ContextMenuCustomized(std::shared_ptr<Dali::WebEngineContextMenu> menu)
+{
+  DALI_LOG_RELEASE_INFO("#ContextMenuCustomized.\n");
+  if (!mContextMenuCustomizedSignal.Empty())
+  {
+    mContextMenuCustomizedSignal.Emit(std::move(menu));
+  }
+}
+
+void TizenWebEngineChromium::ContextMenuItemSelected(std::shared_ptr<Dali::WebEngineContextMenuItem> item)
+{
+  DALI_LOG_RELEASE_INFO("#ContextMenuItemSelected.\n");
+  if (!mContextMenuItemSelectedSignal.Empty())
+  {
+    mContextMenuItemSelectedSignal.Emit(std::move(item));
   }
 }
 

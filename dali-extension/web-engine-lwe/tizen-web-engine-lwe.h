@@ -568,6 +568,22 @@ public:
     return mHttpAuthHandlerSignal;
   }
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::ContextMenuCustomizedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType& ContextMenuCustomizedSignal() override
+  {
+    return mContextMenuCustomizedSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ContextMenuItemSelectedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType& ContextMenuItemSelectedSignal() override
+  {
+    return mContextMenuItemSelectedSignal;
+  }
+
 private:
   void UpdateBuffer();
 
@@ -612,20 +628,22 @@ private:
 
   EventThreadCallback mUpdateBufferTrigger;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mPageLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mPageLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mPageLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType      mPageLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType  mScrollEdgeReachedSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType         mUrlChangedSignal;
-  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
-  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
-  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType     mConsoleMessageSignal;
-  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType     mPolicyDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType        mCertificateConfirmSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType        mSslCertificateChangedSignal;
-  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType    mHttpAuthHandlerSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadInProgressSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType           mPageLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType       mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType              mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType      mFormRepostDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType           mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType      mRequestInterceptorSignal;
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType          mConsoleMessageSignal;
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType          mPolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mCertificateConfirmSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mSslCertificateChangedSignal;
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType         mHttpAuthHandlerSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType   mContextMenuCustomizedSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType mContextMenuItemSelectedSignal;
 };
 
 } // namespace Plugin
