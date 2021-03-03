@@ -849,6 +849,32 @@ void TizenWebEngineLWE::SetSize(int width, int height)
   }
 }
 
+void TizenWebEngineLWE::SetDocumentBackgroundColor(Dali::Vector4 color)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::ClearTilesWhenHidden(bool cleared)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::SetTileCoverAreaMultiplier(float multiplier)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::EnableCursorByClient(bool enabled)
+{
+  // NOT IMPLEMENTED
+}
+
+std::string TizenWebEngineLWE::GetSelectedText() const
+{
+  // NOT IMPLEMENTED
+  return EMPTY_STRING;
+}
+
 void TizenWebEngineLWE::DispatchMouseDownEvent( float x, float y )
 {
   DALI_ASSERT_ALWAYS( mWebContainer );

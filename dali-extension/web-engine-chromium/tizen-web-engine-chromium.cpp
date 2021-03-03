@@ -469,6 +469,31 @@ public:
     ewk_view_key_events_enabled_set(mWebView, enabled);
   }
 
+  void SetDocumentBackgroundColor(Dali::Vector4 color)
+  {
+    ewk_view_bg_color_set(mWebView, color.r * 255, color.g * 255, color.b * 255, color.a * 255);
+  }
+
+  void ClearTilesWhenHidden(bool cleared)
+  {
+    ewk_view_clear_tiles_on_hide_enabled_set(mWebView, cleared);
+  }
+
+  void SetTileCoverAreaMultiplier(float multiplier)
+  {
+    ewk_view_tile_cover_area_multiplier_set(mWebView, multiplier);
+  }
+
+  void EnableCursorByClient(bool enabled)
+  {
+    ewk_view_set_cursor_by_client(mWebView, enabled);
+  }
+
+  std::string GetSelectedText() const
+  {
+    return ewk_view_text_selection_text_get(mWebView);
+  }
+
   bool SendTouchEvent(const TouchEvent& touch)
   {
     Ewk_Touch_Event_Type type = EWK_TOUCH_START;
@@ -1140,9 +1165,50 @@ void TizenWebEngineChromium::SetSize(int width, int height)
   }
 }
 
+void TizenWebEngineChromium::SetDocumentBackgroundColor(Dali::Vector4 color)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->SetDocumentBackgroundColor(color);
+  }
+}
+
+void TizenWebEngineChromium::ClearTilesWhenHidden(bool cleared)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->ClearTilesWhenHidden(cleared);
+  }
+}
+
+void TizenWebEngineChromium::SetTileCoverAreaMultiplier(float multiplier)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->SetTileCoverAreaMultiplier(multiplier);
+  }
+}
+
+void TizenWebEngineChromium::EnableCursorByClient(bool enabled)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->EnableCursorByClient(enabled);
+  }
+}
+
+std::string TizenWebEngineChromium::GetSelectedText() const
+{
+  if(mWebViewContainer)
+  {
+    return mWebViewContainer->GetSelectedText();
+  }
+  return EMPTY_STRING;
+}
+
 bool TizenWebEngineChromium::SendTouchEvent(const Dali::TouchEvent& touch)
 {
-  if (mWebViewContainer)
+  if(mWebViewContainer)
   {
     return mWebViewContainer->SendTouchEvent(touch);
   }
