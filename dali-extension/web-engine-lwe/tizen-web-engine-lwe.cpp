@@ -24,6 +24,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine-back-forward-list.h>
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
 #include <dali/devel-api/adaptor-framework/web-engine-cookie-manager.h>
+#include <dali/devel-api/adaptor-framework/web-engine-security-origin.h>
 #include <dali/devel-api/adaptor-framework/web-engine-settings.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
@@ -179,7 +180,8 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
     {
       keyValue = LWE::KeyValue::GreaterThanSignKey;
     }
-    else {
+    else
+    {
       keyValue = LWE::KeyValue::PeriodKey;
     }
   }
@@ -189,7 +191,8 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
     {
       keyValue = LWE::KeyValue::QuestionMarkKey;
     }
-    else {
+    else
+    {
       keyValue = LWE::KeyValue::SlashKey;
     }
   }
@@ -555,11 +558,38 @@ public:
   void SetProxyUri(const std::string& uri) override {}
   void SetDefaultProxyAuth(const std::string& username, const std::string& password) override {}
   void SetCertificateFilePath(const std::string& certificatePath) override {}
-  void DeleteWebDatabase() override {}
-  void DeleteWebStorage() override {}
+  void DeleteAllWebDatabase() override {}
+  bool GetWebDatabaseOrigins(WebEngineSecurityOriginAcquiredCallback callback) override
+  {
+    return false;
+  }
+  bool DeleteWebDatabase(WebEngineSecurityOrigin &origin) override
+  {
+    return false;
+  }
+  bool GetWebStorageOrigins(WebEngineSecurityOriginAcquiredCallback callback) override
+  {
+    return false;
+  }
+  bool GetWebStorageUsageForOrigin(WebEngineSecurityOrigin &origin, WebEngineStorageUsageAcquiredCallback callback) override
+  {
+    return false;
+  }
+  void DeleteAllWebStorage() override {}
+  bool DeleteWebStorageOrigin(WebEngineSecurityOrigin &origin) override
+  {
+    return false;
+  }
   void DeleteLocalFileSystem() override {}
   void DisableCache(bool cacheDisabled) override {}
   void ClearCache() override {}
+  bool DeleteApplicationCache(WebEngineSecurityOrigin &origin) override
+  {
+    return false;
+  }
+  void GetFormPasswordList(WebEngineFormPasswordAcquiredCallback callback) override {}
+  void RegisterDownloadStartedCallback(WebEngineDownloadStartedCallback callback) override {}
+  void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override {}
 };
 
 Dali::WebEngineContext& TizenWebEngineLWE::GetContext() const
@@ -1101,8 +1131,7 @@ bool TizenWebEngineLWE::SetVisibility(bool visible)
   return false;
 }
 
-bool TizenWebEngineLWE::HighlightText(const std::string& text, Dali::WebEnginePlugin::FindOption options,
-                                      uint32_t maxMatchCount)
+bool TizenWebEngineLWE::HighlightText(const std::string& text, Dali::WebEnginePlugin::FindOption options, uint32_t maxMatchCount)
 {
   // NOT IMPLEMENTED
   return false;
@@ -1119,8 +1148,7 @@ Dali::PixelData TizenWebEngineLWE::GetScreenshot(Dali::Rect<int> viewArea, float
   return Dali::PixelData();
 }
 
-bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::Rect<int> viewArea, float scaleFactor,
-                                                    Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
+bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::Rect<int> viewArea, float scaleFactor, Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
 {
   // NOT IMPLEMENTED
   return false;

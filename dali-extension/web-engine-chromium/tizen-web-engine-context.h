@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_WEB_ENGINE_CONTEXT_H
 
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@
  */
 
 // EXTERNAL INCLUDES
-#include <string>
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
+#include <eina_list.h>
+#include <string>
 
 struct Ewk_Context;
 
@@ -46,89 +47,153 @@ public:
   ~TizenWebEngineContext();
 
   /**
-   * @brief Returns the cache model type.
-   *
-   * @return #Dali::WebEngineContext::CacheModel
+   * @copydoc Dali::WebEngineContext::GetCacheModel()
    */
   CacheModel GetCacheModel() const override;
 
   /**
-   * @brief Requests to set the cache model.
-   *
-   * @param[in] cacheModel The cache model
+   * @copydoc Dali::WebEngineContext::SetCacheModel()
    */
   void SetCacheModel(CacheModel cacheModel) override;
 
   /**
-   * @brief Sets the given proxy URI to network backend of specific context.
-   *
-   * @param[in] uri, proxy URI to set
+   * @copydoc Dali::WebEngineContext::SetProxyUri()
    */
   void SetProxyUri(const std::string& uri) override;
 
   /**
-   * @brief Sets a proxy auth credential to network backend of specific context.
-   *
-   * @details Normally, proxy auth credential should be got from the callback
-   *          set by ewk_view_authentication_callback_set, once the username in
-   *          this API has been set with a non-null value, the authentication
-   *          callback will never been invoked. Try to avoid using this API.
-   *
-   * @param[in] username username to set
-   * @param[in] password password to set
+   * @copydoc Dali::WebEngineContext::SetDefaultProxyAuth()
    */
   void SetDefaultProxyAuth(const std::string& username, const std::string& password) override;
 
   /**
-   * @brief Adds CA certificates to persistent NSS certificate database
-   *
-   * Function accepts a path to a CA certificate file, a path to a directory
-   * containing CA certificate files, or a colon-seprarated list of those.
-   *
-   * Certificate files should have *.crt extension.
-   *
-   * Directories are traversed recursively.
-   *
-   * @param[in] certificatePath path to a CA certificate file(s), see above for details
+   * @copydoc Dali::WebEngineContext::SetCertificateFilePath()
    */
   void SetCertificateFilePath(const std::string& certificatePath) override;
 
   /**
-   * @brief Requests for deleting all web databases.
+   * @copydoc Dali::WebEngineContext::DeleteAllWebDatabase()
    */
-  void DeleteWebDatabase() override;
+  void DeleteAllWebDatabase() override;
 
   /**
-   * @brief Deletes web storage.
-   *
-   * @details This function does not ensure that all data will be removed.
-   *          Should be used to extend free physical memory.
-   *
-   * @param[in] context Context object
+   * @copydoc Dali::WebEngineContext::GetWebDatabaseOrigins()
    */
-  void DeleteWebStorage() override;
+  bool GetWebDatabaseOrigins(WebEngineSecurityOriginAcquiredCallback callback) override;
 
   /**
-   * @brief Requests for deleting all local file systems.
+   * @copydoc Dali::WebEngineContext::DeleteWebDatabase()
+   */
+  bool DeleteWebDatabase(WebEngineSecurityOrigin& origin) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetWebStorageOrigins()
+   */
+  bool GetWebStorageOrigins(WebEngineSecurityOriginAcquiredCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetWebStorageUsageForOrigin()
+   */
+  bool GetWebStorageUsageForOrigin(WebEngineSecurityOrigin& origin, WebEngineStorageUsageAcquiredCallback callback);
+
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteAllWebStorage()
+   */
+  void DeleteAllWebStorage() override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteWebStorageOrigin()
+   */
+  bool DeleteWebStorageOrigin(WebEngineSecurityOrigin& origin) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteLocalFileSystem()
    */
   void DeleteLocalFileSystem() override;
 
   /**
-   * @brief Toggles the cache to be enabled or disabled
-   *
-   * Function works asynchronously.
-   * By default the cache is disabled resulting in not storing network data on disk.
-   *
-   * @param[in] cacheDisabled enable or disable cache
+   * @copydoc Dali::WebEngineContext::DisableCache()
    */
   void DisableCache(bool cacheDisabled) override;
 
   /**
-   * @brief Requests to clear cache
+   * @copydoc Dali::WebEngineContext::ClearCache()
    */
   void ClearCache() override;
 
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteApplicationCache()
+   */
+  bool DeleteApplicationCache(WebEngineSecurityOrigin& origin) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetFormPasswordList()
+   */
+  void GetFormPasswordList(WebEngineFormPasswordAcquiredCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::RegisterDownloadStartedCallback()
+   */
+  void RegisterDownloadStartedCallback(WebEngineDownloadStartedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::RegisterMimeOverriddenCallback()
+   */
+  void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override;
+
 private:
+  /**
+   * @brief Callback for getting security origins.
+   *
+   * @param[in] origins security origins list
+   * @param[in] data data for callback
+   */
+  static void OnSecurityOriginsAcquired(Eina_List* origins, void* data);
+
+  /**
+   * @brief Callback for getting storage.
+   *
+   * @param[in] usage usage for storage
+   * @param[in] data data for callback
+   */
+  static void OnStorageUsageAcquired(uint64_t usage, void* data);
+
+  /**
+   * @brief Callback for getting form passwords.
+   *
+   * @param[in] list list for form password
+   * @param[in] data data for callback
+   */
+  static void OnFormPasswordsAcquired(Eina_List* list, void* data);
+
+  /**
+   * @brief Callback for download started.
+   *
+   * @param[in] downloadUrl url to download
+   * @param[in] data data for callback
+   */
+  static void OnDownloadStarted(const char* downloadUrl, void* data);
+
+  /**
+   * @brief Callback for overriding default mime type.
+   *
+   * @param[in] url url for which the mime type can be overridden
+   * @param[in] mime current mime type
+   * @param[out] newMime a new mime type for url
+   * @param[in] data data for callback
+   *
+   * @return true in case mime should be overridden by the contents of new mime,
+   * false otherwise.
+   */
+  static Eina_Bool OnMimeOverridden(const char* url, const char* mime, char** newMime, void* data);
+
+private:
+  WebEngineSecurityOriginAcquiredCallback webSecurityOriginAcquiredCallback;
+  WebEngineStorageUsageAcquiredCallback   webStorageUsageAcquiredCallback;
+  WebEngineFormPasswordAcquiredCallback   webFormPasswordAcquiredCallback;
+  WebEngineDownloadStartedCallback        webDownloadStartedCallback;
+  WebEngineMimeOverriddenCallback         webMimeOverriddenCallback;
+
   Ewk_Context* ewkContext;
 };
 
