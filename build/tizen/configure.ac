@@ -32,6 +32,7 @@ PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
 AC_CONFIG_SUBDIRS(video-player)
+AC_CONFIG_SUBDIRS(camera-player)
 AC_CONFIG_SUBDIRS(image-loader)
 AC_CONFIG_SUBDIRS(color-controller)
 
