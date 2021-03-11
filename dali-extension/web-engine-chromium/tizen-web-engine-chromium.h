@@ -27,20 +27,20 @@
 #include <tbm_surface.h>
 #include <unordered_map>
 
-namespace Dali {
-
+namespace Dali
+{
 class PixelData;
 
-namespace Plugin {
-
+namespace Plugin
+{
 class WebViewContainerForDali;
 
 /**
  * @brief The interface class to represent client of corresponding WebView
  * container (WebViewContainerForDali).
  */
-class WebViewContainerClient {
-
+class WebViewContainerClient
+{
 public:
   /**
    * @brief Callback function to be called by WebViewContainer when surface is
@@ -87,7 +87,7 @@ public:
    * changed.
    * @param [in] url New url after url is changed.
    */
-  virtual void UrlChanged(const std::string &url) = 0;
+  virtual void UrlChanged(const std::string& url) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when it gets
@@ -96,8 +96,7 @@ public:
    * @param [in] result Result string from JavaScript runtime
    * @see Dali::Plugin::TizenWebEngineChromium::EvaluateJavaScript
    */
-  virtual void RunJavaScriptEvaluationResultHandler(size_t key,
-                                                    const char *result) = 0;
+  virtual void RunJavaScriptEvaluationResultHandler(size_t key, const char *result) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when a message
@@ -106,38 +105,35 @@ public:
    * @param [in] message Message from JavaScript runtime
    * @see Dali::Plugin::TizenWebEngineChromium::AddJavaScriptMessageHandler
    */
-  virtual void RunJavaScriptMessageHandler(const std::string &objectName,
-                                           const std::string &message) = 0;
+  virtual void RunJavaScriptMessageHandler(const std::string& objectName, const std::string& message) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when javascript
    * alert is running.
    */
-  virtual bool JavaScriptAlert(const std::string &alert_text) = 0;
+  virtual bool JavaScriptAlert(const std::string& alert_text) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when javascript
    * confirm is running.
    */
-  virtual bool JavaScriptConfirm(const std::string &message) = 0;
+  virtual bool JavaScriptConfirm(const std::string& message) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when javascript
    * prompt is running.
    */
-  virtual bool JavaScriptPrompt(const std::string &message,
-                                const std::string &default_value) = 0;
+  virtual bool JavaScriptPrompt(const std::string& message, const std::string& default_value) = 0;
 };
 
 /**
  * @brief A class implements WebViewContainerClient and Dali::WebEnginePlugin
  * for tizen chromium.
  */
-class TizenWebEngineChromium : public Dali::WebEnginePlugin,
-                               public WebViewContainerClient {
-
+class TizenWebEngineChromium : public Dali::WebEnginePlugin, public WebViewContainerClient
+{
 public:
-  typedef std::function<void(const std::string &)> JavaScriptCallback;
+  typedef std::function<void(const std::string& )> JavaScriptCallback;
 
   /**
    * @brief Constructor.
@@ -154,8 +150,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create(int width, int height, const std::string &locale,
-              const std::string &timezoneID) override;
+  void Create(int width, int height, const std::string& locale, const std::string& timezoneID) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
@@ -170,27 +165,27 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetSettings()
    */
-  Dali::WebEngineSettings &GetSettings() const override;
+  Dali::WebEngineSettings& GetSettings() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetContext()
    */
-  Dali::WebEngineContext &GetContext() const override;
+  Dali::WebEngineContext& GetContext() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetCookieManager()
    */
-  Dali::WebEngineCookieManager &GetCookieManager() const override;
+  Dali::WebEngineCookieManager& GetCookieManager() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetBackForwardList()
    */
-  Dali::WebEngineBackForwardList &GetBackForwardList() const override;
+  Dali::WebEngineBackForwardList& GetBackForwardList() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadUrl()
    */
-  void LoadUrl(const std::string &url) override;
+  void LoadUrl(const std::string& url) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
@@ -210,12 +205,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
    */
-  const std::string &GetUrl() override;
+  const std::string& GetUrl() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHtmlString()
    */
-  void LoadHtmlString(const std::string &string) override;
+  void LoadHtmlString(const std::string& string) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Reload()
@@ -285,22 +280,17 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::EvaluateJavaScript()
    */
-  void EvaluateJavaScript(
-      const std::string &script,
-      std::function<void(const std::string &)> resultHandler) override;
+  void EvaluateJavaScript(const std::string& script, std::function<void(const std::string& )> resultHandler) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
    */
-  void AddJavaScriptMessageHandler(
-      const std::string &exposedObjectName,
-      std::function<void(const std::string &)> handler) override;
+  void AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string& )> handler) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptAlertCallback()
    */
-  void RegisterJavaScriptAlertCallback(
-      Dali::WebEnginePlugin::JavaScriptAlertCallback callback) override;
+  void RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::JavaScriptAlertReply()
@@ -310,8 +300,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptConfirmCallback()
    */
-  void RegisterJavaScriptConfirmCallback(
-      Dali::WebEnginePlugin::JavaScriptConfirmCallback callback) override;
+  void RegisterJavaScriptConfirmCallback(Dali::WebEnginePlugin::JavaScriptConfirmCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::JavaScriptConfirmReply()
@@ -321,13 +310,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptPromptCallback()
    */
-  void RegisterJavaScriptPromptCallback(
-      Dali::WebEnginePlugin::JavaScriptPromptCallback callback) override;
+  void RegisterJavaScriptPromptCallback(Dali::WebEnginePlugin::JavaScriptPromptCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::JavaScriptPromptReply()
    */
-  void JavaScriptPromptReply(const std::string &result) override;
+  void JavaScriptPromptReply(const std::string& result) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()
@@ -342,12 +330,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUserAgent()
    */
-  const std::string &GetUserAgent() const override;
+  const std::string& GetUserAgent() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetUserAgent()
    */
-  void SetUserAgent(const std::string &userAgent) override;
+  void SetUserAgent(const std::string& userAgent) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetSize()
@@ -357,12 +345,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::SendTouchEvent()
    */
-  bool SendTouchEvent(const Dali::TouchEvent &touch) override;
+  bool SendTouchEvent(const Dali::TouchEvent& touch) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendKeyEvent()
    */
-  bool SendKeyEvent(const Dali::KeyEvent &event) override;
+  bool SendKeyEvent(const Dali::KeyEvent& event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetFocus()
@@ -386,38 +374,32 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
    */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType &
-  PageLoadStartedSignal() override;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadStartedSignal() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadInProgressSignal()
    */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType &
-  PageLoadInProgressSignal() override;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadInProgressSignal() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadFinishedSignal()
    */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType &
-  PageLoadFinishedSignal() override;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadFinishedSignal() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadErrorSignal()
    */
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType &
-  PageLoadErrorSignal() override;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& PageLoadErrorSignal() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ScrollEdgeReachedSignal()
    */
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType &
-  ScrollEdgeReachedSignal() override;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::UrlChangedSignal()
    */
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType &
-  UrlChangedSignal() override;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType& UrlChangedSignal() override;
 
   // WebViewContainerClient Interface
 
@@ -454,61 +436,54 @@ public:
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
    */
-  void UrlChanged(const std::string &url) override;
+  void UrlChanged(const std::string& url) override;
 
   /**
    * @copydoc
    * Dali::Plugin::WebViewContainerClient::RunJavaScriptEvaluationResultHandler()
    */
-  void RunJavaScriptEvaluationResultHandler(size_t key,
-                                            const char *result) override;
+  void RunJavaScriptEvaluationResultHandler(size_t key, const char *result) override;
 
   /**
    * @copydoc
    * Dali::Plugin::WebViewContainerClient::RunJavaScriptMessageHandler()
    */
-  void RunJavaScriptMessageHandler(const std::string &objectName,
-                                   const std::string &message) override;
+  void RunJavaScriptMessageHandler(const std::string& objectName, const std::string& message) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::JavaScriptAlert()
    */
-  bool JavaScriptAlert(const std::string &alert_text) override;
+  bool JavaScriptAlert(const std::string& alert_text) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::JavaScriptConfirm()
    */
-  bool JavaScriptConfirm(const std::string &message) override;
+  bool JavaScriptConfirm(const std::string& message) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::JavaScriptPrompt()
    */
-  bool JavaScriptPrompt(const std::string &message,
-                        const std::string &default_value) override;
+  bool JavaScriptPrompt(const std::string& message, const std::string& default_value) override;
 
 private:
-  WebViewContainerForDali *mWebViewContainer;
+  WebViewContainerForDali*   mWebViewContainer;
   Dali::NativeImageSourcePtr mDaliImageSrc;
-  std::string mUrl;
-  size_t mJavaScriptEvaluationCount;
+  std::string                mUrl;
+  size_t                     mJavaScriptEvaluationCount;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType mLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType mLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType mLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType          mLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType          mLoadInProgressSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType          mLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType     mLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType        mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType mScrollEdgeReachedSignal;
 
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType
-      mScrollEdgeReachedSignal;
+  std::unordered_map<size_t, JavaScriptCallback>              mJavaScriptEvaluationResultHandlers;
+  std::unordered_map<std::string, JavaScriptCallback>         mJavaScriptMessageHandlers;
 
-  std::unordered_map<size_t, JavaScriptCallback>
-      mJavaScriptEvaluationResultHandlers;
-  std::unordered_map<std::string, JavaScriptCallback>
-      mJavaScriptMessageHandlers;
-
-  Dali::WebEnginePlugin::JavaScriptAlertCallback mJavaScriptAlertCallback;
+  Dali::WebEnginePlugin::JavaScriptAlertCallback   mJavaScriptAlertCallback;
   Dali::WebEnginePlugin::JavaScriptConfirmCallback mJavaScriptConfirmCallback;
-  Dali::WebEnginePlugin::JavaScriptPromptCallback mJavaScriptPromptCallback;
+  Dali::WebEnginePlugin::JavaScriptPromptCallback  mJavaScriptPromptCallback;
 };
 } // namespace Plugin
 } // namespace Dali
