@@ -536,7 +536,14 @@ public:
   bool AreImagesLoadedAutomatically() const override { return false; }
   void AllowImagesLoadAutomatically( bool automatic ) override {}
   std::string GetDefaultTextEncodingName() const override { return EMPTY_STRING; }
-  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override {}
+  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override { }
+  bool SetViewportMetaTag(bool enable) override {return false;}
+  bool SetForceZoom(bool enable) override {return false;}
+  bool IsZoomForced() const override {return false;}
+  bool SetTextZoomEnabled(bool enable) override {return false;}
+  bool IsTextZoomEnabled() const override {return false;}
+  void SetExtraFeature(const std::string& feature, bool enable) override { }
+  bool IsExtraFeatureEnabled(const std::string& feature) const override {return false;}
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const

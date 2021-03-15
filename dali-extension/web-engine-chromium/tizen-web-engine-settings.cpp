@@ -234,5 +234,40 @@ void TizenWebEngineSettings::SetDefaultTextEncodingName( const std::string& defa
   ewk_settings_default_text_encoding_name_set( ewkSettings, defaultTextEncodingName.c_str() );
 }
 
+bool TizenWebEngineSettings::SetViewportMetaTag(bool enable)
+{
+  return ewk_settings_viewport_meta_tag_set(ewkSettings, enable);
+}
+
+bool TizenWebEngineSettings::SetForceZoom(bool enable)
+{
+  return ewk_settings_force_zoom_set(ewkSettings, enable);
+}
+
+bool TizenWebEngineSettings::IsZoomForced() const
+{
+  return ewk_settings_force_zoom_get(ewkSettings);
+}
+
+bool TizenWebEngineSettings::SetTextZoomEnabled(bool enable)
+{
+  return ewk_settings_text_zoom_enabled_set(ewkSettings, enable);
+}
+
+bool TizenWebEngineSettings::IsTextZoomEnabled() const
+{
+  return ewk_settings_text_zoom_enabled_get(ewkSettings);
+}
+
+void TizenWebEngineSettings::SetExtraFeature(const std::string& feature, bool enable)
+{
+  ewk_settings_extra_feature_set(ewkSettings, feature.c_str(), enable);
+}
+
+bool TizenWebEngineSettings::IsExtraFeatureEnabled(const std::string& feature) const
+{
+  return ewk_settings_extra_feature_get(ewkSettings, feature.c_str());
+}
+
 } // namespace Plugin
 } // namespace Dali
