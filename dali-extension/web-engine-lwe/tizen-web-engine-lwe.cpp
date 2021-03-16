@@ -511,9 +511,36 @@ public:
   uint32_t GetDefaultFontSize() const override { return 0; }
   void SetDefaultFontSize( uint32_t size ) override { }
   void EnableWebSecurity( bool enabled ) override { }
+  void EnableCacheBuilder( bool enabled ) override { }
+  void UseScrollbarThumbFocusNotifications( bool used ) override { }
+  void EnableDoNotTrack( bool enabled ) override { }
   void AllowFileAccessFromExternalUrl( bool allowed ) override { }
   bool IsJavaScriptEnabled() const override { return false; }
   void EnableJavaScript( bool enabled ) override { }
+  bool IsAutoFittingEnabled() const override { return false; }
+  void EnableAutoFitting( bool enabled ) override { }
+  bool ArePluginsEnabled() const override { return false; }
+  void EnablePlugins( bool enabled ) override { }
+  bool IsPrivateBrowsingEnabled() const override { return false; }
+  void EnablePrivateBrowsing( bool enabled ) override { }
+  bool IsLinkMagnifierEnabled() const override { return false; }
+  void EnableLinkMagnifier( bool enabled ) override { }
+  bool IsKeypadWithoutUserActionUsed() const override { return false; }
+  void UseKeypadWithoutUserAction( bool used ) override { }
+  bool IsAutofillPasswordFormEnabled() const override { return false; }
+  void EnableAutofillPasswordForm( bool enabled ) override { }
+  bool IsFormCandidateDataEnabled() const override { return false; }
+  void EnableFormCandidateData( bool enabled ) override { }
+  bool IsTextSelectionEnabled() const override { return false; }
+  void EnableTextSelection( bool enabled ) override { }
+  bool IsTextAutosizingEnabled() const override { return false; }
+  void EnableTextAutosizing( bool enabled ) override { }
+  bool IsArrowScrollEnabled() const override { return false; }
+  void EnableArrowScroll( bool enabled ) override { }
+  bool IsClipboardEnabled() const override { return false; }
+  void EnableClipboard( bool enabled ) override { }
+  bool IsImePanelEnabled() const override { return false; }
+  void EnableImePanel( bool enabled ) override { }
   void AllowScriptsOpenWindows( bool allowed ) override { }
   bool AreImagesLoadedAutomatically() const override { return false; }
   void AllowImagesLoadAutomatically( bool automatic ) override { }
