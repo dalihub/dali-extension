@@ -16,6 +16,7 @@
  */
 
 #include "tizen-web-engine-cookie-manager.h"
+#include <ewk_cookie_manager_product.h>
 
 namespace Dali
 {
@@ -51,6 +52,18 @@ void TizenWebEngineCookieManager::SetPersistentStorage(const std::string& path, 
 void TizenWebEngineCookieManager::ClearCookies()
 {
   ewk_cookie_manager_cookies_clear(mEwkCookieManager);
+}
+
+void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback)
+{
+  mWebChangesWatchCallback = callback;
+  ewk_cookie_manager_changes_watch(mEwkCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, this);
+}
+
+void TizenWebEngineCookieManager::OnChangesWatch(void *data)
+{
+  TizenWebEngineCookieManager* pThis = static_cast<TizenWebEngineCookieManager*>(data);
+  pThis->mWebChangesWatchCallback();
 }
 
 } // namespace Plugin

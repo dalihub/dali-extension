@@ -618,6 +618,7 @@ public:
   }
   void SetPersistentStorage(const std::string& path, CookiePersistentStorage storage) override {}
   void ClearCookies() override {}
+  void ChangesWatch(WebEngineCookieManagerChangesWatchCallback callback) override {}
 };
 
 Dali::WebEngineCookieManager& TizenWebEngineLWE::GetCookieManager() const

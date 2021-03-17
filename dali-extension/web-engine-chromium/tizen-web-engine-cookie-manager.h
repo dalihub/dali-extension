@@ -66,9 +66,24 @@ public:
    */
   void ClearCookies() override;
 
+  /**
+   * @copydoc Dali::WebEngineCookieManager::ChangesWatch()
+   */
+  void ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback) override;
+
+private:
+
+  /**
+   * @brief Callback for changing watch.
+   *
+   * @param[in] data Data for callback
+   */
+  static void OnChangesWatch(void *data);
+
 private:
   Ewk_Cookie_Manager*      mEwkCookieManager;
   Ewk_Cookie_Accept_Policy mCookieAcceptancePolicy;
+  Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback mWebChangesWatchCallback;
 };
 
 } // namespace Plugin
