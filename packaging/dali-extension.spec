@@ -96,6 +96,20 @@ BuildRequires:  pkgconfig(ecore-wayland)
 VideoPlayer plugin to play a video file for Dali
 
 ##############################
+# Dali CameraPlayer Plugin
+##############################
+
+%package camera-player-plugin
+Summary:    Plugin to play a camera file for Dali
+Group:      System/Libraries
+BuildRequires: pkgconfig(capi-media-camera)
+# dali-adaptor uses ecore mainloop
+BuildRequires:  pkgconfig(ecore-wl2)
+
+%description camera-player-plugin
+CameraPlayer plugin to play a camera file for Dali
+
+##############################
 # Dali Web Engine chromium Plugin
 ##############################
 
@@ -265,6 +279,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post camera-player-plugin
+/sbin/ldconfig
+exit 0
+
 %if 0%{?tizen_55_or_greater}
 %post web-engine-chromium-plugin
 pushd %{_libdir}
@@ -318,6 +336,10 @@ exit 0
 exit 0
 
 %postun video-player-plugin
+/sbin/ldconfig
+exit 0
+
+%postun camera-player-plugin
 /sbin/ldconfig
 exit 0
 
@@ -379,6 +401,12 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-video-player-plugin.so*
+%license LICENSE
+
+%files camera-player-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-camera-player-plugin.so*
 %license LICENSE
 
 %if 0%{?tizen_55_or_greater}
