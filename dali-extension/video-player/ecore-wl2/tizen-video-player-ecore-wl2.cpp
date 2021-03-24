@@ -27,55 +27,52 @@
 // INTERNAL INCLUDES
 
 // The plugin factories
-extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPlugin( Dali::Actor actor, Dali::VideoSyncMode syncMode )
+extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPlugin(Dali::Actor actor, Dali::VideoSyncMode syncMode)
 {
-  return new Dali::Plugin::TizenVideoPlayer( actor, syncMode );
+  return new Dali::Plugin::TizenVideoPlayer(actor, syncMode);
 }
 
-extern "C" DALI_EXPORT_API void DestroyVideoPlayerPlugin( Dali::VideoPlayerPlugin* plugin )
+extern "C" DALI_EXPORT_API void DestroyVideoPlayerPlugin(Dali::VideoPlayerPlugin* plugin)
 {
-  if( plugin != NULL )
+  if(plugin != NULL)
   {
     delete plugin;
   }
 }
 namespace Dali
 {
-
 namespace Plugin
 {
-
 namespace
 {
+const int TIMER_INTERVAL(20);
 
-const int TIMER_INTERVAL( 20 );
-
-static void MediaPacketVideoDecodedCb( media_packet_h packet, void* user_data )
+static void MediaPacketVideoDecodedCb(media_packet_h packet, void* user_data)
 {
-  TizenVideoPlayer* player = static_cast< TizenVideoPlayer* >( user_data );
+  TizenVideoPlayer* player = static_cast<TizenVideoPlayer*>(user_data);
 
-  if( player == NULL )
+  if(player == NULL)
   {
-    DALI_LOG_ERROR( "Decoded callback got Null pointer as user_data.\n" );
+    DALI_LOG_ERROR("Decoded callback got Null pointer as user_data.\n");
     return;
   }
 
-  player->PushPacket( packet );
+  player->PushPacket(packet);
 }
 
-static void EmitPlaybackFinishedSignal( void* user_data )
+static void EmitPlaybackFinishedSignal(void* user_data)
 {
-  TizenVideoPlayer* player = static_cast< TizenVideoPlayer* >( user_data );
+  TizenVideoPlayer* player = static_cast<TizenVideoPlayer*>(user_data);
 
-  if( player == NULL )
+  if(player == NULL)
   {
-    DALI_LOG_ERROR( "Decoded callback got Null pointer as user_data.\n" );
+    DALI_LOG_ERROR("Decoded callback got Null pointer as user_data.\n");
     return;
   }
 
-  if( !player->mFinishedSignal.Empty() )
+  if(!player->mFinishedSignal.Empty())
   {
-    DALI_LOG_ERROR( "EmitPlaybackFinishedSignal.3\n" );
+    DALI_LOG_ERROR("EmitPlaybackFinishedSignal.3\n");
     player->mFinishedSignal.Emit();
   }
 
@@ -84,286 +81,317 @@ static void EmitPlaybackFinishedSignal( void* user_data )
 
 // ToDo: VD player_set_play_position() doesn't work when callback pointer is NULL.
 // We should check whether this callback is needed in platform.
-static void PlayerSeekCompletedCb( void* data )
+static void PlayerSeekCompletedCb(void* data)
 {
 }
 
-void LogPlayerError( int error )
+int LogPlayerError(int error)
 {
-  if( error != PLAYER_ERROR_NONE )
+  int ret = 0;
+  if(error != PLAYER_ERROR_NONE)
   {
-    switch( error )
+    ret = error;
+    switch(error)
     {
       case PLAYER_ERROR_OUT_OF_MEMORY:
       {
-        DALI_LOG_ERROR( "Player error: Out of memory\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Out of memory\n");
       }
+      break;
       case PLAYER_ERROR_INVALID_PARAMETER:
       {
-        DALI_LOG_ERROR( "Player error: Invalid parameter\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Invalid parameter\n");
       }
+      break;
       case PLAYER_ERROR_NO_SUCH_FILE:
       {
-        DALI_LOG_ERROR( "Player error: No such file\n" );
-        return;
+        DALI_LOG_ERROR("Player error: No such file\n");
       }
+      break;
       case PLAYER_ERROR_INVALID_OPERATION:
       {
-        DALI_LOG_ERROR( "Player error: Invalid operation\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Invalid operation\n");
       }
+      break;
       case PLAYER_ERROR_FILE_NO_SPACE_ON_DEVICE:
       {
-        DALI_LOG_ERROR( "Player error: No space on device\n" );
-        return;
+        DALI_LOG_ERROR("Player error: No space on device\n");
       }
+      break;
       case PLAYER_ERROR_FEATURE_NOT_SUPPORTED_ON_DEVICE:
       {
-        DALI_LOG_ERROR( "Player error: Not supported feature on device\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Not supported feature on device\n");
       }
+      break;
       case PLAYER_ERROR_SEEK_FAILED:
       {
-        DALI_LOG_ERROR( "Player error: Seek failed\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Seek failed\n");
       }
+      break;
       case PLAYER_ERROR_INVALID_STATE:
       {
-        DALI_LOG_ERROR( "Player error: Invalid state\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Invalid state\n");
       }
+      break;
       case PLAYER_ERROR_NOT_SUPPORTED_FILE:
       {
-        DALI_LOG_ERROR( "Player error: Not supported file\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Not supported file\n");
       }
+      break;
       case PLAYER_ERROR_INVALID_URI:
       {
-        DALI_LOG_ERROR( "Player error: Invalid uri\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Invalid uri\n");
       }
+      break;
       case PLAYER_ERROR_SOUND_POLICY:
       {
-        DALI_LOG_ERROR( "Player error: Sound policy\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Sound policy\n");
       }
+      break;
       case PLAYER_ERROR_CONNECTION_FAILED:
       {
-        DALI_LOG_ERROR( "Player error: Connection failed\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Connection failed\n");
       }
+      break;
       case PLAYER_ERROR_VIDEO_CAPTURE_FAILED:
       {
-        DALI_LOG_ERROR( "Player error: Video capture failed\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Video capture failed\n");
       }
+      break;
       case PLAYER_ERROR_DRM_EXPIRED:
       {
-        DALI_LOG_ERROR( "Player error: DRM expired\n" );
-        return;
+        DALI_LOG_ERROR("Player error: DRM expired\n");
       }
+      break;
       case PLAYER_ERROR_DRM_NO_LICENSE:
       {
-        DALI_LOG_ERROR( "Player error: No license\n" );
-        return;
+        DALI_LOG_ERROR("Player error: No license\n");
       }
+      break;
       case PLAYER_ERROR_DRM_FUTURE_USE:
       {
-        DALI_LOG_ERROR( "Player error: License for future use\n" );
-        return;
+        DALI_LOG_ERROR("Player error: License for future use\n");
       }
+      break;
       case PLAYER_ERROR_DRM_NOT_PERMITTED:
       {
-        DALI_LOG_ERROR( "Player error: Format not permitted\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Format not permitted\n");
       }
+      break;
       case PLAYER_ERROR_RESOURCE_LIMIT:
       {
-        DALI_LOG_ERROR( "Player error: Resource limit\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Resource limit\n");
       }
+      break;
       case PLAYER_ERROR_PERMISSION_DENIED:
       {
-        DALI_LOG_ERROR( "Player error: Permission denied\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Permission denied\n");
       }
+      break;
       case PLAYER_ERROR_SERVICE_DISCONNECTED:
       {
-        DALI_LOG_ERROR( "Player error: Service disconnected\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Service disconnected\n");
       }
+      break;
       case PLAYER_ERROR_BUFFER_SPACE:
       {
-        DALI_LOG_ERROR( "Player error: Buffer space\n" );
-        return;
+        DALI_LOG_ERROR("Player error: Buffer space\n");
       }
+      break;
       case PLAYER_ERROR_NOT_SUPPORTED_VIDEO_CODEC:
       {
-        DALI_LOG_ERROR( "Player error: The target should not support the codec type\n" );
-        return;
+        DALI_LOG_ERROR("Player error: The target should not support the codec type\n");
       }
-      default :
+      break;
+      default:
       {
-        DALI_LOG_ERROR( "Player error: Unknown error code ( %d ) \n", error );
-        return;
+        DALI_LOG_ERROR("Player error: Unknown error code ( %d ) \n", error);
       }
+      break;
     }
   }
+  return ret;
 }
 
 const char* const VIDEO_PLAYER_SIZE_NAME("videoPlayerSize");
 
 struct VideoPlayerSyncConstraint
 {
-public :
-  VideoPlayerSyncConstraint( Ecore_Wl2_Subsurface* ecoreSubVideoWindow, int screenWidth, int screenHeight )
+public:
+  VideoPlayerSyncConstraint(Ecore_Wl2_Subsurface* ecoreSubVideoWindow, int screenWidth, int screenHeight)
   {
     mEcoreSubVideoWindow = ecoreSubVideoWindow;
-    mHalfScreenWidth = static_cast< float >( screenWidth )/2;
-    mHalfScreenHeight = static_cast< float >( screenHeight )/2;
+    mHalfScreenWidth     = static_cast<float>(screenWidth) / 2;
+    mHalfScreenHeight    = static_cast<float>(screenHeight) / 2;
   }
 
-  void operator()( Vector3& current, const PropertyInputContainer& inputs )
+  void operator()(Vector3& current, const PropertyInputContainer& inputs)
   {
-   const Vector3& size = inputs[0]->GetVector3();
-   const Vector3& worldScale = inputs[1]->GetVector3();
-   const Vector3& worldPosition = inputs[2]->GetVector3();
+    const Vector3& size          = inputs[0]->GetVector3();
+    const Vector3& worldScale    = inputs[1]->GetVector3();
+    const Vector3& worldPosition = inputs[2]->GetVector3();
 
-   Vector3 actorSize = size * worldScale;
-   Vector2 screenPosition( mHalfScreenWidth + worldPosition.x, mHalfScreenHeight + worldPosition.y);
+    Vector3 actorSize = size * worldScale;
+    Vector2 screenPosition(mHalfScreenWidth + worldPosition.x, mHalfScreenHeight + worldPosition.y);
 
-   DisplayArea area;
-   area.x = screenPosition.x - actorSize.x/2;
-   area.y = screenPosition.y - actorSize.y/2;
-   area.width = actorSize.x;
-   area.height = actorSize.y;
+    DisplayArea area;
+    area.x      = screenPosition.x - actorSize.x / 2;
+    area.y      = screenPosition.y - actorSize.y / 2;
+    area.width  = actorSize.x;
+    area.height = actorSize.y;
 
-   if( mEcoreSubVideoWindow )
-   {
-     ecore_wl2_subsurface_video_surface_destination_set( mEcoreSubVideoWindow, area.x, area.y, area.width, area.height );
-   }
+    if(mEcoreSubVideoWindow)
+    {
+      ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, area.x, area.y, area.width, area.height);
+    }
   }
-private :
-  Ecore_Wl2_Subsurface*  mEcoreSubVideoWindow;
-  float              mHalfScreenWidth;
-  float              mHalfScreenHeight;
+
+private:
+  Ecore_Wl2_Subsurface* mEcoreSubVideoWindow;
+  float                 mHalfScreenWidth;
+  float                 mHalfScreenHeight;
 };
 
 } // unnamed namespace
 
-TizenVideoPlayer::TizenVideoPlayer( Dali::Actor actor, Dali::VideoSyncMode syncMode )
+TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMode)
 : mUrl(),
-  mPlayer( NULL ),
-  mPlayerState( PLAYER_STATE_NONE ),
-  mTbmSurface( NULL ),
-  mPacket( NULL ),
-  mNativeImageSourcePtr( NULL ),
+  mPlayer(NULL),
+  mPlayerState(PLAYER_STATE_NONE),
+  mTbmSurface(NULL),
+  mPacket(NULL),
+  mNativeImageSourcePtr(NULL),
   mTimer(),
-  mBackgroundColor( Dali::Vector4( 1.0f, 1.0f, 1.0f, 0.0f ) ),
-  mTargetType( NATIVE_IMAGE ),
+  mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
+  mTargetType(NATIVE_IMAGE),
   mPacketMutex(),
   mPacketVector(),
-  mStreamInfo( NULL ),
-  mStreamType( SOUND_STREAM_TYPE_MEDIA ),
-  mCodecType( PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT ),
-  mEcoreWlWindow( nullptr ),
-  mEcoreSubVideoWindow( nullptr ),
-  mSyncActor( actor ),
-  mVideoSizePropertyIndex( Property::INVALID_INDEX ),
-  mSyncMode( syncMode ),
-  mIsInitForSyncMode( false )
+  mStreamInfo(NULL),
+  mStreamType(SOUND_STREAM_TYPE_MEDIA),
+  mCodecType(PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT),
+  mEcoreWlWindow(nullptr),
+  mEcoreSubVideoWindow(nullptr),
+  mSyncActor(actor),
+  mVideoSizePropertyIndex(Property::INVALID_INDEX),
+  mSyncMode(syncMode),
+  mIsInitForSyncMode(false)
 {
 }
 
 TizenVideoPlayer::~TizenVideoPlayer()
 {
   DestroyConstraint();
-  if( mEcoreWlWindow )
+  if(mEcoreSubVideoWindow)
   {
-    if( ecore_wl2_window_video_surface_get( mEcoreWlWindow) )
-    {
-      ecore_wl2_window_video_surface_destroy( mEcoreWlWindow );
-    }
+    ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
+    mEcoreSubVideoWindow = nullptr;
   }
 
   DestroyPlayer();
 }
 
-void TizenVideoPlayer::GetPlayerState( player_state_e* state ) const
+void TizenVideoPlayer::GetPlayerState(player_state_e* state) const
 {
-  if( mPlayer != NULL && player_get_state( mPlayer, state ) != PLAYER_ERROR_NONE )
+  if(mPlayer != NULL && player_get_state(mPlayer, state) != PLAYER_ERROR_NONE)
   {
-    DALI_LOG_ERROR( "player_get_state error: Invalid parameter\n" );
+    DALI_LOG_ERROR("player_get_state error: Invalid parameter\n");
     *state = PLAYER_STATE_NONE;
   }
 }
 
-void TizenVideoPlayer::SetUrl( const std::string& url )
+void TizenVideoPlayer::SetUrl(const std::string& url)
 {
-  if( mUrl != url )
+  int ret = 0;
+  if(mUrl != url)
   {
     int error = PLAYER_ERROR_NONE;
 
     mUrl = url;
 
-    GetPlayerState( &mPlayerState );
+    GetPlayerState(&mPlayerState);
 
-    if( mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE )
+    if(mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE)
     {
-      if( mNativeImageSourcePtr )
+      if(mNativeImageSourcePtr)
       {
-        error = player_unset_media_packet_video_frame_decoded_cb( mPlayer );
-        LogPlayerError( error );
+        error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
+        ret   = LogPlayerError(error);
+        if(ret)
+        {
+          DALI_LOG_ERROR("SetUrl, player_unset_media_packet_video_frame_decoded_cb() is failed\n");
+        }
       }
       Stop();
 
-      error = player_unprepare( mPlayer );
-      LogPlayerError( error );
-
-      if( mNativeImageSourcePtr )
+      error = player_unprepare(mPlayer);
+      ret   = LogPlayerError(error);
+      if(ret)
       {
-        error = player_set_media_packet_video_frame_decoded_cb( mPlayer, MediaPacketVideoDecodedCb, this );
-        LogPlayerError( error );
+        DALI_LOG_ERROR("SetUrl, player_unprepare() is failed\n");
+      }
+
+      if(mNativeImageSourcePtr)
+      {
+        error = player_set_media_packet_video_frame_decoded_cb(mPlayer, MediaPacketVideoDecodedCb, this);
+        ret   = LogPlayerError(error);
+        if(ret)
+        {
+          DALI_LOG_ERROR("SetUrl, player_set_media_packet_video_frame_decoded_cb() is failed\n");
+        }
       }
       else
       {
-        int width, height;
-        Ecore_Wl2_Display *wl2_display = ecore_wl2_connected_display_get(NULL);
-        ecore_wl2_display_screen_size_get( wl2_display, &width, &height );
+        int                width, height;
+        Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
+        ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
-        if( mSyncMode == Dali::VideoSyncMode::ENABLED )
+        if(mSyncMode == Dali::VideoSyncMode::ENABLED)
         {
-          if( mIsInitForSyncMode )
+          if(mIsInitForSyncMode)
           {
-            InitializeEnableSyncMode( mEcoreWlWindow );
+            InitializeEnableSyncMode(mEcoreWlWindow);
           }
           else
           {
-            if( !ecore_wl2_subsurface_video_surface_destination_set( mEcoreSubVideoWindow, 0, 0, width, height ) )
+            if(!ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, 0, 0, width, height))
             {
-              DALI_LOG_ERROR("SetUrl, fail to ecore_wl2_subsurface_video_surface_destination_set()\n");
+              DALI_LOG_ERROR("SetUrl, ecore_wl2_subsurface_video_surface_destination_set() is failed\n");
             }
           }
         }
         else
         {
-          error = player_set_ecore_wl_display( mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height );
-          LogPlayerError( error );
+          error = player_set_ecore_wl_display(mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height);
+          ret   = LogPlayerError(error);
+          if(ret)
+          {
+            DALI_LOG_ERROR("SetUrl, player_set_ecore_wl_display() is failed\n");
+          }
         }
       }
-      GetPlayerState( &mPlayerState );
-      LogPlayerError( error );
+      GetPlayerState(&mPlayerState);
+      ret = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("SetUrl, GetPlayerState() is failed\n");
+      }
     }
 
-    if( mPlayerState == PLAYER_STATE_IDLE )
+    if(mPlayerState == PLAYER_STATE_IDLE)
     {
-      error = player_set_uri( mPlayer, mUrl.c_str() );
-      LogPlayerError( error );
+      error = player_set_uri(mPlayer, mUrl.c_str());
+      ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("SetUrl, player_set_uri() is failed\n");
+      }
 
-      error = player_prepare( mPlayer );
-      LogPlayerError( error );
+      error = player_prepare(mPlayer);
+      ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("SetUrl, player_prepare() is failed\n");
+      }
     }
   }
 }
@@ -373,61 +401,69 @@ std::string TizenVideoPlayer::GetUrl()
   return mUrl;
 }
 
-void TizenVideoPlayer::SetRenderingTarget( Any target )
+void TizenVideoPlayer::SetRenderingTarget(Any target)
 {
   DestroyPlayer();
 
   mNativeImageSourcePtr = NULL;
 
-  if( target.GetType() == typeid( Dali::NativeImageSourcePtr ) )
+  if(target.GetType() == typeid(Dali::NativeImageSourcePtr))
   {
-    if( mSyncMode == Dali::VideoSyncMode::ENABLED )
+    if(mSyncMode == Dali::VideoSyncMode::ENABLED)
     {
       DestroyConstraint();
     }
     mTargetType = TizenVideoPlayer::NATIVE_IMAGE;
 
-    Dali::NativeImageSourcePtr nativeImageSourcePtr = AnyCast< Dali::NativeImageSourcePtr >( target );
+    Dali::NativeImageSourcePtr nativeImageSourcePtr = AnyCast<Dali::NativeImageSourcePtr>(target);
 
-    InitializeTextureStreamMode( nativeImageSourcePtr );
+    InitializeTextureStreamMode(nativeImageSourcePtr);
   }
-  else if( target.GetType() == typeid( Ecore_Wl2_Window* ) )
+  else if(target.GetType() == typeid(Ecore_Wl2_Window*))
   {
     mTargetType = TizenVideoPlayer::WINDOW_SURFACE;
 
-    InitializeUnderlayMode( Dali::AnyCast< Ecore_Wl2_Window* >( target ) );
+    InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window*>(target));
 
-    if( mSyncMode == Dali::VideoSyncMode::ENABLED )
+    if(mSyncMode == Dali::VideoSyncMode::ENABLED)
     {
       CreateConstraint();
     }
   }
   else
   {
-    DALI_LOG_ERROR( "Video rendering target is unknown\n" );
+    DALI_LOG_ERROR("SetRenderingTarget, Video rendering target is unknown\n");
   }
 }
 
-void TizenVideoPlayer::SetLooping( bool looping )
+void TizenVideoPlayer::SetLooping(bool looping)
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState != PLAYER_STATE_NONE )
+  if(mPlayerState != PLAYER_STATE_NONE)
   {
-    int error = player_set_looping( mPlayer, looping );
-    LogPlayerError( error );
+    int error = player_set_looping(mPlayer, looping);
+    int ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("SetLooping, player_set_looping() is failed\n");
+    }
   }
 }
 
 bool TizenVideoPlayer::IsLooping()
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
   bool looping = false;
-  if( mPlayerState != PLAYER_STATE_NONE )
+  if(mPlayerState != PLAYER_STATE_NONE)
   {
-    int error = player_is_looping( mPlayer, &looping );
-    LogPlayerError( error );
+    int error = player_is_looping(mPlayer, &looping);
+    int ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("IsLooping, player_is_looping() is failed\n");
+    }
   }
 
   return looping;
@@ -435,30 +471,38 @@ bool TizenVideoPlayer::IsLooping()
 
 void TizenVideoPlayer::Play()
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_READY || mPlayerState == PLAYER_STATE_PAUSED )
+  if(mPlayerState == PLAYER_STATE_READY || mPlayerState == PLAYER_STATE_PAUSED)
   {
-    if( mNativeImageSourcePtr != NULL && mTimer )
+    if(mNativeImageSourcePtr != NULL && mTimer)
     {
       mTimer.Start();
     }
 
-    int error = player_start( mPlayer );
-    LogPlayerError( error );
+    int error = player_start(mPlayer);
+    int ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("Play, player_start() is failed\n");
+    }
   }
 }
 
 void TizenVideoPlayer::Pause()
 {
-  GetPlayerState( &mPlayerState );
-
-  if( mPlayerState == PLAYER_STATE_PLAYING )
+  GetPlayerState(&mPlayerState);
+  int ret = 0;
+  if(mPlayerState == PLAYER_STATE_PLAYING)
   {
-    int error = player_pause( mPlayer );
-    LogPlayerError( error );
+    int error = player_pause(mPlayer);
+    ret       = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("Pause, player_pause() is failed\n");
+    }
 
-    if( mNativeImageSourcePtr != NULL && mTimer )
+    if(mNativeImageSourcePtr != NULL && mTimer)
     {
       mTimer.Stop();
       DestroyPackets();
@@ -468,14 +512,18 @@ void TizenVideoPlayer::Pause()
 
 void TizenVideoPlayer::Stop()
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_PLAYING || mPlayerState == PLAYER_STATE_PAUSED )
+  if(mPlayerState == PLAYER_STATE_PLAYING || mPlayerState == PLAYER_STATE_PAUSED)
   {
-    int error = player_stop( mPlayer );
-    LogPlayerError( error );
+    int error = player_stop(mPlayer);
+    int ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("Stop, player_stop() is failed\n");
+    }
 
-    if( mNativeImageSourcePtr != NULL && mTimer )
+    if(mNativeImageSourcePtr != NULL && mTimer)
     {
       mTimer.Stop();
       DestroyPackets();
@@ -483,76 +531,98 @@ void TizenVideoPlayer::Stop()
   }
 }
 
-void TizenVideoPlayer::SetMute( bool muted )
+void TizenVideoPlayer::SetMute(bool muted)
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_IDLE ||
-      mPlayerState == PLAYER_STATE_READY ||
-      mPlayerState == PLAYER_STATE_PLAYING ||
-      mPlayerState == PLAYER_STATE_PAUSED
-    )
+  if(mPlayerState == PLAYER_STATE_IDLE ||
+     mPlayerState == PLAYER_STATE_READY ||
+     mPlayerState == PLAYER_STATE_PLAYING ||
+     mPlayerState == PLAYER_STATE_PAUSED)
   {
-    int error = player_set_mute( mPlayer, muted );
-    LogPlayerError( error );
+    int error = player_set_mute(mPlayer, muted);
+    int ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("SetMute, player_set_mute() is failed\n");
+    }
   }
 }
 
 bool TizenVideoPlayer::IsMuted()
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
   bool muted = false;
 
-   if( mPlayerState == PLAYER_STATE_IDLE ||
-      mPlayerState == PLAYER_STATE_READY ||
-      mPlayerState == PLAYER_STATE_PLAYING ||
-      mPlayerState == PLAYER_STATE_PAUSED
-    )
+  if(mPlayerState == PLAYER_STATE_IDLE ||
+     mPlayerState == PLAYER_STATE_READY ||
+     mPlayerState == PLAYER_STATE_PLAYING ||
+     mPlayerState == PLAYER_STATE_PAUSED)
   {
-    int error = player_is_muted( mPlayer, &muted );
-    LogPlayerError( error );
+    int error = player_is_muted(mPlayer, &muted);
+    int ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("IsMuted, player_is_muted() is failed\n");
+    }
   }
 
   return muted;
 }
 
-void TizenVideoPlayer::SetVolume( float left, float right )
+void TizenVideoPlayer::SetVolume(float left, float right)
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  int error = player_set_volume( mPlayer, left, right );
-  LogPlayerError( error );
+  int error = player_set_volume(mPlayer, left, right);
+  int ret   = LogPlayerError(error);
+  if(ret)
+  {
+    DALI_LOG_ERROR("SetVolume, player_set_volume() is failed\n");
+  }
 }
 
-void TizenVideoPlayer::GetVolume( float& left, float& right )
+void TizenVideoPlayer::GetVolume(float& left, float& right)
 {
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  int error = player_get_volume( mPlayer, &left, &right );
-  LogPlayerError( error );
+  int error = player_get_volume(mPlayer, &left, &right);
+  int ret   = LogPlayerError(error);
+  if(ret)
+  {
+    DALI_LOG_ERROR("GetVolume, player_get_volume() is failed\n");
+  }
 }
 
-void TizenVideoPlayer::SetPlayPosition( int millisecond )
+void TizenVideoPlayer::SetPlayPosition(int millisecond)
 {
   int error;
+  int ret = 0;
 
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_IDLE )
+  if(mPlayerState == PLAYER_STATE_IDLE)
   {
-    error = player_prepare( mPlayer );
-    LogPlayerError( error );
+    error = player_prepare(mPlayer);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("SetPlayPosition, player_prepare() is failed\n");
+    }
 
-    GetPlayerState( &mPlayerState ); // Check the status again.
+    GetPlayerState(&mPlayerState); // Check the status again.
   }
 
-  if( mPlayerState == PLAYER_STATE_READY ||
-      mPlayerState == PLAYER_STATE_PLAYING ||
-      mPlayerState == PLAYER_STATE_PAUSED
-  )
+  if(mPlayerState == PLAYER_STATE_READY ||
+     mPlayerState == PLAYER_STATE_PLAYING ||
+     mPlayerState == PLAYER_STATE_PAUSED)
   {
-    error = player_set_play_position( mPlayer, millisecond, false, PlayerSeekCompletedCb, NULL );
-    LogPlayerError( error );
+    error = player_set_play_position(mPlayer, millisecond, false, PlayerSeekCompletedCb, NULL);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("SetPlayPosition, player_set_play_position() is failed\n");
+    }
   }
 }
 
@@ -561,53 +631,64 @@ int TizenVideoPlayer::GetPlayPosition()
   int error;
   int millisecond = 0;
 
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_IDLE ||
-      mPlayerState == PLAYER_STATE_READY ||
-      mPlayerState == PLAYER_STATE_PLAYING ||
-      mPlayerState == PLAYER_STATE_PAUSED
-  )
+  if(mPlayerState == PLAYER_STATE_IDLE ||
+     mPlayerState == PLAYER_STATE_READY ||
+     mPlayerState == PLAYER_STATE_PLAYING ||
+     mPlayerState == PLAYER_STATE_PAUSED)
   {
-    error = player_get_play_position( mPlayer, &millisecond );
-    LogPlayerError( error );
+    error   = player_get_play_position(mPlayer, &millisecond);
+    int ret = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("GetPlayPosition, player_get_play_position() is failed\n");
+    }
   }
 
   return millisecond;
 }
 
-void TizenVideoPlayer::SetDisplayRotation( Dali::VideoPlayerPlugin::DisplayRotation rotation )
+void TizenVideoPlayer::SetDisplayRotation(Dali::VideoPlayerPlugin::DisplayRotation rotation)
 {
-  if( mNativeImageSourcePtr != NULL )
+  if(mNativeImageSourcePtr != NULL)
   {
-    DALI_LOG_ERROR( "SetDisplayRotation is only for window rendering target.\n" );
+    DALI_LOG_ERROR("SetDisplayRotation is only for window rendering target.\n");
     return;
   }
 
   int error;
-  if( mPlayerState != PLAYER_STATE_NONE )
+  if(mPlayerState != PLAYER_STATE_NONE)
   {
-    error = player_set_display_rotation( mPlayer, static_cast< player_display_rotation_e >( rotation ) );
-    LogPlayerError( error );
+    error   = player_set_display_rotation(mPlayer, static_cast<player_display_rotation_e>(rotation));
+    int ret = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("SetDisplayRotation, player_set_display_rotation() is failed\n");
+    }
   }
 }
 
 Dali::VideoPlayerPlugin::DisplayRotation TizenVideoPlayer::GetDisplayRotation()
 {
-  if( mNativeImageSourcePtr != NULL )
+  if(mNativeImageSourcePtr != NULL)
   {
-    DALI_LOG_ERROR( "GetDisplayRotation is only for window rendering target.\n" );
+    DALI_LOG_ERROR("GetDisplayRotation is only for window rendering target.\n");
     return Dali::VideoPlayerPlugin::ROTATION_NONE;
   }
 
-  int error;
+  int                       error;
   player_display_rotation_e rotation = PLAYER_DISPLAY_ROTATION_NONE;
-  if( mPlayerState != PLAYER_STATE_NONE )
+  if(mPlayerState != PLAYER_STATE_NONE)
   {
-    error = player_get_display_rotation( mPlayer, &rotation );
-    LogPlayerError( error );
+    error   = player_get_display_rotation(mPlayer, &rotation);
+    int ret = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("GetDisplayRotation, player_get_display_rotation() is failed\n");
+    }
   }
-  return static_cast< Dali::VideoPlayerPlugin::DisplayRotation >( rotation );
+  return static_cast<Dali::VideoPlayerPlugin::DisplayRotation>(rotation);
 }
 
 Dali::VideoPlayerPlugin::VideoPlayerSignalType& TizenVideoPlayer::FinishedSignal()
@@ -615,212 +696,311 @@ Dali::VideoPlayerPlugin::VideoPlayerSignalType& TizenVideoPlayer::FinishedSignal
   return mFinishedSignal;
 }
 
-void TizenVideoPlayer::InitializeTextureStreamMode( Dali::NativeImageSourcePtr nativeImageSourcePtr )
+void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr nativeImageSourcePtr)
 {
   int error;
+  int ret = 0;
 
   mNativeImageSourcePtr = nativeImageSourcePtr;
 
-  if( mPlayerState == PLAYER_STATE_NONE )
+  if(mPlayerState == PLAYER_STATE_NONE)
   {
-    error = player_create( &mPlayer );
-    LogPlayerError( error );
+    error = player_create(&mPlayer);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_create() is failed\n");
+    }
   }
 
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_IDLE )
+  if(mPlayerState == PLAYER_STATE_IDLE)
   {
-    error = player_set_completed_cb( mPlayer, EmitPlaybackFinishedSignal, this );
-    LogPlayerError( error );
+    error = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_completed_cb() is failed\n");
+    }
 
-    error = player_set_media_packet_video_frame_decoded_cb( mPlayer, MediaPacketVideoDecodedCb, this );
-    LogPlayerError( error );
+    error = player_set_media_packet_video_frame_decoded_cb(mPlayer, MediaPacketVideoDecodedCb, this);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_media_packet_video_frame_decoded_cb() is failed\n");
+    }
 
-    error = sound_manager_create_stream_information( mStreamType, NULL, NULL, &mStreamInfo );
-    LogPlayerError( error );
+    error = sound_manager_create_stream_information(mStreamType, NULL, NULL, &mStreamInfo);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, sound_manager_create_stream_information() is failed\n");
+    }
 
-    error = player_set_sound_stream_info( mPlayer, mStreamInfo );
-    LogPlayerError( error );
+    error = player_set_sound_stream_info(mPlayer, mStreamInfo);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_sound_stream_info() is failed\n");
+    }
 
-    error = player_set_display_mode( mPlayer, PLAYER_DISPLAY_MODE_FULL_SCREEN );
-    LogPlayerError( error );
+    error = player_set_display_mode(mPlayer, PLAYER_DISPLAY_MODE_FULL_SCREEN);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_display_mode() is failed\n");
+    }
 
-    error = player_set_display( mPlayer, PLAYER_DISPLAY_TYPE_NONE, NULL );
-    LogPlayerError( error );
+    error = player_set_display(mPlayer, PLAYER_DISPLAY_TYPE_NONE, NULL);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_display() is failed\n");
+    }
 
-    error = player_set_video_codec_type_ex( mPlayer, mCodecType );
-    LogPlayerError( error );
+    error = player_set_video_codec_type_ex(mPlayer, mCodecType);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_video_codec_type_ex() is failed\n");
+    }
+    error = player_set_display_visible(mPlayer, true);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_display_visible() is failed\n");
+    }
 
-    error = player_set_display_visible( mPlayer, true );
-    LogPlayerError( error );
-
-    mTimer = Dali::Timer::New( TIMER_INTERVAL );
-    mTimer.TickSignal().Connect( this, &TizenVideoPlayer::Update );
+    mTimer = Dali::Timer::New(TIMER_INTERVAL);
+    mTimer.TickSignal().Connect(this, &TizenVideoPlayer::Update);
   }
 }
 
-void TizenVideoPlayer::InitializeEnableSyncMode( Ecore_Wl2_Window* ecoreWlWindow )
+void TizenVideoPlayer::InitializeEnableSyncMode(Ecore_Wl2_Window* ecoreWlWindow)
 {
   int error;
+  int ret = 0;
 
-  if( mEcoreWlWindow != ecoreWlWindow )
+  if(mEcoreWlWindow != ecoreWlWindow)
   {
     mEcoreWlWindow = ecoreWlWindow;
     //check previous video subsurface and destroy
-    if( mEcoreSubVideoWindow )
+    if(mEcoreSubVideoWindow)
     {
-      ecore_wl2_subsurface_del( mEcoreSubVideoWindow );
+      ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
     }
 
     // Crate ecore_wl2 sursurface
-    mEcoreSubVideoWindow = ecore_wl2_subsurface_new( mEcoreWlWindow );
-    if( !mEcoreSubVideoWindow )
+    mEcoreSubVideoWindow = ecore_wl2_subsurface_new(mEcoreWlWindow);
+    if(!mEcoreSubVideoWindow)
     {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, fail ecore_wl2_subsurface_new()!!!\n");
+      DALI_LOG_ERROR("InitializeEnableSyncMode, ecore_wl2_subsurface_new() is failed\n");
       return;
     }
+
     // ecore_wl2_subsurface_video_surface_prepare
-    if( !ecore_wl2_subsurface_video_surface_prepare( mEcoreSubVideoWindow ) )
+    if(!ecore_wl2_subsurface_video_surface_prepare(mEcoreSubVideoWindow))
     {
-      ecore_wl2_subsurface_del( mEcoreSubVideoWindow );
-      DALI_LOG_ERROR("InitializeEnableSyncMode, : fail ecore_wl2_subsurface_video_surface_prepare()\n");
+      ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
+      DALI_LOG_ERROR("InitializeEnableSyncMode, : ecore_wl2_subsurface_video_surface_prepare() is failed\n");
       return;
     }
 
-    DALI_LOG_RELEASE_INFO( "InitializeEnableSyncMode, desync VideoPlayer\n" );
-    ecore_wl2_subsurface_sync_set( mEcoreSubVideoWindow, EINA_FALSE );
+    DALI_LOG_RELEASE_INFO("InitializeEnableSyncMode, desync VideoPlayer\n");
+    ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_FALSE);
   }
 
-  if( mPlayerState == PLAYER_STATE_NONE )
+  if(mPlayerState == PLAYER_STATE_NONE)
   {
-    error = player_create( &mPlayer );
-    LogPlayerError( error );
-  }
-
-  GetPlayerState( &mPlayerState );
-  if( mPlayerState == PLAYER_STATE_IDLE )
-  {
-    error = player_set_completed_cb( mPlayer, EmitPlaybackFinishedSignal, this );
-    LogPlayerError( error );
-
-    error = sound_manager_create_stream_information( mStreamType, NULL, NULL, &mStreamInfo );
-    LogPlayerError( error );
-
-    error = player_set_sound_stream_info( mPlayer, mStreamInfo );
-    LogPlayerError( error );
-
-    error = player_set_video_codec_type_ex( mPlayer, mCodecType );
-    LogPlayerError( error );
-
-    int width, height;
-    Ecore_Wl2_Display *wl2_display = ecore_wl2_connected_display_get( NULL );
-    ecore_wl2_display_screen_size_get( wl2_display, &width, &height );
-    ecore_wl2_window_alpha_set( mEcoreWlWindow, false );
-
-    if( !ecore_wl2_subsurface_video_surface_destination_set( mEcoreSubVideoWindow, 0, 0, width, height ) )
+    error = player_create(&mPlayer);
+    ret   = LogPlayerError(error);
+    if(ret)
     {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, fail to ecore_wl2_subsurface_video_surface_destination_set()\n");
+      DALI_LOG_ERROR("InitializeEnableSyncMode, player_create() is failed\n");
     }
-    error = player_set_display( mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow );
-    LogPlayerError( error );
+  }
+
+  GetPlayerState(&mPlayerState);
+  if(mPlayerState == PLAYER_STATE_IDLE)
+  {
+    error = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_completed_cb() is failed\n");
+    }
+
+    error = sound_manager_create_stream_information(mStreamType, NULL, NULL, &mStreamInfo);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeEnableSyncMode, sound_manager_create_stream_information() is failed\n");
+    }
+
+    error = player_set_sound_stream_info(mPlayer, mStreamInfo);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_sound_stream_info() is failed\n");
+    }
+
+    error = player_set_video_codec_type_ex(mPlayer, mCodecType);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_video_codec_type_ex() is failed\n");
+    }
+
+    int                width, height;
+    Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
+    ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
+    ecore_wl2_window_alpha_set(mEcoreWlWindow, false);
+
+    if(!ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, 0, 0, width, height))
+    {
+      DALI_LOG_ERROR("InitializeEnableSyncMode, ecore_wl2_subsurface_video_surface_destination_set() is failed\n");
+    }
+    error = player_set_display(mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_display() is failed\n");
+    }
 
     mIsInitForSyncMode = true;
   }
 }
 
-void TizenVideoPlayer::InitializeUnderlayMode( Ecore_Wl2_Window* ecoreWlWindow )
+void TizenVideoPlayer::InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow)
 {
   int error;
+  int ret = 0;
 
-  if( mSyncMode == Dali::VideoSyncMode::ENABLED )
+  if(mSyncMode == Dali::VideoSyncMode::ENABLED)
   {
-    DALI_LOG_RELEASE_INFO( "TizenVideoPlayer::InitializeUnderlayMode, \n" );
-    InitializeEnableSyncMode( ecoreWlWindow );
+    DALI_LOG_RELEASE_INFO("InitializeUnderlayMode, \n");
+    InitializeEnableSyncMode(ecoreWlWindow);
     return;
   }
 
   mEcoreWlWindow = ecoreWlWindow;
 
-  if( mPlayerState == PLAYER_STATE_NONE )
+  if(mPlayerState == PLAYER_STATE_NONE)
   {
-    error = player_create( &mPlayer );
-    LogPlayerError( error );
+    error = player_create(&mPlayer);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_create() is failed\n");
+    }
   }
 
-  GetPlayerState( &mPlayerState );
-  if( mPlayerState == PLAYER_STATE_IDLE )
+  GetPlayerState(&mPlayerState);
+  if(mPlayerState == PLAYER_STATE_IDLE)
   {
-    error = player_set_completed_cb( mPlayer, EmitPlaybackFinishedSignal, this );
-    LogPlayerError( error );
+    error = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_completed_cb() is failed\n");
+    }
 
-    error = sound_manager_create_stream_information( mStreamType, NULL, NULL, &mStreamInfo );
-    LogPlayerError( error );
+    error = sound_manager_create_stream_information(mStreamType, NULL, NULL, &mStreamInfo);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, sound_manager_create_stream_information() is failed\n");
+    }
 
-    error = player_set_sound_stream_info( mPlayer, mStreamInfo );
-    LogPlayerError( error );
+    error = player_set_sound_stream_info(mPlayer, mStreamInfo);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_sound_stream_info() is failed\n");
+    }
 
-    error = player_set_video_codec_type_ex( mPlayer, mCodecType );
-    LogPlayerError( error );
+    error = player_set_video_codec_type_ex(mPlayer, mCodecType);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_video_codec_type_ex() is failed\n");
+    }
 
-    int width, height;
-    Ecore_Wl2_Display *wl2_display = ecore_wl2_connected_display_get( NULL );
-    ecore_wl2_display_screen_size_get( wl2_display, &width, &height );
-    ecore_wl2_window_alpha_set( mEcoreWlWindow, false );
+    int                width, height;
+    Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
+    ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
+    ecore_wl2_window_alpha_set(mEcoreWlWindow, false);
 
-    error = player_set_display_mode( mPlayer, PLAYER_DISPLAY_MODE_DST_ROI );
-    LogPlayerError( error );
+    error = player_set_display_mode(mPlayer, PLAYER_DISPLAY_MODE_DST_ROI);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_mode() is failed\n");
+    }
 
-    error = player_set_display_roi_area( mPlayer, 0, 0, 1, 1 );
-    LogPlayerError( error );
+    error = player_set_display_roi_area(mPlayer, 0, 0, 1, 1);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_roi_area() is failed\n");
+    }
 
-    error = player_set_ecore_wl_display( mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height );
-    LogPlayerError( error );
+    error = player_set_ecore_wl_display(mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_ecore_wl_display() is failed\n");
+    }
 
-    error = player_set_display_visible( mPlayer, true );
-    LogPlayerError( error );
+    error = player_set_display_visible(mPlayer, true);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_visible() is failed\n");
+    }
   }
 }
 
 bool TizenVideoPlayer::Update()
 {
-  Dali::Mutex::ScopedLock lock( mPacketMutex );
+  Dali::Mutex::ScopedLock lock(mPacketMutex);
 
   int error;
 
-  if( mPacket != NULL )
+  if(mPacket != NULL)
   {
-    error = media_packet_destroy( mPacket );
-    if( error != MEDIA_PACKET_ERROR_NONE )
+    error = media_packet_destroy(mPacket);
+    if(error != MEDIA_PACKET_ERROR_NONE)
     {
-      DALI_LOG_ERROR( "Media packet destroy error: %d\n", error );
+      DALI_LOG_ERROR("Update, media_packet_destroy() is failed\n");
     }
     mPacket = NULL;
   }
 
-  if( !mPacketVector.Empty() )
+  if(!mPacketVector.Empty())
   {
-    mPacket = static_cast< media_packet_h >( mPacketVector[0] );
-    mPacketVector.Remove( mPacketVector.Begin() );
+    mPacket = static_cast<media_packet_h>(mPacketVector[0]);
+    mPacketVector.Remove(mPacketVector.Begin());
   }
 
-  if( mPacket == NULL )
+  if(mPacket == NULL)
   {
     return true;
   }
 
-  error = media_packet_get_tbm_surface( mPacket, &mTbmSurface );
-  if( error != MEDIA_PACKET_ERROR_NONE )
+  error = media_packet_get_tbm_surface(mPacket, &mTbmSurface);
+  if(error != MEDIA_PACKET_ERROR_NONE)
   {
-    media_packet_destroy( mPacket );
+    media_packet_destroy(mPacket);
     mPacket = NULL;
-    DALI_LOG_ERROR( " error: %d\n", error );
+    DALI_LOG_ERROR(" error: %d\n", error);
     return true;
   }
 
-  Any source( mTbmSurface );
-  mNativeImageSourcePtr->SetSource( source );
-  Dali::Stage::GetCurrent().KeepRendering( 0.0f );
+  Any source(mTbmSurface);
+  mNativeImageSourcePtr->SetSource(source);
+  Dali::Stage::GetCurrent().KeepRendering(0.0f);
 
   return true;
 }
@@ -828,120 +1008,141 @@ bool TizenVideoPlayer::Update()
 void TizenVideoPlayer::DestroyPackets()
 {
   int error;
-  if( mPacket != NULL )
+  if(mPacket != NULL)
   {
-    error = media_packet_destroy( mPacket );
-    DALI_LOG_ERROR( "Media packet destroy error: %d\n", error );
+    error = media_packet_destroy(mPacket);
+    DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
     mPacket = NULL;
   }
 
   for(unsigned int i = 0; i < mPacketVector.Size(); ++i)
   {
-    mPacket = static_cast< media_packet_h >( mPacketVector[i] );
-    error = media_packet_destroy( mPacket );
-    DALI_LOG_ERROR( "Media packet destroy error: %d\n", error );
+    mPacket = static_cast<media_packet_h>(mPacketVector[i]);
+    error   = media_packet_destroy(mPacket);
+    DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
     mPacket = NULL;
   }
   mPacketVector.Clear();
 }
 
-void TizenVideoPlayer::PushPacket( media_packet_h packet )
+void TizenVideoPlayer::PushPacket(media_packet_h packet)
 {
-  Dali::Mutex::ScopedLock lock( mPacketMutex );
-  mPacketVector.PushBack( packet );
+  Dali::Mutex::ScopedLock lock(mPacketMutex);
+  mPacketVector.PushBack(packet);
 }
 
-void TizenVideoPlayer::SetDisplayArea( DisplayArea area )
+void TizenVideoPlayer::SetDisplayArea(DisplayArea area)
 {
-  GetPlayerState( &mPlayerState );
+  int ret = 0;
+  GetPlayerState(&mPlayerState);
 
-  if( mNativeImageSourcePtr != NULL )
+  if(mNativeImageSourcePtr != NULL)
   {
-    DALI_LOG_ERROR( "SetDisplayArea is only for window surface target.\n" );
+    DALI_LOG_ERROR("SetDisplayArea is only for window surface target.\n");
     return;
   }
 
-  if( mPlayerState == PLAYER_STATE_IDLE ||
-      mPlayerState == PLAYER_STATE_READY ||
-      mPlayerState == PLAYER_STATE_PLAYING ||
-      mPlayerState == PLAYER_STATE_PAUSED  )
+  if(mPlayerState == PLAYER_STATE_IDLE ||
+     mPlayerState == PLAYER_STATE_READY ||
+     mPlayerState == PLAYER_STATE_PLAYING ||
+     mPlayerState == PLAYER_STATE_PAUSED)
   {
-    area.x = ( area.x < 0 ) ? 0: area.x;
-    area.y = ( area.y < 0 ) ? 0: area.y;
-    if( mSyncMode == Dali::VideoSyncMode::ENABLED )
+    area.x = (area.x < 0) ? 0 : area.x;
+    area.y = (area.y < 0) ? 0 : area.y;
+    if(mSyncMode == Dali::VideoSyncMode::ENABLED)
     {
-      if( !ecore_wl2_subsurface_video_surface_destination_set( mEcoreSubVideoWindow, area.x, area.y, area.width, area.height) )
+      if(!ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, area.x, area.y, area.width, area.height))
       {
-        DALI_LOG_ERROR("SetDisplayArea, fail to ecore_wl2_subsurface_video_surface_destination_set()\n");
+        DALI_LOG_ERROR("SetDisplayArea, ecore_wl2_subsurface_video_surface_destination_set() is failed\n");
       }
     }
     else
     {
-      int error = player_set_display_roi_area( mPlayer, area.x, area.y, area.width, area.height );
-      LogPlayerError( error );
+      int error = player_set_display_roi_area(mPlayer, area.x, area.y, area.width, area.height);
+      ret       = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("SetDisplayArea, player_set_display_roi_area() is failed\n");
+      }
     }
   }
 }
 
-void TizenVideoPlayer::Forward( int millisecond )
+void TizenVideoPlayer::Forward(int millisecond)
 {
   int error;
+  int ret = 0;
 
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_READY ||
-      mPlayerState == PLAYER_STATE_PLAYING ||
-      mPlayerState == PLAYER_STATE_PAUSED
-  )
+  if(mPlayerState == PLAYER_STATE_READY ||
+     mPlayerState == PLAYER_STATE_PLAYING ||
+     mPlayerState == PLAYER_STATE_PAUSED)
   {
     int currentPosition = 0;
-    int nextPosition = 0;
+    int nextPosition    = 0;
 
-    error = player_get_play_position( mPlayer, &currentPosition );
-    LogPlayerError( error );
+    error = player_get_play_position(mPlayer, &currentPosition);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("Forward, player_get_play_position() is failed\n");
+    }
 
     nextPosition = currentPosition + millisecond;
 
-    error = player_set_play_position( mPlayer, nextPosition, false, PlayerSeekCompletedCb, NULL );
-    LogPlayerError( error );
+    error = player_set_play_position(mPlayer, nextPosition, false, PlayerSeekCompletedCb, NULL);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("Forward, player_set_play_position() is failed\n");
+    }
   }
 }
 
-void TizenVideoPlayer::Backward( int millisecond )
+void TizenVideoPlayer::Backward(int millisecond)
 {
   int error;
+  int ret = 0;
 
-  GetPlayerState( &mPlayerState );
+  GetPlayerState(&mPlayerState);
 
-  if( mPlayerState == PLAYER_STATE_READY ||
-      mPlayerState == PLAYER_STATE_PLAYING ||
-      mPlayerState == PLAYER_STATE_PAUSED
-  )
+  if(mPlayerState == PLAYER_STATE_READY ||
+     mPlayerState == PLAYER_STATE_PLAYING ||
+     mPlayerState == PLAYER_STATE_PAUSED)
   {
     int currentPosition = 0;
-    int nextPosition = 0;
+    int nextPosition    = 0;
 
-    error = player_get_play_position( mPlayer, &currentPosition );
-    LogPlayerError( error );
+    error = player_get_play_position(mPlayer, &currentPosition);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("Backward, player_get_play_position() is failed\n");
+    }
 
     nextPosition = currentPosition - millisecond;
-    nextPosition = ( nextPosition < 0 )? 0 : nextPosition;
+    nextPosition = (nextPosition < 0) ? 0 : nextPosition;
 
-    error = player_set_play_position( mPlayer, nextPosition, false, PlayerSeekCompletedCb, NULL );
-    LogPlayerError( error );
+    error = player_set_play_position(mPlayer, nextPosition, false, PlayerSeekCompletedCb, NULL);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("Backward, player_set_play_position() is failed\n");
+    }
   }
 }
 
 bool TizenVideoPlayer::IsVideoTextureSupported()
 {
   bool featureFlag = true;
-  int error = SYSTEM_INFO_ERROR_NONE;
+  int  error       = SYSTEM_INFO_ERROR_NONE;
 
-  error = system_info_get_platform_bool( "tizen.org/feature/multimedia.raw_video", &featureFlag );
+  error = system_info_get_platform_bool("tizen.org/feature/multimedia.raw_video", &featureFlag);
 
-  if( error != SYSTEM_INFO_ERROR_NONE )
+  if(error != SYSTEM_INFO_ERROR_NONE)
   {
-    DALI_LOG_ERROR( "Plugin can't check platform feature\n" );
+    DALI_LOG_ERROR("Plugin can't check platform feature\n");
     return false;
   }
 
@@ -950,61 +1151,79 @@ bool TizenVideoPlayer::IsVideoTextureSupported()
 
 void TizenVideoPlayer::DestroyPlayer()
 {
-  mUrl = "";
+  mUrl    = "";
+  int ret = 0;
 
   int error;
-  if( mPlayerState != PLAYER_STATE_NONE )
+  if(mPlayerState != PLAYER_STATE_NONE)
   {
-    GetPlayerState( &mPlayerState );
+    GetPlayerState(&mPlayerState);
 
-    if( mPlayerState != PLAYER_STATE_IDLE )
+    if(mPlayerState != PLAYER_STATE_IDLE)
     {
       Stop();
-      error = player_unprepare( mPlayer );
-      LogPlayerError( error );
+      error = player_unprepare(mPlayer);
+      ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("DestroyPlayer, player_unprepare() is failed\n");
+      }
     }
 
-    error = player_destroy( mPlayer );
-    LogPlayerError( error );
+    error = player_destroy(mPlayer);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("DestroyPlayer, player_destroy() is failed\n");
+    }
 
     error = sound_manager_destroy_stream_information(mStreamInfo);
-    LogPlayerError( error );
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("DestroyPlayer, sound_manager_destroy_stream_information() is failed\n");
+    }
 
     mPlayerState = PLAYER_STATE_NONE;
-    mPlayer = NULL;
+    mPlayer      = NULL;
   }
 }
 
-void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
+void TizenVideoPlayer::SetCodecType(Dali::VideoPlayerPlugin::CodecType type)
 {
   int error;
-  switch( type )
+  int ret = 0;
+  switch(type)
   {
-    case Dali::VideoPlayerPlugin::CodecType::DEFAULT :
+    case Dali::VideoPlayerPlugin::CodecType::DEFAULT:
     {
       mCodecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
       break;
     }
-    case Dali::VideoPlayerPlugin::CodecType::HW :
+    case Dali::VideoPlayerPlugin::CodecType::HW:
     {
       mCodecType = PLAYER_VIDEO_CODEC_TYPE_EX_HW;
       break;
     }
-    case Dali::VideoPlayerPlugin::CodecType::SW :
+    case Dali::VideoPlayerPlugin::CodecType::SW:
     {
       mCodecType = PLAYER_VIDEO_CODEC_TYPE_EX_SW;
       break;
     }
   }
 
-  if( mPlayerState != PLAYER_STATE_NONE )
+  if(mPlayerState != PLAYER_STATE_NONE)
   {
-    GetPlayerState( &mPlayerState );
+    GetPlayerState(&mPlayerState);
 
-    if( mPlayerState == PLAYER_STATE_IDLE )
+    if(mPlayerState == PLAYER_STATE_IDLE)
     {
-      error = player_set_video_codec_type_ex( mPlayer, mCodecType );
-      LogPlayerError( error );
+      error = player_set_video_codec_type_ex(mPlayer, mCodecType);
+      ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("SetCodecType, player_set_video_codec_type_ex() is failed\n");
+      }
     }
   }
 }
@@ -1012,29 +1231,34 @@ void TizenVideoPlayer::SetCodecType( Dali::VideoPlayerPlugin::CodecType type )
 Dali::VideoPlayerPlugin::CodecType TizenVideoPlayer::GetCodecType() const
 {
   Dali::VideoPlayerPlugin::CodecType type = Dali::VideoPlayerPlugin::CodecType::DEFAULT;
-  if( mPlayerState != PLAYER_STATE_NONE )
+  int                                ret  = 0;
+  if(mPlayerState != PLAYER_STATE_NONE)
   {
     player_video_codec_type_ex_e codecType = PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT;
-    int error = player_get_video_codec_type_ex( mPlayer, &codecType );
-    if( error != PLAYER_ERROR_NONE )
+    int                          error     = player_get_video_codec_type_ex(mPlayer, &codecType);
+    if(error != PLAYER_ERROR_NONE)
     {
-      LogPlayerError( error );
+      ret = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("GetCodecType, player_get_video_codec_type_ex() is failed\n");
+      }
       return type;
     }
 
-    switch( codecType )
+    switch(codecType)
     {
-      case PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT :
+      case PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT:
       {
         type = Dali::VideoPlayerPlugin::CodecType::DEFAULT;
         break;
       }
-      case PLAYER_VIDEO_CODEC_TYPE_EX_HW :
+      case PLAYER_VIDEO_CODEC_TYPE_EX_HW:
       {
         type = Dali::VideoPlayerPlugin::CodecType::HW;
         break;
       }
-      case PLAYER_VIDEO_CODEC_TYPE_EX_SW :
+      case PLAYER_VIDEO_CODEC_TYPE_EX_SW:
       {
         type = Dali::VideoPlayerPlugin::CodecType::SW;
         break;
@@ -1044,60 +1268,64 @@ Dali::VideoPlayerPlugin::CodecType TizenVideoPlayer::GetCodecType() const
   return type;
 }
 
-void TizenVideoPlayer::SetDisplayMode( Dali::VideoPlayerPlugin::DisplayMode::Type mode )
+void TizenVideoPlayer::SetDisplayMode(Dali::VideoPlayerPlugin::DisplayMode::Type mode)
 {
   int error;
-  error = player_set_display_mode( mPlayer, static_cast< player_display_mode_e >( mode ) );
-  LogPlayerError( error );
+  error   = player_set_display_mode(mPlayer, static_cast<player_display_mode_e>(mode));
+  int ret = LogPlayerError(error);
+  if(ret)
+  {
+    DALI_LOG_ERROR("SetDisplayMode, player_set_display_mode() is failed\n");
+  }
 }
 
 Dali::VideoPlayerPlugin::DisplayMode::Type TizenVideoPlayer::GetDisplayMode() const
 {
   player_display_mode_e mode;
-  player_get_display_mode( mPlayer, &mode );
-  return static_cast< Dali::VideoPlayerPlugin::DisplayMode::Type >( mode );
+  player_get_display_mode(mPlayer, &mode);
+  return static_cast<Dali::VideoPlayerPlugin::DisplayMode::Type>(mode);
 }
 
 Any TizenVideoPlayer::GetMediaPlayer()
 {
-   return Any( ( void* ) mPlayer );
+  return Any((void*)mPlayer);
 }
 
 void TizenVideoPlayer::StartSynchronization()
 {
-  DALI_LOG_RELEASE_INFO( "sync VideoPlayer\n" );
-  ecore_wl2_subsurface_sync_set( mEcoreSubVideoWindow, EINA_TRUE );
+  DALI_LOG_RELEASE_INFO("sync VideoPlayer\n");
+  ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_TRUE);
 }
 
 void TizenVideoPlayer::FinishSynchronization()
 {
   // Finish
-  DALI_LOG_RELEASE_INFO( "desync VideoPlayer\n" );
-  ecore_wl2_subsurface_sync_set( mEcoreSubVideoWindow, EINA_FALSE );
+  DALI_LOG_RELEASE_INFO("desync VideoPlayer\n");
+  ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_FALSE);
 }
 
 void TizenVideoPlayer::CreateConstraint()
 {
-  if( mVideoSizePropertyIndex == Property::INVALID_INDEX )
+  if(mVideoSizePropertyIndex == Property::INVALID_INDEX)
   {
-    if( mVideoSizePropertyConstraint )
+    if(mVideoSizePropertyConstraint)
     {
       mVideoSizePropertyConstraint.Remove();
     }
 
-    mVideoSizePropertyIndex = mSyncActor.RegisterProperty( VIDEO_PLAYER_SIZE_NAME, Vector3::ZERO );
+    mVideoSizePropertyIndex = mSyncActor.RegisterProperty(VIDEO_PLAYER_SIZE_NAME, Vector3::ZERO);
 
-    int width, height;
-    Ecore_Wl2_Display *wl2_display = ecore_wl2_connected_display_get( NULL );
-    ecore_wl2_display_screen_size_get( wl2_display, &width, &height );
+    int                width, height;
+    Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
+    ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
-    mVideoSizePropertyConstraint = Constraint::New< Vector3 >( mSyncActor,
-                                                               mVideoSizePropertyIndex,
-                                                               VideoPlayerSyncConstraint( mEcoreSubVideoWindow, width, height ) );
+    mVideoSizePropertyConstraint = Constraint::New<Vector3>(mSyncActor,
+                                                            mVideoSizePropertyIndex,
+                                                            VideoPlayerSyncConstraint(mEcoreSubVideoWindow, width, height));
 
-    mVideoSizePropertyConstraint.AddSource( LocalSource( Actor::Property::SIZE ) );
-    mVideoSizePropertyConstraint.AddSource( LocalSource( Actor::Property::WORLD_SCALE ) );
-    mVideoSizePropertyConstraint.AddSource( LocalSource( Actor::Property::WORLD_POSITION ) );
+    mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
+    mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
+    mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
 
     mVideoSizePropertyConstraint.Apply();
   }
@@ -1105,12 +1333,39 @@ void TizenVideoPlayer::CreateConstraint()
 
 void TizenVideoPlayer::DestroyConstraint()
 {
-  if( mVideoSizePropertyIndex != Property::INVALID_INDEX  )
+  if(mVideoSizePropertyIndex != Property::INVALID_INDEX)
   {
     mVideoSizePropertyConstraint.Remove();
     mVideoSizePropertyIndex = Property::INVALID_INDEX;
   }
 }
 
+void TizenVideoPlayer::RaiseAbove(Any videoSurface)
+{
+  Ecore_Wl2_Subsurface* surface = AnyCast<Ecore_Wl2_Subsurface*>(videoSurface);
+  ecore_wl2_subsurface_place_surface_above(mEcoreSubVideoWindow, surface);
+}
+
+void TizenVideoPlayer::LowerBelow(Any videoSurface)
+{
+  Ecore_Wl2_Subsurface* surface = AnyCast<Ecore_Wl2_Subsurface*>(videoSurface);
+  ecore_wl2_subsurface_place_surface_below(mEcoreSubVideoWindow, surface);
+}
+
+void TizenVideoPlayer::RaiseToTop()
+{
+  ecore_wl2_subsurface_place_surface_above(mEcoreSubVideoWindow, NULL);
+}
+
+void TizenVideoPlayer::LowerToBottom()
+{
+  ecore_wl2_subsurface_place_surface_below(mEcoreSubVideoWindow, NULL);
+}
+
+Any TizenVideoPlayer::GetVideoPlayerSurface()
+{
+  return mEcoreSubVideoWindow;
+}
+
 } // namespace Plugin
-} // namespace Dali;
+} // namespace Dali
