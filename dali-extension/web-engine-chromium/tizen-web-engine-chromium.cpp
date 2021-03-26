@@ -459,6 +459,16 @@ public:
     evas_object_resize(mWebView, mWidth, mHeight);
   }
 
+  void EnableMouseEvents(bool enabled)
+  {
+    ewk_view_mouse_events_enabled_set(mWebView, enabled);
+  }
+
+  void EnableKeyEvents(bool enabled)
+  {
+    ewk_view_key_events_enabled_set(mWebView, enabled);
+  }
+
   bool SendTouchEvent(const TouchEvent& touch)
   {
     Ewk_Touch_Event_Type type = EWK_TOUCH_START;
@@ -550,6 +560,56 @@ public:
     Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window* >(Adaptor::Get().GetNativeWindowHandle());
     ewk_view_set_support_video_hole(mWebView, win, enabled, EINA_FALSE);
     ecore_wl2_window_alpha_set(win, !enabled);
+  }
+
+  bool SendHoverEvent(const HoverEvent& hover)
+  {
+#if defined(OS_TIZEN_TV)
+    //TODO...left/right/middle of mouse could not be acquired now.
+    Ewk_Mouse_Button_Type type = EWK_Mouse_Button_Left;
+    switch ( hover.GetState( 0 ) )
+    {
+      case PointState::DOWN:
+      {
+        float x = hover.GetScreenPosition( 0 ).x;
+        float y = hover.GetScreenPosition( 0 ).y;
+        ewk_view_feed_mouse_down( mWebView, type, x, y );
+        break;
+      }
+      case PointState::UP:
+      {
+        float x = hover.GetScreenPosition( 0 ).x;
+        float y = hover.GetScreenPosition( 0 ).y;
+        ewk_view_feed_mouse_up( mWebView, type, x, y );
+        break;
+      }
+      case PointState::MOTION:
+      {
+        float x = hover.GetScreenPosition( 0 ).x;
+        float y = hover.GetScreenPosition( 0 ).y;
+        ewk_view_feed_mouse_move( mWebView, x, y );
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+#endif
+    return false;
+  }
+
+  bool SendWheelEvent(const WheelEvent& wheel)
+  {
+#if defined(OS_TIZEN_TV)
+    Eina_Bool direction = wheel.GetDirection() ? true : false;
+    int step = wheel.GetDelta();
+    float x = wheel.GetPoint().x;
+    float y = wheel.GetPoint().y;
+
+    ewk_view_feed_mouse_wheel( mWebView, direction, step, x, y );
+#endif
+    return false;
   }
 
 private:
@@ -1106,6 +1166,22 @@ void TizenWebEngineChromium::SetFocus(bool focused)
   }
 }
 
+void TizenWebEngineChromium::EnableMouseEvents(bool enabled)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->EnableMouseEvents(enabled);
+  }
+}
+
+void TizenWebEngineChromium::EnableKeyEvents(bool enabled)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->EnableKeyEvents(enabled);
+  }
+}
+
 void TizenWebEngineChromium::UpdateDisplayArea(Dali::Rect<int> displayArea)
 {
   if (mWebViewContainer)
@@ -1120,6 +1196,24 @@ void TizenWebEngineChromium::EnableVideoHole(bool enabled)
   {
     return mWebViewContainer->EnableVideoHole(enabled);
   }
+}
+
+bool TizenWebEngineChromium::SendHoverEvent(const Dali::HoverEvent& event)
+{
+  if(mWebViewContainer)
+  {
+    return mWebViewContainer->SendHoverEvent( event );
+  }
+  return false;
+}
+
+bool TizenWebEngineChromium::SendWheelEvent( const Dali::WheelEvent& event )
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->SendWheelEvent( event );
+  }
+  return false;
 }
 
 Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadStartedSignal()

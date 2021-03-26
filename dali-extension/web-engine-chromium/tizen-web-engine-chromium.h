@@ -359,9 +359,17 @@ public:
   void SetFocus(bool focused) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::EnableMouseEvents()
+   */
+  void EnableMouseEvents(bool enabled) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableKeyEvents()
+   */
+  void EnableKeyEvents(bool enabled) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
-   * @brief Update display area.
-   * @param[in] displayArea A display area to be updated.
    */
   void UpdateDisplayArea(Dali::Rect<int> displayArea) override;
 
@@ -370,6 +378,16 @@ public:
    * @param[in] enabled True if video hole is enabled, false otherwise.
    */
   void EnableVideoHole(bool enabled) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SendHoverEvent()
+   */
+  bool SendHoverEvent(const Dali::HoverEvent &event) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SendWheelEvent()
+   */
+  bool SendWheelEvent(const Dali::WheelEvent &event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()

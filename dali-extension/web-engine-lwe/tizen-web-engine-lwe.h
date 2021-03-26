@@ -262,17 +262,27 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::SendTouchEvent()
    */
-  bool SendTouchEvent( const Dali::TouchEvent& touch ) override;
+  bool SendTouchEvent(const Dali::TouchEvent& touch) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendKeyEvent()
    */
-  bool SendKeyEvent( const Dali::KeyEvent& event ) override;
+  bool SendKeyEvent(const Dali::KeyEvent& event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetFocus()
    */
-  void SetFocus( bool focused ) override;
+  void SetFocus(bool focused) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableMouseEvents()
+   */
+  void EnableMouseEvents(bool enabled) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableKeyEvents()
+   */
+  void EnableKeyEvents(bool enabled) override;
 
   /**
    * @brief Update display area.
@@ -285,6 +295,16 @@ public:
    * @param[in] enabled True if video hole is enabled, false otherwise.
    */
   void EnableVideoHole( bool enabled ) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SendHoverEvent()
+   */
+  bool SendHoverEvent(const Dali::HoverEvent& event) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SendWheelEvent()
+   */
+  bool SendWheelEvent(const Dali::WheelEvent& event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()

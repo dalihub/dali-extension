@@ -807,7 +807,17 @@ void TizenWebEngineLWE::SetUserAgent( const std::string& userAgent )
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::SetSize( int width, int height )
+void TizenWebEngineLWE::EnableMouseEvents(bool enabled)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::EnableKeyEvents(bool enabled)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::SetSize(int width, int height)
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
 
@@ -950,6 +960,18 @@ void TizenWebEngineLWE::UpdateDisplayArea( Dali::Rect< int > displayArea )
 void TizenWebEngineLWE::EnableVideoHole( bool enabled )
 {
   // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::SendHoverEvent(const Dali::HoverEvent& event)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
+{
+  // NOT IMPLEMENTED
+  return false;
 }
 
 } // namespace Plugin
