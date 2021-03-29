@@ -129,9 +129,26 @@ public:
   void LoadHtmlString(const std::string& string) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::LoadHtmlStringOverrideCurrentEntry()
+   */
+  bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
+                                          const std::string& unreachableUrl) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::LoadContents()
+   */
+  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
+                    const std::string& encoding, const std::string& baseUri) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::Reload()
    */
   void Reload() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ReloadWithoutCache()
+   */
+  bool ReloadWithoutCache() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::StopLoading()
@@ -149,9 +166,44 @@ public:
   void Resume() override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SuspendNetworkLoading()
+   */
+  void SuspendNetworkLoading() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ResumeNetworkLoading()
+   */
+  void ResumeNetworkLoading() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddCustomHeader()
+   */
+  bool AddCustomHeader(const std::string& name, const std::string& value) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RemoveCustomHeader()
+   */
+  bool RemoveCustomHeader(const std::string& name) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::StartInspectorServer()
+   */
+  uint32_t StartInspectorServer(uint32_t port) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::StopInspectorServer()
+   */
+  bool StopInspectorServer() override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::ScrollBy()
    */
   void ScrollBy(int deltaX, int deltaY) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollEdgeBy()
+   */
+  bool ScrollEdgeBy(int deltaX, int deltaY) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
@@ -309,14 +361,88 @@ public:
   void EnableKeyEvents(bool enabled) override;
 
   /**
-   * @brief Update display area.
-   * @param[in] displayArea A display area to be updated.
+   * @copydoc Dali::WebEnginePlugin::SetPageZoomFactor()
+   */
+  void SetPageZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetPageZoomFactor()
+   */
+  float GetPageZoomFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetTextZoomFactor()
+   */
+  void SetTextZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetTextZoomFactor()
+   */
+  float GetTextZoomFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetLoadProgressPercentage()
+   */
+  float GetLoadProgressPercentage() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetScaleFactor()
+   */
+  void SetScaleFactor(float scaleFactor, Dali::Vector2 point) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScaleFactor()
+   */
+  float GetScaleFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ActivateAccessibility()
+   */
+  void ActivateAccessibility(bool activated) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetVisibility()
+   */
+  bool SetVisibility(bool visible) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::HighlightText()
+   */
+  bool HighlightText(const std::string& text, FindOption options, uint32_t maxMatchCount) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddDynamicCertificatePath()
+   */
+  void AddDynamicCertificatePath(const std::string& host, const std::string& certPath) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScreenshot()
+   */
+  Dali::PixelData GetScreenshot(Dali::Rect<int> viewArea, float scaleFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScreenshotAsynchronously()
+   */
+  bool
+  GetScreenshotAsynchronously(Dali::Rect<int> viewArea, float scaleFactor, ScreenshotCapturedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::CheckVideoPlayingAsynchronously()
+   */
+  bool CheckVideoPlayingAsynchronously(VideoPlayingCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterGeolocationPermissionCallback()
+   */
+  void RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
    */
   void UpdateDisplayArea(Dali::Rect<int> displayArea) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::EnableVideoHole()
-   * @param[in] enabled True if video hole is enabled, false otherwise.
    */
   void EnableVideoHole(bool enabled) override;
 
@@ -420,8 +546,8 @@ private:
   bool mIsMouseLbuttonDown;
   bool mCanGoBack;
   bool mCanGoForward;
-  pthread_mutex_t    mOutputBufferMutex;
-  LWE::WebContainer* mWebContainer;
+  pthread_mutex_t            mOutputBufferMutex;
+  LWE::WebContainer*         mWebContainer;
 #ifdef DALI_USE_TBMSURFACE
   tbm_surface_h              mTbmSurface;
   Dali::NativeImageSourcePtr mNativeImageSourcePtr;
@@ -429,11 +555,12 @@ private:
   Dali::BufferImage          mBufferImage;
 #endif
 
-  std::function<void(LWE::WebContainer *, const LWE::WebContainer::RenderResult&)> mOnRenderedHandler;
-  std::function<void(LWE::WebContainer *, LWE::ResourceError)> mOnReceivedError;
-  std::function<void(LWE::WebContainer *, const std::string&)> mOnPageFinishedHandler;
-  std::function<void(LWE::WebContainer *, const std::string&)> mOnPageStartedHandler;
-  std::function<void(LWE::WebContainer *, const std::string&)> mOnLoadResourceHandler;
+  std::function<void(LWE::WebContainer*, const LWE::WebContainer::RenderResult&)> mOnRenderedHandler;
+
+  std::function<void(LWE::WebContainer*, LWE::ResourceError)> mOnReceivedError;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnPageFinishedHandler;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnPageStartedHandler;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
   EventThreadCallback mUpdateBufferTrigger;
 

@@ -118,20 +118,50 @@ public:
   /**
    * @brief Callback function to be called by WebViewContainer when javascript
    * alert is running.
+   * @param [in] alertText Alert text
+   * @return true if a pop-up is shown, false otherwise
    */
   virtual bool JavaScriptAlert(const std::string& alert_text) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when javascript
    * confirm is running.
+   * @param [in] message Message that need be confirmed
+   * @return true if a pop-up is shown, false otherwise
    */
   virtual bool JavaScriptConfirm(const std::string& message) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when javascript
    * prompt is running.
+   * @param [in] message Message that need be promted
+   * @param [in] defaultValue Default value that need be promted
+   * @return true if a pop-up is shown, false otherwise
    */
   virtual bool JavaScriptPrompt(const std::string& message, const std::string& default_value) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when screen shot
+   * is captured.
+   * @param [in] pixelData Pixel data captured
+   */
+  virtual void ScreenshotCaptured(Dali::PixelData pixelData) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when video is
+   * playing.
+   * @param [in] isPlaying Video is playing or not
+   */
+  virtual void VideoPlaying(bool isPlaying) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when requesting
+   * geolocation permissions with host and protocol provided.
+   * @param [in] host Host that requests geolocation permission
+   * @param [in] protocol Protocol that requests geolocation permission
+   * @return true if a pop-up is shown, false otherwise
+   */
+  virtual bool GeolocationPermission(const std::string& host, const std::string& protocol) = 0;
 };
 
 /**
@@ -141,7 +171,7 @@ public:
 class TizenWebEngineChromium : public Dali::WebEnginePlugin, public WebViewContainerClient
 {
 public:
-  typedef std::function<void(const std::string& )> JavaScriptCallback;
+  typedef std::function<void(const std::string&)> JavaScriptCallback;
 
   /**
    * @brief Constructor.
@@ -221,9 +251,26 @@ public:
   void LoadHtmlString(const std::string& string) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::LoadHtmlStringOverrideCurrentEntry()
+   */
+  bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
+                                          const std::string& unreachableUrl) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::LoadContents()
+   */
+  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
+                    const std::string& encoding, const std::string& baseUri) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::Reload()
    */
   void Reload() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ReloadWithoutCache()
+   */
+  bool ReloadWithoutCache() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::StopLoading()
@@ -241,9 +288,44 @@ public:
   void Resume() override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SuspendNetworkLoading()
+   */
+  void SuspendNetworkLoading() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ResumeNetworkLoading()
+   */
+  void ResumeNetworkLoading() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddCustomHeader()
+   */
+  bool AddCustomHeader(const std::string& name, const std::string& value) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RemoveCustomHeader()
+   */
+  bool RemoveCustomHeader(const std::string& name) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::StartInspectorServer()
+   */
+  uint32_t StartInspectorServer(uint32_t port) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::StopInspectorServer()
+   */
+  bool StopInspectorServer() override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::ScrollBy()
    */
   void ScrollBy(int deltaX, int deltaY) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollEdgeBy()
+   */
+  bool ScrollEdgeBy(int deltaX, int deltaY) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
@@ -387,7 +469,6 @@ public:
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetFocus()
-   * @param[in] focused True if web view is focused, false otherwise.
    */
   void SetFocus(bool focused) override;
 
@@ -402,13 +483,87 @@ public:
   void EnableKeyEvents(bool enabled) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SetPageZoomFactor()
+   */
+  void SetPageZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetPageZoomFactor()
+   */
+  float GetPageZoomFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetTextZoomFactor()
+   */
+  void SetTextZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetTextZoomFactor()
+   */
+  float GetTextZoomFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetLoadProgressPercentage()
+   */
+  float GetLoadProgressPercentage() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetScaleFactor()
+   */
+  void SetScaleFactor(float scaleFactor, Dali::Vector2 point) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScaleFactor()
+   */
+  float GetScaleFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ActivateAccessibility()
+   */
+  void ActivateAccessibility(bool activated) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetVisibility()
+   */
+  bool SetVisibility(bool visible) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::HighlightText()
+   */
+  bool HighlightText(const std::string& text, FindOption options, uint32_t maxMatchCount) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddDynamicCertificatePath()
+   */
+  void AddDynamicCertificatePath(const std::string& host, const std::string& certPath) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScreenshot()
+   */
+  Dali::PixelData GetScreenshot(Dali::Rect<int> viewArea, float scaleFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScreenshotAsynchronously()
+   */
+  bool GetScreenshotAsynchronously(Dali::Rect<int> viewArea, float scaleFactor, ScreenshotCapturedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::CheckVideoPlayingAsynchronously()
+   */
+  bool CheckVideoPlayingAsynchronously(VideoPlayingCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterGeolocationPermissionCallback()
+   */
+  void RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
    */
   void UpdateDisplayArea(Dali::Rect<int> displayArea) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::EnableVideoHole()
-   * @param[in] enabled True if video hole is enabled, false otherwise.
    */
   void EnableVideoHole(bool enabled) override;
 
@@ -487,7 +642,7 @@ public:
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::LoadError()
    */
-  void LoadError(const char *url, int errorCode) override;
+  void LoadError(const char* url, int errorCode) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::ScrollEdgeReached()
@@ -508,7 +663,7 @@ public:
    * @copydoc
    * Dali::Plugin::WebViewContainerClient::RunJavaScriptEvaluationResultHandler()
    */
-  void RunJavaScriptEvaluationResultHandler(size_t key, const char *result) override;
+  void RunJavaScriptEvaluationResultHandler(size_t key, const char* result) override;
 
   /**
    * @copydoc
@@ -531,6 +686,21 @@ public:
    */
   bool JavaScriptPrompt(const std::string& message, const std::string& default_value) override;
 
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::ScreenshotCaptured()
+   */
+  void ScreenshotCaptured(Dali::PixelData pixelData) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::VideoPlaying()
+   */
+  void VideoPlaying(bool isPlaying) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::GeolocationPermission()
+   */
+  bool GeolocationPermission(const std::string& host, const std::string& protocol) override;
+
 private:
   WebViewContainerForDali*   mWebViewContainer;
   Dali::NativeImageSourcePtr mDaliImageSrc;
@@ -549,9 +719,12 @@ private:
   std::unordered_map<size_t, JavaScriptCallback>              mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptCallback>         mJavaScriptMessageHandlers;
 
-  Dali::WebEnginePlugin::JavaScriptAlertCallback   mJavaScriptAlertCallback;
-  Dali::WebEnginePlugin::JavaScriptConfirmCallback mJavaScriptConfirmCallback;
-  Dali::WebEnginePlugin::JavaScriptPromptCallback  mJavaScriptPromptCallback;
+  Dali::WebEnginePlugin::JavaScriptAlertCallback       mJavaScriptAlertCallback;
+  Dali::WebEnginePlugin::JavaScriptConfirmCallback     mJavaScriptConfirmCallback;
+  Dali::WebEnginePlugin::JavaScriptPromptCallback      mJavaScriptPromptCallback;
+  Dali::WebEnginePlugin::ScreenshotCapturedCallback    mScreenshotCapturedCallback;
+  Dali::WebEnginePlugin::VideoPlayingCallback          mVideoPlayingCallback;
+  Dali::WebEnginePlugin::GeolocationPermissionCallback mGeolocationPermissionCallback;
 };
 } // namespace Plugin
 } // namespace Dali

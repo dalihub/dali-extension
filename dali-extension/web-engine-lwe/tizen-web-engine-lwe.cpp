@@ -179,8 +179,7 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
     {
       keyValue = LWE::KeyValue::GreaterThanSignKey;
     }
-    else
-    {
+    else {
       keyValue = LWE::KeyValue::PeriodKey;
     }
   }
@@ -190,8 +189,7 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
     {
       keyValue = LWE::KeyValue::QuestionMarkKey;
     }
-    else
-    {
+    else {
       keyValue = LWE::KeyValue::SlashKey;
     }
   }
@@ -295,22 +293,22 @@ protected:
 };
 
 TizenWebEngineLWE::TizenWebEngineLWE()
-    : mUrl("")
-    , mOutputWidth(0)
-    , mOutputHeight(0)
-    , mOutputStride(0)
-    , mOutputBuffer(NULL)
-    , mIsMouseLbuttonDown(false)
-    , mCanGoBack(false)
-    , mCanGoForward(false)
-    , mWebContainer(NULL)
+  : mUrl("")
+  , mOutputWidth(0)
+  , mOutputHeight(0)
+  , mOutputStride(0)
+  , mOutputBuffer(NULL)
+  , mIsMouseLbuttonDown(false)
+  , mCanGoBack(false)
+  , mCanGoForward(false)
+  , mWebContainer(NULL)
 #ifdef DALI_USE_TBMSURFACE
-    , mTbmSurface(NULL)
-    , mNativeImageSourcePtr(NULL)
+  , mTbmSurface(NULL)
+  , mNativeImageSourcePtr(NULL)
 #else
-    , mBufferImage(NULL)
+  , mBufferImage(NULL)
 #endif
-    , mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::UpdateBuffer))
+  , mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::UpdateBuffer))
 {
   pthread_mutex_init(&mOutputBufferMutex, NULL);
 }
@@ -422,8 +420,7 @@ void TizenWebEngineLWE::Create(int width, int height, const std::string& locale,
   mWebContainer = LWE::WebContainer::Create(mOutputWidth, mOutputHeight, 1.0, "", locale.data(), timezoneId.data());
 
   mWebContainer->RegisterPreRenderingHandler(
-      [this]() -> LWE::WebContainer::RenderInfo
-      {
+      [this]() -> LWE::WebContainer::RenderInfo {
         if (mOutputBuffer == NULL)
         {
           mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
@@ -438,36 +435,31 @@ void TizenWebEngineLWE::Create(int width, int height, const std::string& locale,
       });
 
   mWebContainer->RegisterOnRenderedHandler(
-      [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult)
-      {
+      [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult) {
         mOnRenderedHandler(container, renderResult);
       });
   mWebContainer->RegisterOnReceivedErrorHandler(
-      [this](LWE::WebContainer* container, LWE::ResourceError error)
-      {
+      [this](LWE::WebContainer* container, LWE::ResourceError error) {
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
         mOnReceivedError(container, error);
       });
   mWebContainer->RegisterOnPageStartedHandler(
-      [this](LWE::WebContainer* container, const std::string& url)
-      {
+      [this](LWE::WebContainer* container, const std::string& url) {
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
         mOnPageStartedHandler(container, url);
       });
   mWebContainer->RegisterOnPageLoadedHandler(
-      [this](LWE::WebContainer* container, const std::string& url)
-      {
+      [this](LWE::WebContainer* container, const std::string& url) {
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
         mOnPageFinishedHandler(container, url);
       });
   mWebContainer->RegisterOnLoadResourceHandler(
-      [this](LWE::WebContainer* container, const std::string& url)
-      {
+      [this](LWE::WebContainer* container, const std::string& url) {
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
@@ -678,10 +670,31 @@ void TizenWebEngineLWE::LoadHtmlString(const std::string& str)
   mWebContainer->LoadData(str);
 }
 
+bool TizenWebEngineLWE::LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
+                                                           const std::string& unreachableUrl)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::LoadContents(const std::string& contents, uint32_t contentSize,
+                                     const std::string& mimeType, const std::string& encoding,
+                                     const std::string& baseUri)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
 void TizenWebEngineLWE::Reload()
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   mWebContainer->Reload();
+}
+
+bool TizenWebEngineLWE::ReloadWithoutCache()
+{
+  // NOT IMPLEMENTED
+  return false;
 }
 
 void TizenWebEngineLWE::StopLoading()
@@ -700,9 +713,49 @@ void TizenWebEngineLWE::Resume()
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::SuspendNetworkLoading()
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::ResumeNetworkLoading()
+{
+  // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::AddCustomHeader(const std::string& name, const std::string& value)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::RemoveCustomHeader(const std::string& name)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+uint32_t TizenWebEngineLWE::StartInspectorServer(uint32_t port)
+{
+  // NOT IMPLEMENTED
+  return 0;
+}
+
+bool TizenWebEngineLWE::StopInspectorServer()
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
 void TizenWebEngineLWE::ScrollBy(int deltaX, int deltaY)
 {
   // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::ScrollEdgeBy(int deltaX, int deltaY)
+{
+  // NOT IMPLEMENTED
+  return false;
 }
 
 void TizenWebEngineLWE::SetScrollPosition(int x, int y)
@@ -761,8 +814,7 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage",
-      [handler](const std::string& data) -> std::string
-      {
+      [handler](const std::string& data) -> std::string {
         handler(data);
         return "";
       });
@@ -995,6 +1047,92 @@ void TizenWebEngineLWE::SetFocus(bool focused)
 }
 
 void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int> displayArea)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::SetPageZoomFactor(float zoomFactor)
+{
+  // NOT IMPLEMENTED
+}
+
+float TizenWebEngineLWE::GetPageZoomFactor() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+void TizenWebEngineLWE::SetTextZoomFactor(float zoomFactor)
+{
+  // NOT IMPLEMENTED
+}
+
+float TizenWebEngineLWE::GetTextZoomFactor() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+float TizenWebEngineLWE::GetLoadProgressPercentage() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+void TizenWebEngineLWE::SetScaleFactor(float scaleFactor, Dali::Vector2 point)
+{
+  // NOT IMPLEMENTED
+}
+
+float TizenWebEngineLWE::GetScaleFactor() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+void TizenWebEngineLWE::ActivateAccessibility(bool activated)
+{
+  // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::SetVisibility(bool visible)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::HighlightText(const std::string& text, Dali::WebEnginePlugin::FindOption options,
+                                      uint32_t maxMatchCount)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::AddDynamicCertificatePath(const std::string& host, const std::string& certPath)
+{
+  // NOT IMPLEMENTED
+}
+
+Dali::PixelData TizenWebEngineLWE::GetScreenshot(Dali::Rect<int> viewArea, float scaleFactor)
+{
+  // NOT IMPLEMENTED
+  return Dali::PixelData();
+}
+
+bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::Rect<int> viewArea, float scaleFactor,
+                                                    Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::CheckVideoPlayingAsynchronously(Dali::WebEnginePlugin::VideoPlayingCallback callback)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback)
 {
   // NOT IMPLEMENTED
 }
