@@ -252,12 +252,37 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::SetUserAgent()
    */
-  void SetUserAgent( const std::string& userAgent ) override;
+  void SetUserAgent(const std::string& userAgent) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetSize()
    */
-  void SetSize( int width, int height ) override;
+  void SetSize(int width, int height) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetDocumentBackgroundColor()
+   */
+  void SetDocumentBackgroundColor(Dali::Vector4 color) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ClearTilesWhenHidden()
+   */
+  void ClearTilesWhenHidden(bool cleared) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetTileCoverAreaMultiplier()
+   */
+  void SetTileCoverAreaMultiplier(float multiplier) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableCursorByClient()
+   */
+  void EnableCursorByClient(bool enabled) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetSelectedText()
+   */
+  std::string GetSelectedText() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendTouchEvent()
