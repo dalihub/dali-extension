@@ -24,6 +24,7 @@
 #include <dali/public-api/images/native-image-interface.h>
 #include <functional>
 
+#include <memory>
 #include <tbm_surface.h>
 #include <unordered_map>
 
@@ -81,6 +82,13 @@ public:
    * @param [in] edge Scroll edge reached.
    */
   virtual void ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge edge) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when form repost
+   * policy would be decided.
+   * @param [in] decision The decision policy to show warning when form repost.
+   */
+  virtual void RequestFormRepostDecision(std::shared_ptr<Dali::WebEngineFormRepostDecision> decision) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when url is
@@ -343,6 +351,31 @@ public:
   void SetSize(int width, int height) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SetDocumentBackgroundColor()
+   */
+  void SetDocumentBackgroundColor(Dali::Vector4 color) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ClearTilesWhenHidden()
+   */
+  void ClearTilesWhenHidden(bool cleared) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetTileCoverAreaMultiplier()
+   */
+  void SetTileCoverAreaMultiplier(float multiplier) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableCursorByClient()
+   */
+  void EnableCursorByClient(bool enabled) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetSelectedText()
+   */
+  std::string GetSelectedText() const override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::SendTouchEvent()
    */
   bool SendTouchEvent(const Dali::TouchEvent& touch) override;
@@ -359,9 +392,17 @@ public:
   void SetFocus(bool focused) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::EnableMouseEvents()
+   */
+  void EnableMouseEvents(bool enabled) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::EnableKeyEvents()
+   */
+  void EnableKeyEvents(bool enabled) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
-   * @brief Update display area.
-   * @param[in] displayArea A display area to be updated.
    */
   void UpdateDisplayArea(Dali::Rect<int> displayArea) override;
 
@@ -370,6 +411,16 @@ public:
    * @param[in] enabled True if video hole is enabled, false otherwise.
    */
   void EnableVideoHole(bool enabled) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SendHoverEvent()
+   */
+  bool SendHoverEvent(const Dali::HoverEvent &event) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SendWheelEvent()
+   */
+  bool SendWheelEvent(const Dali::WheelEvent &event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
@@ -400,6 +451,16 @@ public:
    * @copydoc Dali::WebEnginePlugin::UrlChangedSignal()
    */
   Dali::WebEnginePlugin::WebEngineUrlChangedSignalType& UrlChangedSignal() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::FormRepostDecisionSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType& FormRepostDecisionSignal() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::FrameRenderedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& FrameRenderedSignal() override;
 
   // WebViewContainerClient Interface
 
@@ -432,6 +493,11 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::ScrollEdgeReached()
    */
   void ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge edge) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::RequestFormRepostDecision()
+   */
+  void RequestFormRepostDecision(std::shared_ptr<Dali::WebEngineFormRepostDecision> decision) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
@@ -471,12 +537,14 @@ private:
   std::string                mUrl;
   size_t                     mJavaScriptEvaluationCount;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType          mLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType          mLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType          mLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType     mLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType        mUrlChangedSignal;
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mLoadInProgressSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType      mLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType         mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType  mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
 
   std::unordered_map<size_t, JavaScriptCallback>              mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptCallback>         mJavaScriptMessageHandlers;

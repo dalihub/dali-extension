@@ -20,6 +20,7 @@
 #include "tizen-web-engine-back-forward-list.h"
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
+#include "tizen-web-engine-form-repost-decision.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
@@ -243,6 +244,9 @@ public:
     evas_object_smart_callback_add(mWebView, "edge,bottom",
                                    &WebViewContainerForDali::OnEdgeBottom,
                                    &mClient);
+    evas_object_smart_callback_add(mWebView, "form,repost,warning,show",
+                                   &WebViewContainerForDali::OnFormRepostDecisionRequest,
+                                   &mClient);
 
     evas_object_resize(mWebView, mWidth, mHeight);
     evas_object_show(mWebView);
@@ -459,6 +463,41 @@ public:
     evas_object_resize(mWebView, mWidth, mHeight);
   }
 
+  void EnableMouseEvents(bool enabled)
+  {
+    ewk_view_mouse_events_enabled_set(mWebView, enabled);
+  }
+
+  void EnableKeyEvents(bool enabled)
+  {
+    ewk_view_key_events_enabled_set(mWebView, enabled);
+  }
+
+  void SetDocumentBackgroundColor(Dali::Vector4 color)
+  {
+    ewk_view_bg_color_set(mWebView, color.r * 255, color.g * 255, color.b * 255, color.a * 255);
+  }
+
+  void ClearTilesWhenHidden(bool cleared)
+  {
+    ewk_view_clear_tiles_on_hide_enabled_set(mWebView, cleared);
+  }
+
+  void SetTileCoverAreaMultiplier(float multiplier)
+  {
+    ewk_view_tile_cover_area_multiplier_set(mWebView, multiplier);
+  }
+
+  void EnableCursorByClient(bool enabled)
+  {
+    ewk_view_set_cursor_by_client(mWebView, enabled);
+  }
+
+  std::string GetSelectedText() const
+  {
+    return ewk_view_text_selection_text_get(mWebView);
+  }
+
   bool SendTouchEvent(const TouchEvent& touch)
   {
     Ewk_Touch_Event_Type type = EWK_TOUCH_START;
@@ -552,6 +591,56 @@ public:
     ecore_wl2_window_alpha_set(win, !enabled);
   }
 
+  bool SendHoverEvent(const HoverEvent& hover)
+  {
+#if defined(OS_TIZEN_TV)
+    //TODO...left/right/middle of mouse could not be acquired now.
+    Ewk_Mouse_Button_Type type = EWK_Mouse_Button_Left;
+    switch ( hover.GetState( 0 ) )
+    {
+      case PointState::DOWN:
+      {
+        float x = hover.GetScreenPosition( 0 ).x;
+        float y = hover.GetScreenPosition( 0 ).y;
+        ewk_view_feed_mouse_down( mWebView, type, x, y );
+        break;
+      }
+      case PointState::UP:
+      {
+        float x = hover.GetScreenPosition( 0 ).x;
+        float y = hover.GetScreenPosition( 0 ).y;
+        ewk_view_feed_mouse_up( mWebView, type, x, y );
+        break;
+      }
+      case PointState::MOTION:
+      {
+        float x = hover.GetScreenPosition( 0 ).x;
+        float y = hover.GetScreenPosition( 0 ).y;
+        ewk_view_feed_mouse_move( mWebView, x, y );
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+#endif
+    return false;
+  }
+
+  bool SendWheelEvent(const WheelEvent& wheel)
+  {
+#if defined(OS_TIZEN_TV)
+    Eina_Bool direction = wheel.GetDirection() ? true : false;
+    int step = wheel.GetDelta();
+    float x = wheel.GetPoint().x;
+    float y = wheel.GetPoint().y;
+
+    ewk_view_feed_mouse_wheel( mWebView, direction, step, x, y );
+#endif
+    return false;
+  }
+
 private:
   static void OnFrameRendered(void* data, Evas_Object* , void* buffer)
   {
@@ -623,6 +712,14 @@ private:
   {
     auto client = static_cast<WebViewContainerClient* >(data);
     client->ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge::BOTTOM);
+  }
+
+  static void OnFormRepostDecisionRequest(void* data, Evas_Object*, void* eventInfo)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Form_Repost_Decision_Request* decisionRequest = static_cast<Ewk_Form_Repost_Decision_Request*>(eventInfo);
+    std::shared_ptr<Dali::WebEngineFormRepostDecision> webDecisionRequest(new TizenWebEngineFormRepostDecision(decisionRequest));
+    client->RequestFormRepostDecision(webDecisionRequest);
   }
 
   static void OnEvaluateJavaScript(Evas_Object* o, const char* result, void* data)
@@ -1080,9 +1177,50 @@ void TizenWebEngineChromium::SetSize(int width, int height)
   }
 }
 
+void TizenWebEngineChromium::SetDocumentBackgroundColor(Dali::Vector4 color)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->SetDocumentBackgroundColor(color);
+  }
+}
+
+void TizenWebEngineChromium::ClearTilesWhenHidden(bool cleared)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->ClearTilesWhenHidden(cleared);
+  }
+}
+
+void TizenWebEngineChromium::SetTileCoverAreaMultiplier(float multiplier)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->SetTileCoverAreaMultiplier(multiplier);
+  }
+}
+
+void TizenWebEngineChromium::EnableCursorByClient(bool enabled)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->EnableCursorByClient(enabled);
+  }
+}
+
+std::string TizenWebEngineChromium::GetSelectedText() const
+{
+  if(mWebViewContainer)
+  {
+    return mWebViewContainer->GetSelectedText();
+  }
+  return EMPTY_STRING;
+}
+
 bool TizenWebEngineChromium::SendTouchEvent(const Dali::TouchEvent& touch)
 {
-  if (mWebViewContainer)
+  if(mWebViewContainer)
   {
     return mWebViewContainer->SendTouchEvent(touch);
   }
@@ -1106,6 +1244,22 @@ void TizenWebEngineChromium::SetFocus(bool focused)
   }
 }
 
+void TizenWebEngineChromium::EnableMouseEvents(bool enabled)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->EnableMouseEvents(enabled);
+  }
+}
+
+void TizenWebEngineChromium::EnableKeyEvents(bool enabled)
+{
+  if(mWebViewContainer)
+  {
+    mWebViewContainer->EnableKeyEvents(enabled);
+  }
+}
+
 void TizenWebEngineChromium::UpdateDisplayArea(Dali::Rect<int> displayArea)
 {
   if (mWebViewContainer)
@@ -1120,6 +1274,24 @@ void TizenWebEngineChromium::EnableVideoHole(bool enabled)
   {
     return mWebViewContainer->EnableVideoHole(enabled);
   }
+}
+
+bool TizenWebEngineChromium::SendHoverEvent(const Dali::HoverEvent& event)
+{
+  if(mWebViewContainer)
+  {
+    return mWebViewContainer->SendHoverEvent( event );
+  }
+  return false;
+}
+
+bool TizenWebEngineChromium::SendWheelEvent( const Dali::WheelEvent& event )
+{
+  if( mWebViewContainer )
+  {
+    return mWebViewContainer->SendWheelEvent( event );
+  }
+  return false;
 }
 
 Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadStartedSignal()
@@ -1152,6 +1324,16 @@ Dali::WebEnginePlugin::WebEngineUrlChangedSignalType& TizenWebEngineChromium::Ur
   return mUrlChangedSignal;
 }
 
+Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType& TizenWebEngineChromium::FormRepostDecisionSignal()
+{
+  return mFormRepostDecisionSignal;
+}
+
+Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& TizenWebEngineChromium::FrameRenderedSignal()
+{
+  return mFrameRenderedSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -1163,6 +1345,8 @@ void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
   Any source(buffer);
   mDaliImageSrc->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
+
+  mFrameRenderedSignal.Emit();
 }
 
 void TizenWebEngineChromium::LoadStarted()
@@ -1199,6 +1383,15 @@ void TizenWebEngineChromium::UrlChanged(const std::string& url)
 {
   DALI_LOG_RELEASE_INFO("#UrlChanged : %s\n", url.c_str());
   mUrlChangedSignal.Emit(url);
+}
+
+void TizenWebEngineChromium::RequestFormRepostDecision(std::shared_ptr<Dali::WebEngineFormRepostDecision> decision)
+{
+  DALI_LOG_RELEASE_INFO("#FormRepostDecisionRequest\n");
+  if (!mFormRepostDecisionSignal.Empty())
+  {
+    mFormRepostDecisionSignal.Emit(std::move(decision));
+  }
 }
 
 void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler(size_t key, const char* result)
