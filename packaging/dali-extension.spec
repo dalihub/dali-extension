@@ -408,11 +408,13 @@ exit 0
 %{_libdir}/libdali2-video-player-plugin.so*
 %license LICENSE
 
+%if 0%{?tizen_65_or_greater}
 %files camera-player-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-camera-player-plugin.so*
 %license LICENSE
+%endif
 
 %if 0%{?tizen_55_or_greater}
 %files web-engine-chromium-plugin
