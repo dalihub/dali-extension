@@ -98,13 +98,20 @@ public:
   virtual void UrlChanged(const std::string& url) = 0;
 
   /**
+   * @brief Callback function to be called by WebViewContainer when http request
+   * need be intercepted.
+   * @param [in] request The http request interceptor.
+   */
+  virtual void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) = 0;
+
+  /**
    * @brief Callback function to be called by WebViewContainer when it gets
    * JavaScript evalution result.
    * @param [in] key An unsigned integer representing the result handler
    * @param [in] result Result string from JavaScript runtime
    * @see Dali::Plugin::TizenWebEngineChromium::EvaluateJavaScript
    */
-  virtual void RunJavaScriptEvaluationResultHandler(size_t key, const char *result) = 0;
+  virtual void RunJavaScriptEvaluationResultHandler(size_t key, const char* result) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when a message
@@ -171,7 +178,7 @@ public:
 class TizenWebEngineChromium : public Dali::WebEnginePlugin, public WebViewContainerClient
 {
 public:
-  typedef std::function<void(const std::string&)> JavaScriptCallback;
+  using JavaScriptCallback = std::function<void(const std::string&)>;
 
   /**
    * @brief Constructor.
@@ -193,7 +200,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create(int width, int height, int argc, char **argv) override;
+  void Create(int width, int height, int argc, char** argv) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
@@ -370,12 +377,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::EvaluateJavaScript()
    */
-  void EvaluateJavaScript(const std::string& script, std::function<void(const std::string& )> resultHandler) override;
+  void EvaluateJavaScript(const std::string& script, std::function<void(const std::string&)> resultHandler) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
    */
-  void AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string& )> handler) override;
+  void AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string&)> handler) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptAlertCallback()
@@ -617,6 +624,11 @@ public:
    */
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& FrameRenderedSignal() override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RequestInterceptorSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& RequestInterceptorSignal() override;
+
   // WebViewContainerClient Interface
 
   /**
@@ -658,6 +670,11 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
    */
   void UrlChanged(const std::string& url) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::InterceptRequest()
+   */
+  void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) override;
 
   /**
    * @copydoc
@@ -715,9 +732,10 @@ private:
   Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType  mScrollEdgeReachedSignal;
   Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType mRequestInterceptorSignal;
 
-  std::unordered_map<size_t, JavaScriptCallback>              mJavaScriptEvaluationResultHandlers;
-  std::unordered_map<std::string, JavaScriptCallback>         mJavaScriptMessageHandlers;
+  std::unordered_map<size_t, JavaScriptCallback>               mJavaScriptEvaluationResultHandlers;
+  std::unordered_map<std::string, JavaScriptCallback>          mJavaScriptMessageHandlers;
 
   Dali::WebEnginePlugin::JavaScriptAlertCallback       mJavaScriptAlertCallback;
   Dali::WebEnginePlugin::JavaScriptConfirmCallback     mJavaScriptConfirmCallback;

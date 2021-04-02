@@ -21,6 +21,7 @@
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
 #include "tizen-web-engine-form-repost-decision.h"
+#include "tizen-web-engine-request-interceptor.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
@@ -201,6 +202,7 @@ public:
     mWebEngineSettings = TizenWebEngineSettings(settings);
 
     context = ewk_view_context_get(mWebView);
+    ewk_context_intercept_request_callback_set(context, &WebViewContainerForDali::OnInterceptRequest, &mClient);
     mWebEngineContext = TizenWebEngineContext(context);
 
     Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
@@ -816,16 +818,23 @@ private:
     client->LoadError(ewk_error_url_get(error), ewk_error_code_get(error));
   }
 
-  static void OnUrlChanged(void* data, Evas_Object* , void* newUrl)
+  static void OnInterceptRequest(Ewk_Context*, Ewk_Intercept_Request* request, void* data)
   {
-    auto client = static_cast<WebViewContainerClient* >(data);
-    std::string url = static_cast<char* >(newUrl);
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::shared_ptr<Dali::WebEngineRequestInterceptor> webInterceptor(new TizenWebEngineRequestInterceptor(request));
+    client->InterceptRequest(std::move(webInterceptor));
+  }
+
+  static void OnUrlChanged(void* data, Evas_Object*, void* newUrl)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::string url = static_cast<char*>(newUrl);
     client->UrlChanged(url);
   }
 
-  static void OnConsoleMessage(void* , Evas_Object* , void* eventInfo)
+  static void OnConsoleMessage(void*, Evas_Object*, void* eventInfo)
   {
-    Ewk_Console_Message* message = (Ewk_Console_Message* )eventInfo;
+    Ewk_Console_Message* message = (Ewk_Console_Message*)eventInfo;
     DALI_LOG_RELEASE_INFO("console message:%s: %d: %d: %s",
                           ewk_console_message_source_get(message),
                           ewk_console_message_line_get(message),
@@ -1720,6 +1729,11 @@ Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& TizenWebEngineChromium:
   return mFrameRenderedSignal;
 }
 
+Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& TizenWebEngineChromium::RequestInterceptorSignal()
+{
+  return mRequestInterceptorSignal;
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -1777,6 +1791,15 @@ void TizenWebEngineChromium::RequestFormRepostDecision(std::shared_ptr<Dali::Web
   if (!mFormRepostDecisionSignal.Empty())
   {
     mFormRepostDecisionSignal.Emit(std::move(decision));
+  }
+}
+
+void TizenWebEngineChromium::InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor)
+{
+  DALI_LOG_RELEASE_INFO("#InterceptRequest.\n");
+  if (!mRequestInterceptorSignal.Empty())
+  {
+    mRequestInterceptorSignal.Emit(std::move(interceptor));
   }
 }
 

@@ -26,8 +26,8 @@ namespace Dali
 namespace Plugin
 {
 
-TizenWebEngineContext::TizenWebEngineContext( Ewk_Context* context )
-  : ewkContext( context )
+TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context)
+  : ewkContext(context)
 {
 }
 
@@ -37,52 +37,52 @@ TizenWebEngineContext::~TizenWebEngineContext()
 
 Dali::WebEngineContext::CacheModel TizenWebEngineContext::GetCacheModel() const
 {
-  return static_cast< Dali::WebEngineContext::CacheModel >( ewk_context_cache_model_get( ewkContext ) );
+  return static_cast<Dali::WebEngineContext::CacheModel>(ewk_context_cache_model_get(ewkContext ));
 }
 
-void TizenWebEngineContext::SetCacheModel( Dali::WebEngineContext::CacheModel cacheModel  )
+void TizenWebEngineContext::SetCacheModel(Dali::WebEngineContext::CacheModel cacheModel)
 {
-  ewk_context_cache_model_set( ewkContext, static_cast< Ewk_Cache_Model >( cacheModel ) );
+  ewk_context_cache_model_set(ewkContext, static_cast<Ewk_Cache_Model>(cacheModel));
 }
 
-void TizenWebEngineContext::SetProxyUri( const std::string& uri )
+void TizenWebEngineContext::SetProxyUri(const std::string& uri)
 {
-  ewk_context_proxy_uri_set( ewkContext, uri.c_str() );
+  ewk_context_proxy_uri_set(ewkContext, uri.c_str());
 }
 
-void TizenWebEngineContext::SetDefaultProxyAuth( const std::string& username, const std::string& password )
+void TizenWebEngineContext::SetDefaultProxyAuth(const std::string& username, const std::string& password)
 {
-  ewk_context_proxy_default_auth_set( ewkContext, username.c_str(), password.c_str() );
+  ewk_context_proxy_default_auth_set(ewkContext, username.c_str(), password.c_str());
 }
 
-void TizenWebEngineContext::SetCertificateFilePath( const std::string& certificatePath )
+void TizenWebEngineContext::SetCertificateFilePath(const std::string& certificatePath)
 {
-  ewk_context_certificate_file_set( ewkContext, certificatePath.c_str() );
+  ewk_context_certificate_file_set(ewkContext, certificatePath.c_str());
 }
 
 void TizenWebEngineContext::DeleteWebDatabase()
 {
-  ewk_context_web_database_delete_all( ewkContext );
+  ewk_context_web_database_delete_all(ewkContext);
 }
 
 void TizenWebEngineContext::DeleteWebStorage()
 {
-  ewk_context_web_storage_delete_all( ewkContext );
+  ewk_context_web_storage_delete_all(ewkContext);
 }
 
 void TizenWebEngineContext::DeleteLocalFileSystem()
 {
-  ewk_context_local_file_system_all_delete( ewkContext );
+  ewk_context_local_file_system_all_delete(ewkContext);
 }
 
-void TizenWebEngineContext::DisableCache( bool cacheDisabled )
+void TizenWebEngineContext::DisableCache(bool cacheDisabled)
 {
-  ewk_context_cache_disabled_set( ewkContext, cacheDisabled );
+  ewk_context_cache_disabled_set(ewkContext, cacheDisabled);
 }
 
 void TizenWebEngineContext::ClearCache()
 {
-  ewk_context_cache_clear( ewkContext );
+  ewk_context_cache_clear(ewkContext);
 }
 
 } // namespace Plugin
