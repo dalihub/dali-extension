@@ -96,7 +96,7 @@ void TizenWebEngineContext::DeleteAllWebStorage()
   ewk_context_web_storage_delete_all(ewkContext);
 }
 
-bool TizenWebEngineContext::DeleteWebStorageOrigin(WebEngineSecurityOrigin& origin)
+bool TizenWebEngineContext::DeleteWebStorage(WebEngineSecurityOrigin& origin)
 {
   TizenWebEngineSecurityOrigin* engineOrigin = static_cast<TizenWebEngineSecurityOrigin*>(&origin);
   return ewk_context_web_storage_origin_delete(ewkContext, engineOrigin->GetSecurityOrigin());
@@ -105,11 +105,6 @@ bool TizenWebEngineContext::DeleteWebStorageOrigin(WebEngineSecurityOrigin& orig
 void TizenWebEngineContext::DeleteLocalFileSystem()
 {
   ewk_context_local_file_system_all_delete(ewkContext);
-}
-
-void TizenWebEngineContext::DisableCache(bool cacheDisabled)
-{
-  ewk_context_cache_disabled_set(ewkContext, cacheDisabled);
 }
 
 void TizenWebEngineContext::ClearCache()
@@ -206,6 +201,130 @@ Eina_Bool TizenWebEngineContext::OnMimeOverridden(const char* url, const char* d
     *newMime = strdup(newOverridingMime.c_str());
   }
   return result;
+}
+
+void TizenWebEngineContext::EnableCache(bool cacheEnabled)
+{
+  ewk_context_cache_disabled_set(ewkContext, !cacheEnabled);
+}
+
+bool TizenWebEngineContext::IsCacheEnabled() const
+{
+  return !ewk_context_cache_disabled_get(ewkContext);
+}
+
+std::string TizenWebEngineContext::GetContextCertificateFile() const
+{
+  const std::string ret = ewk_context_certificate_file_get(ewkContext);
+  return ret;
+}
+
+void TizenWebEngineContext::SetContextAppId(const std::string& appID)
+{
+  ewk_context_tizen_app_id_set(ewkContext, appID.c_str());
+}
+
+bool TizenWebEngineContext::SetContextAppVersion(const std::string& appVersion)
+{
+  return ewk_context_tizen_app_version_set(ewkContext, appVersion.c_str());
+}
+
+void TizenWebEngineContext::SetContextApplicationType(const ApplicationType applicationType)
+{
+  ewk_context_application_type_set(ewkContext, static_cast<Ewk_Application_Type>(applicationType));
+}
+
+void TizenWebEngineContext::SetContextTimeOffset(float timeOffset)
+{
+  ewk_context_time_offset_set(ewkContext, double(timeOffset));
+}
+
+void TizenWebEngineContext::SetContextTimeZoneOffset(float timeZoneOffset, float daylightSavingTime)
+{
+  ewk_context_timezone_offset_set(ewkContext, double(timeZoneOffset), double(daylightSavingTime));
+}
+
+void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes)
+{
+  Eina_List* list = NULL;
+  for (std::vector<std::string>::const_iterator it = schemes.begin(); it != schemes.end(); ++it)
+  {
+    list = eina_list_append(list, (*it).c_str());
+  }
+
+  ewk_context_register_url_schemes_as_cors_enabled(ewkContext, list);
+}
+
+void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)
+{
+  Eina_List* list = NULL;
+  for (std::vector<std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); ++it)
+  {
+    list = eina_list_append(list, (*it).c_str());
+  }
+
+  ewk_context_register_jsplugin_mime_types(ewkContext, list);
+}
+
+void TizenWebEngineContext::SetDefaultZoomFactor(float zoomFactor)
+{
+  ewk_context_default_zoom_factor_set(ewkContext, double(zoomFactor));
+}
+
+float TizenWebEngineContext::GetContextDefaultZoomFactor() const
+{
+  return float(ewk_context_default_zoom_factor_get(ewkContext));
+}
+
+bool TizenWebEngineContext::DeleteAllApplicationCache()
+{
+  return ewk_context_application_cache_delete_all(ewkContext);
+}
+
+bool TizenWebEngineContext::DeleteAllWebIndexedDatabase()
+{
+  return ewk_context_web_indexed_database_delete_all(ewkContext);
+}
+
+void TizenWebEngineContext::DeleteFormPasswordDataList(const std::vector<std::string>& list)
+{
+  Eina_List* eList = NULL;
+  for (std::vector<std::string>::const_iterator it = list.begin(); it != list.end(); ++it)
+  {
+    eList = eina_list_append(eList, (*it).c_str());
+  }
+
+  ewk_context_form_password_data_list_free(ewkContext, eList);
+}
+
+void TizenWebEngineContext::DeleteAllFormPasswordData()
+{
+  ewk_context_form_password_data_delete_all(ewkContext);
+}
+
+void TizenWebEngineContext::DeleteAllFormCandidateData()
+{
+  ewk_context_form_candidate_data_delete_all(ewkContext);
+}
+
+std::string TizenWebEngineContext::GetContextProxy() const
+{
+  return ewk_context_proxy_uri_get(ewkContext);
+}
+
+void TizenWebEngineContext::SetContextProxy(const std::string& proxy, const std::string& bypass)
+{
+  ewk_context_proxy_set(ewkContext, proxy.c_str(), bypass.c_str());
+}
+
+std::string TizenWebEngineContext::GetProxyBypassRule() const
+{
+  return ewk_context_proxy_bypass_rule_get(ewkContext);
+}
+
+bool TizenWebEngineContext::FreeUnusedMemory()
+{
+  return ewk_context_notify_low_memory(ewkContext);
 }
 
 } // namespace Plugin

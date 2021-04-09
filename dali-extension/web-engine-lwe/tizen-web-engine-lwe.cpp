@@ -584,12 +584,11 @@ public:
     return false;
   }
   void DeleteAllWebStorage() override {}
-  bool DeleteWebStorageOrigin(WebEngineSecurityOrigin &origin) override
+  bool DeleteWebStorage(WebEngineSecurityOrigin &origin) override
   {
     return false;
   }
   void DeleteLocalFileSystem() override {}
-  void DisableCache(bool cacheDisabled) override {}
   void ClearCache() override {}
   bool DeleteApplicationCache(WebEngineSecurityOrigin &origin) override
   {
@@ -598,6 +597,27 @@ public:
   void GetFormPasswordList(WebEngineFormPasswordAcquiredCallback callback) override {}
   void RegisterDownloadStartedCallback(WebEngineDownloadStartedCallback callback) override {}
   void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override {}
+  void EnableCache(bool cacheDisabled) override {}
+  bool IsCacheEnabled() const override { return false; }
+  std::string GetContextCertificateFile() const override { return ""; }
+  void SetContextAppId(const std::string& appID) override { }
+  bool SetContextAppVersion(const std::string& appVersion) override { return false; }
+  void SetContextApplicationType(const ApplicationType applicationType) override { }
+  void SetContextTimeOffset(float timeOffset) override { }
+  void SetContextTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override { }
+  void RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes) override { }
+  void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes) override { }
+  void SetDefaultZoomFactor(float zoomFactor) override { }
+  float GetContextDefaultZoomFactor() const override { return 0;}
+  bool DeleteAllApplicationCache() override { return false; }
+  bool DeleteAllWebIndexedDatabase() override { return false; }
+  void DeleteFormPasswordDataList(const std::vector<std::string>& list) override { }
+  void DeleteAllFormPasswordData() override { }
+  void DeleteAllFormCandidateData() override { }
+  std::string GetContextProxy() const override { return ""; }
+  void SetContextProxy(const std::string& proxy, const std::string& bypass) override { }
+  std::string GetProxyBypassRule() const override { return ""; }
+  bool FreeUnusedMemory() override { return false; }
 };
 
 Dali::WebEngineContext& TizenWebEngineLWE::GetContext() const
