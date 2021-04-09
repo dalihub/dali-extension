@@ -23,8 +23,8 @@ namespace Dali
 namespace Plugin
 {
 
-TizenWebEngineBackForwardList::TizenWebEngineBackForwardList( Ewk_Back_Forward_List* list )
-  : ewkBackForwardList( list )
+TizenWebEngineBackForwardList::TizenWebEngineBackForwardList(Ewk_Back_Forward_List* list)
+  : mEwkBackForwardList( list )
 {
 }
 
@@ -32,25 +32,75 @@ TizenWebEngineBackForwardList::~TizenWebEngineBackForwardList()
 {
 }
 
-Dali::WebEngineBackForwardListItem& TizenWebEngineBackForwardList::GetCurrentItem() const
+std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetCurrentItem() const
 {
-  static TizenWebEngineBackForwardListItem itemCache( 0 );
-  Ewk_Back_Forward_List_Item* item = ewk_back_forward_list_current_item_get( ewkBackForwardList );
-  itemCache = TizenWebEngineBackForwardListItem( item );
-  return itemCache;
+  Ewk_Back_Forward_List_Item* item = ewk_back_forward_list_current_item_get(mEwkBackForwardList);
+  Dali::WebEngineBackForwardListItem* webitem = new TizenWebEngineBackForwardListItem(item);
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
+  return ret;
 }
 
-Dali::WebEngineBackForwardListItem& TizenWebEngineBackForwardList::GetItemAtIndex( uint32_t index ) const
+std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetPreviousItem() const
 {
-  static TizenWebEngineBackForwardListItem itemCache( 0 );
-  Ewk_Back_Forward_List_Item* item = ewk_back_forward_list_item_at_index_get( ewkBackForwardList, index );
-  itemCache = TizenWebEngineBackForwardListItem( item );
-  return itemCache;
+  Ewk_Back_Forward_List_Item* item = ewk_back_forward_list_previous_item_get(mEwkBackForwardList);
+  Dali::WebEngineBackForwardListItem* webitem = new TizenWebEngineBackForwardListItem(item);
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
+  return ret;
+}
+
+std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetNextItem() const
+{
+  Ewk_Back_Forward_List_Item* item = ewk_back_forward_list_next_item_get(mEwkBackForwardList);
+  Dali::WebEngineBackForwardListItem* webitem = new TizenWebEngineBackForwardListItem(item);
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
+  return ret;
+}
+
+std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetItemAtIndex(uint32_t index) const
+{
+  Ewk_Back_Forward_List_Item* item = ewk_back_forward_list_item_at_index_get( mEwkBackForwardList, index );
+  Dali::WebEngineBackForwardListItem* webitem = new TizenWebEngineBackForwardListItem(item);
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
+  return ret;
 }
 
 uint32_t TizenWebEngineBackForwardList::GetItemCount() const
 {
-  return ewk_back_forward_list_count( ewkBackForwardList );
+  return ewk_back_forward_list_count( mEwkBackForwardList );
+}
+
+std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> TizenWebEngineBackForwardList::GetBackwardItems(int limit)
+{
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> ret;
+
+  Eina_List* list = ewk_back_forward_list_n_back_items_copy(mEwkBackForwardList, limit);
+  Eina_List* it;
+  void *data = NULL;
+  EINA_LIST_FOREACH(list, it, data) {
+    Dali::WebEngineBackForwardListItem* webitem = new TizenWebEngineBackForwardListItem((Ewk_Back_Forward_List_Item*)(data), true);
+    std::unique_ptr<Dali::WebEngineBackForwardListItem> item(webitem);
+    ret.push_back(std::move(item));
+  }
+  eina_list_free(list);
+
+  return ret;
+}
+
+std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> TizenWebEngineBackForwardList::GetForwardItems(int limit)
+{
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> ret;
+
+  Eina_List* list = ewk_back_forward_list_n_forward_items_copy(mEwkBackForwardList, limit);
+  Eina_List* it;
+  void *data = NULL;
+  EINA_LIST_FOREACH(list, it, data) {
+    Dali::WebEngineBackForwardListItem* webitem = new TizenWebEngineBackForwardListItem((Ewk_Back_Forward_List_Item*)(data), true);
+    std::unique_ptr<Dali::WebEngineBackForwardListItem> item(webitem);
+    ret.push_back(std::move(item));
+  }
+  eina_list_free(list);
+
+  return ret;
 }
 
 } // namespace Plugin
