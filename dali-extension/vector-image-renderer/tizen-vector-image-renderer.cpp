@@ -33,18 +33,13 @@ namespace Dali
 namespace Plugin
 {
 
-uint32_t TizenVectorImageRenderer::mCount = 0;
-
 TizenVectorImageRenderer::TizenVectorImageRenderer()
 : mPicture(nullptr),
   mDefaultWidth(0),
   mDefaultHeight(0),
   mIsFirstRender(true)
 {
-  if(mCount++ == 0)
-  {
-    tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
-  }
+  tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
 
   mSwCanvas = tvg::SwCanvas::gen();
 }
@@ -59,10 +54,7 @@ TizenVectorImageRenderer::~TizenVectorImageRenderer()
 
   mSwCanvas->clear();
 
-  if(--mCount == 0)
-  {
-    tvg::Initializer::term(tvg::CanvasEngine::Sw);
-  }
+  tvg::Initializer::term(tvg::CanvasEngine::Sw);
 }
 
 bool TizenVectorImageRenderer::Load(const Vector<uint8_t>& data)

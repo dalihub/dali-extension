@@ -70,8 +70,6 @@ private:
   uint32_t                               mDefaultWidth;   ///< The width of the surface
   uint32_t                               mDefaultHeight;  ///< The height of the surface
   bool                                   mIsFirstRender;
-
-  static uint32_t                        mCount;          ///< tvg engine intialize call count
 };
 
 } // namespace Plugin
