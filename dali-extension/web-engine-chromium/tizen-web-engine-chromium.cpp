@@ -754,7 +754,7 @@ public:
 
   bool SendHoverEvent(const HoverEvent& hover)
   {
-#if defined(OS_TIZEN_TV)
+#if 0
     //TODO...left/right/middle of mouse could not be acquired now.
     Ewk_Mouse_Button_Type type = EWK_Mouse_Button_Left;
     switch ( hover.GetState( 0 ) )
@@ -791,7 +791,7 @@ public:
 
   bool SendWheelEvent(const WheelEvent& wheel)
   {
-#if defined(OS_TIZEN_TV)
+#if 0
     Eina_Bool direction = wheel.GetDirection() ? true : false;
     int step = wheel.GetDelta();
     float x = wheel.GetPoint().x;
