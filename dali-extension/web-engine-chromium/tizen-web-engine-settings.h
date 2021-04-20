@@ -350,6 +350,69 @@ public:
    */
   void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override;
 
+  /**
+   * @brief Enables/disables the viewport meta tag.
+   *
+   * By default, the viewport meta tag is enabled on mobile and wearable,
+   * but it is disabled on TV.
+   *
+   * @param[in] enable @c true to enable the viewport meta tag
+   *               @c false to disable
+   *
+   * @return @c true on success or @c false on failure
+   */
+  bool SetViewportMetaTag(bool enable) override;
+
+  /**
+   * @brief Requests setting of force zoom.
+   *
+   * @param[in] enable to force zoom
+   *
+   * @return @c true on success or @c false on failure
+   */
+  bool SetForceZoom(bool enable) override;
+
+  /**
+   * @brief Returns the force zoom status.
+   *
+   * @return @c true if enable force zoom or @c false.
+   */
+  bool IsZoomForced() const override;
+
+  /**
+   * @brief Requests setting use of text zoom.
+   *
+   * @param[in] enable to text zoom.
+   *
+   * @return @c true on success or @c false on failure
+   */
+  bool SetTextZoomEnabled(bool enable) override;
+
+  /**
+   * @brief Returns whether text zoom is enabled or not.
+   *
+   * @return @c true if enable text zoom or @c false.
+   */
+  bool IsTextZoomEnabled() const override;
+
+  /**
+   * @brief Requests enables/disables to the specific extra feature
+   *
+   * @param[in] feature feature name
+   * @param[in] enable @c true to enable the specific extra feature
+   *        @c false to disable
+   */
+  void SetExtraFeature(const std::string& feature, bool enable) override;
+
+  /**
+   * @brief Returns enable/disable to the specific extra feature
+   *
+   * @param[in] feature feature name
+   *
+   * @return @c true on enable or @c false on disable
+   */
+  bool IsExtraFeatureEnabled(const std::string& feature) const override;
+
 private:
 
   Ewk_Settings* ewkSettings;

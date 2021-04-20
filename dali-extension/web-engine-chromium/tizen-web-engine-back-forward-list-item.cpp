@@ -22,28 +22,33 @@ namespace Dali
 namespace Plugin
 {
 
-TizenWebEngineBackForwardListItem::TizenWebEngineBackForwardListItem( Ewk_Back_Forward_List_Item* item )
-  : ewkBackForwardListItem( item )
+TizenWebEngineBackForwardListItem::TizenWebEngineBackForwardListItem(Ewk_Back_Forward_List_Item* item, bool willItemBeDeleted)
+  : mEwkBackForwardListItem(item)
+  , mWillItemBeDeleted(willItemBeDeleted)
 {
 }
 
 TizenWebEngineBackForwardListItem::~TizenWebEngineBackForwardListItem()
 {
+  if (mWillItemBeDeleted)
+  {
+    ewk_back_forward_list_item_unref(mEwkBackForwardListItem);
+  }
 }
 
 std::string TizenWebEngineBackForwardListItem::GetUrl() const
 {
-  return std::string( ewk_back_forward_list_item_url_get( ewkBackForwardListItem ) );
+  return std::string(ewk_back_forward_list_item_url_get(mEwkBackForwardListItem));
 }
 
 std::string TizenWebEngineBackForwardListItem::GetTitle() const
 {
-  return std::string( ewk_back_forward_list_item_title_get( ewkBackForwardListItem ) );
+  return std::string(ewk_back_forward_list_item_title_get(mEwkBackForwardListItem));
 }
 
 std::string TizenWebEngineBackForwardListItem::GetOriginalUrl() const
 {
-  return std::string( ewk_back_forward_list_item_original_url_get( ewkBackForwardListItem ) );
+  return std::string(ewk_back_forward_list_item_original_url_get(mEwkBackForwardListItem));
 }
 
 } // namespace Plugin

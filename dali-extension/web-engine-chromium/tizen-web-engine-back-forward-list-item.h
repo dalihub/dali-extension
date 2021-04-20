@@ -21,7 +21,6 @@
 // EXTERNAL INCLUDES
 #include <string>
 #include <ewk_back_forward_list_item.h>
-
 #include <dali/devel-api/adaptor-framework/web-engine-back-forward-list-item.h>
 
 namespace Dali
@@ -40,7 +39,7 @@ public:
   /**
    * @brief Constructor.
    */
-  TizenWebEngineBackForwardListItem( Ewk_Back_Forward_List_Item* );
+  TizenWebEngineBackForwardListItem(Ewk_Back_Forward_List_Item* item, bool willItemBeDeleted = false);
 
   /**
    * @brief Destructor.
@@ -48,36 +47,25 @@ public:
   ~TizenWebEngineBackForwardListItem();
 
   /**
-   * @brief Returns the URL of the item.
-   *
-   * @details The returned URL may differ from the original URL (For example,
-   *          if the page is redirected).
-   *
-   * @return The URL of the @a item,
-   *         otherwise @c "" in case of an error
+   * @copydoc Dali::WebEngineBackForwardListItem::GetUrl()
    */
   std::string GetUrl() const override;
 
   /**
-   * @brief Returns the title of the item.
-   *
-   * @return The title of the @a item,
-   *         otherwise @c "" in case of an error
+   * @copydoc Dali::WebEngineBackForwardListItem::GetTitle()
    */
   std::string GetTitle() const override;
 
   /**
-   * @brief Returns the original URL of the item.
-   *
-   * @return The original URL of the @a item,
-   *         otherwise @c "" in case of an error
+   * @copydoc Dali::WebEngineBackForwardListItem::GetOriginalUrl()
    */
   std::string GetOriginalUrl() const override;
 
 private:
 
-  Ewk_Back_Forward_List_Item* ewkBackForwardListItem;
+  Ewk_Back_Forward_List_Item* mEwkBackForwardListItem;
 
+  bool mWillItemBeDeleted; // if true, Ewk api will be called  to unref the item
 };
 
 } // namespace Plugin

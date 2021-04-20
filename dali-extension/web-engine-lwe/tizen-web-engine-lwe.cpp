@@ -24,6 +24,8 @@
 #include <dali/devel-api/adaptor-framework/web-engine-back-forward-list.h>
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
 #include <dali/devel-api/adaptor-framework/web-engine-cookie-manager.h>
+#include <dali/devel-api/adaptor-framework/web-engine-hit-test.h>
+#include <dali/devel-api/adaptor-framework/web-engine-security-origin.h>
 #include <dali/devel-api/adaptor-framework/web-engine-settings.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
@@ -295,22 +297,22 @@ protected:
 };
 
 TizenWebEngineLWE::TizenWebEngineLWE()
-    : mUrl("")
-    , mOutputWidth(0)
-    , mOutputHeight(0)
-    , mOutputStride(0)
-    , mOutputBuffer(NULL)
-    , mIsMouseLbuttonDown(false)
-    , mCanGoBack(false)
-    , mCanGoForward(false)
-    , mWebContainer(NULL)
+  : mUrl("")
+  , mOutputWidth(0)
+  , mOutputHeight(0)
+  , mOutputStride(0)
+  , mOutputBuffer(NULL)
+  , mIsMouseLbuttonDown(false)
+  , mCanGoBack(false)
+  , mCanGoForward(false)
+  , mWebContainer(NULL)
 #ifdef DALI_USE_TBMSURFACE
-    , mTbmSurface(NULL)
-    , mNativeImageSourcePtr(NULL)
+  , mTbmSurface(NULL)
+  , mNativeImageSourcePtr(NULL)
 #else
-    , mBufferImage(NULL)
+  , mBufferImage(NULL)
 #endif
-    , mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::UpdateBuffer))
+  , mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::UpdateBuffer))
 {
   pthread_mutex_init(&mOutputBufferMutex, NULL);
 }
@@ -334,7 +336,7 @@ void TizenWebEngineLWE::UpdateBuffer()
 #endif
 }
 
-void TizenWebEngineLWE::Create(int width, int height, const std::string& locale, const std::string& timezoneId)
+void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
 {
   mOutputWidth = width;
   mOutputHeight = height;
@@ -422,8 +424,7 @@ void TizenWebEngineLWE::Create(int width, int height, const std::string& locale,
   mWebContainer = LWE::WebContainer::Create(mOutputWidth, mOutputHeight, 1.0, "", locale.data(), timezoneId.data());
 
   mWebContainer->RegisterPreRenderingHandler(
-      [this]() -> LWE::WebContainer::RenderInfo
-      {
+      [this]() -> LWE::WebContainer::RenderInfo {
         if (mOutputBuffer == NULL)
         {
           mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
@@ -438,36 +439,31 @@ void TizenWebEngineLWE::Create(int width, int height, const std::string& locale,
       });
 
   mWebContainer->RegisterOnRenderedHandler(
-      [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult)
-      {
+      [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult) {
         mOnRenderedHandler(container, renderResult);
       });
   mWebContainer->RegisterOnReceivedErrorHandler(
-      [this](LWE::WebContainer* container, LWE::ResourceError error)
-      {
+      [this](LWE::WebContainer* container, LWE::ResourceError error) {
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
         mOnReceivedError(container, error);
       });
   mWebContainer->RegisterOnPageStartedHandler(
-      [this](LWE::WebContainer* container, const std::string& url)
-      {
+      [this](LWE::WebContainer* container, const std::string& url) {
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
         mOnPageStartedHandler(container, url);
       });
   mWebContainer->RegisterOnPageLoadedHandler(
-      [this](LWE::WebContainer* container, const std::string& url)
-      {
+      [this](LWE::WebContainer* container, const std::string& url) {
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
         mOnPageFinishedHandler(container, url);
       });
   mWebContainer->RegisterOnLoadResourceHandler(
-      [this](LWE::WebContainer* container, const std::string& url)
-      {
+      [this](LWE::WebContainer* container, const std::string& url) {
         mUrl = url;
         mCanGoBack = container->CanGoBack();
         mCanGoForward = container->CanGoForward();
@@ -475,7 +471,7 @@ void TizenWebEngineLWE::Create(int width, int height, const std::string& locale,
       });
 }
 
-void TizenWebEngineLWE::Create(int width, int height, int argc, char** argv)
+void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
   // NOT IMPLEMENTED
 }
@@ -541,7 +537,14 @@ public:
   bool AreImagesLoadedAutomatically() const override { return false; }
   void AllowImagesLoadAutomatically( bool automatic ) override {}
   std::string GetDefaultTextEncodingName() const override { return EMPTY_STRING; }
-  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override {}
+  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override { }
+  bool SetViewportMetaTag(bool enable) override {return false;}
+  bool SetForceZoom(bool enable) override {return false;}
+  bool IsZoomForced() const override {return false;}
+  bool SetTextZoomEnabled(bool enable) override {return false;}
+  bool IsTextZoomEnabled() const override {return false;}
+  void SetExtraFeature(const std::string& feature, bool enable) override { }
+  bool IsExtraFeatureEnabled(const std::string& feature) const override {return false;}
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
@@ -563,11 +566,38 @@ public:
   void SetProxyUri(const std::string& uri) override {}
   void SetDefaultProxyAuth(const std::string& username, const std::string& password) override {}
   void SetCertificateFilePath(const std::string& certificatePath) override {}
-  void DeleteWebDatabase() override {}
-  void DeleteWebStorage() override {}
+  void DeleteAllWebDatabase() override {}
+  bool GetWebDatabaseOrigins(WebEngineSecurityOriginAcquiredCallback callback) override
+  {
+    return false;
+  }
+  bool DeleteWebDatabase(WebEngineSecurityOrigin &origin) override
+  {
+    return false;
+  }
+  bool GetWebStorageOrigins(WebEngineSecurityOriginAcquiredCallback callback) override
+  {
+    return false;
+  }
+  bool GetWebStorageUsageForOrigin(WebEngineSecurityOrigin &origin, WebEngineStorageUsageAcquiredCallback callback) override
+  {
+    return false;
+  }
+  void DeleteAllWebStorage() override {}
+  bool DeleteWebStorageOrigin(WebEngineSecurityOrigin &origin) override
+  {
+    return false;
+  }
   void DeleteLocalFileSystem() override {}
   void DisableCache(bool cacheDisabled) override {}
   void ClearCache() override {}
+  bool DeleteApplicationCache(WebEngineSecurityOrigin &origin) override
+  {
+    return false;
+  }
+  void GetFormPasswordList(WebEngineFormPasswordAcquiredCallback callback) override {}
+  void RegisterDownloadStartedCallback(WebEngineDownloadStartedCallback callback) override {}
+  void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override {}
 };
 
 Dali::WebEngineContext& TizenWebEngineLWE::GetContext() const
@@ -588,6 +618,7 @@ public:
   }
   void SetPersistentStorage(const std::string& path, CookiePersistentStorage storage) override {}
   void ClearCookies() override {}
+  void ChangesWatch(WebEngineCookieManagerChangesWatchCallback callback) override {}
 };
 
 Dali::WebEngineCookieManager& TizenWebEngineLWE::GetCookieManager() const
@@ -610,22 +641,24 @@ public:
 class NullWebEngineBackForwardList : public Dali::WebEngineBackForwardList
 {
 public:
-  NullWebEngineBackForwardList(WebEngineBackForwardListItem* pItem)
-    : item(pItem)
-  {
-  }
-  Dali::WebEngineBackForwardListItem& GetCurrentItem() const override
-  {
-    return *item;
-  }
-  Dali::WebEngineBackForwardListItem& GetItemAtIndex(uint32_t index) const override
-  {
-    return *item;
-  }
+  NullWebEngineBackForwardList( WebEngineBackForwardListItem* pItem ) : mItem( pItem ) { }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetCurrentItem() const override { return NULL; }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetPreviousItem() const override { return NULL; }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetNextItem() const override { return NULL; }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetItemAtIndex( uint32_t index ) const override { return NULL; }
   uint32_t GetItemCount() const override { return 1; }
-
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetBackwardItems(int limit)
+  {
+    std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
+    return vec;
+  }
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetForwardItems(int limit)
+  {
+    std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
+    return vec;
+  }
 private:
-  WebEngineBackForwardListItem* item;
+  WebEngineBackForwardListItem* mItem;
 };
 
 Dali::WebEngineBackForwardList& TizenWebEngineLWE::GetBackForwardList() const
@@ -678,10 +711,31 @@ void TizenWebEngineLWE::LoadHtmlString(const std::string& str)
   mWebContainer->LoadData(str);
 }
 
+bool TizenWebEngineLWE::LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
+                                                           const std::string& unreachableUrl)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::LoadContents(const std::string& contents, uint32_t contentSize,
+                                     const std::string& mimeType, const std::string& encoding,
+                                     const std::string& baseUri)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
 void TizenWebEngineLWE::Reload()
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   mWebContainer->Reload();
+}
+
+bool TizenWebEngineLWE::ReloadWithoutCache()
+{
+  // NOT IMPLEMENTED
+  return false;
 }
 
 void TizenWebEngineLWE::StopLoading()
@@ -700,12 +754,52 @@ void TizenWebEngineLWE::Resume()
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::ScrollBy(int deltaX, int deltaY)
+void TizenWebEngineLWE::SuspendNetworkLoading()
 {
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::SetScrollPosition(int x, int y)
+void TizenWebEngineLWE::ResumeNetworkLoading()
+{
+  // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::AddCustomHeader(const std::string& name, const std::string& value)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::RemoveCustomHeader(const std::string& name)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+uint32_t TizenWebEngineLWE::StartInspectorServer(uint32_t port)
+{
+  // NOT IMPLEMENTED
+  return 0;
+}
+
+bool TizenWebEngineLWE::StopInspectorServer()
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::ScrollBy(int32_t deltaX, int32_t deltaY)
+{
+  // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::ScrollEdgeBy(int32_t deltaX, int32_t deltaY)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::SetScrollPosition(int32_t x, int32_t y)
 {
   // NOT IMPLEMENTED
 }
@@ -761,8 +855,7 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage",
-      [handler](const std::string& data) -> std::string
-      {
+      [handler](const std::string& data) -> std::string {
         handler(data);
         return "";
       });
@@ -798,6 +891,18 @@ void TizenWebEngineLWE::JavaScriptPromptReply(const std::string& result)
   // NOT IMPLEMENTED
 }
 
+std::unique_ptr<Dali::WebEngineHitTest> TizenWebEngineLWE::CreateHitTest(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode)
+{
+  // NOT IMPLEMENTED
+  return nullptr;
+}
+
+bool TizenWebEngineLWE::CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, Dali::WebEnginePlugin::WebEngineHitTestCreatedCallback callback)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
 void TizenWebEngineLWE::ClearHistory()
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
@@ -831,7 +936,7 @@ void TizenWebEngineLWE::EnableKeyEvents(bool enabled)
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::SetSize(int width, int height)
+void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
 
@@ -994,7 +1099,91 @@ void TizenWebEngineLWE::SetFocus(bool focused)
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int> displayArea)
+void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::SetPageZoomFactor(float zoomFactor)
+{
+  // NOT IMPLEMENTED
+}
+
+float TizenWebEngineLWE::GetPageZoomFactor() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+void TizenWebEngineLWE::SetTextZoomFactor(float zoomFactor)
+{
+  // NOT IMPLEMENTED
+}
+
+float TizenWebEngineLWE::GetTextZoomFactor() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+float TizenWebEngineLWE::GetLoadProgressPercentage() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+void TizenWebEngineLWE::SetScaleFactor(float scaleFactor, Dali::Vector2 point)
+{
+  // NOT IMPLEMENTED
+}
+
+float TizenWebEngineLWE::GetScaleFactor() const
+{
+  // NOT IMPLEMENTED
+  return 0.0f;
+}
+
+void TizenWebEngineLWE::ActivateAccessibility(bool activated)
+{
+  // NOT IMPLEMENTED
+}
+
+bool TizenWebEngineLWE::SetVisibility(bool visible)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::HighlightText(const std::string& text, Dali::WebEnginePlugin::FindOption options, uint32_t maxMatchCount)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::AddDynamicCertificatePath(const std::string& host, const std::string& certPath)
+{
+  // NOT IMPLEMENTED
+}
+
+Dali::PixelData TizenWebEngineLWE::GetScreenshot(Dali::Rect<int32_t> viewArea, float scaleFactor)
+{
+  // NOT IMPLEMENTED
+  return Dali::PixelData();
+}
+
+bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+bool TizenWebEngineLWE::CheckVideoPlayingAsynchronously(Dali::WebEnginePlugin::VideoPlayingCallback callback)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback)
 {
   // NOT IMPLEMENTED
 }

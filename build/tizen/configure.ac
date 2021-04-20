@@ -32,7 +32,6 @@ PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
 AC_CONFIG_SUBDIRS(video-player)
-AC_CONFIG_SUBDIRS(camera-player)
 AC_CONFIG_SUBDIRS(image-loader)
 AC_CONFIG_SUBDIRS(color-controller)
 
@@ -43,6 +42,7 @@ if test "x$with_tizen_55_or_greater" = "xyes"; then
 fi
 
 if test "x$with_tizen_65_or_greater" = "xyes"; then
+  AC_CONFIG_SUBDIRS(camera-player)
   AC_CONFIG_SUBDIRS(vector-image-renderer)
 fi
 

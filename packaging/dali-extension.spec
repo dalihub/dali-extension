@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.0.19
+Version:    2.0.22
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -408,11 +408,13 @@ exit 0
 %{_libdir}/libdali2-video-player-plugin.so*
 %license LICENSE
 
+%if 0%{?tizen_65_or_greater}
 %files camera-player-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-camera-player-plugin.so*
 %license LICENSE
+%endif
 
 %if 0%{?tizen_55_or_greater}
 %files web-engine-chromium-plugin

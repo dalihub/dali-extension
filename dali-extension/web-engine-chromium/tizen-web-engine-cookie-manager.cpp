@@ -16,16 +16,16 @@
  */
 
 #include "tizen-web-engine-cookie-manager.h"
-
-#include <ewk_cookie_manager.h>
+#include <ewk_cookie_manager_product.h>
 
 namespace Dali
 {
 namespace Plugin
 {
 
-TizenWebEngineCookieManager::TizenWebEngineCookieManager( Ewk_Cookie_Manager* manager )
-  : ewkCookieManager( manager )
+TizenWebEngineCookieManager::TizenWebEngineCookieManager(Ewk_Cookie_Manager* manager)
+  : mEwkCookieManager(manager)
+  , mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
 {
 }
 
@@ -33,25 +33,37 @@ TizenWebEngineCookieManager::~TizenWebEngineCookieManager()
 {
 }
 
-void TizenWebEngineCookieManager::SetCookieAcceptPolicy( Dali::WebEngineCookieManager::CookieAcceptPolicy policy )
+void TizenWebEngineCookieManager::SetCookieAcceptPolicy(Dali::WebEngineCookieManager::CookieAcceptPolicy policy)
 {
-  ewk_cookie_manager_accept_policy_set( ewkCookieManager, static_cast< Ewk_Cookie_Accept_Policy >( policy ) );
+  mCookieAcceptancePolicy = static_cast<Ewk_Cookie_Accept_Policy>(policy);
+  ewk_cookie_manager_accept_policy_set(mEwkCookieManager, mCookieAcceptancePolicy);
 }
 
 Dali::WebEngineCookieManager::CookieAcceptPolicy TizenWebEngineCookieManager::GetCookieAcceptPolicy() const
 {
-  //todo...
-  return Dali::WebEngineCookieManager::CookieAcceptPolicy::NO_THIRD_PARTY;
+  return static_cast<Dali::WebEngineCookieManager::CookieAcceptPolicy>(mCookieAcceptancePolicy);
 }
 
-void TizenWebEngineCookieManager::SetPersistentStorage( const std::string& path, Dali::WebEngineCookieManager::CookiePersistentStorage storage )
+void TizenWebEngineCookieManager::SetPersistentStorage(const std::string& path, Dali::WebEngineCookieManager::CookiePersistentStorage storage)
 {
-  ewk_cookie_manager_persistent_storage_set( ewkCookieManager, path.c_str(), static_cast< Ewk_Cookie_Persistent_Storage >( storage ) );
+  ewk_cookie_manager_persistent_storage_set(mEwkCookieManager, path.c_str(), static_cast<Ewk_Cookie_Persistent_Storage>(storage));
 }
 
 void TizenWebEngineCookieManager::ClearCookies()
 {
-  ewk_cookie_manager_cookies_clear( ewkCookieManager );
+  ewk_cookie_manager_cookies_clear(mEwkCookieManager);
+}
+
+void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback)
+{
+  mWebChangesWatchCallback = callback;
+  ewk_cookie_manager_changes_watch(mEwkCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, this);
+}
+
+void TizenWebEngineCookieManager::OnChangesWatch(void *data)
+{
+  TizenWebEngineCookieManager* pThis = static_cast<TizenWebEngineCookieManager*>(data);
+  pThis->mWebChangesWatchCallback();
 }
 
 } // namespace Plugin

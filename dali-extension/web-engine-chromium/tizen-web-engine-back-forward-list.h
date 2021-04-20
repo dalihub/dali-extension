@@ -19,10 +19,9 @@
  */
 
 // EXTERNAL INCLUDES
-#include <string>
 #include <ewk_back_forward_list.h>
-
 #include <dali/devel-api/adaptor-framework/web-engine-back-forward-list.h>
+#include <dali/devel-api/adaptor-framework/web-engine-back-forward-list-item.h>
 
 namespace Dali
 {
@@ -42,7 +41,7 @@ public:
   /**
    * @brief Constructor.
    */
-  TizenWebEngineBackForwardList( Ewk_Back_Forward_List* );
+  TizenWebEngineBackForwardList(Ewk_Back_Forward_List*);
 
   /**
    * @brief Destructor.
@@ -50,38 +49,52 @@ public:
   ~TizenWebEngineBackForwardList();
 
   /**
-   * @brief Returns the current item in the @a list.
-   *
-   * @param[in] list The back-forward list instance
-   *
-   * @return The current item in the @a list,\n
-   *         otherwise @c NULL in case of an error
+   * @brief Assignment operator
    */
-  Dali::WebEngineBackForwardListItem& GetCurrentItem() const override;
+  TizenWebEngineBackForwardList& operator=(const TizenWebEngineBackForwardList& list)
+  {
+    mEwkBackForwardList = list.mEwkBackForwardList;
+    return *this;
+  };
 
   /**
-   * @brief Returns the item at a given @a index relative to the current item.
-   *
-   * @param[in] index The index of the item
-   *
-   * @return The item at a given @a index relative to the current item,\n
-   *         otherwise @c NULL in case of an error
+   * @copydoc Dali::WebEngineBackForwardList::GetCurrentItem()
    */
-  Dali::WebEngineBackForwardListItem& GetItemAtIndex( uint32_t index ) const override;
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetCurrentItem() const override;
 
   /**
-   * @brief Returns the length of the back-forward list including the current
-   *        item.
-   *
-   * @return The length of the back-forward list including the current item,\n
-   *         otherwise @c 0 in case of an error
+   * @copydoc Dali::WebEngineBackForwardList::GetPreviousItem()
+   */
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetPreviousItem() const override;
+
+  /**
+   * @copydoc Dali::WebEngineBackForwardList::GetNextItem()
+   */
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetNextItem() const override;
+
+  /**
+   * @copydoc Dali::WebEngineBackForwardList::GetItemAtIndex()
+   */
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetItemAtIndex(uint32_t index) const override;
+
+  /**
+   * @copydoc Dali::WebEngineBackForwardList::GetItemCount()
    */
   uint32_t GetItemCount() const override;
 
+  /**
+   * @copydoc Dali::WebEngineBackForwardList::GetBackwardItems()
+   */
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetBackwardItems(int limit) override;
+
+  /**
+   * @copydoc Dali::WebEngineBackForwardList::GetForwardItems()
+   */
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetForwardItems(int limit) override;
+
 private:
 
-  Ewk_Back_Forward_List* ewkBackForwardList;
-
+  Ewk_Back_Forward_List* mEwkBackForwardList;
 };
 } // namespace Plugin
 } // namespace Dali

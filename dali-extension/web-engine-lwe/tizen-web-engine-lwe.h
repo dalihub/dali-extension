@@ -66,7 +66,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create(int width, int height, const std::string& locale, const std::string& timezoneId) override;
+  void Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetSettings()
@@ -91,7 +91,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create(int width, int height, int argc, char** argv) override;
+  void Create(uint32_t width, uint32_t height, uint32_t argc, char** argv) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
@@ -129,9 +129,26 @@ public:
   void LoadHtmlString(const std::string& string) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::LoadHtmlStringOverrideCurrentEntry()
+   */
+  bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
+                                          const std::string& unreachableUrl) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::LoadContents()
+   */
+  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
+                    const std::string& encoding, const std::string& baseUri) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::Reload()
    */
   void Reload() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ReloadWithoutCache()
+   */
+  bool ReloadWithoutCache() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::StopLoading()
@@ -149,14 +166,49 @@ public:
   void Resume() override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SuspendNetworkLoading()
+   */
+  void SuspendNetworkLoading() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ResumeNetworkLoading()
+   */
+  void ResumeNetworkLoading() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddCustomHeader()
+   */
+  bool AddCustomHeader(const std::string& name, const std::string& value) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RemoveCustomHeader()
+   */
+  bool RemoveCustomHeader(const std::string& name) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::StartInspectorServer()
+   */
+  uint32_t StartInspectorServer(uint32_t port) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::StopInspectorServer()
+   */
+  bool StopInspectorServer() override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::ScrollBy()
    */
-  void ScrollBy(int deltaX, int deltaY) override;
+  void ScrollBy(int32_t deltaX, int32_t deltaY) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ScrollEdgeBy()
+   */
+  bool ScrollEdgeBy(int32_t deltaX, int32_t deltaY) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
    */
-  void SetScrollPosition(int x, int y) override;
+  void SetScrollPosition(int32_t x, int32_t y) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
@@ -234,6 +286,16 @@ public:
   void JavaScriptPromptReply(const std::string& result) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::CreateHitTest()
+   */
+  std::unique_ptr<Dali::WebEngineHitTest> CreateHitTest(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::CreateHitTestAsynchronously()
+   */
+  bool CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, WebEngineHitTestCreatedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::ClearHistory()
    */
   void ClearHistory() override;
@@ -256,7 +318,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::SetSize()
    */
-  void SetSize(int width, int height) override;
+  void SetSize(uint32_t width, uint32_t height) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetDocumentBackgroundColor()
@@ -309,14 +371,88 @@ public:
   void EnableKeyEvents(bool enabled) override;
 
   /**
-   * @brief Update display area.
-   * @param[in] displayArea A display area to be updated.
+   * @copydoc Dali::WebEnginePlugin::SetPageZoomFactor()
    */
-  void UpdateDisplayArea(Dali::Rect<int> displayArea) override;
+  void SetPageZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetPageZoomFactor()
+   */
+  float GetPageZoomFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetTextZoomFactor()
+   */
+  void SetTextZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetTextZoomFactor()
+   */
+  float GetTextZoomFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetLoadProgressPercentage()
+   */
+  float GetLoadProgressPercentage() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetScaleFactor()
+   */
+  void SetScaleFactor(float scaleFactor, Dali::Vector2 point) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScaleFactor()
+   */
+  float GetScaleFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ActivateAccessibility()
+   */
+  void ActivateAccessibility(bool activated) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetVisibility()
+   */
+  bool SetVisibility(bool visible) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::HighlightText()
+   */
+  bool HighlightText(const std::string& text, FindOption options, uint32_t maxMatchCount) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddDynamicCertificatePath()
+   */
+  void AddDynamicCertificatePath(const std::string& host, const std::string& certPath) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScreenshot()
+   */
+  Dali::PixelData GetScreenshot(Dali::Rect<int32_t> viewArea, float scaleFactor) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetScreenshotAsynchronously()
+   */
+  bool
+  GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, ScreenshotCapturedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::CheckVideoPlayingAsynchronously()
+   */
+  bool CheckVideoPlayingAsynchronously(VideoPlayingCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterGeolocationPermissionCallback()
+   */
+  void RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
+   */
+  void UpdateDisplayArea(Dali::Rect<int32_t> displayArea) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::EnableVideoHole()
-   * @param[in] enabled True if video hole is enabled, false otherwise.
    */
   void EnableVideoHole(bool enabled) override;
 
@@ -394,6 +530,70 @@ public:
     return mFrameRenderedSignal;
   }
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RequestInterceptorSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& RequestInterceptorSignal() override
+  {
+    return mRequestInterceptorSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ConsoleMessageSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& ConsoleMessageSignal() override
+  {
+    return mConsoleMessageSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::PolicyDecisionSignal()
+   */
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& PolicyDecisionSignal() override
+  {
+    return mPolicyDecisionSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::CertificateConfirmSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType& CertificateConfirmSignal() override
+  {
+    return mCertificateConfirmSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SslCertificateChangedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType& SslCertificateChangedSignal() override
+  {
+    return mSslCertificateChangedSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::HttpAuthHandlerSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& HttpAuthHandlerSignal() override
+  {
+    return mHttpAuthHandlerSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ContextMenuCustomizedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType& ContextMenuCustomizedSignal() override
+  {
+    return mContextMenuCustomizedSignal;
+  }
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ContextMenuItemSelectedSignal()
+   */
+  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType& ContextMenuItemSelectedSignal() override
+  {
+    return mContextMenuItemSelectedSignal;
+  }
+
 private:
   void UpdateBuffer();
 
@@ -420,8 +620,8 @@ private:
   bool mIsMouseLbuttonDown;
   bool mCanGoBack;
   bool mCanGoForward;
-  pthread_mutex_t    mOutputBufferMutex;
-  LWE::WebContainer* mWebContainer;
+  pthread_mutex_t            mOutputBufferMutex;
+  LWE::WebContainer*         mWebContainer;
 #ifdef DALI_USE_TBMSURFACE
   tbm_surface_h              mTbmSurface;
   Dali::NativeImageSourcePtr mNativeImageSourcePtr;
@@ -429,22 +629,31 @@ private:
   Dali::BufferImage          mBufferImage;
 #endif
 
-  std::function<void(LWE::WebContainer *, const LWE::WebContainer::RenderResult&)> mOnRenderedHandler;
-  std::function<void(LWE::WebContainer *, LWE::ResourceError)> mOnReceivedError;
-  std::function<void(LWE::WebContainer *, const std::string&)> mOnPageFinishedHandler;
-  std::function<void(LWE::WebContainer *, const std::string&)> mOnPageStartedHandler;
-  std::function<void(LWE::WebContainer *, const std::string&)> mOnLoadResourceHandler;
+  std::function<void(LWE::WebContainer*, const LWE::WebContainer::RenderResult&)> mOnRenderedHandler;
+
+  std::function<void(LWE::WebContainer*, LWE::ResourceError)> mOnReceivedError;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnPageFinishedHandler;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnPageStartedHandler;
+  std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
   EventThreadCallback mUpdateBufferTrigger;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mPageLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mPageLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType           mPageLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType      mPageLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType  mScrollEdgeReachedSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType         mUrlChangedSignal;
-  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType mFormRepostDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType      mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadInProgressSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType           mPageLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType       mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType              mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType      mFormRepostDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType           mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType      mRequestInterceptorSignal;
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType          mConsoleMessageSignal;
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType          mPolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mCertificateConfirmSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mSslCertificateChangedSignal;
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType         mHttpAuthHandlerSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType   mContextMenuCustomizedSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType mContextMenuItemSelectedSignal;
 };
 
 } // namespace Plugin
