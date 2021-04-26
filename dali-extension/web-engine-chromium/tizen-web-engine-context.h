@@ -104,17 +104,12 @@ public:
   /**
    * @copydoc Dali::WebEngineContext::DeleteWebStorageOrigin()
    */
-  bool DeleteWebStorageOrigin(WebEngineSecurityOrigin& origin) override;
+  bool DeleteWebStorage(WebEngineSecurityOrigin& origin) override;
 
   /**
    * @copydoc Dali::WebEngineContext::DeleteLocalFileSystem()
    */
   void DeleteLocalFileSystem() override;
-
-  /**
-   * @copydoc Dali::WebEngineContext::DisableCache()
-   */
-  void DisableCache(bool cacheDisabled) override;
 
   /**
    * @copydoc Dali::WebEngineContext::ClearCache()
@@ -140,6 +135,113 @@ public:
    * @copydoc Dali::WebEngineContext::RegisterMimeOverriddenCallback()
    */
   void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::EnableCache()
+   */
+  void EnableCache(bool cacheEnabled) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::IsCacheEnabled()
+   */
+  bool IsCacheEnabled() const override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetContextCertificateFile()
+   */
+  std::string GetContextCertificateFile() const override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetContextTizenAppId()
+   */
+  void SetContextAppId(const std::string& appID) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetContextTizenAppVersion()
+   */
+  bool SetContextAppVersion(const std::string& appVersion) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetContextApplicationType()
+   */
+  void SetContextApplicationType(const ApplicationType applicationType) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetContextTimeOffset()
+   */
+  void SetContextTimeOffset(float timeOffset) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetContextTimeZoneOffset()
+   */
+  void SetContextTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::RegisterUrlSchemesAsCorsEnabled()
+   */
+  void RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::RegisterJsPluginMimeTypes()
+   */
+  void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetDefaultZoomFactor()
+   */
+  void SetDefaultZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetContextDefaultZoomFactor()
+   */
+  float GetContextDefaultZoomFactor() const override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteAllApplicationCache()
+   */
+  bool DeleteAllApplicationCache() override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteAllWebIndexedDatabase()
+   */
+  bool DeleteAllWebIndexedDatabase() override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::FreeFormPasswordDataList()
+   */
+  void DeleteFormPasswordDataList(const std::vector<std::string>& list) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteAllFormPasswordData()
+   */
+
+  void DeleteAllFormPasswordData() override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::DeleteAllFormCandidateData()
+   */
+
+  void DeleteAllFormCandidateData() override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetContextProxy()
+   */
+  std::string GetContextProxy() const override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetContextProxy()
+   */
+  void SetContextProxy(const std::string& proxy, const std::string& bypass) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetProxyBypassRule()
+   */
+  std::string GetProxyBypassRule() const override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::NotifyLowMemory()
+   */
+  bool FreeUnusedMemory() override;
 
 private:
   /**

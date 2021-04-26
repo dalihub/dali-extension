@@ -120,7 +120,7 @@ void TizenVectorAnimationManager::TriggerEvent( TizenVectorAnimationEventHandler
   }
 }
 
-void TizenVectorAnimationManager::Process()
+void TizenVectorAnimationManager::Process(bool postProcessor)
 {
   OnEventTriggered();
 }
