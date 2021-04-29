@@ -150,6 +150,17 @@ BuildRequires:  pkgconfig(rlottie)
 Plugin to render a vector animation
 
 ####################################
+# Rive Animation Renderer Plugin
+####################################
+%package rive-animation-renderer-plugin
+Summary:    Plugin to render a rive animation
+Group:      System/Libraries
+%if 0%{?tizen_65_or_greater}
+BuildRequires:  pkgconfig(rive_tizen)
+%endif
+%description rive-animation-renderer-plugin
+
+####################################
 # Vector Image Renderer Plugin
 ####################################
 %package vector-image-renderer-plugin
@@ -445,6 +456,14 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-vector-image-renderer-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%files rive-animation-renderer-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-rive-animation-renderer-plugin.so*
 %license LICENSE
 %endif
 
