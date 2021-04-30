@@ -42,6 +42,8 @@ libdali2_vector_animation_renderer_plugin_la_LIBADD = \
 libdali2_vector_animation_renderer_plugin_la_LDFLAGS = \
                       -rdynamic
 
+if RIVE
+
 lib_LTLIBRARIES += libdali2-rive-animation-renderer-plugin.la
 
 libdali2_rive_animation_renderer_plugin_la_SOURCES = \
@@ -65,3 +67,4 @@ libdali2_rive_animation_renderer_plugin_la_LIBADD = \
 libdali2_rive_animation_renderer_plugin_la_LDFLAGS = \
                       -rdynamic
 
+endif
