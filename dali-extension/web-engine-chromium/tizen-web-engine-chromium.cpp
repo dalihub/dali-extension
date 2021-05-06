@@ -256,8 +256,8 @@ public:
     evas_object_smart_callback_add(mWebView, "form,repost,warning,show",
                                    &WebViewContainerForDali::OnFormRepostDecisionRequest,
                                    &mClient);
-    evas_object_smart_callback_add(mWebView, "policy,newwindow,decide",
-                                   &WebViewContainerForDali::OnNewWindowPolicyDecided,
+    evas_object_smart_callback_add(mWebView, "policy,response,decide",
+                                   &WebViewContainerForDali::OnResponsePolicyDecided,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "request,certificate,confirm",
                                    &WebViewContainerForDali::OnCertificateConfirmRequest,
@@ -936,12 +936,12 @@ private:
     return client->GeolocationPermission(host, protocol);
   }
 
-  static void OnNewWindowPolicyDecided(void* data, Evas_Object*, void* policy)
+  static void OnResponsePolicyDecided(void* data, Evas_Object*, void* policy)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
     std::shared_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
-    client->NewWindowPolicyDecided(std::move(webPolicyDecision));
+    client->ResponsePolicyDecided(std::move(webPolicyDecision));
   }
 
   static void OnCertificateConfirmRequest(void* data, Evas_Object*, void* eventInfo)
@@ -1526,12 +1526,11 @@ Dali::WebEngineBackForwardList& TizenWebEngineChromium::GetBackForwardList() con
 
 std::unique_ptr<Dali::WebEngineHitTest> TizenWebEngineChromium::CreateHitTest(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode)
 {
-  std::unique_ptr<Dali::WebEngineHitTest> webHitTest;
-  if (!mWebViewContainer)
+  if (mWebViewContainer)
   {
-    return webHitTest;
+    return mWebViewContainer->CreateHitTest(x, y, mode);
   }
-  return mWebViewContainer->CreateHitTest(x, y, mode);
+  return nullptr;
 }
 
 bool TizenWebEngineChromium::CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, Dali::WebEnginePlugin::WebEngineHitTestCreatedCallback callback)
@@ -1852,9 +1851,9 @@ Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& TizenWebEngineChromium
   return mConsoleMessageSignal;
 }
 
-Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& TizenWebEngineChromium::PolicyDecisionSignal()
+Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType& TizenWebEngineChromium::ResponsePolicyDecisionSignal()
 {
-  return mPolicyDecisionSignal;
+  return mResponsePolicyDecisionSignal;
 }
 
 Dali::WebEnginePlugin::WebEngineCertificateSignalType& TizenWebEngineChromium::CertificateConfirmSignal()
@@ -1963,12 +1962,12 @@ void TizenWebEngineChromium::OnConsoleMessage(std::shared_ptr<Dali::WebEngineCon
   }
 }
 
-void TizenWebEngineChromium::NewWindowPolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision)
+void TizenWebEngineChromium::ResponsePolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision)
 {
-  DALI_LOG_RELEASE_INFO("#NewWindowPolicyDecided.\n");
-  if (!mPolicyDecisionSignal.Empty())
+  DALI_LOG_RELEASE_INFO("#ResponsePolicyDecided.\n");
+  if (!mResponsePolicyDecisionSignal.Empty())
   {
-    mPolicyDecisionSignal.Emit(std::move(decision));
+    mResponsePolicyDecisionSignal.Emit(std::move(decision));
   }
 }
 
