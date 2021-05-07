@@ -139,11 +139,10 @@ void TizenRiveAnimationRenderer::LoadRiveFile(const std::string& filename)
   if(mAnimation)
   {
     mAnimationInstance = new rive::LinearAnimationInstance(mAnimation);
+    mStartFrameNumber = mAnimation->enableWorkArea() ? mAnimation->workStart() : 0;
+    mTotalFrameNumber = mAnimation->enableWorkArea() ? mAnimation->workEnd() : mAnimation->duration();
+    mTotalFrameNumber -= mStartFrameNumber;
   }
-
-  mStartFrameNumber = mAnimation->enableWorkArea() ? mAnimation->workStart() : 0;
-  mTotalFrameNumber = mAnimation->enableWorkArea() ? mAnimation->workEnd() : mAnimation->duration();
-  mTotalFrameNumber -= mStartFrameNumber;
 }
 
 bool TizenRiveAnimationRenderer::Load(const std::string& url)
