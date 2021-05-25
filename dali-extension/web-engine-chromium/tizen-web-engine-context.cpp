@@ -51,6 +51,11 @@ void TizenWebEngineContext::SetProxyUri(const std::string& uri)
   ewk_context_proxy_uri_set(ewkContext, uri.c_str());
 }
 
+std::string TizenWebEngineContext::GetContextProxy() const
+{
+  return ewk_context_proxy_uri_get(ewkContext);
+}
+
 void TizenWebEngineContext::SetDefaultProxyAuth(const std::string& username, const std::string& password)
 {
   ewk_context_proxy_default_auth_set(ewkContext, username.c_str(), password.c_str());
@@ -215,8 +220,7 @@ bool TizenWebEngineContext::IsCacheEnabled() const
 
 std::string TizenWebEngineContext::GetContextCertificateFile() const
 {
-  const std::string ret = ewk_context_certificate_file_get(ewkContext);
-  return ret;
+  return ewk_context_certificate_file_get(ewkContext);
 }
 
 void TizenWebEngineContext::SetContextAppId(const std::string& appID)
@@ -246,7 +250,7 @@ void TizenWebEngineContext::SetContextTimeZoneOffset(float timeZoneOffset, float
 
 void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes)
 {
-  Eina_List* list = NULL;
+  Eina_List* list = nullptr;
   for (std::vector<std::string>::const_iterator it = schemes.begin(); it != schemes.end(); ++it)
   {
     list = eina_list_append(list, (*it).c_str());
@@ -257,7 +261,7 @@ void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<st
 
 void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)
 {
-  Eina_List* list = NULL;
+  Eina_List* list = nullptr;
   for (std::vector<std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); ++it)
   {
     list = eina_list_append(list, (*it).c_str());
@@ -273,7 +277,7 @@ void TizenWebEngineContext::SetDefaultZoomFactor(float zoomFactor)
 
 float TizenWebEngineContext::GetContextDefaultZoomFactor() const
 {
-  return float(ewk_context_default_zoom_factor_get(ewkContext));
+  return (float)ewk_context_default_zoom_factor_get(ewkContext);
 }
 
 bool TizenWebEngineContext::DeleteAllApplicationCache()
@@ -288,7 +292,7 @@ bool TizenWebEngineContext::DeleteAllWebIndexedDatabase()
 
 void TizenWebEngineContext::DeleteFormPasswordDataList(const std::vector<std::string>& list)
 {
-  Eina_List* eList = NULL;
+  Eina_List* eList = nullptr;
   for (std::vector<std::string>::const_iterator it = list.begin(); it != list.end(); ++it)
   {
     eList = eina_list_append(eList, (*it).c_str());
@@ -305,11 +309,6 @@ void TizenWebEngineContext::DeleteAllFormPasswordData()
 void TizenWebEngineContext::DeleteAllFormCandidateData()
 {
   ewk_context_form_candidate_data_delete_all(ewkContext);
-}
-
-std::string TizenWebEngineContext::GetContextProxy() const
-{
-  return ewk_context_proxy_uri_get(ewkContext);
 }
 
 void TizenWebEngineContext::SetContextProxy(const std::string& proxy, const std::string& bypass)
