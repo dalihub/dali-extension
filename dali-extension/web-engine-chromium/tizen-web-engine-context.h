@@ -19,8 +19,8 @@
  */
 
 // EXTERNAL INCLUDES
+#include <Eina.h>
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
-#include <eina_list.h>
 #include <string>
 
 struct Ewk_Context;

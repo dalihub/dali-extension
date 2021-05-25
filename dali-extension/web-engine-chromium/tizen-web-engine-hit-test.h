@@ -19,10 +19,10 @@
  */
 
 // EXTERNAL INCLUDES
+#include <Eina.h>
 #include <Evas.h>
 #include <dali/devel-api/adaptor-framework/web-engine-hit-test.h>
 #include <dali/public-api/object/property-map.h>
-#include <eina_hash.h>
 #include <ewk_hit_test_internal.h>
 #include <string>
 
