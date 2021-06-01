@@ -19,8 +19,8 @@
  */
 
 // EXTERNAL INCLUDES
+#include <Eina.h>
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
-#include <eina_list.h>
 #include <string>
 
 struct Ewk_Context;
@@ -102,7 +102,7 @@ public:
   void DeleteAllWebStorage() override;
 
   /**
-   * @copydoc Dali::WebEngineContext::DeleteWebStorageOrigin()
+   * @copydoc Dali::WebEngineContext::DeleteWebStorage()
    */
   bool DeleteWebStorage(WebEngineSecurityOrigin& origin) override;
 
@@ -152,12 +152,12 @@ public:
   std::string GetContextCertificateFile() const override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextTizenAppId()
+   * @copydoc Dali::WebEngineContext::SetContextAppId()
    */
   void SetContextAppId(const std::string& appID) override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextTizenAppVersion()
+   * @copydoc Dali::WebEngineContext::SetContextAppVersion()
    */
   bool SetContextAppVersion(const std::string& appVersion) override;
 
@@ -207,7 +207,7 @@ public:
   bool DeleteAllWebIndexedDatabase() override;
 
   /**
-   * @copydoc Dali::WebEngineContext::FreeFormPasswordDataList()
+   * @copydoc Dali::WebEngineContext::DeleteFormPasswordDataList()
    */
   void DeleteFormPasswordDataList(const std::vector<std::string>& list) override;
 
@@ -239,7 +239,7 @@ public:
   std::string GetProxyBypassRule() const override;
 
   /**
-   * @copydoc Dali::WebEngineContext::NotifyLowMemory()
+   * @copydoc Dali::WebEngineContext::FreeUnusedMemory()
    */
   bool FreeUnusedMemory() override;
 

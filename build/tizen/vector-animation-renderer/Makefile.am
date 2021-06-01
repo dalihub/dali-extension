@@ -42,3 +42,29 @@ libdali2_vector_animation_renderer_plugin_la_LIBADD = \
 libdali2_vector_animation_renderer_plugin_la_LDFLAGS = \
                       -rdynamic
 
+if RIVE
+
+lib_LTLIBRARIES += libdali2-rive-animation-renderer-plugin.la
+
+libdali2_rive_animation_renderer_plugin_la_SOURCES = \
+                     $(rive_animation_renderer_plugin_src_files)
+
+libdali2_rive_animation_renderer_plugin_la_DEPENDENCIES =
+
+libdali2_rive_animation_renderer_plugin_la_CXXFLAGS = \
+                      -I../../../ \
+                      -I$(includedir)/rive \
+                      $(DALI_CFLAGS) \
+                      $(THORVG_CFLAGS) \
+                      $(RIVE_TIZEN_CFLAGS) \
+                      -Werror -Wall
+
+libdali2_rive_animation_renderer_plugin_la_LIBADD = \
+                      $(DALI_LIBS) \
+                      $(THORVG_LIBS) \
+                      $(RIVE_TIZEN_LIBS)
+
+libdali2_rive_animation_renderer_plugin_la_LDFLAGS = \
+                      -rdynamic
+
+endif
