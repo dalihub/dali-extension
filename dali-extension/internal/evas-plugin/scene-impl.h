@@ -21,7 +21,6 @@
 // EXTERNAL INCLUDES
 #include <memory>
 #include <Ecore_IMF_Evas.h>
-#include <tbm_surface.h>
 
 #include <dali/integration-api/adaptor-framework/scene-holder-impl.h>
 #include <dali/public-api/common/intrusive-ptr.h>
@@ -266,7 +265,6 @@ private:
 
   bool                                      mIsFocus;
   bool                                      mIsTranslucent;
-  tbm_surface_h                             mConsumeSurface;
 };
 
 inline Scene& GetImplementation( Extension::Scene& scene )
