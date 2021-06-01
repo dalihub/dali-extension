@@ -115,7 +115,7 @@ public:
    * policy would be decided.
    * @param [in] decision Policy need be decided.
    */
-  virtual void ResponsePolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
+  virtual void NewWindowPolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when certificate
@@ -698,9 +698,9 @@ public:
   Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& ConsoleMessageSignal() override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ResponsePolicyDecisionSignal()
+   * @copydoc Dali::WebEnginePlugin::PolicyDecisionSignal()
    */
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType& ResponsePolicyDecisionSignal() override;
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& PolicyDecisionSignal() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CertificateConfirmSignal()
@@ -765,9 +765,9 @@ public:
   void RequestFormRepostDecision(std::shared_ptr<Dali::WebEngineFormRepostDecision> decision) override;
 
   /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::ResponsePolicyDecided()
+   * @copydoc Dali::Plugin::WebViewContainerClient::NewWindowPolicyDecided()
    */
-  void ResponsePolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> policy) override;
+  void NewWindowPolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> policy) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
@@ -872,7 +872,7 @@ private:
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType           mFrameRenderedSignal;
   Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType      mRequestInterceptorSignal;
   Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType          mConsoleMessageSignal;
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType  mResponsePolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType          mPolicyDecisionSignal;
   Dali::WebEnginePlugin::WebEngineCertificateSignalType             mCertificateConfirmSignal;
   Dali::WebEnginePlugin::WebEngineCertificateSignalType             mSslCertificateChangedSignal;
   Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType         mHttpAuthHandlerSignal;

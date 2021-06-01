@@ -547,11 +547,11 @@ public:
   }
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ResponsePolicyDecisionSignal()
+   * @copydoc Dali::WebEnginePlugin::PolicyDecisionSignal()
    */
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType& ResponsePolicyDecisionSignal() override
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType& PolicyDecisionSignal() override
   {
-    return mResponsePolicyDecisionSignal;
+    return mPolicyDecisionSignal;
   }
 
   /**
@@ -648,7 +648,7 @@ private:
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType           mFrameRenderedSignal;
   Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType      mRequestInterceptorSignal;
   Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType          mConsoleMessageSignal;
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType  mResponsePolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEnginePolicyDecisionSignalType          mPolicyDecisionSignal;
   Dali::WebEnginePlugin::WebEngineCertificateSignalType             mCertificateConfirmSignal;
   Dali::WebEnginePlugin::WebEngineCertificateSignalType             mSslCertificateChangedSignal;
   Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType         mHttpAuthHandlerSignal;

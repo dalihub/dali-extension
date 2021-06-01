@@ -102,7 +102,7 @@ public:
   void DeleteAllWebStorage() override;
 
   /**
-   * @copydoc Dali::WebEngineContext::DeleteWebStorage()
+   * @copydoc Dali::WebEngineContext::DeleteWebStorageOrigin()
    */
   bool DeleteWebStorage(WebEngineSecurityOrigin& origin) override;
 
@@ -152,12 +152,12 @@ public:
   std::string GetContextCertificateFile() const override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextAppId()
+   * @copydoc Dali::WebEngineContext::SetContextTizenAppId()
    */
   void SetContextAppId(const std::string& appID) override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextAppVersion()
+   * @copydoc Dali::WebEngineContext::SetContextTizenAppVersion()
    */
   bool SetContextAppVersion(const std::string& appVersion) override;
 
@@ -207,7 +207,7 @@ public:
   bool DeleteAllWebIndexedDatabase() override;
 
   /**
-   * @copydoc Dali::WebEngineContext::DeleteFormPasswordDataList()
+   * @copydoc Dali::WebEngineContext::FreeFormPasswordDataList()
    */
   void DeleteFormPasswordDataList(const std::vector<std::string>& list) override;
 
@@ -239,7 +239,7 @@ public:
   std::string GetProxyBypassRule() const override;
 
   /**
-   * @copydoc Dali::WebEngineContext::FreeUnusedMemory()
+   * @copydoc Dali::WebEngineContext::NotifyLowMemory()
    */
   bool FreeUnusedMemory() override;
 
