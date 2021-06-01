@@ -18,14 +18,8 @@ AC_SUBST(DALI_EXTENSION_VERSION)
 
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(RLOTTIE, rlottie)
-
-if test "x$with_tizen_65_or_greater" = "xyes"; then
-  PKG_CHECK_MODULES(THORVG, thorvg)
-  PKG_CHECK_MODULES(RIVE_TIZEN, rive_tizen)
-  AM_CONDITIONAL([RIVE], [true])
-else
-  AM_CONDITIONAL([RIVE], [false])
-fi
+PKG_CHECK_MODULES(THORVG, thorvg)
+PKG_CHECK_MODULES(RIVE_TIZEN, rive_tizen)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
