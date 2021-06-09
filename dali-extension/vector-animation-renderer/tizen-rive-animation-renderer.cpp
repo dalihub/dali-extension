@@ -280,11 +280,9 @@ bool TizenRiveAnimationRenderer::Render(uint32_t frameNumber)
   if(!mSwCanvas)
   {
     mSwCanvas = tvg::SwCanvas::gen();
-    mSwCanvas->mempool(tvg::SwCanvas::MempoolPolicy::Individual);
-
   }
-  mSwCanvas->clear();
   mSwCanvas->target((uint32_t*)buffer, info.planes[0].stride / 4, info.width, info.height, tvg::SwCanvas::ARGB8888);
+  mSwCanvas->clear();
 
   // Render Rive Frame
   frameNumber    = mStartFrameNumber + frameNumber;
