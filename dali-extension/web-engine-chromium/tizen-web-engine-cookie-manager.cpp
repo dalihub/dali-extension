@@ -26,6 +26,7 @@ namespace Plugin
 TizenWebEngineCookieManager::TizenWebEngineCookieManager(Ewk_Cookie_Manager* manager)
   : mEwkCookieManager(manager)
   , mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
+  , mWebChangesWatchCallback(nullptr)
 {
 }
 

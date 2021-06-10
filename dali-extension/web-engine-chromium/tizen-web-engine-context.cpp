@@ -28,7 +28,12 @@ namespace Plugin
 {
 
 TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context)
-  : ewkContext(context)
+  : webSecurityOriginAcquiredCallback(nullptr)
+  , webStorageUsageAcquiredCallback(nullptr)
+  , webFormPasswordAcquiredCallback(nullptr)
+  , webDownloadStartedCallback(nullptr)
+  , webMimeOverriddenCallback(nullptr)
+  , ewkContext(context)
 {
 }
 

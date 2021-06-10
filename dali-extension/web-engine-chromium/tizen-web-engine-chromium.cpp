@@ -155,9 +155,11 @@ class WebViewContainerForDali
 {
 public:
   WebViewContainerForDali(WebViewContainerClient& client, uint32_t width, uint32_t height)
-    : mClient(client)
+    : mWebView(nullptr)
+    , mClient(client)
     , mWidth(width)
     , mHeight(height)
+    , mUserAgent()
     , mWebEngineSettings(0)
     , mWebEngineContext(0)
     , mWebEngineCookieManager(0)
@@ -169,9 +171,11 @@ public:
   }
 
   WebViewContainerForDali(WebViewContainerClient& client, uint32_t width, uint32_t height, uint32_t argc, char** argv)
-    : mClient(client)
+    : mWebView(nullptr)
+    , mClient(client)
     , mWidth(width)
     , mHeight(height)
+    , mUserAgent()
     , mWebEngineSettings(0)
     , mWebEngineContext(0)
     , mWebEngineCookieManager(0)
