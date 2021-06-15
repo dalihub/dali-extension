@@ -48,13 +48,7 @@ dali-extension
 %define tizen_65_or_greater 1
 %endif
 
-
-# # Note
-# %if 0%{?tizen_version_major} >= 6
-# %define tizen_60_or_greater 1
-# %endif
-
-##############################
+#############################
 # devel
 ##############################
 %package devel
@@ -239,6 +233,9 @@ cd %{_builddir}/%{name}-%{version}/build/tizen
 autoreconf --install
 
 %configure --prefix=$PREFIX \
+%if 0%{?enable_debug}
+           --enable-debug \
+%endif
 %if 0%{?tizen_50_or_greater}
            --with-tizen-50-or-greater \
 %endif

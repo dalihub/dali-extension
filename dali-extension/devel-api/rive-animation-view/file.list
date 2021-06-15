@@ -1,0 +1,6 @@
+rive_animation_view_devel_header_files = \
+   $(extension_src_dir)/devel-api/rive-animation-view/rive-animation-view.h
+
+rive_animation_view_devel_src_files = \
+   $(extension_src_dir)/devel-api/rive-animation-view/rive-animation-view.cpp
+

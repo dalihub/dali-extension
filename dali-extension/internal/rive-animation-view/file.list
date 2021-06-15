@@ -1,0 +1,15 @@
+rive_animation_view_internal_header_files = \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-manager.h \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-task.h \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-thread.h \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-view-impl.h \
+   $(extension_src_dir)/internal/rive-animation-view/rive-rasterize-thread.h \
+   $(extension_src_dir)/internal/rive-animation-view/round-robin-container-view.h
+
+rive_animation_view_internal_src_files = \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-manager.cpp \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-task.cpp \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-thread.cpp \
+   $(extension_src_dir)/internal/rive-animation-view/rive-animation-view-impl.cpp \
+   $(extension_src_dir)/internal/rive-animation-view/rive-rasterize-thread.cpp
+
