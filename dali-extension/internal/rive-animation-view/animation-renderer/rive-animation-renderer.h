@@ -1,5 +1,5 @@
-#ifndef DALI_TIZEN_RIVE_ANIMATION_RENDERER_PLUGIN_H
-#define DALI_TIZEN_RIVE_ANIMATION_RENDERER_PLUGIN_H
+#ifndef DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_RENDERER_H
+#define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_RENDERER_H
 
 /*
  * Copyright (c) 2021 Samsung Electronics Co., Ltd.
@@ -20,9 +20,9 @@
 
 // EXTERNAL INCLUDES
 #include <dali/public-api/common/vector-wrapper.h>
+#include <dali/public-api/rendering/renderer.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
-#include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
 #include <memory>
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
@@ -34,95 +34,112 @@
 //
 
 // INTERNAL INCLUDES
-#include <dali-extension/vector-animation-renderer/tizen-vector-animation-event-handler.h>
+#include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-event-handler.h>
 
 namespace Dali
 {
-
-namespace Plugin
+namespace Extension
 {
+namespace Internal
+{
+class RiveAnimationRenderer;
+using RiveAnimationRendererPtr = IntrusivePtr<RiveAnimationRenderer>;
 
 /**
- * @brief Implementation of the Tizen vector animation renderer class which has Tizen platform dependency.
+ * @brief Implementation of the Rive animation renderer class which has Tizen platform dependency.
  */
-class TizenRiveAnimationRenderer : public Dali::VectorAnimationRendererPlugin, public TizenVectorAnimationEventHandler
+class RiveAnimationRenderer : public RefObject, public RiveAnimationRendererEventHandler
 {
 public:
+  /**
+   * @brief UploadCompleted signal type.
+   */
+  using UploadCompletedSignalType = Signal<void()>;
 
   /**
    * @brief Constructor.
    */
-  TizenRiveAnimationRenderer();
+  RiveAnimationRenderer();
 
   /**
    * @brief Destructor.
    */
-  virtual ~TizenRiveAnimationRenderer();
+  virtual ~RiveAnimationRenderer();
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::Initialize()
+   * @brief Loads the animation file.
+   *
+   * @param[in] url The url of the vector animation file
+   * @return True if loading success, false otherwise.
    */
-  bool Load( const std::string& url ) override;
+  bool Load(const std::string& url);
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::Finalize()
+   * @brief Finalizes the renderer. It will be called in the main thread.
    */
-  void Finalize() override;
+  void Finalize();
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::SetRenderer()
+   * @brief Sets the renderer used to display the result image.
+   *
+   * @param[in] renderer The renderer used to display the result image
    */
-  void SetRenderer( Renderer renderer ) override;
+  void SetRenderer(Renderer renderer);
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::SetSize()
+   * @brief Sets the target image size.
+   *
+   * @param[in] width The target image width
+   * @param[in] height The target image height
    */
-  void SetSize( uint32_t width, uint32_t height ) override;
+  void SetSize(uint32_t width, uint32_t height);
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::Render()
+   * @brief Renders the content to the target buffer synchronously.
+   *
+   * @param[in] frameNumber The frame number to be rendered
+   * @return True if the rendering success, false otherwise.
    */
-  bool Render( uint32_t frameNumber) override;
+  bool Render(uint32_t frameNumber);
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::GetTotalFrameNumber()
+   * @brief Gets the total number of frames of the file.
+   *
+   * @return The total number of frames
    */
-  uint32_t GetTotalFrameNumber() const override;
+  uint32_t GetTotalFrameNumber() const;
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::GetFrameRate()
+   * @brief Gets the frame rate of the file.
+   *
+   * @return The frame rate of the file
    */
-  float GetFrameRate() const override;
+  float GetFrameRate() const;
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::GetDefaultSize()
+   * @brief Gets the default size of the file.
+   *
+   * @param[out] width The default width of the file
+   * @param[out] height The default height of the file
    */
-  void GetDefaultSize( uint32_t& width, uint32_t& height ) const override;
+  void GetDefaultSize(uint32_t& width, uint32_t& height) const;
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::GetLayerInfo()
+   * @brief Ignores a rendered frame which is not shown yet.
    */
-  void GetLayerInfo( Property::Map& map ) const override;
+  void IgnoreRenderedFrame();
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::GetMarkerInfo()
+   * @brief Connect to this signal to be notified when the texture upload is completed.
+   *
+   * @return The signal to connect to.
    */
-  bool GetMarkerInfo( const std::string& marker, uint32_t& startFrame, uint32_t& endFrame ) const override;
+  UploadCompletedSignalType& UploadCompletedSignal();
+
+protected: // Implementation of RiveAnimationRendererEventHandler
 
   /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::IgnoreRenderedFrame()
-   */
-  void IgnoreRenderedFrame() override;
-
-  /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
-   */
-  UploadCompletedSignalType& UploadCompletedSignal() override;
-
-protected: // Implementation of TizenVectorAnimationEventHandler
-
-  /**
-   * @copydoc Dali::Plugin::TizenVectorAnimationEventHandler::NotifyEvent()
+   * @copydoc Dali::Plugin::RiveAnimationRendererEventHandler::NotifyEvent()
    */
   void NotifyEvent() override;
 
@@ -171,8 +188,10 @@ private:
   bool                                   mResourceReadyTriggered;///< Whether the resource ready is triggered
 };
 
-} // namespace Plugin
+} // namespace Internal
 
-} // namespace Dali;
+} // namespace Extension
 
-#endif // DALI_TIZEN_RIVE_ANIMATION_RENDERER_PLUGIN_H
+} // namespace Dali
+
+#endif // DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_RENDERER_H

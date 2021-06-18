@@ -35,18 +35,16 @@ namespace Internal
 {
 namespace
 {
-constexpr auto LOOP_FOREVER = -1;
 constexpr auto MICROSECONDS_PER_SECOND(1e+6);
 
 #if defined(DEBUG_ENABLED)
 Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_RIVE_ANIMATION");
 #endif
-
 } // unnamed namespace
 
 RiveAnimationTask::RiveAnimationTask()
 : mUrl(),
-  mVectorRenderer(VectorAnimationRenderer::New()),
+  mVectorRenderer(new RiveAnimationRenderer()),
   mAnimationData(),
   mRiveAnimationThread(RiveAnimationManager::GetInstance().GetRiveAnimationThread()),
   mConditionalWait(),
@@ -85,7 +83,7 @@ void RiveAnimationTask::Finalize()
     mAnimationFinishedTrigger.reset();
   }
 
-  mVectorRenderer.Finalize();
+  mVectorRenderer->Finalize();
 
   mDestroyTask = true;
 }
@@ -94,21 +92,21 @@ bool RiveAnimationTask::Load(const std::string& url)
 {
   mUrl = url;
 
-  if(!mVectorRenderer.Load(mUrl))
+  if(!mVectorRenderer->Load(mUrl))
   {
     DALI_LOG_ERROR("RiveAnimationTask::Load: Load failed [%s]\n", mUrl.c_str());
     return false;
   }
 
-  mTotalFrame = mVectorRenderer.GetTotalFrameNumber();
+  mTotalFrame = mVectorRenderer->GetTotalFrameNumber();
 
   mEndFrame = mTotalFrame - 1;
 
-  mFrameRate                 = mVectorRenderer.GetFrameRate();
+  mFrameRate                 = mVectorRenderer->GetFrameRate();
   mFrameDurationMicroSeconds = MICROSECONDS_PER_SECOND / mFrameRate;
 
   uint32_t width, height;
-  mVectorRenderer.GetDefaultSize(width, height);
+  mVectorRenderer->GetDefaultSize(width, height);
 
   SetSize(width, height);
 
@@ -121,7 +119,7 @@ void RiveAnimationTask::SetRenderer(Renderer renderer)
 {
   ConditionalWait::ScopedLock lock(mConditionalWait);
 
-  mVectorRenderer.SetRenderer(renderer);
+  mVectorRenderer->SetRenderer(renderer);
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationTask::SetRenderer [%p]\n", this);
 }
@@ -150,7 +148,7 @@ void RiveAnimationTask::SetSize(uint32_t width, uint32_t height)
 {
   if(mWidth != width || mHeight != height)
   {
-    mVectorRenderer.SetSize(width, height);
+    mVectorRenderer->SetSize(width, height);
 
     mWidth  = width;
     mHeight = height;
@@ -204,12 +202,12 @@ void RiveAnimationTask::SetAnimationFinishedCallback(EventThreadCallback* callba
 
 void RiveAnimationTask::GetDefaultSize(uint32_t& width, uint32_t& height) const
 {
-  mVectorRenderer.GetDefaultSize(width, height);
+  mVectorRenderer->GetDefaultSize(width, height);
 }
 
 RiveAnimationTask::UploadCompletedSignalType& RiveAnimationTask::UploadCompletedSignal()
 {
-  return mVectorRenderer.UploadCompletedSignal();
+  return mVectorRenderer->UploadCompletedSignal();
 }
 
 bool RiveAnimationTask::Rasterize()
@@ -262,7 +260,7 @@ bool RiveAnimationTask::Rasterize()
   bool renderSuccess = false;
   if(mVectorRenderer)
   {
-    renderSuccess = mVectorRenderer.Render(currentFrame);
+    renderSuccess = mVectorRenderer->Render(currentFrame);
     if(!renderSuccess)
     {
       DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationTask::Rasterize: Rendering failed. Try again later.[%d] [%p]\n", currentFrame, this);

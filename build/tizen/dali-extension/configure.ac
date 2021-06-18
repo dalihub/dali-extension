@@ -26,6 +26,15 @@ PKG_CHECK_MODULES(ELEMENTARY, elementary)
 PKG_CHECK_MODULES(EVAS, evas)
 PKG_CHECK_MODULES(WAYLAND, [ecore-wl2])
 
+# For rive animation
+if test "x$with_tizen_65_or_greater" = "xyes"; then
+  PKG_CHECK_MODULES(THORVG, thorvg)
+  PKG_CHECK_MODULES(RIVE_TIZEN, rive_tizen)
+  AM_CONDITIONAL([SUPPORT_RIVE], [true])
+else
+  AM_CONDITIONAL([SUPPORT_RIVE], [false])
+fi
+
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
 AC_SUBST(DALI_CFLAGS)

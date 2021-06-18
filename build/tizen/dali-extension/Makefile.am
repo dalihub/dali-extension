@@ -33,9 +33,13 @@ lib_LTLIBRARIES += libdali2-extension.la
 # Todo Evas plugin separation
 libdali2_extension_la_SOURCES = \
             $(evas_plugin_devel_src_files) \
-            $(evas_plugin_internal_src_files) \
+            $(evas_plugin_internal_src_files)
+
+if SUPPORT_RIVE
+libdali2_extension_la_SOURCES += \
             $(rive_animation_view_devel_src_files) \
             $(rive_animation_view_internal_src_files)
+endif
 
 libdali2_extension_la_DEPENDENCIES =
 
@@ -58,6 +62,17 @@ libdali2_extension_la_LIBADD = \
             $(ELEMENTARY_LIBS) \
             $(EVAS_LIBS) \
             $(WAYLAND_LIBS)
+
+if SUPPORT_RIVE
+libdali2_extension_la_CXXFLAGS += \
+            -I$(includedir)/rive \
+            $(THORVG_CFLAGS) \
+            $(RIVE_TIZEN_CFLAGS)
+
+libdali2_extension_la_LIBADD += \
+            $(THORVG_LIBS) \
+            $(RIVE_TIZEN_LIBS)
+endif
 
 libdali2_extension_la_LDFLAGS = \
             -rdynamic

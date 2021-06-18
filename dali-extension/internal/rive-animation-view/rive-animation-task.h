@@ -19,7 +19,6 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
-#include <dali/devel-api/adaptor-framework/vector-animation-renderer.h>
 #include <dali/devel-api/threading/conditional-wait.h>
 #include <dali/public-api/object/property-array.h>
 #include <chrono>
@@ -27,6 +26,7 @@
 
 // INTERNAL INCLUDES
 #include <dali-extension/devel-api/rive-animation-view/rive-animation-view.h>
+#include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer.h>
 
 namespace Dali
 {
@@ -44,7 +44,7 @@ using RiveAnimationTaskPtr = IntrusivePtr<RiveAnimationTask>;
 class RiveAnimationTask : public RefObject
 {
 public:
-  using UploadCompletedSignalType = Dali::VectorAnimationRenderer::UploadCompletedSignalType;
+  using UploadCompletedSignalType = RiveAnimationRenderer::UploadCompletedSignalType;
 
   using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
@@ -207,7 +207,7 @@ private:
   };
 
   std::string                          mUrl;
-  VectorAnimationRenderer              mVectorRenderer;
+  RiveAnimationRendererPtr             mVectorRenderer;
   AnimationData                        mAnimationData[2];
   RiveAnimationThread&                 mRiveAnimationThread;
   ConditionalWait                      mConditionalWait;
