@@ -74,6 +74,41 @@ public:
   void PauseAnimation();
 
   /**
+   * @copydoc Dali::Extension::RiveAnimationView::EnableAnimation
+   */
+  void EnableAnimation(const std::string& animationName, bool enable);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetShapeFillColor
+   */
+  void SetShapeFillColor(const std::string& fillName, Vector4 color);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetShapeStrokeColor
+   */
+  void SetShapeStrokeColor(const std::string& strokeName, Vector4 color);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetNodeOpacity
+   */
+  void SetNodeOpacity(const std::string& nodeName, float opacity);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetNodeScale
+   */
+  void SetNodeScale(const std::string& nodeName, Vector2 scale);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetNodeRotation
+   */
+  void SetNodeRotation(const std::string& nodeName, Degree degree);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetNodePosition
+   */
+  void SetNodePosition(const std::string& nodeName, Vector2 position);
+
+  /**
    * @copydoc Dali::Extension::RiveAnimationView::AnimationFinishedSignal
    */
   Dali::Extension::RiveAnimationView::AnimationSignalType& AnimationFinishedSignal();
@@ -150,6 +185,11 @@ private:
    * @brief Send animation data to the rasterize thread.
    */
   void SendAnimationData();
+
+  /**
+   * @brief Clear animations data.
+   */
+  void ClearAnimationsData();
 
   /**
    * @brief Set the vector image size.

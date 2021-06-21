@@ -88,6 +88,41 @@ void RiveAnimationView::PauseAnimation()
   Extension::GetImplementation(*this).PauseAnimation();
 }
 
+void RiveAnimationView::EnableAnimation(const std::string& animationName, bool enable)
+{
+  Extension::GetImplementation(*this).EnableAnimation(animationName, enable);
+}
+
+void RiveAnimationView::SetShapeFillColor(const std::string& fillName, Vector4 color)
+{
+  Extension::GetImplementation(*this).SetShapeFillColor(fillName, color);
+}
+
+void RiveAnimationView::SetShapeStrokeColor(const std::string& strokeName, Vector4 color)
+{
+  Extension::GetImplementation(*this).SetShapeStrokeColor(strokeName, color);
+}
+
+void RiveAnimationView::SetNodeOpacity(const std::string& nodeName, float opacity)
+{
+  Extension::GetImplementation(*this).SetNodeOpacity(nodeName, opacity);
+}
+
+void RiveAnimationView::SetNodeScale(const std::string& nodeName, Vector2 scale)
+{
+  Extension::GetImplementation(*this).SetNodeScale(nodeName, scale);
+}
+
+void RiveAnimationView::SetNodeRotation(const std::string& nodeName, Degree degree)
+{
+  Extension::GetImplementation(*this).SetNodeRotation(nodeName, degree);
+}
+
+void RiveAnimationView::SetNodePosition(const std::string& nodeName, Vector2 position)
+{
+  Extension::GetImplementation(*this).SetNodePosition(nodeName, position);
+}
+
 RiveAnimationView::AnimationSignalType& RiveAnimationView::AnimationFinishedSignal()
 {
   return Extension::GetImplementation(*this).AnimationFinishedSignal();

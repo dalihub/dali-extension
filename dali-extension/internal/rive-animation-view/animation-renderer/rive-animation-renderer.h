@@ -125,6 +125,62 @@ public:
   void GetDefaultSize(uint32_t& width, uint32_t& height) const;
 
   /**
+   * @brief Enables the animation state of given rive animation.
+   *
+   * @param[in] animationName The animation name
+   * @param[in] enable The state of animation
+   */
+  void EnableAnimation(const std::string& animationName, bool enable);
+
+  /**
+   * @brief Sets the shape fill color of given fill name.
+   *
+   * @param[in] fillName The fill name
+   * @param[in] color The rgba color
+   */
+  void SetShapeFillColor(const std::string& fillName, Vector4 color);
+
+  /**
+   * @brief Sets the shape stroke color of given stroke name.
+   *
+   * @param[in] strokeName The stroke name
+   * @param[in] color The rgba color
+   */
+  void SetShapeStrokeColor(const std::string& strokeName, Vector4 color);
+
+  /**
+   * @brief Sets the opacity of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] opacity The opacity of given node
+   */
+  void SetNodeOpacity(const std::string& nodeName, float opacity);
+
+  /**
+   * @brief Sets the scale of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] scale The scale of given node
+   */
+  void SetNodeScale(const std::string& nodeName, Vector2 scale);
+
+  /**
+   * @brief Sets the rotation of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] degree The degree of given node
+   */
+  void SetNodeRotation(const std::string& nodeName, Degree degree);
+
+  /**
+   * @brief Sets the position of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] position The position of given node
+   */
+  void SetNodePosition(const std::string& nodeName, Vector2 position);
+
+  /**
    * @brief Ignores a rendered frame which is not shown yet.
    */
   void IgnoreRenderedFrame();
@@ -146,6 +202,23 @@ protected: // Implementation of RiveAnimationRendererEventHandler
 private:
 
   /**
+   * @brief Structure used to manage rive animations.
+   */
+  struct Animation
+  {
+  public:
+     Animation(rive::LinearAnimationInstance *animationInstance, const std::string& animationName, bool animationEnable)
+     : instance(animationInstance),
+       name(animationName),
+       enable(animationEnable)
+     {
+     }
+     std::unique_ptr<rive::LinearAnimationInstance> instance;
+     const std::string& name;
+     bool enable;
+  };
+
+  /**
    * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
    */
   void SetShader();
@@ -159,6 +232,11 @@ private:
    * @brief Load rive resource file for artboard.
    */
   void LoadRiveFile(const std::string& filename);
+
+  /**
+   * @brief Clear Loaded Animations.
+   */
+  void ClearRiveAnimations();
 
 private:
 
@@ -174,8 +252,8 @@ private:
   std::unique_ptr<tvg::SwCanvas>         mSwCanvas;              ///< ThorVG SW canvas handle
   rive::File                             *mFile;                 ///< Rive file handle
   rive::Artboard                         *mArtboard;             ///< Rive artboard handle
+  std::vector<Animation>                 mAnimations;            ///< Rive animations
   rive::LinearAnimation                  *mAnimation;            ///< Rive animation handle
-  rive::LinearAnimationInstance          *mAnimationInstance;    ///< Rive animation instance
   uint32_t                               mStartFrameNumber;      ///< The start frame number
   uint32_t                               mTotalFrameNumber;      ///< The total frame number
   uint32_t                               mWidth;                 ///< The width of the surface

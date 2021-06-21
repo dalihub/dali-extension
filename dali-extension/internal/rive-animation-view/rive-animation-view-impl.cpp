@@ -355,6 +355,62 @@ void RiveAnimationView::PauseAnimation()
   TriggerVectorRasterization();
 }
 
+void RiveAnimationView::EnableAnimation(const std::string& animationName, bool enable)
+{
+  mAnimationData.animations.push_back(std::pair<std::string, bool>(animationName, enable));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_ENABLE_ANIMATION;
+
+  TriggerVectorRasterization();
+}
+
+void RiveAnimationView::SetShapeFillColor(const std::string& fillName, Vector4 color)
+{
+  mAnimationData.fillColors.push_back(std::pair<std::string, Vector4>(fillName, color));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_FILL_COLOR;
+
+  TriggerVectorRasterization();
+}
+
+void RiveAnimationView::SetShapeStrokeColor(const std::string& strokeName, Vector4 color)
+{
+  mAnimationData.strokeColors.push_back(std::pair<std::string, Vector4>(strokeName, color));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_STROKE_COLOR;
+
+  TriggerVectorRasterization();
+}
+
+void RiveAnimationView::SetNodeOpacity(const std::string& nodeName, float opacity)
+{
+  mAnimationData.opacities.push_back(std::pair<std::string, float>(nodeName, opacity));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_OPACITY;
+
+  TriggerVectorRasterization();
+}
+
+void RiveAnimationView::SetNodeScale(const std::string& nodeName, Vector2 scale)
+{
+  mAnimationData.scales.push_back(std::pair<std::string, Vector2>(nodeName, scale));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_SCALE;
+
+  TriggerVectorRasterization();
+}
+
+void RiveAnimationView::SetNodeRotation(const std::string& nodeName, Degree degree)
+{
+  mAnimationData.rotations.push_back(std::pair<std::string, Degree>(nodeName, degree));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_ROTATION;
+
+  TriggerVectorRasterization();
+}
+
+void RiveAnimationView::SetNodePosition(const std::string& nodeName, Vector2 position)
+{
+  mAnimationData.positions.push_back(std::pair<std::string, Vector2>(nodeName, position));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_POSITION;
+
+  TriggerVectorRasterization();
+}
+
 Dali::Extension::RiveAnimationView::AnimationSignalType& RiveAnimationView::AnimationFinishedSignal()
 {
   return mFinishedSignal;
@@ -432,6 +488,7 @@ void RiveAnimationView::SendAnimationData()
   if(mAnimationData.resendFlag)
   {
     mRiveAnimationTask->SetAnimationData(mAnimationData);
+    ClearAnimationsData();
 
     if(mRenderer)
     {
@@ -447,6 +504,17 @@ void RiveAnimationView::SendAnimationData()
 
     mAnimationData.resendFlag = 0;
   }
+}
+
+void RiveAnimationView::ClearAnimationsData()
+{
+    mAnimationData.animations.clear();
+    mAnimationData.fillColors.clear();
+    mAnimationData.strokeColors.clear();
+    mAnimationData.opacities.clear();
+    mAnimationData.scales.clear();
+    mAnimationData.rotations.clear();
+    mAnimationData.positions.clear();
 }
 
 void RiveAnimationView::SetVectorImageSize()

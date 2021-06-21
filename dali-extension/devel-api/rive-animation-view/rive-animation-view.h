@@ -172,6 +172,62 @@ public:
   void PauseAnimation();
 
   /**
+   * @brief Enables the animation state of given animation.
+   *
+   * @param[in] animationName The animation name
+   * @param[in] enable The state of animation
+   */
+  void EnableAnimation(const std::string& animationName, bool enable);
+
+  /**
+   * @brief Sets the shape fill color of given fill name.
+   *
+   * @param[in] fillName The fill name
+   * @param[in] color The rgba color
+   */
+  void SetShapeFillColor(const std::string& fillName, Vector4 color);
+
+  /**
+   * @brief Sets the shape stroke color of given stroke name.
+   *
+   * @param[in] strokeName The stroke name
+   * @param[in] color The rgba color
+   */
+  void SetShapeStrokeColor(const std::string& strokeName, Vector4 color);
+
+  /**
+   * @brief Sets the opacity of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] opacity The opacity of given node
+   */
+  void SetNodeOpacity(const std::string& nodeName, float opacity);
+
+  /**
+   * @brief Sets the scale of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] scale The scale of given node
+   */
+  void SetNodeScale(const std::string& nodeName, Vector2 scale);
+
+  /**
+   * @brief Sets the rotation of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] degree The degree of given node
+   */
+  void SetNodeRotation(const std::string& nodeName, Degree degree);
+
+  /**
+   * @brief Sets the position of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] position The position of given node
+   */
+  void SetNodePosition(const std::string& nodeName, Vector2 position);
+
+  /**
    * @brief Connects to this signal to be notified when animations have finished.
    *
    * @return A signal object to connect with
