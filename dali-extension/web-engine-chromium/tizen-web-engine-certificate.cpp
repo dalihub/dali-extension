@@ -22,11 +22,6 @@ namespace Dali
 namespace Plugin
 {
 
-namespace
-{
-const std::string EMPTY_STRING;
-} // namespace
-
 TizenWebEngineCertificate::TizenWebEngineCertificate(Ewk_Certificate_Policy_Decision* decision)
   : ewkCertificatePolicyDecision(decision)
   , ewkCertificateInfo(0)
@@ -58,7 +53,12 @@ bool TizenWebEngineCertificate::IsFromMainFrame() const
 
 std::string TizenWebEngineCertificate::GetPem() const
 {
-  return ewkCertificateInfo ? std::string(ewk_certificate_info_pem_get(ewkCertificateInfo)) : EMPTY_STRING;
+  const char* pem = nullptr;
+  if (ewkCertificateInfo)
+  {
+    pem = ewk_certificate_info_pem_get(ewkCertificateInfo);
+  }
+  return pem ? std::string(pem) : std::string();
 }
 
 bool TizenWebEngineCertificate::IsContextSecure() const

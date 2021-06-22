@@ -33,7 +33,8 @@ TizenWebEngineHttpAuthHandler::~TizenWebEngineHttpAuthHandler()
 
 std::string TizenWebEngineHttpAuthHandler::GetRealm() const
 {
-  return std::string(ewk_auth_challenge_realm_get(ewkAuthChallenge));
+  const char* realm = ewk_auth_challenge_realm_get(ewkAuthChallenge);
+  return realm ? std::string(realm) : std::string();
 }
 
 void TizenWebEngineHttpAuthHandler::Suspend()

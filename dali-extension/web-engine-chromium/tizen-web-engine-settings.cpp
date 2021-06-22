@@ -226,7 +226,8 @@ void TizenWebEngineSettings::AllowImagesLoadAutomatically( bool automatic )
 
 std::string TizenWebEngineSettings::GetDefaultTextEncodingName() const
 {
-  return std::string( ewk_settings_default_text_encoding_name_get( ewkSettings ) );
+  const char* name = ewk_settings_default_text_encoding_name_get( ewkSettings );
+  return name ? std::string(name) : std::string();
 }
 
 void TizenWebEngineSettings::SetDefaultTextEncodingName( const std::string& defaultTextEncodingName )

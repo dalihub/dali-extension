@@ -52,17 +52,20 @@ bool TizenWebEngineContextMenuItem::IsEnabled() const
 
 std::string TizenWebEngineContextMenuItem::GetLinkUrl() const
 {
-  return ewk_context_menu_item_link_url_get(ewkContextMenuItem);
+  const char* url = ewk_context_menu_item_link_url_get(ewkContextMenuItem);
+  return url ? std::string(url) : std::string();
 }
 
 std::string TizenWebEngineContextMenuItem::GetImageUrl() const
 {
-  return ewk_context_menu_item_image_url_get(ewkContextMenuItem);
+  const char* url = ewk_context_menu_item_image_url_get(ewkContextMenuItem);
+  return url ? std::string(url) : std::string();
 }
 
 std::string TizenWebEngineContextMenuItem::GetTitle() const
 {
-  return ewk_context_menu_item_title_get(ewkContextMenuItem);
+  const char* title = ewk_context_menu_item_title_get(ewkContextMenuItem);
+  return title ? std::string(title) : std::string();
 }
 
 std::unique_ptr<Dali::WebEngineContextMenu> TizenWebEngineContextMenuItem::GetParentMenu() const

@@ -33,7 +33,8 @@ TizenWebEngineRequestInterceptor::~TizenWebEngineRequestInterceptor()
 
 std::string TizenWebEngineRequestInterceptor::GetUrl() const
 {
-  return std::string(ewk_intercept_request_url_get(ewkRequestInterceptor));
+  const char* url = ewk_intercept_request_url_get(ewkRequestInterceptor);
+  return url ? std::string(url) : std::string();
 }
 
 bool TizenWebEngineRequestInterceptor::Ignore()

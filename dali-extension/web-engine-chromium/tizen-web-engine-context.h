@@ -62,6 +62,21 @@ public:
   void SetProxyUri(const std::string& uri) override;
 
   /**
+   * @copydoc Dali::WebEngineContext::GetProxyUri()
+   */
+  std::string GetProxyUri() const override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::SetProxyBypassRule()
+   */
+  void SetProxyBypassRule(const std::string& proxy, const std::string& bypass) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetProxyBypassRule()
+   */
+  std::string GetProxyBypassRule() const override;
+
+  /**
    * @copydoc Dali::WebEngineContext::SetDefaultProxyAuth()
    */
   void SetDefaultProxyAuth(const std::string& username, const std::string& password) override;
@@ -70,6 +85,11 @@ public:
    * @copydoc Dali::WebEngineContext::SetCertificateFilePath()
    */
   void SetCertificateFilePath(const std::string& certificatePath) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetCertificateFilePath()
+   */
+  std::string GetCertificateFilePath() const override;
 
   /**
    * @copydoc Dali::WebEngineContext::DeleteAllWebDatabase()
@@ -147,34 +167,39 @@ public:
   bool IsCacheEnabled() const override;
 
   /**
-   * @copydoc Dali::WebEngineContext::GetContextCertificateFile()
+   * @copydoc Dali::WebEngineContext::SetAppId()
    */
-  std::string GetContextCertificateFile() const override;
+  void SetAppId(const std::string& appID) override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextAppId()
+   * @copydoc Dali::WebEngineContext::SetAppVersion()
    */
-  void SetContextAppId(const std::string& appID) override;
+  bool SetAppVersion(const std::string& appVersion) override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextAppVersion()
+   * @copydoc Dali::WebEngineContext::SetApplicationType()
    */
-  bool SetContextAppVersion(const std::string& appVersion) override;
+  void SetApplicationType(const ApplicationType applicationType) override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextApplicationType()
+   * @copydoc Dali::WebEngineContext::SetTimeOffset()
    */
-  void SetContextApplicationType(const ApplicationType applicationType) override;
+  void SetTimeOffset(float timeOffset) override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextTimeOffset()
+   * @copydoc Dali::WebEngineContext::SetTimeZoneOffset()
    */
-  void SetContextTimeOffset(float timeOffset) override;
+  void SetTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override;
 
   /**
-   * @copydoc Dali::WebEngineContext::SetContextTimeZoneOffset()
+   * @copydoc Dali::WebEngineContext::SetDefaultZoomFactor()
    */
-  void SetContextTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override;
+  void SetDefaultZoomFactor(float zoomFactor) override;
+
+  /**
+   * @copydoc Dali::WebEngineContext::GetDefaultZoomFactor()
+   */
+  float GetDefaultZoomFactor() const override;
 
   /**
    * @copydoc Dali::WebEngineContext::RegisterUrlSchemesAsCorsEnabled()
@@ -185,16 +210,6 @@ public:
    * @copydoc Dali::WebEngineContext::RegisterJsPluginMimeTypes()
    */
   void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)override;
-
-  /**
-   * @copydoc Dali::WebEngineContext::SetDefaultZoomFactor()
-   */
-  void SetDefaultZoomFactor(float zoomFactor) override;
-
-  /**
-   * @copydoc Dali::WebEngineContext::GetContextDefaultZoomFactor()
-   */
-  float GetContextDefaultZoomFactor() const override;
 
   /**
    * @copydoc Dali::WebEngineContext::DeleteAllApplicationCache()
@@ -214,29 +229,12 @@ public:
   /**
    * @copydoc Dali::WebEngineContext::DeleteAllFormPasswordData()
    */
-
   void DeleteAllFormPasswordData() override;
 
   /**
    * @copydoc Dali::WebEngineContext::DeleteAllFormCandidateData()
    */
-
   void DeleteAllFormCandidateData() override;
-
-  /**
-   * @copydoc Dali::WebEngineContext::GetContextProxy()
-   */
-  std::string GetContextProxy() const override;
-
-  /**
-   * @copydoc Dali::WebEngineContext::SetContextProxy()
-   */
-  void SetContextProxy(const std::string& proxy, const std::string& bypass) override;
-
-  /**
-   * @copydoc Dali::WebEngineContext::GetProxyBypassRule()
-   */
-  std::string GetProxyBypassRule() const override;
 
   /**
    * @copydoc Dali::WebEngineContext::FreeUnusedMemory()
