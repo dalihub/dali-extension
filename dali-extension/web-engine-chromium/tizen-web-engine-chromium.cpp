@@ -213,7 +213,9 @@ public:
     mWebEngineSettings = TizenWebEngineSettings(settings);
 
     context = ewk_view_context_get(mWebView);
+#if 0
     ewk_context_intercept_request_callback_set(context, &WebViewContainerForDali::OnInterceptRequest, &mClient);
+#endif
     mWebEngineContext = TizenWebEngineContext(context);
 
     Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
