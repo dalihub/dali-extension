@@ -41,7 +41,6 @@ namespace Internal
 {
 namespace
 {
-const char* const DEFAULT_SAMPLER_TYPENAME("sampler2D");
 const char* const PIXEL_AREA_UNIFORM_NAME("pixelArea");
 
 const Vector4 FULL_TEXTURE_RECT(0.f, 0.f, 1.f, 1.f);
@@ -419,31 +418,7 @@ void RiveAnimationRenderer::SetShader()
   }
 
   // Get custom fragment shader prefix
-  const char* fragmentPrefix = mTargetSurface->GetCustomFragmentPrefix();
-
-  size_t prefixIndex = fragmentShader.find(Dali::Shader::GetShaderVersionPrefix());
-  if(fragmentPrefix)
-  {
-    if(prefixIndex == std::string::npos)
-    {
-      fragmentShader = fragmentPrefix + fragmentShader;
-    }
-    else
-    {
-      fragmentShader.insert(prefixIndex + Dali::Shader::GetShaderVersionPrefix().length(), std::string(fragmentPrefix) + "\n");
-    }
-  }
-
-  // Get custom sampler type name
-  const char* customSamplerTypename = mTargetSurface->GetCustomSamplerTypename();
-  if(customSamplerTypename)
-  {
-    size_t position = fragmentShader.find(DEFAULT_SAMPLER_TYPENAME);
-    if(position != std::string::npos)
-    {
-      fragmentShader.replace(position, strlen(DEFAULT_SAMPLER_TYPENAME), customSamplerTypename);
-    }
-  }
+  mTargetSurface->ApplyNativeFragmentShader(fragmentShader);
 
   // Set the modified shader again
   Shader newShader = Shader::New(vertexShader, fragmentShader);
