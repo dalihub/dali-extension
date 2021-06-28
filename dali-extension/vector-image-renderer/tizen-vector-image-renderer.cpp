@@ -74,7 +74,7 @@ bool TizenVectorImageRenderer::Load(const Vector<uint8_t>& data)
     }
   }
 
-  if(mPicture->load(reinterpret_cast<char*>(data.Begin()), data.Size()) != tvg::Result::Success)
+  if(mPicture->load(reinterpret_cast<char*>(data.Begin()), data.Size(), false) != tvg::Result::Success)
   {
     DALI_LOG_ERROR("TizenVectorImageRenderer::Load Data load Fail %s [%p]\n", data, this);
     return false;
