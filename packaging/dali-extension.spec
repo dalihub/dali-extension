@@ -7,30 +7,12 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.0.31
+Version:    2.0.32
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
 URL:        https://review.tizen.org/git/?p=platform/core/uifw/dali-extensions.git;a=summary
 Source0:    %{name}-%{version}.tar.gz
-
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-
-BuildRequires:  pkgconfig
-BuildRequires:  pkgconfig(dali2-core)
-BuildRequires:  pkgconfig(dali2-adaptor)
-BuildRequires:  pkgconfig(dali2-toolkit)
-BuildRequires:  pkgconfig(dlog)
-
-# For evas-plugin
-BuildRequires:  pkgconfig(dali2-adaptor-integration)
-BuildRequires:  pkgconfig(elementary)
-BuildRequires:  pkgconfig(evas)
-BuildRequires:  pkgconfig(ecore-wl2)
-
-%description
-dali-extension
 
 %if 0%{?tizen_version_major} >= 4
 %define tizen_40_or_greater 1
@@ -48,13 +30,30 @@ dali-extension
 %define tizen_65_or_greater 1
 %endif
 
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
 
-# # Note
-# %if 0%{?tizen_version_major} >= 6
-# %define tizen_60_or_greater 1
-# %endif
+BuildRequires:  pkgconfig
+BuildRequires:  pkgconfig(dali2-core)
+BuildRequires:  pkgconfig(dali2-adaptor)
+BuildRequires:  pkgconfig(dali2-toolkit)
+BuildRequires:  pkgconfig(dlog)
 
-##############################
+# For evas-plugin
+BuildRequires:  pkgconfig(dali2-adaptor-integration)
+BuildRequires:  pkgconfig(elementary)
+BuildRequires:  pkgconfig(evas)
+BuildRequires:  pkgconfig(ecore-wl2)
+
+%if 0%{?tizen_65_or_greater}
+BuildRequires:  pkgconfig(rive_tizen)
+%endif
+
+%description
+dali-extension
+
+
+#############################
 # devel
 ##############################
 %package devel
@@ -150,17 +149,6 @@ BuildRequires:  pkgconfig(rlottie)
 Plugin to render a vector animation
 
 ####################################
-# Rive Animation Renderer Plugin
-####################################
-%package rive-animation-renderer-plugin
-Summary:    Plugin to render a rive animation
-Group:      System/Libraries
-%if 0%{?tizen_65_or_greater}
-BuildRequires:  pkgconfig(rive_tizen)
-%endif
-%description rive-animation-renderer-plugin
-
-####################################
 # Vector Image Renderer Plugin
 ####################################
 %package vector-image-renderer-plugin
@@ -239,6 +227,9 @@ cd %{_builddir}/%{name}-%{version}/build/tizen
 autoreconf --install
 
 %configure --prefix=$PREFIX \
+%if 0%{?enable_debug}
+           --enable-debug \
+%endif
 %if 0%{?tizen_50_or_greater}
            --with-tizen-50-or-greater \
 %endif
@@ -456,14 +447,6 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-vector-image-renderer-plugin.so*
-%license LICENSE
-%endif
-
-%if 0%{?tizen_65_or_greater}
-%files rive-animation-renderer-plugin
-%manifest dali-extension.manifest
-%defattr(-,root,root,-)
-%{_libdir}/libdali2-rive-animation-renderer-plugin.so*
 %license LICENSE
 %endif
 

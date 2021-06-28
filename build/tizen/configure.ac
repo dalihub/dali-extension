@@ -28,6 +28,12 @@ AC_ARG_WITH([tizen_65_or_greater],
             [with_tizen_65_or_greater=yes],
             [with_tizen_65_or_greater=no])
 
+AC_ARG_ENABLE([debug],
+              [AC_HELP_STRING([--enable-debug],
+                              [Turns on debugging])],
+              [enable_debug=$enableval],
+              [enable_debug=no])
+
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)

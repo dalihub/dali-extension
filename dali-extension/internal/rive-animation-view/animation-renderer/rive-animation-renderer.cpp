@@ -16,7 +16,7 @@
  */
 
 // CLASS HEADER
-#include <dali-extension/vector-animation-renderer/tizen-rive-animation-renderer.h>
+#include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer.h>
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/file-loader.h>
@@ -31,17 +31,13 @@
 #include <rive/tvg_renderer.hpp>
 
 // INTERNAL INCLUDES
-#include <dali-extension/vector-animation-renderer/tizen-vector-animation-manager.h>
-
-// The plugin factories
-extern "C" DALI_EXPORT_API Dali::VectorAnimationRendererPlugin* CreateVectorAnimationRendererPlugin(void)
-{
-  return new Dali::Plugin::TizenRiveAnimationRenderer;
-}
+#include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
 
 namespace Dali
 {
-namespace Plugin
+namespace Extension
+{
+namespace Internal
 {
 namespace
 {
@@ -50,9 +46,12 @@ const char* const PIXEL_AREA_UNIFORM_NAME("pixelArea");
 
 const Vector4 FULL_TEXTURE_RECT(0.f, 0.f, 1.f, 1.f);
 
+#if defined(DEBUG_ENABLED)
+Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_RIVE_ANIMATION");
+#endif
 } // unnamed namespace
 
-TizenRiveAnimationRenderer::TizenRiveAnimationRenderer()
+RiveAnimationRenderer::RiveAnimationRenderer()
 : mUrl(),
   mMutex(),
   mRenderer(),
@@ -81,7 +80,7 @@ TizenRiveAnimationRenderer::TizenRiveAnimationRenderer()
   tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
 }
 
-TizenRiveAnimationRenderer::~TizenRiveAnimationRenderer()
+RiveAnimationRenderer::~RiveAnimationRenderer()
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
@@ -98,10 +97,10 @@ TizenRiveAnimationRenderer::~TizenRiveAnimationRenderer()
   mSwCanvas->clear();
   tvg::Initializer::term(tvg::CanvasEngine::Sw);
 
-  DALI_LOG_RELEASE_INFO("TizenRiveAnimationRenderer::~TizenRiveAnimationRenderer: this = %p\n", this);
+  DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::~RiveAnimationRenderer: this = %p\n", this);
 }
 
-void TizenRiveAnimationRenderer::LoadRiveFile(const std::string& filename)
+void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
 {
   std::streampos        length = 0;
   Dali::Vector<uint8_t> bytes;
@@ -145,22 +144,22 @@ void TizenRiveAnimationRenderer::LoadRiveFile(const std::string& filename)
   }
 }
 
-bool TizenRiveAnimationRenderer::Load(const std::string& url)
+bool RiveAnimationRenderer::Load(const std::string& url)
 {
   mUrl = url;
   LoadRiveFile(mUrl);
-  TizenVectorAnimationManager::Get().AddEventHandler(*this);
+  RiveAnimationRendererManager::Get().AddEventHandler(*this);
 
-  DALI_LOG_RELEASE_INFO("TizenRiveAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this);
+  DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this);
 
   return true;
 }
 
-void TizenRiveAnimationRenderer::Finalize()
+void RiveAnimationRenderer::Finalize()
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
-  TizenVectorAnimationManager::Get().RemoveEventHandler(*this);
+  RiveAnimationRendererManager::Get().RemoveEventHandler(*this);
 
   mRenderer.Reset();
   mTexture.Reset();
@@ -170,10 +169,10 @@ void TizenRiveAnimationRenderer::Finalize()
   mTargetSurface = nullptr;
   mTbmQueue      = nullptr;
 
-  DALI_LOG_RELEASE_INFO("TizenRiveAnimationRenderer::Finalize: [%p]\n", this);
+  DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Finalize: [%p]\n", this);
 }
 
-void TizenRiveAnimationRenderer::SetRenderer(Renderer renderer)
+void RiveAnimationRenderer::SetRenderer(Renderer renderer)
 {
   mRenderer      = renderer;
   mShaderChanged = false;
@@ -195,13 +194,13 @@ void TizenRiveAnimationRenderer::SetRenderer(Renderer renderer)
   }
 }
 
-void TizenRiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
+void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
   if(mWidth == width && mHeight == height)
   {
-    DALI_LOG_RELEASE_INFO("TizenRiveAnimationRenderer::SetSize: Same size (%d, %d) [%p]\n", mWidth, mHeight, this);
+    DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::SetSize: Same size (%d, %d) [%p]\n", mWidth, mHeight, this);
     return;
   }
 
@@ -224,10 +223,10 @@ void TizenRiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
   // Reset the previous texture to destroy it in the main thread
   mPreviousTexture.Reset();
 
-  DALI_LOG_RELEASE_INFO("TizenRiveAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this);
+  DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this);
 }
 
-bool TizenRiveAnimationRenderer::Render(uint32_t frameNumber)
+bool RiveAnimationRenderer::Render(uint32_t frameNumber)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
   if(!mTbmQueue || !mTargetSurface || !mArtboard || !mAnimationInstance)
@@ -261,7 +260,7 @@ bool TizenRiveAnimationRenderer::Render(uint32_t frameNumber)
   int                ret = tbm_surface_map(tbmSurface, TBM_OPTION_WRITE, &info);
   if(ret != TBM_SURFACE_ERROR_NONE)
   {
-    DALI_LOG_ERROR("TizenRiveAnimationRenderer::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this);
+    DALI_LOG_ERROR("RiveAnimationRenderer::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this);
     tbm_surface_queue_cancel_dequeue(mTbmQueue, tbmSurface);
     return false;
   }
@@ -269,7 +268,7 @@ bool TizenRiveAnimationRenderer::Render(uint32_t frameNumber)
   unsigned char* buffer = info.planes[0].ptr;
   if(!buffer)
   {
-    DALI_LOG_ERROR("TizenRiveAnimationRenderer::Render: tbm buffer pointer is null! [%p]\n", this);
+    DALI_LOG_ERROR("RiveAnimationRenderer::Render: tbm buffer pointer is null! [%p]\n", this);
     tbm_surface_unmap(tbmSurface);
     tbm_surface_queue_cancel_dequeue(mTbmQueue, tbmSurface);
     return false;
@@ -327,52 +326,31 @@ bool TizenRiveAnimationRenderer::Render(uint32_t frameNumber)
     mResourceReady          = true;
     mResourceReadyTriggered = true;
 
-    TizenVectorAnimationManager::Get().TriggerEvent(*this);
+    RiveAnimationRendererManager::Get().TriggerEvent(*this);
 
-    DALI_LOG_RELEASE_INFO("TizenRiveAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this);
+    DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this);
   }
 
   return true;
 }
 
-uint32_t TizenRiveAnimationRenderer::GetTotalFrameNumber() const
+uint32_t RiveAnimationRenderer::GetTotalFrameNumber() const
 {
   return mTotalFrameNumber;
 }
 
-float TizenRiveAnimationRenderer::GetFrameRate() const
+float RiveAnimationRenderer::GetFrameRate() const
 {
   return mFrameRate;
 }
 
-void TizenRiveAnimationRenderer::GetDefaultSize(uint32_t& width, uint32_t& height) const
+void RiveAnimationRenderer::GetDefaultSize(uint32_t& width, uint32_t& height) const
 {
   width  = mDefaultWidth;
   height = mDefaultHeight;
 }
 
-void TizenRiveAnimationRenderer::GetLayerInfo(Property::Map& map) const
-{
-  return;
-}
-
-//TODO: This should be modified later, GetMarkerInfo is not proper interface name
-bool TizenRiveAnimationRenderer::GetMarkerInfo(const std::string& marker, uint32_t& startFrame, uint32_t& endFrame) const
-{
-  Dali::Mutex::ScopedLock lock(mMutex);
-
-  if(!mAnimation)
-  {
-    return false;
-  }
-
-  startFrame = mStartFrameNumber;
-  endFrame   = mTotalFrameNumber;
-
-  return true;
-}
-
-void TizenRiveAnimationRenderer::IgnoreRenderedFrame()
+void RiveAnimationRenderer::IgnoreRenderedFrame()
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
@@ -382,18 +360,18 @@ void TizenRiveAnimationRenderer::IgnoreRenderedFrame()
   }
 }
 
-VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenRiveAnimationRenderer::UploadCompletedSignal()
+RiveAnimationRenderer::UploadCompletedSignalType& RiveAnimationRenderer::UploadCompletedSignal()
 {
   return mUploadCompletedSignal;
 }
 
-void TizenRiveAnimationRenderer::NotifyEvent()
+void RiveAnimationRenderer::NotifyEvent()
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
   if(mResourceReadyTriggered)
   {
-    DALI_LOG_RELEASE_INFO("TizenRiveAnimationRenderer::NotifyEvent: Set Texture [%p]\n", this);
+    DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::NotifyEvent: Set Texture [%p]\n", this);
 
     // Set texture
     if(mRenderer && mRenderedTexture)
@@ -410,8 +388,7 @@ void TizenRiveAnimationRenderer::NotifyEvent()
   mPreviousTexture.Reset();
 }
 
-//TODO: unify SetShader with tizen-vector-animation-renderer's since code are totally identical
-void TizenRiveAnimationRenderer::SetShader()
+void RiveAnimationRenderer::SetShader()
 {
   if(mShaderChanged)
   {
@@ -477,6 +454,8 @@ void TizenRiveAnimationRenderer::SetShader()
   mShaderChanged = true;
 }
 
-} // namespace Plugin
+} // namespace Internal
+
+} // namespace Extension
 
 } // namespace Dali

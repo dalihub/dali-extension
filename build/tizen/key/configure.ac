@@ -16,6 +16,10 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
+if test "x$enable_debug" = "xyes"; then
+  DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
+fi
+
 AC_ARG_ENABLE([keyextension],
               [AC_HELP_STRING([--enable-keyextension],
               [enables the key extension of all the symbols in the library])],
@@ -26,6 +30,7 @@ AM_CONDITIONAL([USE_KEY_EXTENSION], [test x$enable_keyextension = xyes])
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
+AC_SUBST(DALI_CFLAGS)
 
 AC_CONFIG_FILES([
 Makefile

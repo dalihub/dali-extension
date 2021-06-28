@@ -16,6 +16,10 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
+if test "x$enable_debug" = "xyes"; then
+  DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
+fi
+
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(CAPI_MEDIA_CAMERA, capi-media-camera)
 
@@ -23,6 +27,7 @@ PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
+AC_SUBST(DALI_CFLAGS)
 
 AC_CONFIG_FILES([
 Makefile
