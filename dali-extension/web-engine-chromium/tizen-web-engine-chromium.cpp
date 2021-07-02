@@ -29,7 +29,6 @@
 #include "tizen-web-engine-http-auth-handler.h"
 #include "tizen-web-engine-load-error.h"
 #include "tizen-web-engine-policy-decision.h"
-#include "tizen-web-engine-request-interceptor.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore_Evas.h>
@@ -213,7 +212,6 @@ public:
     mWebEngineSettings = TizenWebEngineSettings(settings);
 
     context = ewk_view_context_get(mWebView);
-    ewk_context_intercept_request_callback_set(context, &WebViewContainerForDali::OnInterceptRequest, &mClient);
     mWebEngineContext = TizenWebEngineContext(context);
 
     Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
@@ -862,13 +860,6 @@ private:
     Ewk_Error* error = static_cast<Ewk_Error*>(rawError);
     std::shared_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
     client->LoadError(std::move(loadError));
-  }
-
-  static void OnInterceptRequest(Ewk_Context*, Ewk_Intercept_Request* request, void* data)
-  {
-    auto client = static_cast<WebViewContainerClient*>(data);
-    std::shared_ptr<Dali::WebEngineRequestInterceptor> webInterceptor(new TizenWebEngineRequestInterceptor(request));
-    client->InterceptRequest(std::move(webInterceptor));
   }
 
   static void OnUrlChanged(void* data, Evas_Object*, void* newUrl)
@@ -1945,15 +1936,6 @@ void TizenWebEngineChromium::RequestFormRepostDecision(std::shared_ptr<Dali::Web
   if (!mFormRepostDecisionSignal.Empty())
   {
     mFormRepostDecisionSignal.Emit(std::move(decision));
-  }
-}
-
-void TizenWebEngineChromium::InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor)
-{
-  DALI_LOG_RELEASE_INFO("#InterceptRequest.\n");
-  if (!mRequestInterceptorSignal.Empty())
-  {
-    mRequestInterceptorSignal.Emit(std::move(interceptor));
   }
 }
 
