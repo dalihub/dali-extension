@@ -466,62 +466,6 @@ public:
   bool SendWheelEvent(const Dali::WheelEvent& event) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
-   */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadStartedSignal() override
-  {
-    return mPageLoadStartedSignal;
-  }
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::PageLoadInProgressSignal()
-   */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadInProgressSignal() override
-  {
-    return mPageLoadInProgressSignal;
-  }
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::PageLoadFinishedSignal()
-   */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadFinishedSignal() override
-  {
-    return mPageLoadFinishedSignal;
-  }
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::PageLoadErrorSignal()
-   */
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& PageLoadErrorSignal() override
-  {
-    return mPageLoadErrorSignal;
-  }
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::ScrollEdgeReachedSignal()
-   */
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override
-  {
-    return mScrollEdgeReachedSignal;
-  }
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::UrlChangedSignal()
-   */
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType& UrlChangedSignal() override
-  {
-    return mUrlChangedSignal;
-  }
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::FormRepostDecisionSignal()
-   */
-  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType& FormRepostDecisionSignal() override
-  {
-    return mFormRepostDecisionSignal;
-  }
-
-  /**
    * @copydoc Dali::WebEnginePlugin::FrameRenderedSignal()
    */
   Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& FrameRenderedSignal() override
@@ -530,68 +474,79 @@ public:
   }
 
   /**
-   * @copydoc Dali::WebEnginePlugin::RequestInterceptorSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterPageLoadStartedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& RequestInterceptorSignal() override
-  {
-    return mRequestInterceptorSignal;
-  }
+  void RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ConsoleMessageSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterPageLoadInProgressCallback()
    */
-  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& ConsoleMessageSignal() override
-  {
-    return mConsoleMessageSignal;
-  }
+  void RegisterPageLoadInProgressCallback(WebEnginePageLoadCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ResponsePolicyDecisionSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterPageLoadFinishedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType& ResponsePolicyDecisionSignal() override
-  {
-    return mResponsePolicyDecisionSignal;
-  }
+  void RegisterPageLoadFinishedCallback(WebEnginePageLoadCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::CertificateConfirmSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterPageLoadErrorCallback()
    */
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType& CertificateConfirmSignal() override
-  {
-    return mCertificateConfirmSignal;
-  }
+  void RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::SslCertificateChangedSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterScrollEdgeReachedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType& SslCertificateChangedSignal() override
-  {
-    return mSslCertificateChangedSignal;
-  }
+  void RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::HttpAuthHandlerSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterUrlChangedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& HttpAuthHandlerSignal() override
-  {
-    return mHttpAuthHandlerSignal;
-  }
+  void RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ContextMenuShownSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterFormRepostDecidedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType& ContextMenuShownSignal() override
-  {
-    return mContextMenuShownSignal;
-  }
+  void RegisterFormRepostDecidedCallback(WebEngineFormRepostDecidedCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ContextMenuHiddenSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterRequestInterceptorCallback()
    */
-  Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType& ContextMenuHiddenSignal() override
-  {
-    return mContextMenuHiddenSignal;
-  }
+  void RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterConsoleMessageReceivedCallback()
+   */
+  void RegisterConsoleMessageReceivedCallback(WebEngineConsoleMessageReceivedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterResponsePolicyDecidedCallback()
+   */
+  void RegisterResponsePolicyDecidedCallback(WebEngineResponsePolicyDecidedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterCertificateConfirmedCallback()
+   */
+  void RegisterCertificateConfirmedCallback(WebEngineCertificateCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterSslCertificateChangedCallback()
+   */
+  void RegisterSslCertificateChangedCallback(WebEngineCertificateCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterHttpAuthHandlerCallback()
+   */
+  void RegisterHttpAuthHandlerCallback(WebEngineHttpAuthHandlerCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterContextMenuShownCallback()
+   */
+  void RegisterContextMenuShownCallback(WebEngineContextMenuShownCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterContextMenuHiddenCallback()
+   */
+  void RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback) override;
 
 private:
   void UpdateBuffer();
@@ -637,22 +592,7 @@ private:
 
   EventThreadCallback mUpdateBufferTrigger;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mPageLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mPageLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mPageLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType          mPageLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType      mScrollEdgeReachedSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType             mUrlChangedSignal;
-  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType     mFormRepostDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType          mFrameRenderedSignal;
-  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType     mRequestInterceptorSignal;
-  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType         mConsoleMessageSignal;
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType mResponsePolicyDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType            mCertificateConfirmSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType            mSslCertificateChangedSignal;
-  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType        mHttpAuthHandlerSignal;
-  Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType       mContextMenuShownSignal;
-  Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType      mContextMenuHiddenSignal;
+  WebEngineFrameRenderedSignalType mFrameRenderedSignal;
 };
 
 } // namespace Plugin

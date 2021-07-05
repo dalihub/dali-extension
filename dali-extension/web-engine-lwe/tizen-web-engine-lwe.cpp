@@ -1223,5 +1223,81 @@ bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
   return false;
 }
 
+
+void TizenWebEngineLWE::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPageLoadInProgressCallback(WebEnginePageLoadCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPageLoadFinishedCallback(WebEnginePageLoadCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterFormRepostDecidedCallback(WebEngineFormRepostDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterConsoleMessageReceivedCallback(WebEngineConsoleMessageReceivedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterResponsePolicyDecidedCallback(WebEngineResponsePolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterCertificateConfirmedCallback(WebEngineCertificateCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterSslCertificateChangedCallback(WebEngineCertificateCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterHttpAuthHandlerCallback(WebEngineHttpAuthHandlerCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterContextMenuShownCallback(WebEngineContextMenuShownCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali
