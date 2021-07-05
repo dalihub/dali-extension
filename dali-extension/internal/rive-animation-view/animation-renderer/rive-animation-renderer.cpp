@@ -27,8 +27,13 @@
 #include <time.h>
 #include <cmath>
 #include <cstring> // for strlen()
+#include <rive/node.hpp>
 #include <rive/file.hpp>
 #include <rive/tvg_renderer.hpp>
+#include <rive/shapes/paint/fill.hpp>
+#include <rive/shapes/paint/stroke.hpp>
+#include <rive/shapes/paint/color.hpp>
+#include <rive/shapes/paint/solid_color.hpp>
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
@@ -65,7 +70,6 @@ RiveAnimationRenderer::RiveAnimationRenderer()
   mFile(nullptr),
   mArtboard(nullptr),
   mAnimation(nullptr),
-  mAnimationInstance(nullptr),
   mStartFrameNumber(0),
   mTotalFrameNumber(0),
   mWidth(0),
@@ -84,10 +88,7 @@ RiveAnimationRenderer::~RiveAnimationRenderer()
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
-  if(mAnimationInstance)
-  {
-    delete mAnimationInstance;
-  }
+  ClearRiveAnimations();
 
   if(mFile)
   {
@@ -98,6 +99,11 @@ RiveAnimationRenderer::~RiveAnimationRenderer()
   tvg::Initializer::term(tvg::CanvasEngine::Sw);
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::~RiveAnimationRenderer: this = %p\n", this);
+}
+
+void RiveAnimationRenderer::ClearRiveAnimations()
+{
+  mAnimations.clear();
 }
 
 void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
@@ -128,16 +134,18 @@ void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
   mArtboard = mFile->artboard();
   mArtboard->advance(0.0f);
 
-  if(mAnimationInstance)
+  ClearRiveAnimations();
+
+  for(unsigned int i = 0; i < mArtboard->animationCount(); i++)
   {
-    delete mAnimationInstance;
-    mAnimationInstance = nullptr;
+    auto animation = mArtboard->animation(i);
+    const std::string& name = animation->name();
+    mAnimations.emplace_back(Animation(new rive::LinearAnimationInstance(animation), name, false));
   }
 
   mAnimation = mArtboard->firstAnimation();
   if(mAnimation)
   {
-    mAnimationInstance = new rive::LinearAnimationInstance(mAnimation);
     mStartFrameNumber = mAnimation->enableWorkArea() ? mAnimation->workStart() : 0;
     mTotalFrameNumber = mAnimation->enableWorkArea() ? mAnimation->workEnd() : mAnimation->duration();
     mTotalFrameNumber -= mStartFrameNumber;
@@ -229,7 +237,7 @@ void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 bool RiveAnimationRenderer::Render(uint32_t frameNumber)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-  if(!mTbmQueue || !mTargetSurface || !mArtboard || !mAnimationInstance)
+  if(!mTbmQueue || !mTargetSurface || !mArtboard || mAnimations.empty())
   {
     return false;
   }
@@ -289,10 +297,15 @@ bool RiveAnimationRenderer::Render(uint32_t frameNumber)
   frameNumber    = mStartFrameNumber + frameNumber;
   double elapsed = (float)frameNumber / 60.0f;
 
-  mAnimationInstance->time(elapsed);
-  mAnimationInstance->advance(0.0);
-  mAnimationInstance->apply(mArtboard);
-
+  for (auto& animation : mAnimations)
+  {
+    if(animation.enable)
+    {
+      animation.instance->time(elapsed);
+      animation.instance->advance(0.0);
+      animation.instance->apply(mArtboard);
+    }
+  }
   mArtboard->advance(0.0);
 
   rive::TvgRenderer renderer(mSwCanvas.get());
@@ -348,6 +361,97 @@ void RiveAnimationRenderer::GetDefaultSize(uint32_t& width, uint32_t& height) co
 {
   width  = mDefaultWidth;
   height = mDefaultHeight;
+}
+
+void RiveAnimationRenderer::EnableAnimation(const std::string& animationName, bool enable)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  for(auto& animation :  mAnimations)
+  {
+    if(animation.name == animationName)
+    {
+      animation.enable = enable;
+      return;
+    }
+  }
+}
+
+void RiveAnimationRenderer::SetShapeFillColor(const std::string& fillName, Vector4 color)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  auto colorInstance = mArtboard->find<rive::Fill>(fillName.c_str());
+  if(!colorInstance)
+  {
+    return;
+  }
+  colorInstance->paint()->as<rive::SolidColor>()->colorValue(rive::colorARGB(color.a, color.r, color.g, color.b));
+}
+
+void RiveAnimationRenderer::SetShapeStrokeColor(const std::string& strokeName, Vector4 color)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  auto colorInstance = mArtboard->find<rive::Stroke>(strokeName.c_str());
+  if(!colorInstance)
+  {
+    return;
+  }
+  colorInstance->paint()->as<rive::SolidColor>()->colorValue(rive::colorARGB(color.a, color.r, color.g, color.b));
+}
+
+void RiveAnimationRenderer::SetNodeOpacity(const std::string& nodeName, float opacity)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  auto node = mArtboard->find(nodeName.c_str());
+  if(!node)
+  {
+    return;
+  }
+  auto nodeInstance = node->as<rive::Node>();
+  nodeInstance->opacity(opacity);
+}
+
+void RiveAnimationRenderer::SetNodeScale(const std::string& nodeName, Vector2 scale)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  auto node = mArtboard->find(nodeName.c_str());
+  if(!node)
+  {
+    return;
+  }
+  auto nodeInstance = node->as<rive::Node>();
+  nodeInstance->scaleX(scale.x);
+  nodeInstance->scaleY(scale.y);
+}
+
+void RiveAnimationRenderer::SetNodeRotation(const std::string& nodeName, Degree degree)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+  auto node = mArtboard->find(nodeName.c_str());
+  if(!node)
+  {
+    return;
+  }
+  auto nodeInstance = node->as<rive::Node>();
+  nodeInstance->rotation(degree.degree);
+}
+
+void RiveAnimationRenderer::SetNodePosition(const std::string& nodeName, Vector2 position)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  auto node = mArtboard->find(nodeName.c_str());
+  if(!node)
+  {
+    return;
+  }
+  auto nodeInstance = node->as<rive::Node>();
+  nodeInstance->x(position.x);
+  nodeInstance->y(position.y);
 }
 
 void RiveAnimationRenderer::IgnoreRenderedFrame()
