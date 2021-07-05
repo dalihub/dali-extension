@@ -64,11 +64,6 @@ public:
   std::vector<std::unique_ptr<Dali::WebEngineContextMenuItem>> GetItemList() const override;
 
   /**
-   * @copydoc Dali::WebEngineContextMenu::GetPosition()
-   */
-  Dali::Vector2 GetPosition() const override;
-
-  /**
    * @copydoc Dali::WebEngineContextMenu::RemoveItem()
    */
   bool RemoveItem(Dali::WebEngineContextMenuItem& item) override;

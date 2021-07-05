@@ -33,12 +33,14 @@ TizenWebEngineSecurityOrigin::~TizenWebEngineSecurityOrigin()
 
 std::string TizenWebEngineSecurityOrigin::GetHost() const
 {
-  return ewk_security_origin_host_get(ewkSecurityOrigin);
+  const char* host = ewk_security_origin_host_get(ewkSecurityOrigin);
+  return host ? std::string(host) : std::string();
 }
 
 std::string TizenWebEngineSecurityOrigin::GetProtocol() const
 {
-  return ewk_security_origin_protocol_get(ewkSecurityOrigin);
+  const char* protocol = ewk_security_origin_protocol_get(ewkSecurityOrigin);
+  return protocol ? std::string(protocol) : std::string();
 }
 
 Ewk_Security_Origin* TizenWebEngineSecurityOrigin::GetSecurityOrigin() const

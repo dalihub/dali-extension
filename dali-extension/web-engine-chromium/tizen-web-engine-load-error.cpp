@@ -33,7 +33,8 @@ TizenWebEngineLoadError::~TizenWebEngineLoadError()
 
 std::string TizenWebEngineLoadError::GetUrl() const
 {
-  return std::string(ewk_error_url_get(ewkError));
+  const char* url = ewk_error_url_get(ewkError);
+  return url ? std::string(url) : std::string();
 }
 
 Dali::WebEngineLoadError::ErrorCode TizenWebEngineLoadError::GetCode() const
@@ -48,7 +49,8 @@ Dali::WebEngineLoadError::ErrorCode TizenWebEngineLoadError::GetCode() const
 
 std::string TizenWebEngineLoadError::GetDescription() const
 {
-  return std::string(ewk_error_description_get(ewkError));
+  const char* description = ewk_error_description_get(ewkError);
+  return description ? std::string(description) : std::string();
 }
 
 Dali::WebEngineLoadError::ErrorType TizenWebEngineLoadError::GetType() const

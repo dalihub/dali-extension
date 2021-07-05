@@ -36,12 +36,14 @@ TizenWebEnginePolicyDecision::~TizenWebEnginePolicyDecision()
 
 std::string TizenWebEnginePolicyDecision::GetUrl() const
 {
-  return ewk_policy_decision_url_get(ewkPolicyDecision);
+  const char* url = ewk_policy_decision_url_get(ewkPolicyDecision);
+  return url ? std::string(url) : std::string();
 }
 
 std::string TizenWebEnginePolicyDecision::GetCookie() const
 {
-  return ewk_policy_decision_cookie_get(ewkPolicyDecision);
+  const char* cookie = ewk_policy_decision_cookie_get(ewkPolicyDecision);
+  return cookie ? std::string(cookie) : std::string();
 }
 
 Dali::WebEnginePolicyDecision::DecisionType TizenWebEnginePolicyDecision::GetDecisionType() const
@@ -51,7 +53,8 @@ Dali::WebEnginePolicyDecision::DecisionType TizenWebEnginePolicyDecision::GetDec
 
 std::string TizenWebEnginePolicyDecision::GetResponseMime() const
 {
-  return ewk_policy_decision_response_mime_get(ewkPolicyDecision);
+  const char* mime = ewk_policy_decision_response_mime_get(ewkPolicyDecision);
+  return mime ? std::string(mime) : std::string();
 }
 
 int32_t TizenWebEnginePolicyDecision::GetResponseStatusCode() const
@@ -73,7 +76,8 @@ Dali::WebEngineFrame& TizenWebEnginePolicyDecision::GetFrame() const
 
 std::string TizenWebEnginePolicyDecision::GetScheme() const
 {
-  return std::string(ewk_policy_decision_scheme_get(ewkPolicyDecision));
+  const char* scheme = ewk_policy_decision_scheme_get(ewkPolicyDecision);
+  return scheme ? std::string(scheme) : std::string();
 }
 
 bool TizenWebEnginePolicyDecision::Use()

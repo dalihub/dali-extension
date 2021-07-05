@@ -86,16 +86,6 @@ bool TizenWebEngineContextMenu::SelectItem(Dali::WebEngineContextMenuItem& item)
   return ewk_context_menu_item_select(ewkContextMenu, menuItem->GetMenuItem());
 }
 
-Dali::Vector2 TizenWebEngineContextMenu::GetPosition() const
-{
-  int x = 0, y = 0;
-#if defined(OS_TIZEN_TV)
-  x = ewk_context_menu_pos_x_get(ewkContextMenu);
-  y = ewk_context_menu_pos_y_get(ewkContextMenu);
-#endif
-  return Dali::Vector2(x, y);
-}
-
 bool TizenWebEngineContextMenu::Hide()
 {
   return ewk_context_menu_hide(ewkContextMenu);

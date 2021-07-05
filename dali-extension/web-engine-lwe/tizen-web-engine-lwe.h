@@ -121,7 +121,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
    */
-  const std::string& GetUrl() override;
+  std::string GetUrl() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHTMLString()
@@ -308,7 +308,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUserAgent()
    */
-  const std::string& GetUserAgent() const override;
+  std::string GetUserAgent() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetUserAgent()
@@ -433,8 +433,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetScreenshotAsynchronously()
    */
-  bool
-  GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, ScreenshotCapturedCallback callback) override;
+  bool GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, ScreenshotCapturedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CheckVideoPlayingAsynchronously()
@@ -579,19 +578,19 @@ public:
   }
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ContextMenuCustomizedSignal()
+   * @copydoc Dali::WebEnginePlugin::ContextMenuShownSignal()
    */
-  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType& ContextMenuCustomizedSignal() override
+  Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType& ContextMenuShownSignal() override
   {
-    return mContextMenuCustomizedSignal;
+    return mContextMenuShownSignal;
   }
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ContextMenuItemSelectedSignal()
+   * @copydoc Dali::WebEnginePlugin::ContextMenuHiddenSignal()
    */
-  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType& ContextMenuItemSelectedSignal() override
+  Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType& ContextMenuHiddenSignal() override
   {
-    return mContextMenuItemSelectedSignal;
+    return mContextMenuHiddenSignal;
   }
 
 private:
@@ -638,22 +637,22 @@ private:
 
   EventThreadCallback mUpdateBufferTrigger;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mPageLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType           mPageLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType       mScrollEdgeReachedSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType              mUrlChangedSignal;
-  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType      mFormRepostDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType           mFrameRenderedSignal;
-  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType      mRequestInterceptorSignal;
-  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType          mConsoleMessageSignal;
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType  mResponsePolicyDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mCertificateConfirmSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mSslCertificateChangedSignal;
-  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType         mHttpAuthHandlerSignal;
-  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType   mContextMenuCustomizedSignal;
-  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType mContextMenuItemSelectedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mPageLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mPageLoadInProgressSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mPageLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType          mPageLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType      mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType             mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType     mFormRepostDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType          mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType     mRequestInterceptorSignal;
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType         mConsoleMessageSignal;
+  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType mResponsePolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType            mCertificateConfirmSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType            mSslCertificateChangedSignal;
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType        mHttpAuthHandlerSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType       mContextMenuShownSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType      mContextMenuHiddenSignal;
 };
 
 } // namespace Plugin

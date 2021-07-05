@@ -46,37 +46,44 @@ Dali::WebEngineHitTest::ResultContext TizenWebEngineHitTest::GetResultContext() 
 
 std::string TizenWebEngineHitTest::GetLinkUri() const
 {
-  return std::string(ewk_hit_test_link_uri_get(ewkHitTest));
+  const char* uri = ewk_hit_test_link_uri_get(ewkHitTest);
+  return uri ? std::string(uri) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetLinkTitle() const
 {
-  return std::string(ewk_hit_test_link_title_get(ewkHitTest));
+  const char* title = ewk_hit_test_link_title_get(ewkHitTest);
+  return title ? std::string(title) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetLinkLabel() const
 {
-  return std::string(ewk_hit_test_link_label_get(ewkHitTest));
+  const char* label = ewk_hit_test_link_label_get(ewkHitTest);
+  return label ? std::string(label) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetImageUri() const
 {
-  return std::string(ewk_hit_test_image_uri_get(ewkHitTest));
+  const char* uri = ewk_hit_test_image_uri_get(ewkHitTest);
+  return uri ? std::string(uri) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetMediaUri() const
 {
-  return std::string(ewk_hit_test_media_uri_get(ewkHitTest));
+  const char* uri = ewk_hit_test_media_uri_get(ewkHitTest);
+  return uri ? std::string(uri) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetTagName() const
 {
-  return std::string(ewk_hit_test_tag_name_get(ewkHitTest));
+  const char* name = ewk_hit_test_tag_name_get(ewkHitTest);
+  return name ? std::string(name) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetNodeValue() const
 {
-  return std::string(ewk_hit_test_node_value_get(ewkHitTest));
+  const char* value = ewk_hit_test_node_value_get(ewkHitTest);
+  return value ? std::string(value) : std::string();
 }
 
 Dali::Property::Map& TizenWebEngineHitTest::GetAttributes() const
@@ -89,7 +96,8 @@ Dali::Property::Map& TizenWebEngineHitTest::GetAttributes() const
 
 std::string TizenWebEngineHitTest::GetImageFileNameExtension() const
 {
-  return std::string(ewk_hit_test_image_file_name_extension_get(ewkHitTest));
+  const char* extension = ewk_hit_test_image_file_name_extension_get(ewkHitTest);
+  return extension ? std::string(extension) : std::string();
 }
 
 Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()

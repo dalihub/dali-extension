@@ -61,8 +61,6 @@ namespace Plugin
 namespace
 {
 
-const std::string EMPTY_STRING;
-
 LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed)
 {
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
@@ -536,7 +534,7 @@ public:
   void AllowScriptsOpenWindows( bool allowed ) override {}
   bool AreImagesLoadedAutomatically() const override { return false; }
   void AllowImagesLoadAutomatically( bool automatic ) override {}
-  std::string GetDefaultTextEncodingName() const override { return EMPTY_STRING; }
+  std::string GetDefaultTextEncodingName() const override { return std::string(); }
   void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override { }
   bool SetViewportMetaTag(bool enable) override {return false;}
   bool SetForceZoom(bool enable) override {return false;}
@@ -564,8 +562,12 @@ public:
   }
   void SetCacheModel(CacheModel cacheModel) override {}
   void SetProxyUri(const std::string& uri) override {}
+  std::string GetProxyUri() const override { return ""; }
+  void SetProxyBypassRule(const std::string& proxy, const std::string& bypass) override { }
+  std::string GetProxyBypassRule() const override { return ""; }
   void SetDefaultProxyAuth(const std::string& username, const std::string& password) override {}
   void SetCertificateFilePath(const std::string& certificatePath) override {}
+  std::string GetCertificateFilePath() const override { return ""; }
   void DeleteAllWebDatabase() override {}
   bool GetWebDatabaseOrigins(WebEngineSecurityOriginAcquiredCallback callback) override
   {
@@ -599,24 +601,20 @@ public:
   void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override {}
   void EnableCache(bool cacheDisabled) override {}
   bool IsCacheEnabled() const override { return false; }
-  std::string GetContextCertificateFile() const override { return ""; }
-  void SetContextAppId(const std::string& appID) override { }
-  bool SetContextAppVersion(const std::string& appVersion) override { return false; }
-  void SetContextApplicationType(const ApplicationType applicationType) override { }
-  void SetContextTimeOffset(float timeOffset) override { }
-  void SetContextTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override { }
+  void SetAppId(const std::string& appId) override { }
+  bool SetAppVersion(const std::string& appVersion) override { return false; }
+  void SetApplicationType(const ApplicationType applicationType) override { }
+  void SetTimeOffset(float timeOffset) override { }
+  void SetTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override { }
+  void SetDefaultZoomFactor(float zoomFactor) override { }
+  float GetDefaultZoomFactor() const override { return 0;}
   void RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes) override { }
   void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes) override { }
-  void SetDefaultZoomFactor(float zoomFactor) override { }
-  float GetContextDefaultZoomFactor() const override { return 0;}
   bool DeleteAllApplicationCache() override { return false; }
   bool DeleteAllWebIndexedDatabase() override { return false; }
   void DeleteFormPasswordDataList(const std::vector<std::string>& list) override { }
   void DeleteAllFormPasswordData() override { }
   void DeleteAllFormCandidateData() override { }
-  std::string GetContextProxy() const override { return ""; }
-  void SetContextProxy(const std::string& proxy, const std::string& bypass) override { }
-  std::string GetProxyBypassRule() const override { return ""; }
   bool FreeUnusedMemory() override { return false; }
 };
 
@@ -652,9 +650,9 @@ Dali::WebEngineCookieManager& TizenWebEngineLWE::GetCookieManager() const
 class NullWebEngineBackForwardListItem : public Dali::WebEngineBackForwardListItem
 {
 public:
-  std::string GetUrl() const override { return EMPTY_STRING; }
-  std::string GetTitle() const override { return EMPTY_STRING; }
-  std::string GetOriginalUrl() const override { return EMPTY_STRING; }
+  std::string GetUrl() const override { return std::string(); }
+  std::string GetTitle() const override { return std::string(); }
+  std::string GetOriginalUrl() const override { return std::string(); }
 };
 
 // NOT IMPLEMENTED
@@ -719,7 +717,7 @@ Dali::PixelData TizenWebEngineLWE::GetFavicon() const
   return Dali::PixelData();
 }
 
-const std::string& TizenWebEngineLWE::GetUrl()
+std::string TizenWebEngineLWE::GetUrl() const
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   return mUrl;
@@ -935,10 +933,10 @@ void TizenWebEngineLWE::ClearAllTilesResources()
   // NOT IMPLEMENTED
 }
 
-const std::string& TizenWebEngineLWE::GetUserAgent() const
+std::string TizenWebEngineLWE::GetUserAgent() const
 {
   // NOT IMPLEMENTED
-  return EMPTY_STRING;
+  return std::string();
 }
 
 void TizenWebEngineLWE::SetUserAgent(const std::string& userAgent)
@@ -1012,7 +1010,7 @@ void TizenWebEngineLWE::EnableCursorByClient(bool enabled)
 std::string TizenWebEngineLWE::GetSelectedText() const
 {
   // NOT IMPLEMENTED
-  return EMPTY_STRING;
+  return std::string();
 }
 
 void TizenWebEngineLWE::DispatchMouseDownEvent(float x, float y)

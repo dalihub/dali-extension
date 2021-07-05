@@ -54,12 +54,6 @@ namespace Dali
 namespace Plugin
 {
 
-namespace
-{
-// const
-const std::string EMPTY_STRING;
-} // namespace
-
 class WebViewContainerClientPair
 {
 public:
@@ -159,7 +153,6 @@ public:
     , mClient(client)
     , mWidth(width)
     , mHeight(height)
-    , mUserAgent()
     , mWebEngineSettings(0)
     , mWebEngineContext(0)
     , mWebEngineCookieManager(0)
@@ -175,7 +168,6 @@ public:
     , mClient(client)
     , mWidth(width)
     , mHeight(height)
-    , mUserAgent()
     , mWebEngineSettings(0)
     , mWebEngineContext(0)
     , mWebEngineCookieManager(0)
@@ -269,11 +261,11 @@ public:
     evas_object_smart_callback_add(mWebView, "ssl,certificate,changed",
                                    &WebViewContainerForDali::OnSslCertificateChanged,
                                    &mClient);
-    evas_object_smart_callback_add(mWebView, "contextmenu,customize",
-                                   &WebViewContainerForDali::OnContextMenuCustomized,
+    evas_object_smart_callback_add(mWebView, "contextmenu,show",
+                                   &WebViewContainerForDali::OnContextMenuShown,
                                    &mClient);
-    evas_object_smart_callback_add(mWebView, "contextmenu,selected",
-                                   &WebViewContainerForDali::OnContextMenuItemSelected,
+    evas_object_smart_callback_add(mWebView, "contextmenu,hide",
+                                   &WebViewContainerForDali::OnContextMenuHidden,
                                    &mClient);
 
     ewk_view_authentication_callback_set(mWebView, &WebViewContainerForDali::OnAuthenticationChallenge, &mClient);
@@ -294,7 +286,8 @@ public:
 
   std::string GetUrl()
   {
-    return std::string(ewk_view_url_get(mWebView));
+    const char* url = ewk_view_url_get(mWebView);
+    return url ? std::string(url) : std::string();
   }
 
   bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
@@ -312,7 +305,8 @@ public:
 
   std::string GetTitle()
   {
-    return std::string(ewk_view_title_get(mWebView));
+    const char* title = ewk_view_title_get(mWebView);
+    return title ? std::string(title) : std::string();
   }
 
   Dali::PixelData GetFavicon()
@@ -487,10 +481,10 @@ public:
     ewk_view_clear_all_tiles_resources(mWebView);
   }
 
-  const std::string& GetUserAgent()
+  std::string GetUserAgent()
   {
-    mUserAgent = std::string(ewk_view_user_agent_get(mWebView));
-    return mUserAgent;
+    const char* agent = ewk_view_user_agent_get(mWebView);
+    return agent ? std::string(agent) : std::string();
   }
 
   void SetUserAgent(const std::string& userAgent)
@@ -574,7 +568,8 @@ public:
 
   std::string GetSelectedText() const
   {
-    return ewk_view_text_selection_text_get(mWebView);
+    const char* text = ewk_view_text_selection_text_get(mWebView);
+    return text ? std::string(text) : std::string();
   }
 
   bool SendTouchEvent(const TouchEvent& touch)
@@ -971,20 +966,20 @@ private:
     client->AuthenticationChallenge(std::move(authHandler));
   }
 
-  static void OnContextMenuCustomized(void* data, Evas_Object*, void* eventInfo)
-  {
-    auto client = static_cast<WebViewContainerClient *>(data);
-    Ewk_Context_Menu* menu = (Ewk_Context_Menu *)eventInfo;
-    std::shared_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
-    client->ContextMenuCustomized(std::move(contextMenu));
-  }
-
-  static void OnContextMenuItemSelected(void* data, Evas_Object*, void* eventInfo)
+  static void OnContextMenuShown(void* data, Evas_Object*, void* eventInfo)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
-    Ewk_Context_Menu_Item* item = (Ewk_Context_Menu_Item*)eventInfo;
-    std::shared_ptr<Dali::WebEngineContextMenuItem> contextMenuItem(new TizenWebEngineContextMenuItem(item));
-    client->ContextMenuItemSelected(std::move(contextMenuItem));
+    Ewk_Context_Menu* menu = (Ewk_Context_Menu*)eventInfo;
+    std::shared_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
+    client->ContextMenuShown(std::move(contextMenu));
+  }
+
+  static void OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Context_Menu* menu = (Ewk_Context_Menu*)eventInfo;
+    std::shared_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
+    client->ContextMenuHidden(std::move(contextMenu));
   }
 
   static void OnEvaluateJavaScript(Evas_Object* o, const char* result, void* data)
@@ -1052,7 +1047,6 @@ private:
 
   uint32_t    mWidth;
   uint32_t    mHeight;
-  std::string mUserAgent;
 
   TizenWebEngineSettings        mWebEngineSettings;
   TizenWebEngineContext         mWebEngineContext;
@@ -1137,7 +1131,7 @@ void TizenWebEngineChromium::LoadUrl(const std::string& path)
 
 std::string TizenWebEngineChromium::GetTitle() const
 {
-  return mWebViewContainer ? mWebViewContainer->GetTitle() : EMPTY_STRING;
+  return mWebViewContainer ? mWebViewContainer->GetTitle() : std::string();
 }
 
 Dali::PixelData TizenWebEngineChromium::GetFavicon() const
@@ -1150,13 +1144,9 @@ NativeImageInterfacePtr TizenWebEngineChromium::GetNativeImageSource()
   return mDaliImageSrc;
 }
 
-const std::string& TizenWebEngineChromium::GetUrl()
+std::string TizenWebEngineChromium::GetUrl() const
 {
-  if (mWebViewContainer)
-  {
-    mUrl = mWebViewContainer->GetUrl();
-  }
-  return mUrl;
+  return mWebViewContainer ? mWebViewContainer->GetUrl() : std::string();
 }
 
 void TizenWebEngineChromium::LoadHtmlString(const std::string& html)
@@ -1459,13 +1449,9 @@ void TizenWebEngineChromium::ClearAllTilesResources()
   }
 }
 
-const std::string& TizenWebEngineChromium::GetUserAgent() const
+std::string TizenWebEngineChromium::GetUserAgent() const
 {
-  if (mWebViewContainer)
-  {
-    return mWebViewContainer->GetUserAgent();
-  }
-  return EMPTY_STRING;
+  return mWebViewContainer ? mWebViewContainer->GetUserAgent() : std::string();
 }
 
 void TizenWebEngineChromium::SetUserAgent(const std::string& userAgent)
@@ -1590,11 +1576,7 @@ void TizenWebEngineChromium::EnableCursorByClient(bool enabled)
 
 std::string TizenWebEngineChromium::GetSelectedText() const
 {
-  if(mWebViewContainer)
-  {
-    return mWebViewContainer->GetSelectedText();
-  }
-  return EMPTY_STRING;
+  return mWebViewContainer? mWebViewContainer->GetSelectedText() : std::string();
 }
 
 bool TizenWebEngineChromium::SendTouchEvent(const Dali::TouchEvent& touch)
@@ -1875,14 +1857,14 @@ Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& TizenWebEngineChromiu
   return mHttpAuthHandlerSignal;
 }
 
-Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType& TizenWebEngineChromium::ContextMenuCustomizedSignal()
+Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType& TizenWebEngineChromium::ContextMenuShownSignal()
 {
-  return mContextMenuCustomizedSignal;
+  return mContextMenuShownSignal;
 }
 
-Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType& TizenWebEngineChromium::ContextMenuItemSelectedSignal()
+Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType& TizenWebEngineChromium::ContextMenuHiddenSignal()
 {
-  return mContextMenuItemSelectedSignal;
+  return mContextMenuHiddenSignal;
 }
 
 // WebViewContainerClient Interface
@@ -2002,21 +1984,21 @@ void TizenWebEngineChromium::AuthenticationChallenge(std::shared_ptr<Dali::WebEn
   }
 }
 
-void TizenWebEngineChromium::ContextMenuCustomized(std::shared_ptr<Dali::WebEngineContextMenu> menu)
+void TizenWebEngineChromium::ContextMenuShown(std::shared_ptr<Dali::WebEngineContextMenu> menu)
 {
-  DALI_LOG_RELEASE_INFO("#ContextMenuCustomized.\n");
-  if (!mContextMenuCustomizedSignal.Empty())
+  DALI_LOG_RELEASE_INFO("#ContextMenuShown.\n");
+  if (!mContextMenuShownSignal.Empty())
   {
-    mContextMenuCustomizedSignal.Emit(std::move(menu));
+    mContextMenuShownSignal.Emit(std::move(menu));
   }
 }
 
-void TizenWebEngineChromium::ContextMenuItemSelected(std::shared_ptr<Dali::WebEngineContextMenuItem> item)
+void TizenWebEngineChromium::ContextMenuHidden(std::shared_ptr<Dali::WebEngineContextMenu> menu)
 {
-  DALI_LOG_RELEASE_INFO("#ContextMenuItemSelected.\n");
-  if (!mContextMenuItemSelectedSignal.Empty())
+  DALI_LOG_RELEASE_INFO("#ContextMenuHidden.\n");
+  if (!mContextMenuHiddenSignal.Empty())
   {
-    mContextMenuItemSelectedSignal.Emit(std::move(item));
+    mContextMenuHiddenSignal.Emit(std::move(menu));
   }
 }
 
@@ -2080,6 +2062,7 @@ bool TizenWebEngineChromium::JavaScriptPrompt(const std::string& message, const 
 
 void TizenWebEngineChromium::ScreenshotCaptured(Dali::PixelData pixelData)
 {
+  DALI_LOG_RELEASE_INFO("#ScreenshotCaptured.\n");
   if (mScreenshotCapturedCallback)
   {
     mScreenshotCapturedCallback(pixelData);

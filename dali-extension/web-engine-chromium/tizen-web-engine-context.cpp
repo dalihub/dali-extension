@@ -56,9 +56,21 @@ void TizenWebEngineContext::SetProxyUri(const std::string& uri)
   ewk_context_proxy_uri_set(ewkContext, uri.c_str());
 }
 
-std::string TizenWebEngineContext::GetContextProxy() const
+std::string TizenWebEngineContext::GetProxyUri() const
 {
-  return ewk_context_proxy_uri_get(ewkContext);
+  const char* uri = ewk_context_proxy_uri_get(ewkContext);
+  return uri ? std::string(uri) : std::string();
+}
+
+void TizenWebEngineContext::SetProxyBypassRule(const std::string& proxy, const std::string& bypass)
+{
+  ewk_context_proxy_set(ewkContext, proxy.c_str(), bypass.c_str());
+}
+
+std::string TizenWebEngineContext::GetProxyBypassRule() const
+{
+  const char* rule = ewk_context_proxy_bypass_rule_get(ewkContext);
+  return rule ? std::string(rule) : std::string();
 }
 
 void TizenWebEngineContext::SetDefaultProxyAuth(const std::string& username, const std::string& password)
@@ -69,6 +81,12 @@ void TizenWebEngineContext::SetDefaultProxyAuth(const std::string& username, con
 void TizenWebEngineContext::SetCertificateFilePath(const std::string& certificatePath)
 {
   ewk_context_certificate_file_set(ewkContext, certificatePath.c_str());
+}
+
+std::string TizenWebEngineContext::GetCertificateFilePath() const
+{
+  const char* path = ewk_context_certificate_file_get(ewkContext);
+  return path ? std::string(path) : std::string();
 }
 
 void TizenWebEngineContext::DeleteAllWebDatabase()
@@ -223,34 +241,39 @@ bool TizenWebEngineContext::IsCacheEnabled() const
   return !ewk_context_cache_disabled_get(ewkContext);
 }
 
-std::string TizenWebEngineContext::GetContextCertificateFile() const
+void TizenWebEngineContext::SetAppId(const std::string& appId)
 {
-  return ewk_context_certificate_file_get(ewkContext);
+  ewk_context_tizen_app_id_set(ewkContext, appId.c_str());
 }
 
-void TizenWebEngineContext::SetContextAppId(const std::string& appID)
-{
-  ewk_context_tizen_app_id_set(ewkContext, appID.c_str());
-}
-
-bool TizenWebEngineContext::SetContextAppVersion(const std::string& appVersion)
+bool TizenWebEngineContext::SetAppVersion(const std::string& appVersion)
 {
   return ewk_context_tizen_app_version_set(ewkContext, appVersion.c_str());
 }
 
-void TizenWebEngineContext::SetContextApplicationType(const ApplicationType applicationType)
+void TizenWebEngineContext::SetApplicationType(const ApplicationType applicationType)
 {
   ewk_context_application_type_set(ewkContext, static_cast<Ewk_Application_Type>(applicationType));
 }
 
-void TizenWebEngineContext::SetContextTimeOffset(float timeOffset)
+void TizenWebEngineContext::SetTimeOffset(float timeOffset)
 {
   ewk_context_time_offset_set(ewkContext, double(timeOffset));
 }
 
-void TizenWebEngineContext::SetContextTimeZoneOffset(float timeZoneOffset, float daylightSavingTime)
+void TizenWebEngineContext::SetTimeZoneOffset(float timeZoneOffset, float daylightSavingTime)
 {
   ewk_context_timezone_offset_set(ewkContext, double(timeZoneOffset), double(daylightSavingTime));
+}
+
+void TizenWebEngineContext::SetDefaultZoomFactor(float zoomFactor)
+{
+  ewk_context_default_zoom_factor_set(ewkContext, double(zoomFactor));
+}
+
+float TizenWebEngineContext::GetDefaultZoomFactor() const
+{
+  return (float)ewk_context_default_zoom_factor_get(ewkContext);
 }
 
 void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes)
@@ -273,16 +296,6 @@ void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::str
   }
 
   ewk_context_register_jsplugin_mime_types(ewkContext, list);
-}
-
-void TizenWebEngineContext::SetDefaultZoomFactor(float zoomFactor)
-{
-  ewk_context_default_zoom_factor_set(ewkContext, double(zoomFactor));
-}
-
-float TizenWebEngineContext::GetContextDefaultZoomFactor() const
-{
-  return (float)ewk_context_default_zoom_factor_get(ewkContext);
 }
 
 bool TizenWebEngineContext::DeleteAllApplicationCache()
@@ -314,16 +327,6 @@ void TizenWebEngineContext::DeleteAllFormPasswordData()
 void TizenWebEngineContext::DeleteAllFormCandidateData()
 {
   ewk_context_form_candidate_data_delete_all(ewkContext);
-}
-
-void TizenWebEngineContext::SetContextProxy(const std::string& proxy, const std::string& bypass)
-{
-  ewk_context_proxy_set(ewkContext, proxy.c_str(), bypass.c_str());
-}
-
-std::string TizenWebEngineContext::GetProxyBypassRule() const
-{
-  return ewk_context_proxy_bypass_rule_get(ewkContext);
 }
 
 bool TizenWebEngineContext::FreeUnusedMemory()
