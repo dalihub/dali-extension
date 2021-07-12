@@ -97,13 +97,6 @@ public:
   virtual void UrlChanged(const std::string& url) = 0;
 
   /**
-   * @brief Callback function to be called by WebViewContainer when http request
-   * need be intercepted.
-   * @param [in] request The http request interceptor.
-   */
-  virtual void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) = 0;
-
-  /**
    * @brief Callback function to be called by WebViewContainer when console
    * message is logged out.
    * @param [in] message Message need be logged out.
@@ -773,11 +766,6 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
    */
   void UrlChanged(const std::string& url) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::InterceptRequest()
-   */
-  void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::OnConsoleMessage()
