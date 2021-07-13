@@ -38,17 +38,20 @@ TizenWebEngineBackForwardListItem::~TizenWebEngineBackForwardListItem()
 
 std::string TizenWebEngineBackForwardListItem::GetUrl() const
 {
-  return std::string(ewk_back_forward_list_item_url_get(mEwkBackForwardListItem));
+  const char* url = ewk_back_forward_list_item_url_get(mEwkBackForwardListItem);
+  return url ? std::string(url) : std::string();
 }
 
 std::string TizenWebEngineBackForwardListItem::GetTitle() const
 {
-  return std::string(ewk_back_forward_list_item_title_get(mEwkBackForwardListItem));
+  const char* title = ewk_back_forward_list_item_title_get(mEwkBackForwardListItem);
+  return title ? std::string(title) : std::string();
 }
 
 std::string TizenWebEngineBackForwardListItem::GetOriginalUrl() const
 {
-  return std::string(ewk_back_forward_list_item_original_url_get(mEwkBackForwardListItem));
+  const char* url = ewk_back_forward_list_item_original_url_get(mEwkBackForwardListItem);
+  return url ? std::string(url) : std::string();
 }
 
 } // namespace Plugin

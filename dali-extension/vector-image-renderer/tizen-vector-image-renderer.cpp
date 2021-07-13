@@ -42,6 +42,7 @@ TizenVectorImageRenderer::TizenVectorImageRenderer()
   tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
 
   mSwCanvas = tvg::SwCanvas::gen();
+  mSwCanvas->mempool(tvg::SwCanvas::MempoolPolicy::Individual);
 }
 
 TizenVectorImageRenderer::~TizenVectorImageRenderer()
@@ -109,6 +110,7 @@ bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer)
   auto width = buffer.GetWidth();
   auto height = buffer.GetHeight();
 
+  mSwCanvas->clear();
   mSwCanvas->target(reinterpret_cast<uint32_t*>(pBuffer), width, width, height, tvg::SwCanvas::ABGR8888);
 
   DALI_LOG_RELEASE_INFO("TizenVectorImageRenderer::Rasterize: Buffer[%p] size[%d x %d]! [%p]\n", pBuffer, width, height, this);

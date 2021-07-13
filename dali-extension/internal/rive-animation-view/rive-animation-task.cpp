@@ -190,6 +190,41 @@ void RiveAnimationTask::PauseAnimation()
   }
 }
 
+void RiveAnimationTask::EnableAnimation(const std::string& animationName, bool enable)
+{
+  mVectorRenderer->EnableAnimation(animationName, enable);
+}
+
+void RiveAnimationTask::SetShapeFillColor(const std::string& fillName, Vector4 color)
+{
+  mVectorRenderer->SetShapeFillColor(fillName, color);
+}
+
+void RiveAnimationTask::SetShapeStrokeColor(const std::string& strokeName, Vector4 color)
+{
+  mVectorRenderer->SetShapeStrokeColor(strokeName, color);
+}
+
+void RiveAnimationTask::SetNodeOpacity(const std::string& nodeName, float opacity)
+{
+  mVectorRenderer->SetNodeOpacity(nodeName, opacity);
+}
+
+void RiveAnimationTask::SetNodeScale(const std::string& nodeName, Vector2 scale)
+{
+  mVectorRenderer->SetNodeScale(nodeName, scale);
+}
+
+void RiveAnimationTask::SetNodeRotation(const std::string& nodeName, Degree degree)
+{
+  mVectorRenderer->SetNodeRotation(nodeName, degree);
+}
+
+void RiveAnimationTask::SetNodePosition(const std::string& nodeName, Vector2 position)
+{
+  mVectorRenderer->SetNodePosition(nodeName, position);
+}
+
 void RiveAnimationTask::SetAnimationFinishedCallback(EventThreadCallback* callback)
 {
   ConditionalWait::ScopedLock lock(mConditionalWait);
@@ -359,6 +394,62 @@ void RiveAnimationTask::ApplyAnimationData()
     else if(mAnimationData[index].playState == Extension::RiveAnimationView::PlayState::STOPPED)
     {
       StopAnimation();
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_ENABLE_ANIMATION)
+  {
+    for(auto& animation : mAnimationData[index].animations)
+    {
+      EnableAnimation(animation.first, animation.second);
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_FILL_COLOR)
+  {
+    for(auto& fillColor : mAnimationData[index].fillColors)
+    {
+      SetShapeFillColor(fillColor.first, fillColor.second);
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_STROKE_COLOR)
+  {
+    for(auto& strokeColor : mAnimationData[index].strokeColors)
+    {
+      SetShapeStrokeColor(strokeColor.first, strokeColor.second);
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_OPACITY)
+  {
+    for(auto& opacity : mAnimationData[index].opacities)
+    {
+      SetNodeOpacity(opacity.first, opacity.second);
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_SCALE)
+  {
+    for(auto& scale : mAnimationData[index].scales)
+    {
+      SetNodeScale(scale.first, scale.second);
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_ROTATION)
+  {
+    for(auto& rotation : mAnimationData[index].rotations)
+    {
+      SetNodeRotation(rotation.first, rotation.second);
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_POSITION)
+  {
+    for(auto& position : mAnimationData[index].positions)
+    {
+      SetNodePosition(position.first, position.second);
     }
   }
 

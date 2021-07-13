@@ -33,7 +33,8 @@ TizenWebEngineConsoleMessage::~TizenWebEngineConsoleMessage()
 
 std::string TizenWebEngineConsoleMessage::GetSource() const
 {
-  return std::string(ewk_console_message_source_get(ewkConsoleMessage));
+  const char* source = ewk_console_message_source_get(ewkConsoleMessage);
+  return source ? std::string(source) : std::string();
 }
 
 uint32_t TizenWebEngineConsoleMessage::GetLine() const
@@ -48,7 +49,8 @@ Dali::WebEngineConsoleMessage::SeverityLevel TizenWebEngineConsoleMessage::GetSe
 
 std::string TizenWebEngineConsoleMessage::GetText() const
 {
-  return std::string(ewk_console_message_text_get(ewkConsoleMessage));
+  const char* text = ewk_console_message_text_get(ewkConsoleMessage);
+  return text ? std::string(text) : std::string();
 }
 
 } // namespace Plugin

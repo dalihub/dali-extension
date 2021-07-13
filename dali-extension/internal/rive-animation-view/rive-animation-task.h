@@ -53,13 +53,20 @@ public:
    */
   enum ResendFlags
   {
-    RESEND_PLAY_RANGE    = 1 << 0,
-    RESEND_LOOP_COUNT    = 1 << 1,
-    RESEND_STOP_BEHAVIOR = 1 << 2,
-    RESEND_LOOPING_MODE  = 1 << 3,
-    RESEND_CURRENT_FRAME = 1 << 4,
-    RESEND_SIZE          = 1 << 5,
-    RESEND_PLAY_STATE    = 1 << 6
+    RESEND_PLAY_RANGE        = 1 << 0,
+    RESEND_LOOP_COUNT        = 1 << 1,
+    RESEND_STOP_BEHAVIOR     = 1 << 2,
+    RESEND_LOOPING_MODE      = 1 << 3,
+    RESEND_CURRENT_FRAME     = 1 << 4,
+    RESEND_SIZE              = 1 << 5,
+    RESEND_PLAY_STATE        = 1 << 6,
+    RESEND_ENABLE_ANIMATION  = 1 << 7,
+    RESEND_FILL_COLOR        = 1 << 8,
+    RESEND_STROKE_COLOR      = 1 << 9,
+    RESEND_OPACITY           = 1 << 10,
+    RESEND_SCALE             = 1 << 11,
+    RESEND_ROTATION          = 1 << 12,
+    RESEND_POSITION          = 1 << 13,
   };
 
   /**
@@ -69,26 +76,48 @@ public:
   {
     AnimationData()
     : resendFlag(0),
-      playState(),
       width(0),
-      height(0)
+      height(0),
+      playState()
     {
     }
 
     AnimationData& operator=(const AnimationData& rhs)
     {
-      resendFlag |= rhs.resendFlag; // OR resend flag
-      playState    = rhs.playState;
-      width        = rhs.width;
-      height       = rhs.height;
+      resendFlag     |= rhs.resendFlag; // OR resend flag
+      width           = rhs.width;
+      height          = rhs.height;
+      playState       = rhs.playState;
+      animations.resize(rhs.animations.size());
+      std::copy(rhs.animations.begin(), rhs.animations.end(), animations.begin());
+      fillColors.resize(rhs.fillColors.size());
+      std::copy(rhs.fillColors.begin(), rhs.fillColors.end(), fillColors.begin());
+      strokeColors.resize(rhs.strokeColors.size());
+      std::copy(rhs.strokeColors.begin(), rhs.strokeColors.end(), strokeColors.begin());
+      opacities.resize(rhs.opacities.size());
+      std::copy(rhs.opacities.begin(), rhs.opacities.end(), opacities.begin());
+      scales.resize(rhs.scales.size());
+      std::copy(rhs.scales.begin(), rhs.scales.end(), scales.begin());
+      rotations.resize(rhs.rotations.size());
+      std::copy(rhs.rotations.begin(), rhs.rotations.end(), rotations.begin());
+      positions.resize(rhs.positions.size());
+      std::copy(rhs.positions.begin(), rhs.positions.end(), positions.begin());
+
       return *this;
     }
 
-    uint32_t                                   resendFlag;
-    Extension::RiveAnimationView::PlayState    playState;
-    uint32_t                                   width;
-    uint32_t                                   height;
-  };
+    uint32_t                                      resendFlag;
+    uint32_t                                      width;
+    uint32_t                                      height;
+    Extension::RiveAnimationView::PlayState       playState;
+    std::vector<std::pair<std::string, bool>>     animations;
+    std::vector<std::pair<std::string, Vector4>>  fillColors;
+    std::vector<std::pair<std::string, Vector4>>  strokeColors;
+    std::vector<std::pair<std::string, float>>    opacities;
+    std::vector<std::pair<std::string, Vector2>>  scales;
+    std::vector<std::pair<std::string, Degree>>   rotations;
+    std::vector<std::pair<std::string, Vector2>>  positions;
+    };
 
   /**
    * @brief Constructor.
@@ -177,6 +206,62 @@ private:
    * @brief Pause the rive animation.
    */
   void PauseAnimation();
+
+  /**
+   * @brief Enables the animation state of given rive animation.
+   *
+   * @param[in] animationName The animation name
+   * @param[in] enable The state of animation
+   */
+  void EnableAnimation(const std::string& animationName, bool enable);
+
+  /**
+   * @brief Sets the shape fill color of given fill name.
+   *
+   * @param[in] fillName The fill name
+   * @param[in] color The rgba color
+   */
+  void SetShapeFillColor(const std::string& fillName, Vector4 color);
+
+  /**
+   * @brief Sets the shape stroke color of given stroke name.
+   *
+   * @param[in] strokeName The stroke name
+   * @param[in] color The rgba color
+   */
+  void SetShapeStrokeColor(const std::string& strokeName, Vector4 color);
+
+  /**
+   * @brief Sets the opacity of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] opacity The opacity of given node
+   */
+  void SetNodeOpacity(const std::string& nodeName, float opacity);
+
+  /**
+   * @brief Sets the scale of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] scale The scale of given node
+   */
+  void SetNodeScale(const std::string& nodeName, Vector2 scale);
+
+  /**
+   * @brief Sets the rotation of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] degree The degree of given node
+   */
+  void SetNodeRotation(const std::string& nodeName, Degree degree);
+
+  /**
+   * @brief Sets the position of given node.
+   *
+   * @param[in] nodeName The node name
+   * @param[in] position The position of given node
+   */
+  void SetNodePosition(const std::string& nodeName, Vector2 position);
 
   /**
    * @brief Sets the target image size.

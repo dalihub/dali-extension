@@ -97,13 +97,6 @@ public:
   virtual void UrlChanged(const std::string& url) = 0;
 
   /**
-   * @brief Callback function to be called by WebViewContainer when http request
-   * need be intercepted.
-   * @param [in] request The http request interceptor.
-   */
-  virtual void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) = 0;
-
-  /**
    * @brief Callback function to be called by WebViewContainer when console
    * message is logged out.
    * @param [in] message Message need be logged out.
@@ -140,17 +133,17 @@ public:
 
   /**
    * @brief Callback function to be called by WebViewContainer when context menu
-   * would be customized.
-   * @param [in] url New url after url is changed.
+   * would be shown.
+   * @param [in] menu Menu would be shown.
    */
-  virtual void ContextMenuCustomized(std::shared_ptr<Dali::WebEngineContextMenu> menu) = 0;
+  virtual void ContextMenuShown(std::shared_ptr<Dali::WebEngineContextMenu> menu) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when context menu
-   * item is selected.
-   * @param [in] url New url after url is changed.
+   * would be hidden.
+   * @param [in] menu Menu would be hidden.
    */
-  virtual void ContextMenuItemSelected(std::shared_ptr<Dali::WebEngineContextMenuItem> item) = 0;
+  virtual void ContextMenuHidden(std::shared_ptr<Dali::WebEngineContextMenu> menu) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when it gets
@@ -303,7 +296,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
    */
-  const std::string& GetUrl() override;
+  std::string GetUrl() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHtmlString()
@@ -490,7 +483,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUserAgent()
    */
-  const std::string& GetUserAgent() const override;
+  std::string GetUserAgent() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetUserAgent()
@@ -718,14 +711,14 @@ public:
   Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& HttpAuthHandlerSignal() override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ContextMenuCustomizedSignal()
+   * @copydoc Dali::WebEnginePlugin::ContextMenuShownSignal()
    */
-  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType& ContextMenuCustomizedSignal() override;
+  Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType& ContextMenuShownSignal() override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ContextMenuItemSelectedSignal()
+   * @copydoc Dali::WebEnginePlugin::ContextMenuHiddenSignal()
    */
-  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType& ContextMenuItemSelectedSignal() override;
+  Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType& ContextMenuHiddenSignal() override;
 
   // WebViewContainerClient Interface
 
@@ -775,11 +768,6 @@ public:
   void UrlChanged(const std::string& url) override;
 
   /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::InterceptRequest()
-   */
-  void InterceptRequest(std::shared_ptr<Dali::WebEngineRequestInterceptor> interceptor) override;
-
-  /**
    * @copydoc Dali::Plugin::WebViewContainerClient::OnConsoleMessage()
    */
   void OnConsoleMessage(std::shared_ptr<Dali::WebEngineConsoleMessage> message) override;
@@ -800,14 +788,14 @@ public:
   void AuthenticationChallenge(std::shared_ptr<Dali::WebEngineHttpAuthHandler> handler) override;
 
   /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::ContextMenuCustomized()
+   * @copydoc Dali::Plugin::WebViewContainerClient::ContextMenuShown()
    */
-  void ContextMenuCustomized(std::shared_ptr<Dali::WebEngineContextMenu> menu) override;
+  void ContextMenuShown(std::shared_ptr<Dali::WebEngineContextMenu> menu) override;
 
   /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::ContextMenuItemSelected()
+   * @copydoc Dali::Plugin::WebViewContainerClient::ContextMenuHidden()
    */
-  void ContextMenuItemSelected(std::shared_ptr<Dali::WebEngineContextMenuItem> item) override;
+  void ContextMenuHidden(std::shared_ptr<Dali::WebEngineContextMenu> menu) override;
 
   /**
    * @copydoc
@@ -859,25 +847,24 @@ public:
 private:
   WebViewContainerForDali*   mWebViewContainer;
   Dali::NativeImageSourcePtr mDaliImageSrc;
-  std::string                mUrl;
   size_t                     mJavaScriptEvaluationCount;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mLoadInProgressSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType                mLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType           mLoadErrorSignal;
-  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType              mUrlChangedSignal;
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType       mScrollEdgeReachedSignal;
-  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType      mFormRepostDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType           mFrameRenderedSignal;
-  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType      mRequestInterceptorSignal;
-  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType          mConsoleMessageSignal;
-  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType  mResponsePolicyDecisionSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mCertificateConfirmSignal;
-  Dali::WebEnginePlugin::WebEngineCertificateSignalType             mSslCertificateChangedSignal;
-  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType         mHttpAuthHandlerSignal;
-  Dali::WebEnginePlugin::WebEngineContextMenuCustomizedSignalType   mContextMenuCustomizedSignal;
-  Dali::WebEnginePlugin::WebEngineContextMenuItemSelectedSignalType mContextMenuItemSelectedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mLoadStartedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mLoadInProgressSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadSignalType               mLoadFinishedSignal;
+  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType          mLoadErrorSignal;
+  Dali::WebEnginePlugin::WebEngineUrlChangedSignalType             mUrlChangedSignal;
+  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType      mScrollEdgeReachedSignal;
+  Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType     mFormRepostDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType          mFrameRenderedSignal;
+  Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType     mRequestInterceptorSignal;
+  Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType         mConsoleMessageSignal;
+  Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType mResponsePolicyDecisionSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType            mCertificateConfirmSignal;
+  Dali::WebEnginePlugin::WebEngineCertificateSignalType            mSslCertificateChangedSignal;
+  Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType        mHttpAuthHandlerSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType       mContextMenuShownSignal;
+  Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType      mContextMenuHiddenSignal;
 
   std::unordered_map<size_t, JavaScriptCallback>      mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptCallback> mJavaScriptMessageHandlers;
