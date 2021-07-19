@@ -53,6 +53,51 @@ namespace Dali
 namespace Plugin
 {
 
+namespace
+{
+
+template <typename Callback, typename... Args>
+void ExecuteCallback(Callback callback, Args... args)
+{
+  if (callback)
+  {
+    callback(args...);
+  }
+}
+
+template <typename Callback, typename Arg>
+void ExecuteCallback(Callback callback, std::unique_ptr<Arg> arg)
+{
+  if (callback)
+  {
+    callback(std::move(arg));
+  }
+}
+
+template <typename Ret, typename Callback, typename... Args>
+Ret ExecuteCallbackReturn(Callback callback, Args... args)
+{
+  Ret returnVal = Ret();
+  if (callback)
+  {
+    returnVal = callback(args...);
+  }
+  return returnVal;
+}
+
+template <typename Ret, typename Callback, typename Arg>
+Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
+{
+  Ret returnVal = Ret();
+  if (callback)
+  {
+    returnVal = callback(std::move(arg));
+  }
+  return returnVal;
+}
+
+}
+
 class WebViewContainerClientPair
 {
 public:
@@ -66,11 +111,11 @@ public:
   Evas_Object*            mWebView;
 };
 
+//
+// A class for managing multiple WebViews
+//
 class WebEngineManager
 {
-  //
-  // A class for managing multiple WebViews
-  //
 public:
   static WebEngineManager& Get()
   {
@@ -117,7 +162,7 @@ public:
         return webViewClient.mWebView;
       }
     }
-    return 0;
+    return nullptr;
   }
 
   WebViewContainerClient* FindContainerClient(Evas_Object* o)
@@ -129,7 +174,7 @@ public:
         return webViewClient.mClient;
       }
     }
-    return 0;
+    return nullptr;
   }
 
 private:
@@ -233,7 +278,7 @@ public:
                                    &WebViewContainerForDali::OnUrlChanged,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "console,message",
-                                   &WebViewContainerForDali::OnConsoleMessage,
+                                   &WebViewContainerForDali::OnConsoleMessageReceived,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "edge,left",
                                    &WebViewContainerForDali::OnEdgeLeft,
@@ -248,13 +293,13 @@ public:
                                    &WebViewContainerForDali::OnEdgeBottom,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "form,repost,warning,show",
-                                   &WebViewContainerForDali::OnFormRepostDecisionRequest,
+                                   &WebViewContainerForDali::OnFormRepostDecided,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "policy,response,decide",
                                    &WebViewContainerForDali::OnResponsePolicyDecided,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "request,certificate,confirm",
-                                   &WebViewContainerForDali::OnCertificateConfirmRequest,
+                                   &WebViewContainerForDali::OnCertificateConfirmed,
                                    &mClient);
     evas_object_smart_callback_add(mWebView, "ssl,certificate,changed",
                                    &WebViewContainerForDali::OnSslCertificateChanged,
@@ -751,30 +796,29 @@ public:
 
   bool SendHoverEvent(const HoverEvent& hover)
   {
-#if defined(OS_TIZEN_TV)
     //TODO...left/right/middle of mouse could not be acquired now.
     Ewk_Mouse_Button_Type type = EWK_Mouse_Button_Left;
-    switch ( hover.GetState( 0 ) )
+    switch (hover.GetState(0))
     {
       case PointState::DOWN:
       {
-        float x = hover.GetScreenPosition( 0 ).x;
-        float y = hover.GetScreenPosition( 0 ).y;
-        ewk_view_feed_mouse_down( mWebView, type, x, y );
+        float x = hover.GetScreenPosition(0).x;
+        float y = hover.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_down(mWebView, type, x, y);
         break;
       }
       case PointState::UP:
       {
-        float x = hover.GetScreenPosition( 0 ).x;
-        float y = hover.GetScreenPosition( 0 ).y;
-        ewk_view_feed_mouse_up( mWebView, type, x, y );
+        float x = hover.GetScreenPosition(0).x;
+        float y = hover.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_up(mWebView, type, x, y);
         break;
       }
       case PointState::MOTION:
       {
-        float x = hover.GetScreenPosition( 0 ).x;
-        float y = hover.GetScreenPosition( 0 ).y;
-        ewk_view_feed_mouse_move( mWebView, x, y );
+        float x = hover.GetScreenPosition(0).x;
+        float y = hover.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_move(mWebView, x, y);
         break;
       }
       default:
@@ -782,20 +826,17 @@ public:
         break;
       }
     }
-#endif
     return false;
   }
 
   bool SendWheelEvent(const WheelEvent& wheel)
   {
-#if defined(OS_TIZEN_TV)
     Eina_Bool direction = wheel.GetDirection() ? true : false;
     int step = wheel.GetDelta();
     float x = wheel.GetPoint().x;
     float y = wheel.GetPoint().y;
 
-    ewk_view_feed_mouse_wheel( mWebView, direction, step, x, y );
-#endif
+    ewk_view_feed_mouse_wheel(mWebView, direction, step, x, y);
     return false;
   }
 
@@ -853,7 +894,7 @@ private:
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Error* error = static_cast<Ewk_Error*>(rawError);
-    std::shared_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
+    std::unique_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
     client->LoadError(std::move(loadError));
   }
 
@@ -864,12 +905,12 @@ private:
     client->UrlChanged(url);
   }
 
-  static void OnConsoleMessage(void* data, Evas_Object*, void* eventInfo)
+  static void OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(eventInfo);
-    std::shared_ptr<Dali::WebEngineConsoleMessage> webConsoleMessage(new TizenWebEngineConsoleMessage(message));
-    client->OnConsoleMessage(std::move(webConsoleMessage));
+    std::unique_ptr<Dali::WebEngineConsoleMessage> webConsoleMessage(new TizenWebEngineConsoleMessage(message));
+    client->ConsoleMessageReceived(std::move(webConsoleMessage));
   }
 
   static void OnEdgeLeft(void* data, Evas_Object*, void*)
@@ -896,12 +937,12 @@ private:
     client->ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge::BOTTOM);
   }
 
-  static void OnFormRepostDecisionRequest(void* data, Evas_Object*, void* eventInfo)
+  static void OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Form_Repost_Decision_Request* decisionRequest = static_cast<Ewk_Form_Repost_Decision_Request*>(eventInfo);
-    std::shared_ptr<Dali::WebEngineFormRepostDecision> webDecisionRequest(new TizenWebEngineFormRepostDecision(decisionRequest));
-    client->RequestFormRepostDecision(std::move(webDecisionRequest));
+    std::unique_ptr<Dali::WebEngineFormRepostDecision> webDecisionRequest(new TizenWebEngineFormRepostDecision(decisionRequest));
+    client->RequestFormRepostDecided(std::move(webDecisionRequest));
   }
 
   static void OnScreenshotCaptured(Evas_Object* image, void* data)
@@ -930,30 +971,30 @@ private:
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
-    std::shared_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
+    std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
     client->ResponsePolicyDecided(std::move(webPolicyDecision));
   }
 
-  static void OnCertificateConfirmRequest(void* data, Evas_Object*, void* eventInfo)
+  static void OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Certificate_Policy_Decision* policyDecision = static_cast<Ewk_Certificate_Policy_Decision*>(eventInfo);
-    std::shared_ptr<Dali::WebEngineCertificate> webPolicyDecision(new TizenWebEngineCertificate(policyDecision));
-    client->CertificateConfirm(std::move(webPolicyDecision));
+    std::unique_ptr<Dali::WebEngineCertificate> webPolicyDecision(new TizenWebEngineCertificate(policyDecision));
+    client->CertificateConfirmed(std::move(webPolicyDecision));
   }
 
   static void OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Certificate_Info* info = static_cast<Ewk_Certificate_Info*>(eventInfo);
-    std::shared_ptr<Dali::WebEngineCertificate> webCertiInfo(new TizenWebEngineCertificate(info));
+    std::unique_ptr<Dali::WebEngineCertificate> webCertiInfo(new TizenWebEngineCertificate(info));
     client->SslCertificateChanged(std::move(webCertiInfo));
   }
 
   static void OnAuthenticationChallenge(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)
   {
     auto client = static_cast<WebViewContainerClient*>(data);
-    std::shared_ptr<Dali::WebEngineHttpAuthHandler> authHandler(new TizenWebEngineHttpAuthHandler(authChallenge));
+    std::unique_ptr<Dali::WebEngineHttpAuthHandler> authHandler(new TizenWebEngineHttpAuthHandler(authChallenge));
     client->AuthenticationChallenge(std::move(authHandler));
   }
 
@@ -961,7 +1002,7 @@ private:
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Context_Menu* menu = (Ewk_Context_Menu*)eventInfo;
-    std::shared_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
+    std::unique_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
     client->ContextMenuShown(std::move(contextMenu));
   }
 
@@ -969,7 +1010,7 @@ private:
   {
     auto client = static_cast<WebViewContainerClient*>(data);
     Ewk_Context_Menu* menu = (Ewk_Context_Menu*)eventInfo;
-    std::shared_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
+    std::unique_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
     client->ContextMenuHidden(std::move(contextMenu));
   }
 
@@ -1335,7 +1376,7 @@ void TizenWebEngineChromium::GoBack()
   }
 }
 
-void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, std::function<void(const std::string&)> resultHandler)
+void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, JavaScriptMessageHandlerCallback resultHandler)
 {
   if (mWebViewContainer)
   {
@@ -1358,7 +1399,7 @@ void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, std::
   }
 }
 
-void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string&)> handler)
+void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler)
 {
   if (mWebViewContainer)
   {
@@ -1373,7 +1414,7 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& expo
   }
 }
 
-void TizenWebEngineChromium::RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback)
+void TizenWebEngineChromium::RegisterJavaScriptAlertCallback(JavaScriptAlertCallback callback)
 {
   if (!mWebViewContainer)
     return;
@@ -1390,7 +1431,7 @@ void TizenWebEngineChromium::JavaScriptAlertReply()
   }
 }
 
-void TizenWebEngineChromium::RegisterJavaScriptConfirmCallback(Dali::WebEnginePlugin::JavaScriptConfirmCallback callback)
+void TizenWebEngineChromium::RegisterJavaScriptConfirmCallback(JavaScriptConfirmCallback callback)
 {
   if (!mWebViewContainer)
     return;
@@ -1407,7 +1448,7 @@ void TizenWebEngineChromium::JavaScriptConfirmReply(bool confirmed)
   }
 }
 
-void TizenWebEngineChromium::RegisterJavaScriptPromptCallback(Dali::WebEnginePlugin::JavaScriptPromptCallback callback)
+void TizenWebEngineChromium::RegisterJavaScriptPromptCallback(JavaScriptPromptCallback callback)
 {
   if (!mWebViewContainer)
     return;
@@ -1514,7 +1555,7 @@ std::unique_ptr<Dali::WebEngineHitTest> TizenWebEngineChromium::CreateHitTest(in
   return nullptr;
 }
 
-bool TizenWebEngineChromium::CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, Dali::WebEnginePlugin::WebEngineHitTestCreatedCallback callback)
+bool TizenWebEngineChromium::CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, WebEngineHitTestCreatedCallback callback)
 {
   bool result = false;
   if (mWebViewContainer)
@@ -1715,7 +1756,7 @@ Dali::PixelData TizenWebEngineChromium::GetScreenshot(Dali::Rect<int32_t> viewAr
   return Dali::PixelData();
 }
 
-bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
+bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, ScreenshotCapturedCallback callback)
 {
   if (mWebViewContainer)
   {
@@ -1725,7 +1766,7 @@ bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::Rect<int32_t> vie
   return false;
 }
 
-bool TizenWebEngineChromium::CheckVideoPlayingAsynchronously(Dali::WebEnginePlugin::VideoPlayingCallback callback)
+bool TizenWebEngineChromium::CheckVideoPlayingAsynchronously(VideoPlayingCallback callback)
 {
   if (mWebViewContainer)
   {
@@ -1771,46 +1812,11 @@ bool TizenWebEngineChromium::SendHoverEvent(const Dali::HoverEvent& event)
 
 bool TizenWebEngineChromium::SendWheelEvent( const Dali::WheelEvent& event )
 {
-  if( mWebViewContainer )
+  if(mWebViewContainer)
   {
     return mWebViewContainer->SendWheelEvent( event );
   }
   return false;
-}
-
-Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadStartedSignal()
-{
-  return mLoadStartedSignal;
-}
-
-Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadInProgressSignal()
-{
-  return mLoadInProgressSignal;
-}
-
-Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadFinishedSignal()
-{
-  return mLoadFinishedSignal;
-}
-
-Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& TizenWebEngineChromium::PageLoadErrorSignal()
-{
-  return mLoadErrorSignal;
-}
-
-Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& TizenWebEngineChromium::ScrollEdgeReachedSignal()
-{
-  return mScrollEdgeReachedSignal;
-}
-
-Dali::WebEnginePlugin::WebEngineUrlChangedSignalType& TizenWebEngineChromium::UrlChangedSignal()
-{
-  return mUrlChangedSignal;
-}
-
-Dali::WebEnginePlugin::WebEngineFormRepostDecisionSignalType& TizenWebEngineChromium::FormRepostDecisionSignal()
-{
-  return mFormRepostDecisionSignal;
 }
 
 Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& TizenWebEngineChromium::FrameRenderedSignal()
@@ -1818,44 +1824,79 @@ Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& TizenWebEngineChromium:
   return mFrameRenderedSignal;
 }
 
-Dali::WebEnginePlugin::WebEngineRequestInterceptorSignalType& TizenWebEngineChromium::RequestInterceptorSignal()
+void TizenWebEngineChromium::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
 {
-  return mRequestInterceptorSignal;
+  mLoadStartedCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineConsoleMessageSignalType& TizenWebEngineChromium::ConsoleMessageSignal()
+void TizenWebEngineChromium::RegisterPageLoadInProgressCallback(WebEnginePageLoadCallback callback)
 {
-  return mConsoleMessageSignal;
+  mLoadInProgressCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineResponsePolicyDecisionSignalType& TizenWebEngineChromium::ResponsePolicyDecisionSignal()
+void TizenWebEngineChromium::RegisterPageLoadFinishedCallback(WebEnginePageLoadCallback callback)
 {
-  return mResponsePolicyDecisionSignal;
+  mLoadFinishedCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineCertificateSignalType& TizenWebEngineChromium::CertificateConfirmSignal()
+void TizenWebEngineChromium::RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback)
 {
-  return mCertificateConfirmSignal;
+  mLoadErrorCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineCertificateSignalType& TizenWebEngineChromium::SslCertificateChangedSignal()
+void TizenWebEngineChromium::RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback)
 {
-  return mSslCertificateChangedSignal;
+  mScrollEdgeReachedCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineHttpAuthHandlerSignalType& TizenWebEngineChromium::HttpAuthHandlerSignal()
+void TizenWebEngineChromium::RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback)
 {
-  return mHttpAuthHandlerSignal;
+  mUrlChangedCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineContextMenuShownSignalType& TizenWebEngineChromium::ContextMenuShownSignal()
+void TizenWebEngineChromium::RegisterFormRepostDecidedCallback(WebEngineFormRepostDecidedCallback callback)
 {
-  return mContextMenuShownSignal;
+  mFormRepostDecidedCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineContextMenuHiddenSignalType& TizenWebEngineChromium::ContextMenuHiddenSignal()
+void TizenWebEngineChromium::RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback)
 {
-  return mContextMenuHiddenSignal;
+  mRequestInterceptedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterConsoleMessageReceivedCallback(WebEngineConsoleMessageReceivedCallback callback)
+{
+  mConsoleMessageReceivedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterResponsePolicyDecidedCallback(WebEngineResponsePolicyDecidedCallback callback)
+{
+  mResponsePolicyDecidedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterCertificateConfirmedCallback(WebEngineCertificateCallback callback)
+{
+  mCertificateConfirmedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterSslCertificateChangedCallback(WebEngineCertificateCallback callback)
+{
+  mSslCertificateChangedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterHttpAuthHandlerCallback(WebEngineHttpAuthHandlerCallback callback)
+{
+  mHttpAuthHandlerCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterContextMenuShownCallback(WebEngineContextMenuShownCallback callback)
+{
+  mContextMenuShownCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback)
+{
+  mContextMenuHiddenCallback = callback;
 }
 
 // WebViewContainerClient Interface
@@ -1876,112 +1917,85 @@ void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 void TizenWebEngineChromium::LoadStarted()
 {
   DALI_LOG_RELEASE_INFO("#LoadStarted : %s\n", GetUrl().c_str());
-  mLoadStartedSignal.Emit(GetUrl());
+  ExecuteCallback(mLoadStartedCallback, GetUrl());
 }
 
 void TizenWebEngineChromium::LoadInProgress()
 {
   DALI_LOG_RELEASE_INFO("#LoadInProgress : %s\n", GetUrl().c_str());
-  mLoadInProgressSignal.Emit("");
+  ExecuteCallback(mLoadInProgressCallback, "");
 }
 
 void TizenWebEngineChromium::LoadFinished()
 {
   DALI_LOG_RELEASE_INFO("#LoadFinished : %s\n", GetUrl().c_str());
-  mLoadFinishedSignal.Emit(GetUrl());
+  ExecuteCallback(mLoadFinishedCallback, GetUrl());
 }
 
-void TizenWebEngineChromium::LoadError(std::shared_ptr<Dali::WebEngineLoadError> error)
+void TizenWebEngineChromium::LoadError(std::unique_ptr<Dali::WebEngineLoadError> error)
 {
   DALI_LOG_RELEASE_INFO("#LoadError : %s\n", error->GetUrl().c_str());
-  if (!mLoadErrorSignal.Empty())
-  {
-    mLoadErrorSignal.Emit(std::move(error));
-  }
+  ExecuteCallback(mLoadErrorCallback, std::move(error));
 }
 
 void TizenWebEngineChromium::ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge edge)
 {
   DALI_LOG_RELEASE_INFO("#ScrollEdgeReached : %d\n", edge);
-  mScrollEdgeReachedSignal.Emit(edge);
+  ExecuteCallback(mScrollEdgeReachedCallback, edge);
 }
 
 void TizenWebEngineChromium::UrlChanged(const std::string& url)
 {
   DALI_LOG_RELEASE_INFO("#UrlChanged : %s\n", url.c_str());
-  mUrlChangedSignal.Emit(url);
+  ExecuteCallback(mUrlChangedCallback, url);
 }
 
-void TizenWebEngineChromium::RequestFormRepostDecision(std::shared_ptr<Dali::WebEngineFormRepostDecision> decision)
+void TizenWebEngineChromium::RequestFormRepostDecided(std::unique_ptr<Dali::WebEngineFormRepostDecision> decision)
 {
-  DALI_LOG_RELEASE_INFO("#FormRepostDecisionRequest\n");
-  if (!mFormRepostDecisionSignal.Empty())
-  {
-    mFormRepostDecisionSignal.Emit(std::move(decision));
-  }
+  DALI_LOG_RELEASE_INFO("#FormRepostDecidedRequest\n");
+  ExecuteCallback(mFormRepostDecidedCallback, std::move(decision));
 }
 
-void TizenWebEngineChromium::OnConsoleMessage(std::shared_ptr<Dali::WebEngineConsoleMessage> message)
+void TizenWebEngineChromium::ConsoleMessageReceived(std::unique_ptr<Dali::WebEngineConsoleMessage> message)
 {
-  DALI_LOG_RELEASE_INFO("#OnConsoleMessage : %s\n", message->GetText());
-  if (!mConsoleMessageSignal.Empty())
-  {
-    mConsoleMessageSignal.Emit(std::move(message));
-  }
+  DALI_LOG_RELEASE_INFO("#ConsoleMessageReceived : %s\n", message->GetSource().c_str());
+  ExecuteCallback(mConsoleMessageReceivedCallback, std::move(message));
 }
 
-void TizenWebEngineChromium::ResponsePolicyDecided(std::shared_ptr<Dali::WebEnginePolicyDecision> decision)
+void TizenWebEngineChromium::ResponsePolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision)
 {
   DALI_LOG_RELEASE_INFO("#ResponsePolicyDecided.\n");
-  if (!mResponsePolicyDecisionSignal.Empty())
-  {
-    mResponsePolicyDecisionSignal.Emit(std::move(decision));
-  }
+  ExecuteCallback(mResponsePolicyDecidedCallback, std::move(decision));
 }
 
-void TizenWebEngineChromium::CertificateConfirm(std::shared_ptr<Dali::WebEngineCertificate> confirm)
+void TizenWebEngineChromium::CertificateConfirmed(std::unique_ptr<Dali::WebEngineCertificate> confirm)
 {
-  DALI_LOG_RELEASE_INFO("#CertificateConfirm.\n");
-  if (!mCertificateConfirmSignal.Empty())
-  {
-    mCertificateConfirmSignal.Emit(std::move(confirm));
-  }
+  DALI_LOG_RELEASE_INFO("#CertificateConfirmed.\n");
+  ExecuteCallback(mCertificateConfirmedCallback, std::move(confirm));
 }
 
-void TizenWebEngineChromium::SslCertificateChanged(std::shared_ptr<Dali::WebEngineCertificate> info)
+void TizenWebEngineChromium::SslCertificateChanged(std::unique_ptr<Dali::WebEngineCertificate> info)
 {
   DALI_LOG_RELEASE_INFO("#SslCertificateChanged.\n");
-  if (!mSslCertificateChangedSignal.Empty())
-  {
-    mSslCertificateChangedSignal.Emit(std::move(info));
-  }
+  ExecuteCallback(mSslCertificateChangedCallback, std::move(info));
 }
 
-void TizenWebEngineChromium::AuthenticationChallenge(std::shared_ptr<Dali::WebEngineHttpAuthHandler> handler)
+void TizenWebEngineChromium::AuthenticationChallenge(std::unique_ptr<Dali::WebEngineHttpAuthHandler> handler)
 {
   DALI_LOG_RELEASE_INFO("#AuthenticationChallenge.\n");
-  if (!mHttpAuthHandlerSignal.Empty())
-  {
-    mHttpAuthHandlerSignal.Emit(std::move(handler));
-  }
+  ExecuteCallback(mHttpAuthHandlerCallback, std::move(handler));
 }
 
-void TizenWebEngineChromium::ContextMenuShown(std::shared_ptr<Dali::WebEngineContextMenu> menu)
+void TizenWebEngineChromium::ContextMenuShown(std::unique_ptr<Dali::WebEngineContextMenu> menu)
 {
   DALI_LOG_RELEASE_INFO("#ContextMenuShown.\n");
-  if (!mContextMenuShownSignal.Empty())
-  {
-    mContextMenuShownSignal.Emit(std::move(menu));
-  }
+  ExecuteCallback(mContextMenuShownCallback, std::move(menu));
 }
 
-void TizenWebEngineChromium::ContextMenuHidden(std::shared_ptr<Dali::WebEngineContextMenu> menu)
+void TizenWebEngineChromium::ContextMenuHidden(std::unique_ptr<Dali::WebEngineContextMenu> menu)
 {
   DALI_LOG_RELEASE_INFO("#ContextMenuHidden.\n");
-  if (!mContextMenuHiddenSignal.Empty())
-  {
-    mContextMenuHiddenSignal.Emit(std::move(menu));
-  }
+  ExecuteCallback(mContextMenuHiddenCallback, std::move(menu));
 }
 
 void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler(size_t key, const char* result)
@@ -2014,69 +2028,38 @@ void TizenWebEngineChromium::RunJavaScriptMessageHandler(const std::string& obje
 
 bool TizenWebEngineChromium::JavaScriptAlert(const std::string& alert_text)
 {
-  bool result = false;
-  if (mJavaScriptAlertCallback)
-  {
-    result = mJavaScriptAlertCallback(alert_text);
-  }
-  return result;
+  return ExecuteCallbackReturn<bool>(mJavaScriptAlertCallback, alert_text);
 }
 
 bool TizenWebEngineChromium::JavaScriptConfirm(const std::string& message)
 {
-  bool result = false;
-  if (mJavaScriptConfirmCallback)
-  {
-    result = mJavaScriptConfirmCallback(message);
-  }
-  return result;
+  return ExecuteCallbackReturn<bool>(mJavaScriptConfirmCallback, message);
 }
 
 bool TizenWebEngineChromium::JavaScriptPrompt(const std::string& message, const std::string& default_value)
 {
-  bool result = false;
-  if (mJavaScriptPromptCallback)
-  {
-    result = mJavaScriptPromptCallback(message, default_value);
-  }
-  return result;
+  return ExecuteCallbackReturn<bool>(mJavaScriptPromptCallback, message, default_value);
 }
 
 void TizenWebEngineChromium::ScreenshotCaptured(Dali::PixelData pixelData)
 {
   DALI_LOG_RELEASE_INFO("#ScreenshotCaptured.\n");
-  if (mScreenshotCapturedCallback)
-  {
-    mScreenshotCapturedCallback(pixelData);
-  }
+  ExecuteCallback(mScreenshotCapturedCallback, pixelData);
 }
 
 void TizenWebEngineChromium::VideoPlaying(bool isPlaying)
 {
-  if (mVideoPlayingCallback)
-  {
-    mVideoPlayingCallback(isPlaying);
-  }
+  ExecuteCallback(mVideoPlayingCallback, isPlaying);
 }
 
 bool TizenWebEngineChromium::GeolocationPermission(const std::string& host, const std::string& protocol)
 {
-  bool result = false;
-  if (mGeolocationPermissionCallback)
-  {
-    result = mGeolocationPermissionCallback(host, protocol);
-  }
-  return result;
+  return ExecuteCallbackReturn<bool>(mGeolocationPermissionCallback, host, protocol);
 }
 
 bool TizenWebEngineChromium::HitTestCreated(std::unique_ptr<Dali::WebEngineHitTest> hitTest)
 {
-  bool result = false;
-  if (mHitTestCreatedCallback)
-  {
-    result = mHitTestCreatedCallback(std::move(hitTest));
-  }
-  return result;
+  return ExecuteCallbackReturn<bool>(mHitTestCreatedCallback, std::move(hitTest));
 }
 
 } // namespace Plugin
