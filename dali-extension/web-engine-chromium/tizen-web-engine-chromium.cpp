@@ -617,32 +617,22 @@ public:
 
   bool SendTouchEvent(const TouchEvent& touch)
   {
-    Ewk_Touch_Event_Type type = EWK_TOUCH_START;
-    Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
-    switch (touch.GetState(0))
+    Ewk_Mouse_Button_Type type = (Ewk_Mouse_Button_Type)0;
+    switch (touch.GetMouseButton(0))
     {
-      case PointState::DOWN:
+      case MouseButton::PRIMARY:
       {
-        type = EWK_TOUCH_START;
-        state = EVAS_TOUCH_POINT_DOWN;
+        type = EWK_Mouse_Button_Left;
         break;
       }
-      case PointState::UP:
+      case MouseButton::TERTIARY:
       {
-        type = EWK_TOUCH_END;
-        state = EVAS_TOUCH_POINT_UP;
+        type = EWK_Mouse_Button_Middle;
         break;
       }
-      case PointState::MOTION:
+      case MouseButton::SECONDARY:
       {
-        type = EWK_TOUCH_MOVE;
-        state = EVAS_TOUCH_POINT_MOVE;
-        break;
-      }
-      case PointState::INTERRUPTED:
-      {
-        type = EWK_TOUCH_CANCEL;
-        state = EVAS_TOUCH_POINT_CANCEL;
+        type = EWK_Mouse_Button_Right;
         break;
       }
       default:
@@ -651,16 +641,34 @@ public:
       }
     }
 
-    Eina_List* pointList = 0;
-    Ewk_Touch_Point* point = new Ewk_Touch_Point;
-    point->id = 0;
-    point->x = touch.GetScreenPosition(0).x;
-    point->y = touch.GetScreenPosition(0).y;
-    point->state = state;
-    pointList = eina_list_append(pointList, point);
-
-    ewk_view_feed_touch_event(mWebView, type, pointList, 0);
-    eina_list_free(pointList);
+    switch (touch.GetState(0))
+    {
+      case PointState::DOWN:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_down(mWebView, type, x, y);
+        break;
+      }
+      case PointState::UP:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_up(mWebView, type, x, y);
+        break;
+      }
+      case PointState::MOTION:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_move(mWebView, x, y);
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
     return false;
   }
 
@@ -685,6 +693,21 @@ public:
       evasKeyEvent = static_cast<void*>(&upEvent);
       ewk_view_send_key_event(mWebView, evasKeyEvent, false);
     }
+    return false;
+  }
+
+  bool SendWheelEvent(const WheelEvent& wheel)
+  {
+    Eina_Bool direction = wheel.GetDirection() ? false : true;
+    int step = wheel.GetDelta();
+    float x = wheel.GetPoint().x;
+    float y = wheel.GetPoint().y;
+    ewk_view_feed_mouse_wheel(mWebView, direction, step, x, y);
+    return false;
+  }
+
+  bool SendHoverEvent(const HoverEvent& hover)
+  {
     return false;
   }
 
@@ -792,52 +815,6 @@ public:
     Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
     ewk_view_set_support_video_hole(mWebView, win, enabled, EINA_FALSE);
     ecore_wl2_window_alpha_set(win, !enabled);
-  }
-
-  bool SendHoverEvent(const HoverEvent& hover)
-  {
-    //TODO...left/right/middle of mouse could not be acquired now.
-    Ewk_Mouse_Button_Type type = EWK_Mouse_Button_Left;
-    switch (hover.GetState(0))
-    {
-      case PointState::DOWN:
-      {
-        float x = hover.GetScreenPosition(0).x;
-        float y = hover.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_down(mWebView, type, x, y);
-        break;
-      }
-      case PointState::UP:
-      {
-        float x = hover.GetScreenPosition(0).x;
-        float y = hover.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_up(mWebView, type, x, y);
-        break;
-      }
-      case PointState::MOTION:
-      {
-        float x = hover.GetScreenPosition(0).x;
-        float y = hover.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_move(mWebView, x, y);
-        break;
-      }
-      default:
-      {
-        break;
-      }
-    }
-    return false;
-  }
-
-  bool SendWheelEvent(const WheelEvent& wheel)
-  {
-    Eina_Bool direction = wheel.GetDirection() ? true : false;
-    int step = wheel.GetDelta();
-    float x = wheel.GetPoint().x;
-    float y = wheel.GetPoint().y;
-
-    ewk_view_feed_mouse_wheel(mWebView, direction, step, x, y);
-    return false;
   }
 
 private:
