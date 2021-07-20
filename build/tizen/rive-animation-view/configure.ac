@@ -20,11 +20,9 @@ if test "x$enable_debug" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
 fi
 
-# For evas-plugin
-PKG_CHECK_MODULES(DALI_ADAPTOR_INTEGRATION, dali2-adaptor-integration)
-PKG_CHECK_MODULES(ELEMENTARY, elementary)
-PKG_CHECK_MODULES(EVAS, evas)
-PKG_CHECK_MODULES(WAYLAND, [ecore-wl2])
+# For rive animation
+PKG_CHECK_MODULES(THORVG, thorvg)
+PKG_CHECK_MODULES(RIVE_TIZEN, rive_tizen)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

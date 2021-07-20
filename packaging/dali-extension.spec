@@ -188,6 +188,20 @@ BuildRequires: pkgconfig(lightweight-web-engine)
 %description web-engine-lwe-plugin
 Web Engine LWE(Light-weight Web Engine) plugin to support WebView for Dali
 
+####################################
+# Rive Animation View Plugin
+####################################
+%package rive-animation-view
+Summary:    Plugin to render a rive animation
+Group:      System/Libraries
+%if 0%{?tizen_65_or_greater}
+BuildRequires:  pkgconfig(thorvg)
+BuildRequires:  pkgconfig(rive_tizen)
+%endif
+
+%description rive-animation-view
+Plugin to render a rive animation
+
 ##############################
 # Preparation
 ##############################
@@ -391,7 +405,7 @@ exit 0
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/dali-extension/*
-%{_libdir}/pkgconfig/*.pc
+%{_libdir}/pkgconfig/dali2-extension.pc
 
 %files key-extension
 %manifest dali-extension.manifest
@@ -442,6 +456,15 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-vector-image-renderer-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%files rive-animation-view
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-extension-rive-animation-view.so*
+%{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
 %license LICENSE
 %endif
 
