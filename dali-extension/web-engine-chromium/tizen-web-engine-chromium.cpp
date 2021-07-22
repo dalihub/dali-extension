@@ -241,9 +241,8 @@ public:
     ewk_context_max_refresh_rate_set(context, 60);
     mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
     ewk_view_offscreen_rendering_enabled_set(mWebView, true);
-    ecore_wl2_window_alpha_set(win, false);
+    ecore_wl2_window_alpha_set(win, true);
     ewk_view_ime_window_set(mWebView, win);
-    ewk_view_set_support_video_hole(mWebView, win, EINA_TRUE, EINA_FALSE);
 
     Ewk_Settings* settings = ewk_view_settings_get(mWebView);
     mWebEngineSettings = TizenWebEngineSettings(settings);
