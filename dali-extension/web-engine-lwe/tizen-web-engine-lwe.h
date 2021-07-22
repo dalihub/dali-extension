@@ -288,6 +288,11 @@ public:
     return mScrollEdgeReachedSignal;
   }
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
+   */
+  void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
+
 private:
 
   void UpdateBuffer();

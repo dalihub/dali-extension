@@ -894,6 +894,11 @@ void TizenWebEngineLWE::EnableVideoHole( bool enabled )
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali
 

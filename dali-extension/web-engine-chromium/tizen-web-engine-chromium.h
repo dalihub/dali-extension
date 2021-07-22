@@ -89,6 +89,12 @@ public:
    * @see Dali::Plugin::TizenWebEngineChromium::AddJavaScriptMessageHandler
    */
   virtual void RunJavaScriptMessageHandler( const std::string& objectName, const std::string& message ) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer as a result of getting plain text.
+   * @param [in] plainText The obtained plain text.
+   */
+  virtual void PlainTextRecieved(const std::string& plainText) = 0;
 };
 
 /**
@@ -328,6 +334,10 @@ public:
    */
   Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
+   */
+  void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
 
   // WebViewContainerClient Interface
 
@@ -367,6 +377,11 @@ public:
    */
   void RunJavaScriptMessageHandler( const std::string& objectName, const std::string& message ) override;
 
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::PlainTextRecieved()
+   */
+  void PlainTextRecieved(const std::string& plainText) override;
+
 private:
 
   WebViewContainerForDali*                                mWebViewContainer;
@@ -382,6 +397,8 @@ private:
 
   std::unordered_map< size_t, JavaScriptCallback >        mJavaScriptEvaluationResultHandlers;
   std::unordered_map< std::string, JavaScriptCallback >   mJavaScriptMessageHandlers;
+  
+  PlainTextReceivedCallback                               mPlainTextReceivedCallback;
 };
 } // namespace Plugin
 } // namespace Dali

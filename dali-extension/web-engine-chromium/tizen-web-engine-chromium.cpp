@@ -493,6 +493,11 @@ public:
     ecore_wl2_window_alpha_set( win, !enabled );
   }
 
+  void GetPlainTextAsynchronously()
+  {
+    ewk_view_plain_text_get(mWebView, &WebViewContainerForDali::OnPlainTextReceived, &mClient);
+  }
+
 private:
   static void OnFrameRendered( void* data, Evas_Object*, void* buffer )
   {
@@ -572,6 +577,19 @@ private:
     }
   }
 
+  static void OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::string resultText;
+
+    if (plainText != nullptr)
+    {
+      resultText = std::string(plainText);
+    }
+
+    client->PlainTextRecieved(resultText);
+  }
+
 private:
   Evas_Object* mWebView;
   WebViewContainerClient& mClient;
@@ -617,6 +635,7 @@ public:
       }
     }
   }
+
 private:
   tbm_surface_h mSurface;
 };
@@ -998,6 +1017,15 @@ Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& TizenWebEngineChrom
   return mScrollEdgeReachedSignal;
 }
 
+void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
+{
+  if (mWebViewContainer)
+  {
+    mPlainTextReceivedCallback = callback;
+    mWebViewContainer->GetPlainTextAsynchronously();
+  }
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage( tbm_surface_h buffer )
 {
@@ -1062,6 +1090,15 @@ void TizenWebEngineChromium::RunJavaScriptMessageHandler( const std::string& obj
 
   handler->second( message );
 }
+
+void TizenWebEngineChromium::PlainTextRecieved(const std::string& plainText)
+{
+  if (mPlainTextReceivedCallback)
+  {
+    mPlainTextReceivedCallback(plainText);
+  }
+}
+
 } // namespace Plugin
 } // namespace Dali
 
