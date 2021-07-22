@@ -36,7 +36,7 @@ libdali2_extension_rive_animation_view_la_CXXFLAGS = \
             -I$(includedir)/rive \
             -DEFL_BETA_API_SUPPORT \
             -I../../../ \
-            -Werror -Wall
+            -Werror -Wall \
             $(DLOG_CFLAGS) \
             $(DALI_CFLAGS) \
             $(DALI_EXTENSION_CFLAGS) \
