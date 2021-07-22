@@ -816,6 +816,11 @@ public:
     ecore_wl2_window_alpha_set(win, !enabled);
   }
 
+  void GetPlainTextAsynchronously()
+  {
+    ewk_view_plain_text_get(mWebView, &WebViewContainerForDali::OnPlainTextReceived, &mClient);
+  }
+
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object *image)
   {
@@ -887,6 +892,19 @@ private:
     Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(eventInfo);
     std::unique_ptr<Dali::WebEngineConsoleMessage> webConsoleMessage(new TizenWebEngineConsoleMessage(message));
     client->ConsoleMessageReceived(std::move(webConsoleMessage));
+  }
+
+  static void OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::string resultText;
+
+    if (plainText != nullptr)
+    {
+      resultText = std::string(plainText);
+    }
+
+    client->PlainTextRecieved(resultText);
   }
 
   static void OnEdgeLeft(void* data, Evas_Object*, void*)
@@ -1875,6 +1893,15 @@ void TizenWebEngineChromium::RegisterContextMenuHiddenCallback(WebEngineContextM
   mContextMenuHiddenCallback = callback;
 }
 
+void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
+{
+  if (mWebViewContainer)
+  {
+    mPlainTextReceivedCallback = callback;
+    mWebViewContainer->GetPlainTextAsynchronously();
+  }
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -2036,6 +2063,11 @@ bool TizenWebEngineChromium::GeolocationPermission(const std::string& host, cons
 bool TizenWebEngineChromium::HitTestCreated(std::unique_ptr<Dali::WebEngineHitTest> hitTest)
 {
   return ExecuteCallbackReturn<bool>(mHitTestCreatedCallback, std::move(hitTest));
+}
+
+void TizenWebEngineChromium::PlainTextRecieved(const std::string& plainText)
+{
+  ExecuteCallback(mPlainTextReceivedCallback, plainText);
 }
 
 } // namespace Plugin

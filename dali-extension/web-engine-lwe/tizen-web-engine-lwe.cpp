@@ -1299,5 +1299,10 @@ void TizenWebEngineLWE::RegisterContextMenuHiddenCallback(WebEngineContextMenuHi
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali
