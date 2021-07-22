@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@devincludepath@
+
+Name: DALi extension rive animation view
+Description: The DALi Extension Rive Animation View Libaray
+Version: @DALI_EXTENSION_VERSION@
+Requires: dali2-adaptor dali2-toolkit thorvg rive_tizen
+Libs: -L${libdir} -ldali2-extension-rive-animation-view
+Cflags: -I${includedir}/dali-extension

@@ -50,6 +50,7 @@ fi
 if test "x$with_tizen_65_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(camera-player)
   AC_CONFIG_SUBDIRS(vector-image-renderer)
+  AC_CONFIG_SUBDIRS(rive-animation-view)
 fi
 
 AC_CONFIG_SUBDIRS(dali-extension)
@@ -60,6 +61,7 @@ AC_SUBST(devincludepath)
 AC_CONFIG_FILES([
 Makefile
 dali2-extension.pc
+dali2-extension-rive-animation-view.pc
 ])
 
 AC_OUTPUT

@@ -18,3 +18,4 @@ SUBDIRS = ${subdirs}
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dali2-extension.pc
+pkgconfig_DATA += dali2-extension-rive-animation-view.pc

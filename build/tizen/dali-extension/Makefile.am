@@ -22,10 +22,6 @@ extension_src_dir = ../../../dali-extension
 include ../../../dali-extension/devel-api/evas-plugin/file.list
 include ../../../dali-extension/internal/evas-plugin/file.list
 
-# rive-animation-view
-include ../../../dali-extension/devel-api/rive-animation-view/file.list
-include ../../../dali-extension/internal/rive-animation-view/file.list
-
 lib_LTLIBRARIES =
 
 lib_LTLIBRARIES += libdali2-extension.la
@@ -34,12 +30,6 @@ lib_LTLIBRARIES += libdali2-extension.la
 libdali2_extension_la_SOURCES = \
             $(evas_plugin_devel_src_files) \
             $(evas_plugin_internal_src_files)
-
-if SUPPORT_RIVE
-libdali2_extension_la_SOURCES += \
-            $(rive_animation_view_devel_src_files) \
-            $(rive_animation_view_internal_src_files)
-endif
 
 libdali2_extension_la_DEPENDENCIES =
 
@@ -63,17 +53,6 @@ libdali2_extension_la_LIBADD = \
             $(EVAS_LIBS) \
             $(WAYLAND_LIBS)
 
-if SUPPORT_RIVE
-libdali2_extension_la_CXXFLAGS += \
-            -I$(includedir)/rive \
-            $(THORVG_CFLAGS) \
-            $(RIVE_TIZEN_CFLAGS)
-
-libdali2_extension_la_LIBADD += \
-            $(THORVG_LIBS) \
-            $(RIVE_TIZEN_LIBS)
-endif
-
 libdali2_extension_la_LDFLAGS = \
             -rdynamic
 
@@ -83,6 +62,3 @@ dali2_extension_HEADERS = ../../../dali-extension/dali-extension.h
 
 dali2_extension_evasplugindir = $(devincludepath)/dali-extension/devel-api/evas-plugin
 dali2_extension_evasplugin_HEADERS = $(evas_plugin_devel_header_files)
-
-dali2_extension_rive_animation_viewdir = $(devincludepath)/dali-extension/devel-api/rive-animation-view
-dali2_extension_rive_animation_view_HEADERS = $(rive_animation_view_devel_header_files)
