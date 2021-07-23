@@ -16,6 +16,7 @@
  */
 
 #include "tizen-web-engine-request-interceptor.h"
+#include "tizen-web-engine-request-interceptor-task-queue.h"
 
 namespace Dali
 {
@@ -25,6 +26,11 @@ namespace Plugin
 TizenWebEngineRequestInterceptor::TizenWebEngineRequestInterceptor(Ewk_Intercept_Request* interceptor)
   : ewkRequestInterceptor(interceptor)
 {
+  const char* url = ewk_intercept_request_url_get(ewkRequestInterceptor);
+  if (url)
+  {
+    requestUrl = std::string(url);
+  }
 }
 
 TizenWebEngineRequestInterceptor::~TizenWebEngineRequestInterceptor()
@@ -33,26 +39,59 @@ TizenWebEngineRequestInterceptor::~TizenWebEngineRequestInterceptor()
 
 std::string TizenWebEngineRequestInterceptor::GetUrl() const
 {
-  const char* url = ewk_intercept_request_url_get(ewkRequestInterceptor);
-  return url ? std::string(url) : std::string();
+  return requestUrl;
 }
 
 bool TizenWebEngineRequestInterceptor::Ignore()
 {
-  return ewk_intercept_request_ignore(ewkRequestInterceptor);
+  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::IgnoreUi, this));
+  return true;
 }
 
 bool TizenWebEngineRequestInterceptor::SetResponseStatus(int statusCode, const std::string& customStatusText)
 {
-  return ewk_intercept_request_response_status_set(ewkRequestInterceptor, statusCode, customStatusText.c_str());
+  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::SetResponseStatusUi, this, statusCode, customStatusText));
+  return true;
 }
 
 bool TizenWebEngineRequestInterceptor::AddResponseHeader(const std::string& fieldName, const std::string& fieldValue)
 {
-  return ewk_intercept_request_response_header_add(ewkRequestInterceptor, fieldName.c_str(), fieldValue.c_str());
+  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::AddResponseHeaderUi, this, fieldName, fieldValue));
+  return true;
 }
 
 bool TizenWebEngineRequestInterceptor::AddResponseBody(const std::string& body, uint32_t length)
+{
+  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::AddResponseBodyUi, this, body, length));
+  return true;
+}
+
+void TizenWebEngineRequestInterceptor::WaitAndRunTasks()
+{
+  TaskQueue::GetInstance()->WaitAndRunTasks();
+}
+
+void TizenWebEngineRequestInterceptor::NotifyTaskReady()
+{
+  TaskQueue::GetInstance()->NotifyTaskReady();
+}
+
+bool TizenWebEngineRequestInterceptor::IgnoreUi()
+{
+  return ewk_intercept_request_ignore(ewkRequestInterceptor);
+}
+
+bool TizenWebEngineRequestInterceptor::SetResponseStatusUi(int statusCode, const std::string& customStatusText)
+{
+  return ewk_intercept_request_response_status_set(ewkRequestInterceptor, statusCode, customStatusText.c_str());
+}
+
+bool TizenWebEngineRequestInterceptor::AddResponseHeaderUi(const std::string& fieldName, const std::string& fieldValue)
+{
+  return ewk_intercept_request_response_header_add(ewkRequestInterceptor, fieldName.c_str(), fieldValue.c_str());
+}
+
+bool TizenWebEngineRequestInterceptor::AddResponseBodyUi(const std::string& body, uint32_t length)
 {
   return ewk_intercept_request_response_body_set(ewkRequestInterceptor, body.c_str(), length);
 }

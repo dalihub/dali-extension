@@ -29,6 +29,7 @@
 #include "tizen-web-engine-http-auth-handler.h"
 #include "tizen-web-engine-load-error.h"
 #include "tizen-web-engine-policy-decision.h"
+#include "tizen-web-engine-request-interceptor.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore_Evas.h>
@@ -802,6 +803,19 @@ public:
     ewk_view_geolocation_permission_callback_set(mWebView, &WebViewContainerForDali::OnGeolocationPermission, &mClient);
   }
 
+  void RegisterRequestInterceptorCallback(bool isRegistered)
+  {
+    Ewk_Context* context = ewk_view_context_get(mWebView);
+    if (isRegistered)
+    {
+      ewk_context_intercept_request_callback_set(context, &WebViewContainerForDali::OnRequestIntercepted, &mClient);
+    }
+    else
+    {
+      ewk_context_intercept_request_callback_set(context, nullptr, nullptr);
+    }
+  }
+
   void UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
   {
     evas_object_move(mWebView, displayArea.x, displayArea.y);
@@ -877,6 +891,13 @@ private:
     Ewk_Error* error = static_cast<Ewk_Error*>(rawError);
     std::unique_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
     client->LoadError(std::move(loadError));
+  }
+
+  static void OnRequestIntercepted(Ewk_Context*, Ewk_Intercept_Request* request, void* data)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::unique_ptr<Dali::WebEngineRequestInterceptor> webInterceptor(new TizenWebEngineRequestInterceptor(request));
+    client->RequestIntercepted(std::move(webInterceptor));
   }
 
   static void OnUrlChanged(void* data, Evas_Object*, void* newUrl)
@@ -1116,6 +1137,8 @@ TizenWebEngineChromium::TizenWebEngineChromium()
   : mWebViewContainer(0)
   , mJavaScriptEvaluationCount(0)
 {
+  EventThreadCallback* callback = new Dali::EventThreadCallback(Dali::MakeCallback(this, &TizenWebEngineChromium::OnRequestInterceptedEventCallback));
+  mRequestInterceptorEventTrigger = std::unique_ptr<Dali::EventThreadCallback>(callback);
 }
 
 TizenWebEngineChromium::~TizenWebEngineChromium()
@@ -1856,6 +1879,11 @@ void TizenWebEngineChromium::RegisterFormRepostDecidedCallback(WebEngineFormRepo
 void TizenWebEngineChromium::RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback)
 {
   mRequestInterceptedCallback = callback;
+  if (mWebViewContainer)
+  {
+    bool isRegistered = mRequestInterceptedCallback ? true : false;
+    mWebViewContainer->RegisterRequestInterceptorCallback(isRegistered);
+  }
 }
 
 void TizenWebEngineChromium::RegisterConsoleMessageReceivedCallback(WebEngineConsoleMessageReceivedCallback callback)
@@ -1945,6 +1973,36 @@ void TizenWebEngineChromium::ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge
 {
   DALI_LOG_RELEASE_INFO("#ScrollEdgeReached : %d\n", edge);
   ExecuteCallback(mScrollEdgeReachedCallback, edge);
+}
+
+void TizenWebEngineChromium::RequestIntercepted(std::unique_ptr<Dali::WebEngineRequestInterceptor> interceptor)
+{
+  {
+    Mutex::ScopedLock lock(mMutex);
+    mRequestInterceptorQueue.push(std::move(interceptor));
+    // Trigger an event on main thread.
+    mRequestInterceptorEventTrigger->Trigger();
+  }
+
+  // Wait for tasks on main thread and execute tasks.
+  TizenWebEngineRequestInterceptor* requestInterceptor = static_cast<TizenWebEngineRequestInterceptor*>(interceptor.get());
+  requestInterceptor->WaitAndRunTasks();
+}
+
+void TizenWebEngineChromium::OnRequestInterceptedEventCallback()
+{
+  std::unique_ptr<Dali::WebEngineRequestInterceptor> interceptor;
+  {
+    Mutex::ScopedLock lock(mMutex);
+    interceptor = std::move(mRequestInterceptorQueue.front());
+    mRequestInterceptorQueue.pop();
+  }
+
+  ExecuteCallback(mRequestInterceptedCallback, std::move(interceptor));
+
+  // Notify ui-thread tasks ready on main thread.
+  TizenWebEngineRequestInterceptor* requestInterceptor = static_cast<TizenWebEngineRequestInterceptor*>(interceptor.get());
+  requestInterceptor->NotifyTaskReady();
 }
 
 void TizenWebEngineChromium::UrlChanged(const std::string& url)
