@@ -463,6 +463,7 @@ exit 0
 %files rive-animation-view
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
+%{_includedir}/dali-extension/devel-api/rive-animation-view/*
 %{_libdir}/libdali2-extension-rive-animation-view.so*
 %{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
 %license LICENSE
