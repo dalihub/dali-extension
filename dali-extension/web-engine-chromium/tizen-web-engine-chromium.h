@@ -215,6 +215,12 @@ public:
    * @brief Callback function to be called by WebViewContainer after hit test is created.
    */
   virtual bool HitTestCreated(std::unique_ptr<Dali::WebEngineHitTest> hitTest) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer as a result of getting plain text.
+   * @param [in] plainText The obtained plain text.
+   */
+  virtual void PlainTextRecieved(const std::string& plainText) = 0;
 };
 
 /**
@@ -718,6 +724,11 @@ public:
    */
   void RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
+   */
+  void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
+
   // WebViewContainerClient Interface
 
   /**
@@ -842,6 +853,11 @@ public:
    */
   bool HitTestCreated(std::unique_ptr<Dali::WebEngineHitTest> hitTest) override;
 
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::PlainTextRecieved()
+   */
+  void PlainTextRecieved(const std::string& plainText) override;
+
 private:
   WebViewContainerForDali*   mWebViewContainer;
   Dali::NativeImageSourcePtr mDaliImageSrc;
@@ -871,6 +887,7 @@ private:
   ScreenshotCapturedCallback              mScreenshotCapturedCallback;
   VideoPlayingCallback                    mVideoPlayingCallback;
   GeolocationPermissionCallback           mGeolocationPermissionCallback;
+  PlainTextReceivedCallback               mPlainTextReceivedCallback;
 
   std::unordered_map<size_t, JavaScriptMessageHandlerCallback>      mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptMessageHandlers;
