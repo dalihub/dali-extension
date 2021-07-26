@@ -241,9 +241,8 @@ public:
     ewk_context_max_refresh_rate_set(context, 60);
     mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
     ewk_view_offscreen_rendering_enabled_set(mWebView, true);
-    ecore_wl2_window_alpha_set(win, false);
+    ecore_wl2_window_alpha_set(win, true);
     ewk_view_ime_window_set(mWebView, win);
-    ewk_view_set_support_video_hole(mWebView, win, EINA_TRUE, EINA_FALSE);
 
     Ewk_Settings* settings = ewk_view_settings_get(mWebView);
     mWebEngineSettings = TizenWebEngineSettings(settings);
@@ -617,32 +616,22 @@ public:
 
   bool SendTouchEvent(const TouchEvent& touch)
   {
-    Ewk_Touch_Event_Type type = EWK_TOUCH_START;
-    Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
-    switch (touch.GetState(0))
+    Ewk_Mouse_Button_Type type = (Ewk_Mouse_Button_Type)0;
+    switch (touch.GetMouseButton(0))
     {
-      case PointState::DOWN:
+      case MouseButton::PRIMARY:
       {
-        type = EWK_TOUCH_START;
-        state = EVAS_TOUCH_POINT_DOWN;
+        type = EWK_Mouse_Button_Left;
         break;
       }
-      case PointState::UP:
+      case MouseButton::TERTIARY:
       {
-        type = EWK_TOUCH_END;
-        state = EVAS_TOUCH_POINT_UP;
+        type = EWK_Mouse_Button_Middle;
         break;
       }
-      case PointState::MOTION:
+      case MouseButton::SECONDARY:
       {
-        type = EWK_TOUCH_MOVE;
-        state = EVAS_TOUCH_POINT_MOVE;
-        break;
-      }
-      case PointState::INTERRUPTED:
-      {
-        type = EWK_TOUCH_CANCEL;
-        state = EVAS_TOUCH_POINT_CANCEL;
+        type = EWK_Mouse_Button_Right;
         break;
       }
       default:
@@ -651,16 +640,34 @@ public:
       }
     }
 
-    Eina_List* pointList = 0;
-    Ewk_Touch_Point* point = new Ewk_Touch_Point;
-    point->id = 0;
-    point->x = touch.GetScreenPosition(0).x;
-    point->y = touch.GetScreenPosition(0).y;
-    point->state = state;
-    pointList = eina_list_append(pointList, point);
-
-    ewk_view_feed_touch_event(mWebView, type, pointList, 0);
-    eina_list_free(pointList);
+    switch (touch.GetState(0))
+    {
+      case PointState::DOWN:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_down(mWebView, type, x, y);
+        break;
+      }
+      case PointState::UP:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_up(mWebView, type, x, y);
+        break;
+      }
+      case PointState::MOTION:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_move(mWebView, x, y);
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
     return false;
   }
 
@@ -685,6 +692,21 @@ public:
       evasKeyEvent = static_cast<void*>(&upEvent);
       ewk_view_send_key_event(mWebView, evasKeyEvent, false);
     }
+    return false;
+  }
+
+  bool SendWheelEvent(const WheelEvent& wheel)
+  {
+    Eina_Bool direction = wheel.GetDirection() ? false : true;
+    int step = wheel.GetDelta();
+    float x = wheel.GetPoint().x;
+    float y = wheel.GetPoint().y;
+    ewk_view_feed_mouse_wheel(mWebView, direction, step, x, y);
+    return false;
+  }
+
+  bool SendHoverEvent(const HoverEvent& hover)
+  {
     return false;
   }
 
@@ -794,50 +816,9 @@ public:
     ecore_wl2_window_alpha_set(win, !enabled);
   }
 
-  bool SendHoverEvent(const HoverEvent& hover)
+  void GetPlainTextAsynchronously()
   {
-    //TODO...left/right/middle of mouse could not be acquired now.
-    Ewk_Mouse_Button_Type type = EWK_Mouse_Button_Left;
-    switch (hover.GetState(0))
-    {
-      case PointState::DOWN:
-      {
-        float x = hover.GetScreenPosition(0).x;
-        float y = hover.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_down(mWebView, type, x, y);
-        break;
-      }
-      case PointState::UP:
-      {
-        float x = hover.GetScreenPosition(0).x;
-        float y = hover.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_up(mWebView, type, x, y);
-        break;
-      }
-      case PointState::MOTION:
-      {
-        float x = hover.GetScreenPosition(0).x;
-        float y = hover.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_move(mWebView, x, y);
-        break;
-      }
-      default:
-      {
-        break;
-      }
-    }
-    return false;
-  }
-
-  bool SendWheelEvent(const WheelEvent& wheel)
-  {
-    Eina_Bool direction = wheel.GetDirection() ? true : false;
-    int step = wheel.GetDelta();
-    float x = wheel.GetPoint().x;
-    float y = wheel.GetPoint().y;
-
-    ewk_view_feed_mouse_wheel(mWebView, direction, step, x, y);
-    return false;
+    ewk_view_plain_text_get(mWebView, &WebViewContainerForDali::OnPlainTextReceived, &mClient);
   }
 
 private:
@@ -911,6 +892,19 @@ private:
     Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(eventInfo);
     std::unique_ptr<Dali::WebEngineConsoleMessage> webConsoleMessage(new TizenWebEngineConsoleMessage(message));
     client->ConsoleMessageReceived(std::move(webConsoleMessage));
+  }
+
+  static void OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::string resultText;
+
+    if (plainText != nullptr)
+    {
+      resultText = std::string(plainText);
+    }
+
+    client->PlainTextRecieved(resultText);
   }
 
   static void OnEdgeLeft(void* data, Evas_Object*, void*)
@@ -1899,6 +1893,15 @@ void TizenWebEngineChromium::RegisterContextMenuHiddenCallback(WebEngineContextM
   mContextMenuHiddenCallback = callback;
 }
 
+void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
+{
+  if (mWebViewContainer)
+  {
+    mPlainTextReceivedCallback = callback;
+    mWebViewContainer->GetPlainTextAsynchronously();
+  }
+}
+
 // WebViewContainerClient Interface
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
@@ -2060,6 +2063,11 @@ bool TizenWebEngineChromium::GeolocationPermission(const std::string& host, cons
 bool TizenWebEngineChromium::HitTestCreated(std::unique_ptr<Dali::WebEngineHitTest> hitTest)
 {
   return ExecuteCallbackReturn<bool>(mHitTestCreatedCallback, std::move(hitTest));
+}
+
+void TizenWebEngineChromium::PlainTextRecieved(const std::string& plainText)
+{
+  ExecuteCallback(mPlainTextReceivedCallback, plainText);
 }
 
 } // namespace Plugin
