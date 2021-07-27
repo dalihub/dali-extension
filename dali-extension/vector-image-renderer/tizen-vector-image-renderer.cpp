@@ -43,12 +43,13 @@ TizenVectorImageRenderer::TizenVectorImageRenderer()
 
   mSwCanvas = tvg::SwCanvas::gen();
   mSwCanvas->mempool(tvg::SwCanvas::MempoolPolicy::Individual);
+  mSwCanvas->reserve(1);  //has one picture
 }
 
 TizenVectorImageRenderer::~TizenVectorImageRenderer()
 {
-  //Not yet pushed to Canvas
-  if(mIsFirstRender && mPicture)
+  mSwCanvas->clear(false);
+  if(mPicture)
   {
     delete(mPicture);
   }
@@ -96,9 +97,9 @@ bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer)
     return false;
   }
 
-  unsigned char* pBuffer;
-  pBuffer = buffer.GetBuffer();
+  mSwCanvas->clear(false);
 
+  auto pBuffer = buffer.GetBuffer();
   if(!pBuffer)
   {
     DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: pixel buffer is null [%p]\n", this);
@@ -114,23 +115,11 @@ bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer)
 
   mPicture->size(width, height);
 
-  /* We need to push picture first time, after that we only update its properties. */
-  if(mIsFirstRender)
+  /* We can push everytime since we cleared the canvas just before. */
+  if(mSwCanvas->push(std::unique_ptr<tvg::Picture>(mPicture)) != tvg::Result::Success)
   {
-    if(mSwCanvas->push(std::unique_ptr<tvg::Picture>(mPicture)) != tvg::Result::Success)
-    {
-      DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: Picture push fail [%p]\n", this);
-      return false;
-    }
-    mIsFirstRender = false;
-  }
-  else
-  {
-    if(mSwCanvas->update(mPicture) != tvg::Result::Success)
-    {
-      DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: Picture update fail [%p]\n", this);
-      return false;
-    }
+    DALI_LOG_ERROR("TizenVectorImageRenderer::Rasterize: Picture push fail [%p]\n", this);
+    return false;
   }
 
   if(mSwCanvas->draw() != tvg::Result::Success)
@@ -144,7 +133,7 @@ bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer)
   return true;
 }
 
-void TizenVectorImageRenderer::GetDefaultSize( uint32_t &width, uint32_t &height ) const
+void TizenVectorImageRenderer::GetDefaultSize(uint32_t &width, uint32_t &height) const
 {
   width = mDefaultWidth;
   height = mDefaultHeight;

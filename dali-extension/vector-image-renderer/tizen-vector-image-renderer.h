@@ -69,7 +69,6 @@ private:
 
   uint32_t                               mDefaultWidth;   ///< The width of the surface
   uint32_t                               mDefaultHeight;  ///< The height of the surface
-  bool                                   mIsFirstRender;
 };
 
 } // namespace Plugin
