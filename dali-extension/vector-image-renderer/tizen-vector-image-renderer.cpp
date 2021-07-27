@@ -81,7 +81,7 @@ bool TizenVectorImageRenderer::Load(const Vector<uint8_t>& data)
   }
 
   float w, h;
-  mPicture->viewbox(nullptr, nullptr, &w, &h);
+  mPicture->size(&w, &h);
   mDefaultWidth = static_cast<uint32_t>(w);
   mDefaultHeight = static_cast<uint32_t>(h);
 
