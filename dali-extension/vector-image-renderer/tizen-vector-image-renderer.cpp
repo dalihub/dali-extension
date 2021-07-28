@@ -47,7 +47,6 @@ TizenVectorImageRenderer::TizenVectorImageRenderer()
 
 TizenVectorImageRenderer::~TizenVectorImageRenderer()
 {
-  mSwCanvas->clear(false);
   if(mPicture)
   {
     delete(mPicture);
@@ -120,8 +119,6 @@ bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer)
     return false;
   }
 
-  mSwCanvas->clear(false);
-
   auto pBuffer = buffer.GetBuffer();
   if(!pBuffer)
   {
@@ -152,6 +149,8 @@ bool TizenVectorImageRenderer::Rasterize(Dali::Devel::PixelBuffer& buffer)
   }
 
   mSwCanvas->sync();
+
+  mSwCanvas->clear(false);
 
   return true;
 }
