@@ -36,8 +36,7 @@ namespace Plugin
 TizenVectorImageRenderer::TizenVectorImageRenderer()
 : mPicture(nullptr),
   mDefaultWidth(0),
-  mDefaultHeight(0),
-  mIsFirstRender(true)
+  mDefaultHeight(0)
 {
   tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
 
