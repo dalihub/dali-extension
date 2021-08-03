@@ -195,6 +195,11 @@ void RiveAnimationTask::EnableAnimation(const std::string& animationName, bool e
   mVectorRenderer->EnableAnimation(animationName, enable);
 }
 
+void RiveAnimationTask::SetAnimationElapsedTime(const std::string& animationName, float elapsed)
+{
+  mVectorRenderer->SetAnimationElapsedTime(animationName, elapsed);
+}
+
 void RiveAnimationTask::SetShapeFillColor(const std::string& fillName, Vector4 color)
 {
   mVectorRenderer->SetShapeFillColor(fillName, color);
@@ -282,7 +287,11 @@ bool RiveAnimationTask::Rasterize()
 
     if(currentFrame >= mEndFrame) // last frame
     {
-      animationFinished = true; // end of animation
+      //FIXME: Rive animation can have more than two animations,
+      //so This is not suitable for rive animation.
+      //The animation finish policy should be changed.
+      //animationFinished = true; // end of animation
+      mCurrentFrame = mStartFrame;
     }
 
     if(animationFinished)
@@ -402,6 +411,14 @@ void RiveAnimationTask::ApplyAnimationData()
     for(auto& animation : mAnimationData[index].animations)
     {
       EnableAnimation(animation.first, animation.second);
+    }
+  }
+
+  if(mAnimationData[index].resendFlag & RiveAnimationTask::RESEND_ANIMATION_ELAPSED_TIME)
+  {
+    for(auto& elapsedTime : mAnimationData[index].elapsedTimes)
+    {
+      SetAnimationElapsedTime(elapsedTime.first, elapsedTime.second);
     }
   }
 

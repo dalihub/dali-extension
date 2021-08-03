@@ -180,6 +180,14 @@ public:
   void EnableAnimation(const std::string& animationName, bool enable);
 
   /**
+   * @brief Sets the animation elapsed time.
+   *
+   * @param[in] animationName The animation name
+   * @param[in] time The animation elapsed time (in second)
+   */
+  void SetAnimationElapsedTime(const std::string& animationName, float elapsed);
+
+  /**
    * @brief Sets the shape fill color of given fill name.
    *
    * @param[in] fillName The fill name

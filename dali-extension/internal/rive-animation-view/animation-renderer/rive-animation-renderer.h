@@ -133,6 +133,14 @@ public:
   void EnableAnimation(const std::string& animationName, bool enable);
 
   /**
+   * @brief Sets the animation elapsed time.
+   *
+   * @param[in] animationName The animation name
+   * @param[in] time The animation elapsed time (in second)
+   */
+  void SetAnimationElapsedTime(const std::string& animationName, float elapsed);
+
+  /**
    * @brief Sets the shape fill color of given fill name.
    *
    * @param[in] fillName The fill name
@@ -210,12 +218,14 @@ private:
      Animation(rive::LinearAnimationInstance *animationInstance, const std::string& animationName, bool animationEnable)
      : instance(animationInstance),
        name(animationName),
-       enable(animationEnable)
+       enable(animationEnable),
+       elapsed(-1.0f)
      {
      }
      std::unique_ptr<rive::LinearAnimationInstance> instance;
      const std::string& name;
      bool enable;
+     float elapsed;
   };
 
   /**

@@ -79,6 +79,11 @@ public:
   void EnableAnimation(const std::string& animationName, bool enable);
 
   /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetAnimationElapsedTime
+   */
+  void SetAnimationElapsedTime(const std::string& animationName, float elapsed);
+
+  /**
    * @copydoc Dali::Extension::RiveAnimationView::SetShapeFillColor
    */
   void SetShapeFillColor(const std::string& fillName, Vector4 color);
