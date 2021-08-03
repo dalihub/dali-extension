@@ -74,9 +74,33 @@ bool TizenVectorImageRenderer::Load(const Vector<uint8_t>& data)
     }
   }
 
-  if(mPicture->load(reinterpret_cast<char*>(data.Begin()), data.Size(), false) != tvg::Result::Success)
+  tvg::Result ret = mPicture->load(reinterpret_cast<char*>(data.Begin()), data.Size(), false);
+
+  if(ret != tvg::Result::Success)
   {
-    DALI_LOG_ERROR("TizenVectorImageRenderer::Load Data load Fail %s [%p]\n", data, this);
+    switch (ret)
+    {
+      case tvg::Result::InvalidArguments:
+      {
+        DALI_LOG_ERROR("TizenVectorImageRenderer::Load Load fail(Invalid arguments) Size:%d [%p]\n", data.Size(), this);
+        break;
+      }
+      case tvg::Result::NonSupport:
+      {
+        DALI_LOG_ERROR("TizenVectorImageRenderer::Load Load fail(Invalid SVG) Size:%d [%p]\n", data.Size(), this);
+        break;
+      }
+      case tvg::Result::Unknown:
+      {
+        DALI_LOG_ERROR("TizenVectorImageRenderer::Load Load fail(Parse fail) Size:%d [%p]\n", data.Size(), this);
+        break;
+      }
+      default:
+      {
+        DALI_LOG_ERROR("TizenVectorImageRenderer::Load Load fail / Size:%d [%p]\n", data.Size(), this);
+        break;
+      }
+    }
     return false;
   }
 
