@@ -294,18 +294,28 @@ bool RiveAnimationRenderer::Render(uint32_t frameNumber)
 
   // Render Rive Frame
   frameNumber    = mStartFrameNumber + frameNumber;
-  double elapsed = (float)frameNumber / 60.0f;
 
-  for (auto& animation : mAnimations)
+  //FIXME: This should be changed to the time based rendering
+  static float elapsed = 0.0f;
+  elapsed = 1.0f / 60.0f;
+
+  for(auto& animation : mAnimations)
   {
-    if(animation.enable)
+    if(animation.instance)
     {
-      animation.instance->time(elapsed);
-      animation.instance->advance(0.0);
-      animation.instance->apply(mArtboard);
+      if(animation.enable)
+      {
+        animation.instance->advance(elapsed);
+        animation.instance->apply(mArtboard);
+      }
+      else if(animation.elapsed >= 0.0f)
+      {
+        animation.instance->time(animation.elapsed);
+        animation.instance->apply(mArtboard);
+      }
     }
   }
-  mArtboard->advance(0.0);
+  mArtboard->advance(elapsed);
 
   rive::TvgRenderer renderer(mSwCanvas.get());
   renderer.save();
@@ -366,11 +376,30 @@ void RiveAnimationRenderer::EnableAnimation(const std::string& animationName, bo
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
-  for(auto& animation :  mAnimations)
+  for(unsigned int i = 0; i < mAnimations.size(); i++)
+  {
+    if(mAnimations[i].name == animationName)
+    {
+      if(mAnimations[i].instance)
+      {
+        auto animation = mArtboard->animation(i);
+        mAnimations[i].instance.reset(new rive::LinearAnimationInstance(animation));
+      }
+      mAnimations[i].enable = enable;
+      return;
+    }
+  }
+}
+
+void RiveAnimationRenderer::SetAnimationElapsedTime(const std::string& animationName, float elapsed)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  for(auto& animation : mAnimations)
   {
     if(animation.name == animationName)
     {
-      animation.enable = enable;
+      animation.elapsed = elapsed;
       return;
     }
   }

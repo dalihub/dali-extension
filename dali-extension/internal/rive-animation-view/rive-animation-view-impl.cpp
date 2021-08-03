@@ -363,6 +363,14 @@ void RiveAnimationView::EnableAnimation(const std::string& animationName, bool e
   TriggerVectorRasterization();
 }
 
+void RiveAnimationView::SetAnimationElapsedTime(const std::string& animationName, float elapsed)
+{
+  mAnimationData.elapsedTimes.push_back(std::pair<std::string, float>(animationName, elapsed));
+  mAnimationData.resendFlag |= RiveAnimationTask::RESEND_ANIMATION_ELAPSED_TIME;
+
+  TriggerVectorRasterization();
+}
+
 void RiveAnimationView::SetShapeFillColor(const std::string& fillName, Vector4 color)
 {
   mAnimationData.fillColors.push_back(std::pair<std::string, Vector4>(fillName, color));
@@ -509,6 +517,7 @@ void RiveAnimationView::SendAnimationData()
 void RiveAnimationView::ClearAnimationsData()
 {
     mAnimationData.animations.clear();
+    mAnimationData.elapsedTimes.clear();
     mAnimationData.fillColors.clear();
     mAnimationData.strokeColors.clear();
     mAnimationData.opacities.clear();

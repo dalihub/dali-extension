@@ -53,20 +53,21 @@ public:
    */
   enum ResendFlags
   {
-    RESEND_PLAY_RANGE        = 1 << 0,
-    RESEND_LOOP_COUNT        = 1 << 1,
-    RESEND_STOP_BEHAVIOR     = 1 << 2,
-    RESEND_LOOPING_MODE      = 1 << 3,
-    RESEND_CURRENT_FRAME     = 1 << 4,
-    RESEND_SIZE              = 1 << 5,
-    RESEND_PLAY_STATE        = 1 << 6,
-    RESEND_ENABLE_ANIMATION  = 1 << 7,
-    RESEND_FILL_COLOR        = 1 << 8,
-    RESEND_STROKE_COLOR      = 1 << 9,
-    RESEND_OPACITY           = 1 << 10,
-    RESEND_SCALE             = 1 << 11,
-    RESEND_ROTATION          = 1 << 12,
-    RESEND_POSITION          = 1 << 13,
+    RESEND_PLAY_RANGE             = 1 << 0,
+    RESEND_LOOP_COUNT             = 1 << 1,
+    RESEND_STOP_BEHAVIOR          = 1 << 2,
+    RESEND_LOOPING_MODE           = 1 << 3,
+    RESEND_CURRENT_FRAME          = 1 << 4,
+    RESEND_SIZE                   = 1 << 5,
+    RESEND_PLAY_STATE             = 1 << 6,
+    RESEND_ENABLE_ANIMATION       = 1 << 7,
+    RESEND_ANIMATION_ELAPSED_TIME = 1 << 8,
+    RESEND_FILL_COLOR             = 1 << 9,
+    RESEND_STROKE_COLOR           = 1 << 10,
+    RESEND_OPACITY                = 1 << 11,
+    RESEND_SCALE                  = 1 << 12,
+    RESEND_ROTATION               = 1 << 13,
+    RESEND_POSITION               = 1 << 14
   };
 
   /**
@@ -90,6 +91,8 @@ public:
       playState       = rhs.playState;
       animations.resize(rhs.animations.size());
       std::copy(rhs.animations.begin(), rhs.animations.end(), animations.begin());
+      elapsedTimes.resize(rhs.elapsedTimes.size());
+      std::copy(rhs.elapsedTimes.begin(), rhs.elapsedTimes.end(), elapsedTimes.begin());
       fillColors.resize(rhs.fillColors.size());
       std::copy(rhs.fillColors.begin(), rhs.fillColors.end(), fillColors.begin());
       strokeColors.resize(rhs.strokeColors.size());
@@ -111,6 +114,7 @@ public:
     uint32_t                                      height;
     Extension::RiveAnimationView::PlayState       playState;
     std::vector<std::pair<std::string, bool>>     animations;
+    std::vector<std::pair<std::string, float>>    elapsedTimes;
     std::vector<std::pair<std::string, Vector4>>  fillColors;
     std::vector<std::pair<std::string, Vector4>>  strokeColors;
     std::vector<std::pair<std::string, float>>    opacities;
@@ -214,6 +218,14 @@ private:
    * @param[in] enable The state of animation
    */
   void EnableAnimation(const std::string& animationName, bool enable);
+
+  /**
+   * @brief Sets the animation elapsed time.
+   *
+   * @param[in] animationName The animation name
+   * @param[in] time The animation elapsed time (in second)
+   */
+  void SetAnimationElapsedTime(const std::string& animationName, float elapsed);
 
   /**
    * @brief Sets the shape fill color of given fill name.

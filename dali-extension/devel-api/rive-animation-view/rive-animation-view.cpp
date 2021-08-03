@@ -93,6 +93,11 @@ void RiveAnimationView::EnableAnimation(const std::string& animationName, bool e
   Extension::GetImplementation(*this).EnableAnimation(animationName, enable);
 }
 
+void RiveAnimationView::SetAnimationElapsedTime(const std::string& animationName, float elapsed)
+{
+  Extension::GetImplementation(*this).SetAnimationElapsedTime(animationName, elapsed);
+}
+
 void RiveAnimationView::SetShapeFillColor(const std::string& fillName, Vector4 color)
 {
   Extension::GetImplementation(*this).SetShapeFillColor(fillName, color);
