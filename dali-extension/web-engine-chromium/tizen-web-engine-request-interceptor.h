@@ -20,8 +20,12 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/web-engine-request-interceptor.h>
-#include <ewk_intercept_request.h>
+
+#include <functional>
 #include <string>
+#include <vector>
+
+#include <ewk_intercept_request.h>
 
 namespace Dali
 {
@@ -70,8 +74,44 @@ public:
    */
   bool AddResponseBody(const std::string& body, uint32_t length) override;
 
+  /**
+   * @brief Wait for and run tasks on ui-thread.
+   */
+  void WaitAndRunTasks();
+
+  /**
+   * @brief Notify task ready on main thread.
+   */
+  void NotifyTaskReady();
+
+private:
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::Ignore()
+   * @note It is run on ui thread
+   */
+  bool IgnoreUi();
+
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::SetResponseStatus()
+   * @note It is run on ui thread
+   */
+  bool SetResponseStatusUi(int statusCode, const std::string& customStatusText);
+
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::AddResponseHeader()
+   * @note It is run on ui thread
+   */
+  bool AddResponseHeaderUi(const std::string& fieldName, const std::string& fieldValue);
+
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::AddResponseBody()
+   * @note It is run on ui thread
+   */
+  bool AddResponseBodyUi(const std::string& body, uint32_t length);
+
 private:
   Ewk_Intercept_Request* ewkRequestInterceptor;
+  std::string            requestUrl;
 };
 
 } // namespace Plugin
