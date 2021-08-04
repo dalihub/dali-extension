@@ -211,7 +211,7 @@ void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
     return;
   }
 
-  mTargetSurface = NativeImageSourceQueue::New(width, height, NativeImageSourceQueue::COLOR_DEPTH_DEFAULT);
+  mTargetSurface = NativeImageSourceQueue::New(width, height, NativeImageSourceQueue::ColorFormat::RGBA8888);
 
   mTexture = Texture::New(*mTargetSurface);
 
