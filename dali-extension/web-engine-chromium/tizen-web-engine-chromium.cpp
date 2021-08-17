@@ -836,16 +836,20 @@ public:
   }
 
 private:
-  static Dali::PixelData ConvertImageColorSpace(Evas_Object *image)
+  static Dali::PixelData ConvertImageColorSpace(Evas_Object* image)
   {
+    // color-space is argb8888.
+    uint8_t* pixelBuffer = (uint8_t*)evas_object_image_data_get(image, false);
+    if (!pixelBuffer)
+    {
+      return Dali::PixelData();
+    }
+
     int width = 0, height = 0;
     evas_object_image_size_get(image, &width, &height);
 
     uint32_t bufferSize = width * height * 4;
-    uint8_t *convertedBuffer = new uint8_t[bufferSize];
-
-    // color-space is argb8888.
-    uint8_t *pixelBuffer = (uint8_t *)evas_object_image_data_get(image, false);
+    uint8_t* convertedBuffer = new uint8_t[bufferSize];
 
     // convert the color-space to rgba8888.
     for (uint32_t i = 0; i < bufferSize; i += 4)
