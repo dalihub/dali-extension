@@ -599,6 +599,7 @@ public:
   void GetFormPasswordList(WebEngineFormPasswordAcquiredCallback callback) override {}
   void RegisterDownloadStartedCallback(WebEngineDownloadStartedCallback callback) override {}
   void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override {}
+  void RegisterRequestInterceptedCallback(WebEngineRequestInterceptedCallback callback) override {}
   void EnableCache(bool cacheDisabled) override {}
   bool IsCacheEnabled() const override { return false; }
   void SetAppId(const std::string& appId) override { }
@@ -1255,11 +1256,6 @@ void TizenWebEngineLWE::RegisterUrlChangedCallback(WebEngineUrlChangedCallback c
 }
 
 void TizenWebEngineLWE::RegisterFormRepostDecidedCallback(WebEngineFormRepostDecidedCallback callback)
-{
-  // NOT IMPLEMENTED
-}
-
-void TizenWebEngineLWE::RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback)
 {
   // NOT IMPLEMENTED
 }

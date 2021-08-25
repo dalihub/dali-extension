@@ -29,7 +29,6 @@
 #include "tizen-web-engine-http-auth-handler.h"
 #include "tizen-web-engine-load-error.h"
 #include "tizen-web-engine-policy-decision.h"
-#include "tizen-web-engine-request-interceptor.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore_Evas.h>
@@ -198,12 +197,12 @@ public:
     , mClient(client)
     , mWidth(width)
     , mHeight(height)
-    , mWebEngineSettings(0)
-    , mWebEngineContext(0)
-    , mWebEngineCookieManager(0)
-    , mWebEngineBackForwardList(0)
+    , mWebEngineSettings(nullptr)
+    , mWebEngineContext(nullptr)
+    , mWebEngineCookieManager(nullptr)
+    , mWebEngineBackForwardList(nullptr)
   {
-    InitWebView(0, 0);
+    InitWebView(0, nullptr);
 
     WebEngineManager::Get().AddContainerClient(&mClient, mWebView);
   }
@@ -213,10 +212,10 @@ public:
     , mClient(client)
     , mWidth(width)
     , mHeight(height)
-    , mWebEngineSettings(0)
-    , mWebEngineContext(0)
-    , mWebEngineCookieManager(0)
-    , mWebEngineBackForwardList(0)
+    , mWebEngineSettings(nullptr)
+    , mWebEngineContext(nullptr)
+    , mWebEngineCookieManager(nullptr)
+    , mWebEngineBackForwardList(nullptr)
   {
     InitWebView(argc, argv);
 
@@ -246,16 +245,16 @@ public:
     ewk_view_ime_window_set(mWebView, win);
 
     Ewk_Settings* settings = ewk_view_settings_get(mWebView);
-    mWebEngineSettings = TizenWebEngineSettings(settings);
+    mWebEngineSettings.reset(new TizenWebEngineSettings(settings));
 
     context = ewk_view_context_get(mWebView);
-    mWebEngineContext = TizenWebEngineContext(context);
+    mWebEngineContext.reset(new TizenWebEngineContext(context));
 
     Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
-    mWebEngineCookieManager = TizenWebEngineCookieManager(manager);
+    mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
 
     Ewk_Back_Forward_List* backForwardList = ewk_view_back_forward_list_get(mWebView);
-    mWebEngineBackForwardList = TizenWebEngineBackForwardList(backForwardList);
+    mWebEngineBackForwardList.reset(new TizenWebEngineBackForwardList(backForwardList));
 
     ewk_settings_viewport_meta_tag_set(settings, false);
 
@@ -537,22 +536,26 @@ public:
 
   Dali::WebEngineSettings& GetSettings()
   {
-    return mWebEngineSettings;
+    static TizenWebEngineSettings dummy(nullptr);
+    return mWebEngineSettings ? *mWebEngineSettings : dummy;
   }
 
   Dali::WebEngineContext& GetContext()
   {
-    return mWebEngineContext;
+    static TizenWebEngineContext dummy(nullptr);
+    return mWebEngineContext ? *mWebEngineContext : dummy;
   }
 
   Dali::WebEngineCookieManager& GetCookieManager()
   {
-    return mWebEngineCookieManager;
+    static TizenWebEngineCookieManager dummy(nullptr);
+    return mWebEngineCookieManager ? *mWebEngineCookieManager : dummy;
   }
 
   Dali::WebEngineBackForwardList& GetBackForwardList()
   {
-    return mWebEngineBackForwardList;
+    static TizenWebEngineBackForwardList dummy(nullptr);
+    return mWebEngineBackForwardList ? *mWebEngineBackForwardList : dummy;
   }
 
   std::unique_ptr<Dali::WebEngineHitTest> CreateHitTest(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode)
@@ -803,19 +806,6 @@ public:
     ewk_view_geolocation_permission_callback_set(mWebView, &WebViewContainerForDali::OnGeolocationPermission, &mClient);
   }
 
-  void RegisterRequestInterceptorCallback(bool isRegistered)
-  {
-    Ewk_Context* context = ewk_view_context_get(mWebView);
-    if (isRegistered)
-    {
-      ewk_context_intercept_request_callback_set(context, &WebViewContainerForDali::OnRequestIntercepted, &mClient);
-    }
-    else
-    {
-      ewk_context_intercept_request_callback_set(context, nullptr, nullptr);
-    }
-  }
-
   void UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
   {
     evas_object_move(mWebView, displayArea.x, displayArea.y);
@@ -895,13 +885,6 @@ private:
     Ewk_Error* error = static_cast<Ewk_Error*>(rawError);
     std::unique_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
     client->LoadError(std::move(loadError));
-  }
-
-  static void OnRequestIntercepted(Ewk_Context*, Ewk_Intercept_Request* request, void* data)
-  {
-    auto client = static_cast<WebViewContainerClient*>(data);
-    std::unique_ptr<Dali::WebEngineRequestInterceptor> webInterceptor(new TizenWebEngineRequestInterceptor(request));
-    client->RequestIntercepted(std::move(webInterceptor));
   }
 
   static void OnUrlChanged(void* data, Evas_Object*, void* newUrl)
@@ -1099,10 +1082,10 @@ private:
   uint32_t    mWidth;
   uint32_t    mHeight;
 
-  TizenWebEngineSettings        mWebEngineSettings;
-  TizenWebEngineContext         mWebEngineContext;
-  TizenWebEngineCookieManager   mWebEngineCookieManager;
-  TizenWebEngineBackForwardList mWebEngineBackForwardList;
+  std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
+  std::unique_ptr<WebEngineContext>         mWebEngineContext;
+  std::unique_ptr<WebEngineCookieManager>   mWebEngineCookieManager;
+  std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
 };
 
 class TBMSurfaceSourceInitializer
@@ -1141,8 +1124,6 @@ TizenWebEngineChromium::TizenWebEngineChromium()
   : mWebViewContainer(0)
   , mJavaScriptEvaluationCount(0)
 {
-  EventThreadCallback* callback = new Dali::EventThreadCallback(Dali::MakeCallback(this, &TizenWebEngineChromium::OnRequestInterceptedEventCallback));
-  mRequestInterceptorEventTrigger = std::unique_ptr<Dali::EventThreadCallback>(callback);
 }
 
 TizenWebEngineChromium::~TizenWebEngineChromium()
@@ -1880,16 +1861,6 @@ void TizenWebEngineChromium::RegisterFormRepostDecidedCallback(WebEngineFormRepo
   mFormRepostDecidedCallback = callback;
 }
 
-void TizenWebEngineChromium::RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback)
-{
-  mRequestInterceptedCallback = callback;
-  if (mWebViewContainer)
-  {
-    bool isRegistered = mRequestInterceptedCallback ? true : false;
-    mWebViewContainer->RegisterRequestInterceptorCallback(isRegistered);
-  }
-}
-
 void TizenWebEngineChromium::RegisterConsoleMessageReceivedCallback(WebEngineConsoleMessageReceivedCallback callback)
 {
   mConsoleMessageReceivedCallback = callback;
@@ -1977,36 +1948,6 @@ void TizenWebEngineChromium::ScrollEdgeReached(Dali::WebEnginePlugin::ScrollEdge
 {
   DALI_LOG_RELEASE_INFO("#ScrollEdgeReached : %d\n", edge);
   ExecuteCallback(mScrollEdgeReachedCallback, edge);
-}
-
-void TizenWebEngineChromium::RequestIntercepted(std::unique_ptr<Dali::WebEngineRequestInterceptor> interceptor)
-{
-  {
-    Mutex::ScopedLock lock(mMutex);
-    mRequestInterceptorQueue.push(std::move(interceptor));
-    // Trigger an event on main thread.
-    mRequestInterceptorEventTrigger->Trigger();
-  }
-
-  // Wait for tasks on main thread and execute tasks.
-  TizenWebEngineRequestInterceptor* requestInterceptor = static_cast<TizenWebEngineRequestInterceptor*>(interceptor.get());
-  requestInterceptor->WaitAndRunTasks();
-}
-
-void TizenWebEngineChromium::OnRequestInterceptedEventCallback()
-{
-  std::unique_ptr<Dali::WebEngineRequestInterceptor> interceptor;
-  {
-    Mutex::ScopedLock lock(mMutex);
-    interceptor = std::move(mRequestInterceptorQueue.front());
-    mRequestInterceptorQueue.pop();
-  }
-
-  ExecuteCallback(mRequestInterceptedCallback, std::move(interceptor));
-
-  // Notify ui-thread tasks ready on main thread.
-  TizenWebEngineRequestInterceptor* requestInterceptor = static_cast<TizenWebEngineRequestInterceptor*>(interceptor.get());
-  requestInterceptor->NotifyTaskReady();
 }
 
 void TizenWebEngineChromium::UrlChanged(const std::string& url)

@@ -20,14 +20,11 @@
 
 // EXTERNAL INCLUDES
 #include <dali-toolkit/dali-toolkit.h>
-#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/adaptor-framework/web-engine-plugin.h>
-#include <dali/devel-api/threading/mutex.h>
 #include <dali/public-api/images/native-image-interface.h>
 
 #include <functional>
 #include <memory>
-#include <queue>
 #include <unordered_map>
 
 #include <tbm_surface.h>
@@ -92,13 +89,6 @@ public:
    * @param [in] decision The decision policy to show warning when form repost.
    */
   virtual void RequestFormRepostDecided(std::unique_ptr<Dali::WebEngineFormRepostDecision> decision) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when http request
-   * need be intercepted.
-   * @param [in] request The http request interceptor.
-   */
-  virtual void RequestIntercepted(std::unique_ptr<Dali::WebEngineRequestInterceptor> interceptor) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when url is
@@ -696,11 +686,6 @@ public:
   void RegisterFormRepostDecidedCallback(WebEngineFormRepostDecidedCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::RegisterRequestInterceptorCallback()
-   */
-  void RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback) override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::RegisterConsoleMessageReceivedCallback()
    */
   void RegisterConsoleMessageReceivedCallback(WebEngineConsoleMessageReceivedCallback callback) override;
@@ -781,11 +766,6 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::ResponsePolicyDecided()
    */
   void ResponsePolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> policy) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::RequestIntercepted()
-   */
-  void RequestIntercepted(std::unique_ptr<Dali::WebEngineRequestInterceptor> interceptor) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
@@ -875,12 +855,6 @@ public:
   void PlainTextRecieved(const std::string& plainText) override;
 
 private:
-  /**
-   * @brief Event callback for request interceptor is called on main thread.
-   */
-  void OnRequestInterceptedEventCallback();
-
-private:
   WebViewContainerForDali*   mWebViewContainer;
   Dali::NativeImageSourcePtr mDaliImageSrc;
   size_t                     mJavaScriptEvaluationCount;
@@ -894,7 +868,6 @@ private:
   WebEngineUrlChangedCallback             mUrlChangedCallback;
   WebEngineScrollEdgeReachedCallback      mScrollEdgeReachedCallback;
   WebEngineFormRepostDecidedCallback      mFormRepostDecidedCallback;
-  WebEngineRequestInterceptorCallback     mRequestInterceptedCallback;
   WebEngineConsoleMessageReceivedCallback mConsoleMessageReceivedCallback;
   WebEngineResponsePolicyDecidedCallback  mResponsePolicyDecidedCallback;
   WebEngineCertificateCallback            mCertificateConfirmedCallback;
@@ -913,10 +886,6 @@ private:
 
   std::unordered_map<size_t, JavaScriptMessageHandlerCallback>      mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptMessageHandlers;
-
-  Dali::Mutex                                                    mMutex;
-  std::unique_ptr<Dali::EventThreadCallback>                     mRequestInterceptorEventTrigger;
-  std::queue<std::unique_ptr<Dali::WebEngineRequestInterceptor>> mRequestInterceptorQueue;
 };
 } // namespace Plugin
 } // namespace Dali

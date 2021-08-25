@@ -86,11 +86,11 @@ std::string TizenWebEngineHitTest::GetNodeValue() const
   return value ? std::string(value) : std::string();
 }
 
-Dali::Property::Map& TizenWebEngineHitTest::GetAttributes() const
+Dali::Property::Map TizenWebEngineHitTest::GetAttributes() const
 {
   Eina_Hash* hash = ewk_hit_test_attribute_hash_get(ewkHitTest);
   attributes.Clear();
-  eina_hash_foreach(hash, &TizenWebEngineHitTest::IterateAttribute, &attributes);
+  eina_hash_foreach(hash, &TizenWebEngineHitTest::IterateAttributes, this);
   return attributes;
 }
 
@@ -136,11 +136,10 @@ Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()
                               Dali::PixelData::ReleaseFunction::DELETE_ARRAY);
 }
 
-Eina_Bool TizenWebEngineHitTest::IterateAttribute(const Eina_Hash*, const void* key, void* data, void* fdata)
+Eina_Bool TizenWebEngineHitTest::IterateAttributes(const Eina_Hash*, const void* key, void* data, void* fdata)
 {
-  Dali::Property::Map* hashMap = (Dali::Property::Map*)fdata;
-  const char* attributeKey = (const char*)key;
-  hashMap->Insert(attributeKey, (char*)data);
+  TizenWebEngineHitTest* pThis = (TizenWebEngineHitTest*)fdata;
+  pThis->attributes.Insert((const char*)key, (char*)data);
   return true;
 }
 

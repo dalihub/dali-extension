@@ -509,11 +509,6 @@ public:
   void RegisterFormRepostDecidedCallback(WebEngineFormRepostDecidedCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::RegisterRequestInterceptorCallback()
-   */
-  void RegisterRequestInterceptorCallback(WebEngineRequestInterceptorCallback callback) override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::RegisterConsoleMessageReceivedCallback()
    */
   void RegisterConsoleMessageReceivedCallback(WebEngineConsoleMessageReceivedCallback callback) override;
