@@ -20,8 +20,16 @@
 
 // EXTERNAL INCLUDES
 #include <Eina.h>
+
+#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/adaptor-framework/web-engine-context.h>
+#include <dali/devel-api/threading/mutex.h>
+
+#include <memory>
+#include <queue>
 #include <string>
+
+#include <ewk_intercept_request.h>
 
 struct Ewk_Context;
 
@@ -157,6 +165,11 @@ public:
   void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEngineContext::RegisterRequestInterceptedCallback()
+   */
+  void RegisterRequestInterceptedCallback(WebEngineRequestInterceptedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEngineContext::EnableCache()
    */
   void EnableCache(bool cacheEnabled) override;
@@ -243,6 +256,26 @@ public:
 
 private:
   /**
+   * @brief Callback to be called when http request need be intercepted.
+   * @param [in] interceptor The http request interceptor.
+   */
+  void RequestIntercepted(Dali::WebEngineRequestInterceptorPtr interceptor);
+
+  /**
+   * @brief Event callback for request interceptor is called on main thread.
+   */
+  void OnRequestInterceptedEventCallback();
+
+  /**
+   * @brief Callback for intercepting http request.
+   *
+   * @param[in] context context of web engine
+   * @param[in] request http request
+   * @param[in] data data for callback
+   */
+  static void OnRequestIntercepted(Ewk_Context* context, Ewk_Intercept_Request* request, void* data);
+
+  /**
    * @brief Callback for getting security origins.
    *
    * @param[in] origins security origins list
@@ -288,13 +321,17 @@ private:
   static Eina_Bool OnMimeOverridden(const char* url, const char* mime, char** newMime, void* data);
 
 private:
-  WebEngineSecurityOriginAcquiredCallback webSecurityOriginAcquiredCallback;
-  WebEngineStorageUsageAcquiredCallback   webStorageUsageAcquiredCallback;
-  WebEngineFormPasswordAcquiredCallback   webFormPasswordAcquiredCallback;
-  WebEngineDownloadStartedCallback        webDownloadStartedCallback;
-  WebEngineMimeOverriddenCallback         webMimeOverriddenCallback;
+  WebEngineSecurityOriginAcquiredCallback mWebSecurityOriginAcquiredCallback;
+  WebEngineStorageUsageAcquiredCallback   mWebStorageUsageAcquiredCallback;
+  WebEngineFormPasswordAcquiredCallback   mWebFormPasswordAcquiredCallback;
+  WebEngineDownloadStartedCallback        mWebDownloadStartedCallback;
+  WebEngineMimeOverriddenCallback         mWebMimeOverriddenCallback;
+  WebEngineRequestInterceptedCallback     mWebRequestInterceptedCallback;
 
-  Ewk_Context* ewkContext;
+  Ewk_Context*                               mEwkContext;
+  Dali::Mutex                                mMutex;
+  std::unique_ptr<Dali::EventThreadCallback> mRequestInterceptorEventTrigger;
+  std::queue<WebEngineRequestInterceptorPtr> mRequestInterceptorQueue;
 };
 
 } // namespace Plugin

@@ -90,7 +90,7 @@ public:
   /**
    * @copydoc Dali::WebEngineHitTest::GetAttributes()
    */
-  Dali::Property::Map& GetAttributes() const override;
+  Dali::Property::Map GetAttributes() const override;
 
   /**
    * @copydoc Dali::WebEngineHitTest::GetImageFileNameExtension()
@@ -113,7 +113,7 @@ private:
    *
    * @return true if succeeded, false otherwise
    */
-  static Eina_Bool IterateAttribute(const Eina_Hash* hash, const void* key, void* data, void* fdata);
+  static Eina_Bool IterateAttributes(const Eina_Hash* hash, const void* key, void* data, void* fdata);
 
 private:
   Ewk_Hit_Test*               ewkHitTest;

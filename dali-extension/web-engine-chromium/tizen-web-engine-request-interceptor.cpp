@@ -16,7 +16,6 @@
  */
 
 #include "tizen-web-engine-request-interceptor.h"
-#include "tizen-web-engine-request-interceptor-task-queue.h"
 
 namespace Dali
 {
@@ -31,6 +30,20 @@ TizenWebEngineRequestInterceptor::TizenWebEngineRequestInterceptor(Ewk_Intercept
   {
     requestUrl = std::string(url);
   }
+
+  const char* method = ewk_intercept_request_http_method_get(ewkRequestInterceptor);
+  if (method)
+  {
+    requestMethod = std::string(method);
+  }
+
+  const Eina_Hash* hash = ewk_intercept_request_headers_get(ewkRequestInterceptor);
+  if (hash)
+  {
+    eina_hash_foreach(hash, &TizenWebEngineRequestInterceptor::IterateRequestHeaders, this);
+  }
+
+  mIsThreadWaiting = true;
 }
 
 TizenWebEngineRequestInterceptor::~TizenWebEngineRequestInterceptor()
@@ -42,38 +55,21 @@ std::string TizenWebEngineRequestInterceptor::GetUrl() const
   return requestUrl;
 }
 
+Dali::Property::Map TizenWebEngineRequestInterceptor::GetHeaders() const
+{
+  return requestHeaders;
+}
+
+std::string TizenWebEngineRequestInterceptor::GetMethod() const
+{
+  return requestMethod;
+}
+
 bool TizenWebEngineRequestInterceptor::Ignore()
 {
-  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::IgnoreUi, this));
+  std::unique_lock<std::mutex> lock(mMutex);
+  mTaskQueue.push_back(std::bind(&TizenWebEngineRequestInterceptor::IgnoreUi, this));
   return true;
-}
-
-bool TizenWebEngineRequestInterceptor::SetResponseStatus(int statusCode, const std::string& customStatusText)
-{
-  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::SetResponseStatusUi, this, statusCode, customStatusText));
-  return true;
-}
-
-bool TizenWebEngineRequestInterceptor::AddResponseHeader(const std::string& fieldName, const std::string& fieldValue)
-{
-  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::AddResponseHeaderUi, this, fieldName, fieldValue));
-  return true;
-}
-
-bool TizenWebEngineRequestInterceptor::AddResponseBody(const std::string& body, uint32_t length)
-{
-  TaskQueue::GetInstance()->AddTask(std::bind(&TizenWebEngineRequestInterceptor::AddResponseBodyUi, this, body, length));
-  return true;
-}
-
-void TizenWebEngineRequestInterceptor::WaitAndRunTasks()
-{
-  TaskQueue::GetInstance()->WaitAndRunTasks();
-}
-
-void TizenWebEngineRequestInterceptor::NotifyTaskReady()
-{
-  TaskQueue::GetInstance()->NotifyTaskReady();
 }
 
 bool TizenWebEngineRequestInterceptor::IgnoreUi()
@@ -81,19 +77,82 @@ bool TizenWebEngineRequestInterceptor::IgnoreUi()
   return ewk_intercept_request_ignore(ewkRequestInterceptor);
 }
 
-bool TizenWebEngineRequestInterceptor::SetResponseStatusUi(int statusCode, const std::string& customStatusText)
+bool TizenWebEngineRequestInterceptor::SetResponseStatus(int statusCode, const std::string& customStatusText)
 {
   return ewk_intercept_request_response_status_set(ewkRequestInterceptor, statusCode, customStatusText.c_str());
 }
 
-bool TizenWebEngineRequestInterceptor::AddResponseHeaderUi(const std::string& fieldName, const std::string& fieldValue)
+bool TizenWebEngineRequestInterceptor::AddResponseHeader(const std::string& fieldName, const std::string& fieldValue)
 {
   return ewk_intercept_request_response_header_add(ewkRequestInterceptor, fieldName.c_str(), fieldValue.c_str());
 }
 
-bool TizenWebEngineRequestInterceptor::AddResponseBodyUi(const std::string& body, uint32_t length)
+bool TizenWebEngineRequestInterceptor::AddResponseHeaders(const Dali::Property::Map& headers)
+{
+  Eina_Hash* headerMap = eina_hash_string_small_new(nullptr);
+  Dali::Property::Map::SizeType count = headers.Count();
+  for(uint32_t i = 0; i < count; i++)
+  {
+    Dali::Property::Key key = headers.GetKeyAt(i);
+    if(key.type == Dali::Property::Key::STRING)
+    {
+      std::string value;
+      if(headers.GetValue(i).Get(value))
+      {
+        eina_hash_add(headerMap, key.stringKey.c_str(), value.c_str());
+      }
+    }
+  }
+  return ewk_intercept_request_response_header_map_add(ewkRequestInterceptor, headerMap);
+}
+
+bool TizenWebEngineRequestInterceptor::AddResponseBody(const std::string& body, uint32_t length)
 {
   return ewk_intercept_request_response_body_set(ewkRequestInterceptor, body.c_str(), length);
+}
+
+bool TizenWebEngineRequestInterceptor::AddResponse(const std::string& headers, const std::string& body, uint32_t length)
+{
+  return ewk_intercept_request_response_set(ewkRequestInterceptor, headers.c_str(), body.c_str(), length);
+}
+
+bool TizenWebEngineRequestInterceptor::WriteResponseChunk(const std::string& chunk, uint32_t length)
+{
+  return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, chunk.c_str(), length);
+}
+
+void TizenWebEngineRequestInterceptor::WaitAndRunTasks()
+{
+  // wait for tasks from main thread.
+  std::unique_lock<std::mutex> lock(mMutex);
+  while(mIsThreadWaiting)
+  {
+    mCondition.wait(lock);
+  }
+  mIsThreadWaiting = true;
+
+  // execute tasks on io thread.
+  for(std::vector<TaskCallback>::iterator iter = mTaskQueue.begin(); iter != mTaskQueue.end(); iter++)
+  {
+    (*iter)();
+  }
+  mTaskQueue.clear();
+}
+
+void TizenWebEngineRequestInterceptor::NotifyTaskReady()
+{
+  std::unique_lock<std::mutex> lock(mMutex);
+  mIsThreadWaiting = false;
+
+  // wake up the io thread
+  mCondition.notify_all();
+}
+
+Eina_Bool TizenWebEngineRequestInterceptor::IterateRequestHeaders(const Eina_Hash*, const void* key, void* data, void* fdata)
+{
+  TizenWebEngineRequestInterceptor* pThis = (TizenWebEngineRequestInterceptor*)fdata;
+  pThis->requestHeaders.Insert((const char*)key, (char*)data);
+  return true;
 }
 
 } // namespace Plugin

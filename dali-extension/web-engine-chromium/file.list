@@ -15,6 +15,5 @@ web_engine_chromium_plugin_src_files = \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-load-error.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-policy-decision.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-request-interceptor.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-request-interceptor-task-queue.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-security-origin.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-settings.cpp

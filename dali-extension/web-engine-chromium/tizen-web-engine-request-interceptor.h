@@ -21,7 +21,10 @@
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/web-engine-request-interceptor.h>
 
+#include <atomic>
+#include <condition_variable>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -55,6 +58,16 @@ public:
   std::string GetUrl() const override;
 
   /**
+   * @copydoc Dali::WebEngineRequestInterceptor::GetHeaders()
+   */
+  Dali::Property::Map GetHeaders() const override;
+
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::GetMethod()
+   */
+  std::string GetMethod() const override;
+
+  /**
    * @copydoc Dali::WebEngineRequestInterceptor::Ignore()
    */
   bool Ignore() override;
@@ -70,12 +83,27 @@ public:
   bool AddResponseHeader(const std::string& fieldName, const std::string& fieldValue) override;
 
   /**
+   * @copydoc Dali::WebEngineRequestInterceptor::AddResponseHeaders()
+   */
+  bool AddResponseHeaders(const Dali::Property::Map& headers) override;
+
+  /**
    * @copydoc Dali::WebEngineRequestInterceptor::AddResponseBody()
    */
   bool AddResponseBody(const std::string& body, uint32_t length) override;
 
   /**
-   * @brief Wait for and run tasks on ui-thread.
+   * @copydoc Dali::WebEngineRequestInterceptor::AddResponse()
+   */
+  bool AddResponse(const std::string& headers, const std::string& body, uint32_t length) override;
+
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::WriteResponseChunk()
+   */
+  bool WriteResponseChunk(const std::string& chunk, uint32_t length) override;
+
+  /**
+   * @brief Wait for and run tasks on io-thread.
    */
   void WaitAndRunTasks();
 
@@ -86,32 +114,38 @@ public:
 
 private:
   /**
+   * @brief Task callback.
+   */
+  using TaskCallback = std::function<bool(void)>;
+
+  /**
    * @copydoc Dali::WebEngineRequestInterceptor::Ignore()
-   * @note It is run on ui thread
+   * @note It is run on IO thread
    */
   bool IgnoreUi();
 
   /**
-   * @copydoc Dali::WebEngineRequestInterceptor::SetResponseStatus()
-   * @note It is run on ui thread
+   * @brief Iterator attributes.
+   *
+   * @param[in] hash Hash map that need be iterated
+   * @param[in] key Key of hash map
+   * @param[in] data Value of hash map
+   * @param[in] fdata User data for iterating hash map
+   *
+   * @return true if succeeded, false otherwise
    */
-  bool SetResponseStatusUi(int statusCode, const std::string& customStatusText);
-
-  /**
-   * @copydoc Dali::WebEngineRequestInterceptor::AddResponseHeader()
-   * @note It is run on ui thread
-   */
-  bool AddResponseHeaderUi(const std::string& fieldName, const std::string& fieldValue);
-
-  /**
-   * @copydoc Dali::WebEngineRequestInterceptor::AddResponseBody()
-   * @note It is run on ui thread
-   */
-  bool AddResponseBodyUi(const std::string& body, uint32_t length);
+  static Eina_Bool IterateRequestHeaders(const Eina_Hash* hash, const void* key, void* data, void* fdata);
 
 private:
   Ewk_Intercept_Request* ewkRequestInterceptor;
   std::string            requestUrl;
+  std::string            requestMethod;
+  Dali::Property::Map    requestHeaders;
+
+  bool                      mIsThreadWaiting;
+  std::vector<TaskCallback> mTaskQueue;
+  std::mutex                mMutex;
+  std::condition_variable   mCondition;
 };
 
 } // namespace Plugin
