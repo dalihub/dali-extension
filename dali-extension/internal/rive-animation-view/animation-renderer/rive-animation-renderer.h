@@ -97,10 +97,10 @@ public:
   /**
    * @brief Renders the content to the target buffer synchronously.
    *
-   * @param[in] frameNumber The frame number to be rendered
+   * @param[in] elapsed The elapsed time
    * @return True if the rendering success, false otherwise.
    */
-  bool Render(uint32_t frameNumber);
+  bool Render(double elapsed);
 
   /**
    * @brief Gets the total number of frames of the file.

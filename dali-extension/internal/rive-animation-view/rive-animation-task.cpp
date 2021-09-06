@@ -304,7 +304,11 @@ bool RiveAnimationTask::Rasterize()
   bool renderSuccess = false;
   if(mVectorRenderer)
   {
-    renderSuccess = mVectorRenderer->Render(currentFrame);
+    auto currentTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed = currentTime - mEndTime;
+    mEndTime = currentTime;
+
+    renderSuccess = mVectorRenderer->Render(elapsed.count());
     if(!renderSuccess)
     {
       DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationTask::Rasterize: Rendering failed. Try again later.[%d] [%p]\n", currentFrame, this);
