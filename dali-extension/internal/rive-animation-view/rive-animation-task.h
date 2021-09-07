@@ -303,28 +303,29 @@ private:
     PAUSED    ///< The animation is paused
   };
 
-  std::string                          mUrl;
-  RiveAnimationRendererPtr             mVectorRenderer;
-  AnimationData                        mAnimationData[2];
-  RiveAnimationThread&                 mRiveAnimationThread;
-  ConditionalWait                      mConditionalWait;
-  std::unique_ptr<EventThreadCallback> mAnimationFinishedTrigger;
-  PlayState                            mPlayState;
-  TimePoint                            mNextFrameStartTime;
-  int64_t                              mFrameDurationMicroSeconds;
-  float                                mFrameRate;
-  uint32_t                             mCurrentFrame;
-  uint32_t                             mTotalFrame;
-  uint32_t                             mStartFrame;
-  uint32_t                             mEndFrame;
-  uint32_t                             mDroppedFrames;
-  uint32_t                             mWidth;
-  uint32_t                             mHeight;
-  uint32_t                             mAnimationDataIndex;
-  bool                                 mUpdateFrameNumber;
-  bool                                 mNeedAnimationFinishedTrigger;
-  bool                                 mAnimationDataUpdated;
-  bool                                 mDestroyTask;
+  std::string                           mUrl;
+  RiveAnimationRendererPtr              mVectorRenderer;
+  AnimationData                         mAnimationData[2];
+  RiveAnimationThread&                  mRiveAnimationThread;
+  ConditionalWait                       mConditionalWait;
+  std::unique_ptr<EventThreadCallback>  mAnimationFinishedTrigger;
+  PlayState                             mPlayState;
+  TimePoint                             mNextFrameStartTime;
+  std::chrono::system_clock::time_point mEndTime;
+  int64_t                               mFrameDurationMicroSeconds;
+  float                                 mFrameRate;
+  uint32_t                              mCurrentFrame;
+  uint32_t                              mTotalFrame;
+  uint32_t                              mStartFrame;
+  uint32_t                              mEndFrame;
+  uint32_t                              mDroppedFrames;
+  uint32_t                              mWidth;
+  uint32_t                              mHeight;
+  uint32_t                              mAnimationDataIndex;
+  bool                                  mUpdateFrameNumber;
+  bool                                  mNeedAnimationFinishedTrigger;
+  bool                                  mAnimationDataUpdated;
+  bool                                  mDestroyTask;
 };
 
 } // namespace Internal

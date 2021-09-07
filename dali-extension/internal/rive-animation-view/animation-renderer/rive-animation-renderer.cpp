@@ -233,7 +233,7 @@ void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this);
 }
 
-bool RiveAnimationRenderer::Render(uint32_t frameNumber)
+bool RiveAnimationRenderer::Render(double elapsed)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
   if(!mTbmQueue || !mTargetSurface || !mArtboard || mAnimations.empty())
@@ -292,13 +292,7 @@ bool RiveAnimationRenderer::Render(uint32_t frameNumber)
   mSwCanvas->clear();
   mSwCanvas->target((uint32_t*)buffer, info.planes[0].stride / 4, info.width, info.height, tvg::SwCanvas::ARGB8888);
 
-  // Render Rive Frame
-  frameNumber    = mStartFrameNumber + frameNumber;
-
-  //FIXME: This should be changed to the time based rendering
-  static float elapsed = 0.0f;
-  elapsed = 1.0f / 60.0f;
-
+  // Render Rive animation by elapsed time
   for(auto& animation : mAnimations)
   {
     if(animation.instance)
