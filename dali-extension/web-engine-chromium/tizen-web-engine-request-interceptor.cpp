@@ -68,11 +68,11 @@ std::string TizenWebEngineRequestInterceptor::GetMethod() const
 bool TizenWebEngineRequestInterceptor::Ignore()
 {
   std::unique_lock<std::mutex> lock(mMutex);
-  mTaskQueue.push_back(std::bind(&TizenWebEngineRequestInterceptor::IgnoreUi, this));
+  mTaskQueue.push_back(std::bind(&TizenWebEngineRequestInterceptor::IgnoreIo, this));
   return true;
 }
 
-bool TizenWebEngineRequestInterceptor::IgnoreUi()
+bool TizenWebEngineRequestInterceptor::IgnoreIo()
 {
   return ewk_intercept_request_ignore(ewkRequestInterceptor);
 }
@@ -103,7 +103,9 @@ bool TizenWebEngineRequestInterceptor::AddResponseHeaders(const Dali::Property::
       }
     }
   }
-  return ewk_intercept_request_response_header_map_add(ewkRequestInterceptor, headerMap);
+  bool result = ewk_intercept_request_response_header_map_add(ewkRequestInterceptor, headerMap);
+  eina_hash_free(headerMap);
+  return result;
 }
 
 bool TizenWebEngineRequestInterceptor::AddResponseBody(const std::string& body, uint32_t length)
@@ -118,7 +120,14 @@ bool TizenWebEngineRequestInterceptor::AddResponse(const std::string& headers, c
 
 bool TizenWebEngineRequestInterceptor::WriteResponseChunk(const std::string& chunk, uint32_t length)
 {
-  return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, chunk.c_str(), length);
+  if (chunk.empty())
+  {
+    return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, nullptr, 0);
+  }
+  else
+  {
+    return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, chunk.c_str(), length);
+  }
 }
 
 void TizenWebEngineRequestInterceptor::WaitAndRunTasks()
@@ -150,7 +159,7 @@ void TizenWebEngineRequestInterceptor::NotifyTaskReady()
 
 Eina_Bool TizenWebEngineRequestInterceptor::IterateRequestHeaders(const Eina_Hash*, const void* key, void* data, void* fdata)
 {
-  TizenWebEngineRequestInterceptor* pThis = (TizenWebEngineRequestInterceptor*)fdata;
+  TizenWebEngineRequestInterceptor* pThis = static_cast<TizenWebEngineRequestInterceptor*>(fdata);
   pThis->requestHeaders.Insert((const char*)key, (char*)data);
   return true;
 }

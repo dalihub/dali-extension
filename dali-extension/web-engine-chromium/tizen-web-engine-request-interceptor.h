@@ -122,7 +122,7 @@ private:
    * @copydoc Dali::WebEngineRequestInterceptor::Ignore()
    * @note It is run on IO thread
    */
-  bool IgnoreUi();
+  bool IgnoreIo();
 
   /**
    * @brief Iterator attributes.
