@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.0.43
+Version:    2.0.45
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -194,6 +194,7 @@ Web Engine LWE(Light-weight Web Engine) plugin to support WebView for Dali
 %package rive-animation-view
 Summary:    Plugin to render a rive animation
 Group:      System/Libraries
+Requires: dali2-extension-rive-animation-view = %{version}-%{release}
 %if 0%{?tizen_65_or_greater}
 BuildRequires:  pkgconfig(thorvg)
 BuildRequires:  pkgconfig(rive_tizen)
@@ -201,6 +202,14 @@ BuildRequires:  pkgconfig(rive_tizen)
 
 %description rive-animation-view
 Plugin to render a rive animation
+
+%package rive-animation-view-devel
+Summary: Development components for rive animation view
+Group: System/Libraries
+Requires: dali2-extension-rive-animation-view = %{version}-%{release}
+
+%description rive-animation-view-devel
+Header & package configuration of rive-animation-view
 
 ##############################
 # Preparation
@@ -324,6 +333,12 @@ exit 0
 exit 0
 %endif
 
+%if 0%{?tizen_65_or_greater}
+%post rive-animation-view
+/sbin/ldconfig
+exit 0
+%endif
+
 %post color-controller-plugin
 /sbin/ldconfig
 exit 0
@@ -377,6 +392,12 @@ exit 0
 
 %if 0%{?tizen_65_or_greater}
 %postun vector-image-renderer-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%postun rive-animation-view
 /sbin/ldconfig
 exit 0
 %endif
@@ -463,10 +484,13 @@ exit 0
 %files rive-animation-view
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_includedir}/dali-extension/devel-api/rive-animation-view/*
 %{_libdir}/libdali2-extension-rive-animation-view.so*
-%{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
 %license LICENSE
+
+%files rive-animation-view-devel
+%defattr(-,root,root,-)
+%{_includedir}/dali-extension/devel-api/rive-animation-view/*
+%{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
 %endif
 
 %files color-controller-plugin
