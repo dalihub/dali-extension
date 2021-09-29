@@ -694,7 +694,7 @@ void TizenWebEngineLWE::DestroyInstance()
   mWebContainer->Destroy();
 }
 
-Dali::NativeImageInterfacePtr TizenWebEngineLWE::GetNativeImageSource()
+Dali::NativeImageSourcePtr TizenWebEngineLWE::GetNativeImageSource()
 {
   return mNativeImageSourcePtr;
 }
