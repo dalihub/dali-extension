@@ -1173,7 +1173,7 @@ Dali::PixelData TizenWebEngineChromium::GetFavicon() const
   return mWebViewContainer ? mWebViewContainer->GetFavicon() : Dali::PixelData();
 }
 
-NativeImageInterfacePtr TizenWebEngineChromium::GetNativeImageSource()
+NativeImageSourcePtr TizenWebEngineChromium::GetNativeImageSource()
 {
   return mDaliImageSrc;
 }
@@ -1912,7 +1912,6 @@ void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
   {
     return;
   }
-
   Any source(buffer);
   mDaliImageSrc->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);

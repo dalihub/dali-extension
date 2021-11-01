@@ -286,7 +286,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
    */
-  NativeImageInterfacePtr GetNativeImageSource() override;
+  NativeImageSourcePtr GetNativeImageSource() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetTitle()
