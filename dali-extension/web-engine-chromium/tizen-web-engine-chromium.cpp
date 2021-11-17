@@ -620,59 +620,11 @@ public:
 
   bool SendTouchEvent(const TouchEvent& touch)
   {
-    Ewk_Mouse_Button_Type type = (Ewk_Mouse_Button_Type)0;
-    switch (touch.GetMouseButton(0))
-    {
-      case MouseButton::PRIMARY:
-      {
-        type = EWK_Mouse_Button_Left;
-        break;
-      }
-      case MouseButton::TERTIARY:
-      {
-        type = EWK_Mouse_Button_Middle;
-        break;
-      }
-      case MouseButton::SECONDARY:
-      {
-        type = EWK_Mouse_Button_Right;
-        break;
-      }
-      default:
-      {
-        break;
-      }
-    }
-
-    switch (touch.GetState(0))
-    {
-      case PointState::DOWN:
-      {
-        float x = touch.GetScreenPosition(0).x;
-        float y = touch.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_down(mWebView, type, x, y);
-        break;
-      }
-      case PointState::UP:
-      {
-        float x = touch.GetScreenPosition(0).x;
-        float y = touch.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_up(mWebView, type, x, y);
-        break;
-      }
-      case PointState::MOTION:
-      {
-        float x = touch.GetScreenPosition(0).x;
-        float y = touch.GetScreenPosition(0).y;
-        ewk_view_feed_mouse_move(mWebView, x, y);
-        break;
-      }
-      default:
-      {
-        break;
-      }
-    }
-    return false;
+#if defined(OS_TIZEN_TV)
+    return FeedMouseEvent(touch);
+#else
+    return FeedTouchEvent(touch);
+#endif
   }
 
   bool SendKeyEvent(const Dali::KeyEvent& keyEvent)
@@ -1073,6 +1025,112 @@ private:
     Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
     std::unique_ptr<Dali::WebEngineHitTest> webHitTest(new TizenWebEngineHitTest(hitTest, evas, false));
     client->HitTestCreated(std::move(webHitTest));
+  }
+
+  bool FeedTouchEvent(const TouchEvent& touch)
+  {
+    Ewk_Touch_Event_Type type = EWK_TOUCH_START;
+    Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
+    switch (touch.GetState(0))
+    {
+      case PointState::DOWN:
+      {
+        type = EWK_TOUCH_START;
+        state = EVAS_TOUCH_POINT_DOWN;
+        break;
+      }
+      case PointState::UP:
+      {
+        type = EWK_TOUCH_END;
+        state = EVAS_TOUCH_POINT_UP;
+        break;
+      }
+      case PointState::MOTION:
+      {
+        type = EWK_TOUCH_MOVE;
+        state = EVAS_TOUCH_POINT_MOVE;
+        break;
+      }
+      case PointState::INTERRUPTED:
+      {
+        type = EWK_TOUCH_CANCEL;
+        state = EVAS_TOUCH_POINT_CANCEL;
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+
+    Eina_List* pointList = 0;
+    Ewk_Touch_Point* point = new Ewk_Touch_Point;
+    point->id = 0;
+    point->x = touch.GetScreenPosition(0).x;
+    point->y = touch.GetScreenPosition(0).y;
+    point->state = state;
+    pointList = eina_list_append(pointList, point);
+
+    ewk_view_feed_touch_event(mWebView, type, pointList, 0);
+    eina_list_free(pointList);
+    return false;
+  }
+
+  bool FeedMouseEvent(const TouchEvent& touch)
+  {
+    Ewk_Mouse_Button_Type type = (Ewk_Mouse_Button_Type)0;
+    switch (touch.GetMouseButton(0))
+    {
+      case MouseButton::PRIMARY:
+      {
+        type = EWK_Mouse_Button_Left;
+        break;
+      }
+      case MouseButton::TERTIARY:
+      {
+        type = EWK_Mouse_Button_Middle;
+        break;
+      }
+      case MouseButton::SECONDARY:
+      {
+        type = EWK_Mouse_Button_Right;
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+
+    switch (touch.GetState(0))
+    {
+      case PointState::DOWN:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_down(mWebView, type, x, y);
+        break;
+      }
+      case PointState::UP:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_up(mWebView, type, x, y);
+        break;
+      }
+      case PointState::MOTION:
+      {
+        float x = touch.GetScreenPosition(0).x;
+        float y = touch.GetScreenPosition(0).y;
+        ewk_view_feed_mouse_move(mWebView, x, y);
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+    return false;
   }
 
 private:
