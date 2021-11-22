@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.0.52
+Version:    2.0.53
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -238,6 +238,11 @@ LDFLAGS+=" -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbol
 CFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 CXXFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 configure_flags="--enable-ecore-wl2"
+%endif
+
+%if "%{?profile}" == "tv"
+CFLAGS+=" -DOS_TIZEN_TV"
+CXXFLAGS+=" -DOS_TIZEN_TV"
 %endif
 
 libtoolize --force
