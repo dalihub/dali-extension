@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -213,6 +213,14 @@ void LogPlayerError( int error )
     }
   }
 }
+
+/**
+ * @brief Whether set play positoin accurately or not.
+ *  If true, we set play position to the nearest frame position. but this might be considerably slow, accurately.
+ *  If false, we set play position to the nearest key frame position. this might be faster but less accurate.
+ * see player_set_play_position()
+ */
+constexpr bool ACCURATE_PLAY_POSITION_SET = true;
 
 } // unnamed namespace
 
@@ -477,7 +485,7 @@ void TizenVideoPlayer::SetPlayPosition( int millisecond )
       mPlayerState == PLAYER_STATE_PAUSED
   )
   {
-    error = player_set_play_position( mPlayer, millisecond, false, PlayerSeekCompletedCb, NULL );
+    error = player_set_play_position( mPlayer, millisecond, ACCURATE_PLAY_POSITION_SET, PlayerSeekCompletedCb, NULL );
     LogPlayerError( error );
   }
 }
@@ -742,7 +750,7 @@ void TizenVideoPlayer::Forward( int millisecond )
 
     nextPosition = currentPosition + millisecond;
 
-    error = player_set_play_position( mPlayer, nextPosition, false, PlayerSeekCompletedCb, NULL );
+    error = player_set_play_position( mPlayer, nextPosition, ACCURATE_PLAY_POSITION_SET, PlayerSeekCompletedCb, NULL );
     LogPlayerError( error );
   }
 }
@@ -767,7 +775,7 @@ void TizenVideoPlayer::Backward( int millisecond )
     nextPosition = currentPosition - millisecond;
     nextPosition = ( nextPosition < 0 )? 0 : nextPosition;
 
-    error = player_set_play_position( mPlayer, nextPosition, false, PlayerSeekCompletedCb, NULL );
+    error = player_set_play_position( mPlayer, nextPosition, ACCURATE_PLAY_POSITION_SET, PlayerSeekCompletedCb, NULL );
     LogPlayerError( error );
   }
 }
