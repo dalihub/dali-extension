@@ -89,22 +89,15 @@ public:
       width           = rhs.width;
       height          = rhs.height;
       playState       = rhs.playState;
-      animations.resize(rhs.animations.size());
-      std::copy(rhs.animations.begin(), rhs.animations.end(), animations.begin());
-      elapsedTimes.resize(rhs.elapsedTimes.size());
-      std::copy(rhs.elapsedTimes.begin(), rhs.elapsedTimes.end(), elapsedTimes.begin());
-      fillColors.resize(rhs.fillColors.size());
-      std::copy(rhs.fillColors.begin(), rhs.fillColors.end(), fillColors.begin());
-      strokeColors.resize(rhs.strokeColors.size());
-      std::copy(rhs.strokeColors.begin(), rhs.strokeColors.end(), strokeColors.begin());
-      opacities.resize(rhs.opacities.size());
-      std::copy(rhs.opacities.begin(), rhs.opacities.end(), opacities.begin());
-      scales.resize(rhs.scales.size());
-      std::copy(rhs.scales.begin(), rhs.scales.end(), scales.begin());
-      rotations.resize(rhs.rotations.size());
-      std::copy(rhs.rotations.begin(), rhs.rotations.end(), rotations.begin());
-      positions.resize(rhs.positions.size());
-      std::copy(rhs.positions.begin(), rhs.positions.end(), positions.begin());
+
+      animations.insert(animations.end(), rhs.animations.begin(), rhs.animations.end());
+      elapsedTimes.insert(elapsedTimes.end(), rhs.elapsedTimes.begin(), rhs.elapsedTimes.end());
+      fillColors.insert(fillColors.end(), rhs.fillColors.begin(), rhs.fillColors.end());
+      strokeColors.insert(strokeColors.end(), rhs.strokeColors.begin(), rhs.strokeColors.end());
+      opacities.insert(opacities.end(), rhs.opacities.begin(), rhs.opacities.end());
+      scales.insert(scales.end(), rhs.scales.begin(), rhs.scales.end());
+      rotations.insert(rotations.end(), rhs.rotations.begin(), rhs.rotations.end());
+      positions.insert(positions.end(), rhs.positions.begin(), rhs.positions.end());
 
       return *this;
     }
