@@ -1270,6 +1270,11 @@ void TizenWebEngineLWE::RegisterResponsePolicyDecidedCallback(WebEngineResponseP
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::RegisterCertificateConfirmedCallback(WebEngineCertificateCallback callback)
 {
   // NOT IMPLEMENTED

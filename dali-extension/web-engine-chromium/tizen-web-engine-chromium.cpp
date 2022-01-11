@@ -297,6 +297,9 @@ public:
     evas_object_smart_callback_add(mWebView, "policy,response,decide",
                                    &WebViewContainerForDali::OnResponsePolicyDecided,
                                    &mClient);
+    evas_object_smart_callback_add(mWebView, "policy,navigation,decide",
+                                   &WebViewContainerForDali::OnNavigationPolicyDecided,
+                                   &mClient);
     evas_object_smart_callback_add(mWebView, "request,certificate,confirm",
                                    &WebViewContainerForDali::OnCertificateConfirmed,
                                    &mClient);
@@ -927,6 +930,14 @@ private:
     Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
     std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
     client->ResponsePolicyDecided(std::move(webPolicyDecision));
+  }
+
+  static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
+    std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
+    client->NavigationPolicyDecided(std::move(webPolicyDecision));
   }
 
   static void OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo)
@@ -1929,6 +1940,11 @@ void TizenWebEngineChromium::RegisterResponsePolicyDecidedCallback(WebEngineResp
   mResponsePolicyDecidedCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
+{
+  mNavigationPolicyDecidedCallback = callback;
+}
+
 void TizenWebEngineChromium::RegisterCertificateConfirmedCallback(WebEngineCertificateCallback callback)
 {
   mCertificateConfirmedCallback = callback;
@@ -2029,6 +2045,12 @@ void TizenWebEngineChromium::ResponsePolicyDecided(std::unique_ptr<Dali::WebEngi
 {
   DALI_LOG_RELEASE_INFO("#ResponsePolicyDecided.\n");
   ExecuteCallback(mResponsePolicyDecidedCallback, std::move(decision));
+}
+
+void TizenWebEngineChromium::NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision)
+{
+  DALI_LOG_RELEASE_INFO("#NavigationPolicyDecided.\n");
+  ExecuteCallback(mNavigationPolicyDecidedCallback, std::move(decision));
 }
 
 void TizenWebEngineChromium::CertificateConfirmed(std::unique_ptr<Dali::WebEngineCertificate> confirm)

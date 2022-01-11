@@ -519,6 +519,11 @@ public:
   void RegisterResponsePolicyDecidedCallback(WebEngineResponsePolicyDecidedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNavigationPolicyDecidedCallback()
+   */
+  void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterCertificateConfirmedCallback()
    */
   void RegisterCertificateConfirmedCallback(WebEngineCertificateCallback callback) override;
