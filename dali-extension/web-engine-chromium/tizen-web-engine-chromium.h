@@ -105,11 +105,18 @@ public:
   virtual void ConsoleMessageReceived(std::unique_ptr<Dali::WebEngineConsoleMessage> message) = 0;
 
   /**
-   * @brief Callback function to be called by WebViewContainer when new window
+   * @brief Callback function to be called by WebViewContainer when http response
    * policy would be decided.
    * @param [in] decision Policy need be decided.
    */
   virtual void ResponsePolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
+
+  /**
+   * @brief Callback function to be called by WebViewContainer when navigation
+   * policy would be decided.
+   * @param [in] decision Policy need be decided.
+   */
+  virtual void NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
 
   /**
    * @brief Callback function to be called by WebViewContainer when certificate
@@ -696,6 +703,11 @@ public:
   void RegisterResponsePolicyDecidedCallback(WebEngineResponsePolicyDecidedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNavigationPolicyDecidedCallback()
+   */
+  void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterCertificateConfirmedCallback()
    */
   void RegisterCertificateConfirmedCallback(WebEngineCertificateCallback callback) override;
@@ -766,6 +778,11 @@ public:
    * @copydoc Dali::Plugin::WebViewContainerClient::ResponsePolicyDecided()
    */
   void ResponsePolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> policy) override;
+
+  /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::NavigationPolicyDecided()
+   */
+  void NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> policy) override;
 
   /**
    * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
@@ -861,28 +878,29 @@ private:
 
   WebEngineFrameRenderedSignalType mFrameRenderedSignal;
 
-  WebEnginePageLoadCallback               mLoadStartedCallback;
-  WebEnginePageLoadCallback               mLoadInProgressCallback;
-  WebEnginePageLoadCallback               mLoadFinishedCallback;
-  WebEnginePageLoadErrorCallback          mLoadErrorCallback;
-  WebEngineUrlChangedCallback             mUrlChangedCallback;
-  WebEngineScrollEdgeReachedCallback      mScrollEdgeReachedCallback;
-  WebEngineFormRepostDecidedCallback      mFormRepostDecidedCallback;
-  WebEngineConsoleMessageReceivedCallback mConsoleMessageReceivedCallback;
-  WebEngineResponsePolicyDecidedCallback  mResponsePolicyDecidedCallback;
-  WebEngineCertificateCallback            mCertificateConfirmedCallback;
-  WebEngineCertificateCallback            mSslCertificateChangedCallback;
-  WebEngineHttpAuthHandlerCallback        mHttpAuthHandlerCallback;
-  WebEngineContextMenuShownCallback       mContextMenuShownCallback;
-  WebEngineContextMenuHiddenCallback      mContextMenuHiddenCallback;
-  WebEngineHitTestCreatedCallback         mHitTestCreatedCallback;
-  JavaScriptAlertCallback                 mJavaScriptAlertCallback;
-  JavaScriptConfirmCallback               mJavaScriptConfirmCallback;
-  JavaScriptPromptCallback                mJavaScriptPromptCallback;
-  ScreenshotCapturedCallback              mScreenshotCapturedCallback;
-  VideoPlayingCallback                    mVideoPlayingCallback;
-  GeolocationPermissionCallback           mGeolocationPermissionCallback;
-  PlainTextReceivedCallback               mPlainTextReceivedCallback;
+  WebEnginePageLoadCallback                mLoadStartedCallback;
+  WebEnginePageLoadCallback                mLoadInProgressCallback;
+  WebEnginePageLoadCallback                mLoadFinishedCallback;
+  WebEnginePageLoadErrorCallback           mLoadErrorCallback;
+  WebEngineUrlChangedCallback              mUrlChangedCallback;
+  WebEngineScrollEdgeReachedCallback       mScrollEdgeReachedCallback;
+  WebEngineFormRepostDecidedCallback       mFormRepostDecidedCallback;
+  WebEngineConsoleMessageReceivedCallback  mConsoleMessageReceivedCallback;
+  WebEngineResponsePolicyDecidedCallback   mResponsePolicyDecidedCallback;
+  WebEngineNavigationPolicyDecidedCallback mNavigationPolicyDecidedCallback;
+  WebEngineCertificateCallback             mCertificateConfirmedCallback;
+  WebEngineCertificateCallback             mSslCertificateChangedCallback;
+  WebEngineHttpAuthHandlerCallback         mHttpAuthHandlerCallback;
+  WebEngineContextMenuShownCallback        mContextMenuShownCallback;
+  WebEngineContextMenuHiddenCallback       mContextMenuHiddenCallback;
+  WebEngineHitTestCreatedCallback          mHitTestCreatedCallback;
+  JavaScriptAlertCallback                  mJavaScriptAlertCallback;
+  JavaScriptConfirmCallback                mJavaScriptConfirmCallback;
+  JavaScriptPromptCallback                 mJavaScriptPromptCallback;
+  ScreenshotCapturedCallback               mScreenshotCapturedCallback;
+  VideoPlayingCallback                     mVideoPlayingCallback;
+  GeolocationPermissionCallback            mGeolocationPermissionCallback;
+  PlainTextReceivedCallback                mPlainTextReceivedCallback;
 
   std::unordered_map<size_t, JavaScriptMessageHandlerCallback>      mJavaScriptEvaluationResultHandlers;
   std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptMessageHandlers;
