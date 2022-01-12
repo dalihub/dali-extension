@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@
 #include <time.h>
 #include <cmath>
 #include <cstring> // for strlen()
-#include <rive/file.hpp>
 #include <rive/node.hpp>
-#include <rive/shapes/paint/color.hpp>
-#include <rive/shapes/paint/fill.hpp>
-#include <rive/shapes/paint/solid_color.hpp>
-#include <rive/shapes/paint/stroke.hpp>
+#include <rive/file.hpp>
 #include <rive/tvg_renderer.hpp>
+#include <rive/shapes/paint/fill.hpp>
+#include <rive/shapes/paint/stroke.hpp>
+#include <rive/shapes/paint/color.hpp>
+#include <rive/shapes/paint/solid_color.hpp>
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
@@ -137,8 +137,8 @@ void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
 
   for(unsigned int i = 0; i < mArtboard->animationCount(); i++)
   {
-    auto               animation = mArtboard->animation(i);
-    const std::string& name      = animation->name();
+    auto animation = mArtboard->animation(i);
+    const std::string& name = animation->name();
     mAnimations.emplace_back(Animation(new rive::LinearAnimationInstance(animation), name, false));
   }
 
@@ -287,6 +287,7 @@ bool RiveAnimationRenderer::Render(double elapsed)
   {
     mSwCanvas = tvg::SwCanvas::gen();
     mSwCanvas->mempool(tvg::SwCanvas::MempoolPolicy::Individual);
+
   }
   mSwCanvas->clear();
   mSwCanvas->target((uint32_t*)buffer, info.planes[0].stride / 4, info.width, info.height, tvg::SwCanvas::ARGB8888);
@@ -343,7 +344,7 @@ bool RiveAnimationRenderer::Render(double elapsed)
 
     RiveAnimationRendererManager::Get().TriggerEvent(*this);
 
-    DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Render: Resource ready [%p]\n", this);
+    DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this);
   }
 
   return true;
@@ -452,7 +453,7 @@ void RiveAnimationRenderer::SetNodeScale(const std::string& nodeName, Vector2 sc
 void RiveAnimationRenderer::SetNodeRotation(const std::string& nodeName, Degree degree)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-  auto                    node = mArtboard->find(nodeName.c_str());
+  auto node = mArtboard->find(nodeName.c_str());
   if(!node)
   {
     return;
