@@ -215,7 +215,7 @@ void RiveAnimationView::OnInitialize()
 {
   Toolkit::DevelControl::SetAccessibilityConstructor(Self(), [](Dali::Actor actor) {
     return std::unique_ptr<Dali::Accessibility::Accessible>(
-      new Toolkit::DevelControl::AccessibleImpl(actor, Dali::Accessibility::Role::IMAGE));
+      new Toolkit::DevelControl::ControlAccessible(actor, Dali::Accessibility::Role::IMAGE));
   });
 
   // Enable highightability
