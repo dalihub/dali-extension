@@ -194,7 +194,7 @@ void TizenCameraPlayer::StopPreview()
     int error = camera_stop_preview(mCameraPlayer);
     CameraPlayerError(error, __FUNCTION__, __LINE__);
 
-    if (mNativeImageSourcePtr != NULL && mTimer)
+    if (mNativeImageSourcePtr && mTimer)
     {
       mTimer.Stop();
       DestroyPackets();
@@ -204,7 +204,7 @@ void TizenCameraPlayer::StopPreview()
 
 void TizenCameraPlayer::Destroy()
 {
-  if (mNativeImageSourcePtr != NULL && mTimer)
+  if (mNativeImageSourcePtr && mTimer)
   {
     mTimer.Stop();
     DestroyPackets();
@@ -380,7 +380,7 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
 {
   GetPlayerState(&mCameraPlayerState);
 
-  if (mNativeImageSourcePtr != NULL)
+  if (mNativeImageSourcePtr)
   {
     DALI_LOG_ERROR("SetDisplayArea is only for window surface target.\n");
     return;
