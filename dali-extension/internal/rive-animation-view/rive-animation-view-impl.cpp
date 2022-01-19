@@ -155,6 +155,7 @@ void RiveAnimationView::OnSceneConnection(int depth)
   }
   else
   {
+    mRiveAnimationTask->SetRenderer(mRenderer);
     Actor actor = Self();
 
     // Add property notification for scaling & size

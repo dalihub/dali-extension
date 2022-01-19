@@ -373,7 +373,7 @@ void TizenVideoPlayer::Play()
 
   if( mPlayerState == PLAYER_STATE_READY || mPlayerState == PLAYER_STATE_PAUSED )
   {
-    if( mNativeImageSourcePtr != NULL && mTimer )
+    if( mNativeImageSourcePtr && mTimer )
     {
       mTimer.Start();
     }
@@ -392,7 +392,7 @@ void TizenVideoPlayer::Pause()
     int error = player_pause( mPlayer );
     LogPlayerError( error );
 
-    if( mNativeImageSourcePtr != NULL && mTimer )
+    if( mNativeImageSourcePtr && mTimer )
     {
       mTimer.Stop();
       DestroyPackets();
@@ -409,7 +409,7 @@ void TizenVideoPlayer::Stop()
     int error = player_stop( mPlayer );
     LogPlayerError( error );
 
-    if( mNativeImageSourcePtr != NULL && mTimer )
+    if( mNativeImageSourcePtr && mTimer )
     {
       mTimer.Stop();
       DestroyPackets();
@@ -512,7 +512,7 @@ int TizenVideoPlayer::GetPlayPosition()
 
 void TizenVideoPlayer::SetDisplayRotation( Dali::VideoPlayerPlugin::DisplayRotation rotation )
 {
-  if( mNativeImageSourcePtr != NULL )
+  if( mNativeImageSourcePtr )
   {
     DALI_LOG_ERROR( "SetDisplayRotation is only for window rendering target.\n" );
     return;
@@ -528,7 +528,7 @@ void TizenVideoPlayer::SetDisplayRotation( Dali::VideoPlayerPlugin::DisplayRotat
 
 Dali::VideoPlayerPlugin::DisplayRotation TizenVideoPlayer::GetDisplayRotation()
 {
-  if( mNativeImageSourcePtr != NULL )
+  if( mNativeImageSourcePtr )
   {
     DALI_LOG_ERROR( "GetDisplayRotation is only for window rendering target.\n" );
     return Dali::VideoPlayerPlugin::ROTATION_NONE;
@@ -711,7 +711,7 @@ void TizenVideoPlayer::SetDisplayArea( DisplayArea area )
 {
   GetPlayerState( &mPlayerState );
 
-  if( mNativeImageSourcePtr != NULL )
+  if( mNativeImageSourcePtr )
   {
     DALI_LOG_ERROR( "SetDisplayArea is only for window surface target.\n" );
     return;
