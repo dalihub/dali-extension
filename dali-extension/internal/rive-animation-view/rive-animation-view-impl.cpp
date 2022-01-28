@@ -214,11 +214,8 @@ void RiveAnimationView::OnSceneDisconnection()
 
 void RiveAnimationView::OnInitialize()
 {
-  Toolkit::DevelControl::SetAccessibilityConstructor(Self(), [](Dali::Actor actor) {
-    return std::make_unique<Toolkit::DevelControl::ControlAccessible>(actor, Dali::Accessibility::Role::IMAGE);
-  });
-
-  // Enable highightability
+  // Accessibility
+  Self().SetProperty(Toolkit::DevelControl::Property::ACCESSIBILITY_ROLE, Dali::Accessibility::Role::IMAGE);
   Self().SetProperty(Toolkit::DevelControl::Property::ACCESSIBILITY_HIGHLIGHTABLE, true);
 }
 
