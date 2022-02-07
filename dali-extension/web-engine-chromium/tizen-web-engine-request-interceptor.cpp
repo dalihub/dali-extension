@@ -108,26 +108,19 @@ bool TizenWebEngineRequestInterceptor::AddResponseHeaders(const Dali::Property::
   return result;
 }
 
-bool TizenWebEngineRequestInterceptor::AddResponseBody(const std::string& body, uint32_t length)
+bool TizenWebEngineRequestInterceptor::AddResponseBody(const int8_t* body, uint32_t length)
 {
-  return ewk_intercept_request_response_body_set(ewkRequestInterceptor, body.c_str(), length);
+  return ewk_intercept_request_response_body_set(ewkRequestInterceptor, (const char*)body, length);
 }
 
-bool TizenWebEngineRequestInterceptor::AddResponse(const std::string& headers, const std::string& body, uint32_t length)
+bool TizenWebEngineRequestInterceptor::AddResponse(const std::string& headers, const int8_t* body, uint32_t length)
 {
-  return ewk_intercept_request_response_set(ewkRequestInterceptor, headers.c_str(), body.c_str(), length);
+  return ewk_intercept_request_response_set(ewkRequestInterceptor, headers.c_str(), (const char*)body, length);
 }
 
-bool TizenWebEngineRequestInterceptor::WriteResponseChunk(const std::string& chunk, uint32_t length)
+bool TizenWebEngineRequestInterceptor::WriteResponseChunk(const int8_t* chunk, uint32_t length)
 {
-  if (chunk.empty())
-  {
-    return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, nullptr, 0);
-  }
-  else
-  {
-    return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, chunk.c_str(), length);
-  }
+  return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, (const char*)chunk, length);
 }
 
 void TizenWebEngineRequestInterceptor::WaitAndRunTasks()
