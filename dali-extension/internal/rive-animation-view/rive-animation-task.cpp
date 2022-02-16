@@ -474,6 +474,14 @@ void RiveAnimationTask::ApplyAnimationData()
     }
   }
 
+  mAnimationData[index].animations.clear();
+  mAnimationData[index].elapsedTimes.clear();
+  mAnimationData[index].fillColors.clear();
+  mAnimationData[index].strokeColors.clear();
+  mAnimationData[index].opacities.clear();
+  mAnimationData[index].scales.clear();
+  mAnimationData[index].rotations.clear();
+  mAnimationData[index].positions.clear();
   mAnimationData[index].resendFlag = 0;
 }
 
