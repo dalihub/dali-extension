@@ -102,11 +102,19 @@ std::string TizenWebEngineHitTest::GetImageFileNameExtension() const
 
 Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()
 {
-  // get width/height.
   Evas_Object* image = evas_object_image_add(canvas);
   evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
   evas_object_image_alpha_set(image, EINA_TRUE);
   evas_object_image_data_copy_set(image, ewk_hit_test_image_buffer_get(ewkHitTest));
+
+  // color-space is argb8888.
+  uint8_t* pixelBuffer = (uint8_t*)evas_object_image_data_get(image, false);
+  if (!pixelBuffer)
+  {
+    return Dali::PixelData();
+  }
+
+  // get width/height.
   int width = 0, height = 0;
   evas_object_image_size_get(image, &width, &height);
 
@@ -118,9 +126,6 @@ Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()
   }
 
   uint8_t* convertedBuffer = new uint8_t[bufferSize];
-
-  // color-space is argb8888.
-  uint8_t* pixelBuffer = (uint8_t*)evas_object_image_data_get(image, false);
 
   // convert the color-space to rgba8888.
   for (uint32_t i = 0; i < bufferSize; i += 4)
