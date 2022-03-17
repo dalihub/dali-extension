@@ -1167,6 +1167,12 @@ void TizenWebEngineLWE::ActivateAccessibility(bool activated)
   // NOT IMPLEMENTED
 }
 
+Accessibility::Address TizenWebEngineLWE::GetAccessibilityAddress()
+{
+  // NOT IMPLEMENTED
+  return {};
+}
+
 bool TizenWebEngineLWE::SetVisibility(bool visible)
 {
   // NOT IMPLEMENTED

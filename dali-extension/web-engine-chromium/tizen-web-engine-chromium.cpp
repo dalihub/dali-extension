@@ -762,6 +762,29 @@ public:
     ewk_view_atk_deactivation_by_app(mWebView, !activated);
   }
 
+  Accessibility::Address GetAccessibilityAddress()
+  {
+    static const char plugIdKey[] = "__PlugID";
+    static const char rootPath[]  = "root";
+
+    std::string_view plugId;
+
+    if (auto* data = static_cast<const char*>(evas_object_data_get(mWebView, plugIdKey)))
+    {
+      plugId = {data};
+    }
+
+    // We expect plugId to be of the form ":1.23:/org/a11y/atspi/accessible/root"
+    auto pos = plugId.rfind(':');
+    if (pos == std::string_view::npos || pos == 0)
+    {
+      DALI_LOG_ERROR("Cannot parse PlugID set by Chromium: %s = \"%s\"", plugIdKey, plugId.data());
+      return {};
+    }
+
+    return {std::string{plugId.substr(0, pos)}, rootPath};
+  }
+
   bool SetVisibility(bool visible)
   {
     return ewk_view_visibility_set(mWebView, visible);
@@ -1730,6 +1753,15 @@ void TizenWebEngineChromium::ActivateAccessibility(bool activated)
   {
     mWebViewContainer->ActivateAccessibility(activated);
   }
+}
+
+Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
+{
+  if (mWebViewContainer)
+  {
+    return mWebViewContainer->GetAccessibilityAddress();
+  }
+  return {};
 }
 
 bool TizenWebEngineChromium::SetVisibility(bool visible)
