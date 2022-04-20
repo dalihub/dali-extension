@@ -598,6 +598,11 @@ public:
   void ActivateAccessibility(bool activated) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::GetAccessibilityAddress()
+   */
+  Accessibility::Address GetAccessibilityAddress() override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::SetVisibility()
    */
   bool SetVisibility(bool visible) override;
