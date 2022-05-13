@@ -1063,12 +1063,13 @@ private:
       }
     }
 
+    Eina_List* pointList = 0;
     Ewk_Touch_Point point;
     point.id = 0;
     point.x = touch.GetScreenPosition(0).x;
     point.y = touch.GetScreenPosition(0).y;
     point.state = state;
-    Eina_List* pointList = eina_list_append(pointList, &point);
+    pointList = eina_list_append(pointList, &point);
 
     ewk_view_feed_touch_event(mWebView, type, pointList, 0);
     eina_list_free(pointList);
