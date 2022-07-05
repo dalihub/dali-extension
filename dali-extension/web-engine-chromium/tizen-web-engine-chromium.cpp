@@ -203,7 +203,6 @@ public:
     , mWebEngineBackForwardList(nullptr)
   {
     InitWebView(0, nullptr);
-
     WebEngineManager::Get().AddContainerClient(&mClient, mWebView);
   }
 
@@ -218,14 +217,12 @@ public:
     , mWebEngineBackForwardList(nullptr)
   {
     InitWebView(argc, argv);
-
     WebEngineManager::Get().AddContainerClient(&mClient, mWebView);
   }
 
   ~WebViewContainerForDali()
   {
     WebEngineManager::Get().RemoveContainerClient(mWebView);
-
     evas_object_del(mWebView);
   }
 
@@ -337,14 +334,18 @@ public:
   bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
                                           const std::string& unreachableUrl)
   {
-    return ewk_view_html_string_override_current_entry_load(mWebView, html.c_str(), basicUri.c_str(), unreachableUrl.c_str());
+    char* cBasicUri = basicUri.length() ?  (char *)basicUri.c_str() : nullptr;
+    char* cUnreachableUrl = unreachableUrl.length() ?  (char *)unreachableUrl.c_str() : nullptr;
+    return ewk_view_html_string_override_current_entry_load(mWebView, html.c_str(), cBasicUri, cUnreachableUrl);
   }
 
   bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
                     const std::string& encoding, const std::string& baseUri)
   {
-    return ewk_view_contents_set(mWebView, contents.c_str(), contentSize, (char *)mimeType.c_str(),
-                                 (char *)encoding.c_str(), (char *)baseUri.c_str());
+    char* cMimeType = mimeType.length() ?  (char *)mimeType.c_str() : nullptr;
+    char* cEncoding = encoding.length() ?  (char *)encoding.c_str() : nullptr;
+    char* cBaseUri = baseUri.length() ?  (char *)baseUri.c_str() : nullptr;
+    return ewk_view_contents_set(mWebView, contents.c_str(), contentSize, cMimeType, cEncoding, cBaseUri);
   }
 
   std::string GetTitle()
