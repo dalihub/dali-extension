@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,19 @@
 #include <dali-extension/vector-animation-renderer/tizen-vector-animation-manager.h>
 
 // EXTERNAL INCLUDES
-#include <dali/integration-api/debug.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
+#include <dali/integration-api/debug.h>
 
 namespace Dali
 {
-
 namespace Plugin
 {
+namespace
+{
+#if defined(DEBUG_ENABLED)
+Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_VECTOR_ANIMATION");
+#endif
+} // unnamed namespace
 
 TizenVectorAnimationManager& TizenVectorAnimationManager::Get()
 {
@@ -44,76 +49,76 @@ TizenVectorAnimationManager::TizenVectorAnimationManager()
 
 TizenVectorAnimationManager::~TizenVectorAnimationManager()
 {
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationManager::~TizenVectorAnimationManager: this = %p\n", this );
+  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
 }
 
-void TizenVectorAnimationManager::AddEventHandler( TizenVectorAnimationEventHandler& handler )
+void TizenVectorAnimationManager::AddEventHandler(TizenVectorAnimationEventHandler& handler)
 {
-  if( mEventHandlers.end() == std::find( mEventHandlers.begin(), mEventHandlers.end(), &handler ) )
+  if(mEventHandlers.end() == std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler))
   {
-    if( mEventHandlers.empty() )
+    if(mEventHandlers.empty())
     {
-      Adaptor::Get().RegisterProcessor( *this );
+      Adaptor::Get().RegisterProcessor(*this);
     }
 
-    mEventHandlers.push_back( &handler );
+    mEventHandlers.push_back(&handler);
 
     {
-      Dali::Mutex::ScopedLock lock( mMutex );
+      Dali::Mutex::ScopedLock lock(mMutex);
 
-      if( !mEventTrigger )
+      if(!mEventTrigger)
       {
-        mEventTrigger = std::unique_ptr< EventThreadCallback >( new EventThreadCallback( MakeCallback( this, &TizenVectorAnimationManager::OnEventTriggered ) ) );
+        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &TizenVectorAnimationManager::OnEventTriggered)));
       }
     }
   }
 }
 
-void TizenVectorAnimationManager::RemoveEventHandler( TizenVectorAnimationEventHandler& handler )
+void TizenVectorAnimationManager::RemoveEventHandler(TizenVectorAnimationEventHandler& handler)
 {
-  auto iter = std::find( mEventHandlers.begin(), mEventHandlers.end(), &handler );
-  if( iter != mEventHandlers.end() )
+  auto iter = std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler);
+  if(iter != mEventHandlers.end())
   {
-    mEventHandlers.erase( iter );
+    mEventHandlers.erase(iter);
   }
 
   bool releaseEventTrigger = false;
 
-  if( mEventHandlers.empty() )
+  if(mEventHandlers.empty())
   {
-    if( Adaptor::IsAvailable() )
+    if(Adaptor::IsAvailable())
     {
-      Adaptor::Get().UnregisterProcessor( *this );
+      Adaptor::Get().UnregisterProcessor(*this);
     }
 
     releaseEventTrigger = true;
   }
 
   {
-    Dali::Mutex::ScopedLock lock( mMutex );
+    Dali::Mutex::ScopedLock lock(mMutex);
 
-    auto triggeredHandler = std::find( mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler );
-    if( triggeredHandler != mTriggeredHandlers.end() )
+    auto triggeredHandler = std::find(mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler);
+    if(triggeredHandler != mTriggeredHandlers.end())
     {
-      mTriggeredHandlers.erase( triggeredHandler );
+      mTriggeredHandlers.erase(triggeredHandler);
     }
 
-    if( releaseEventTrigger )
+    if(releaseEventTrigger)
     {
       mEventTrigger.reset();
     }
   }
 }
 
-void TizenVectorAnimationManager::TriggerEvent( TizenVectorAnimationEventHandler& handler )
+void TizenVectorAnimationManager::TriggerEvent(TizenVectorAnimationEventHandler& handler)
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  if( mTriggeredHandlers.end() == std::find( mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler ) )
+  if(mTriggeredHandlers.end() == std::find(mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler))
   {
-    mTriggeredHandlers.push_back( &handler );
+    mTriggeredHandlers.push_back(&handler);
 
-    if( mEventTrigger )
+    if(mEventTrigger)
     {
       mEventTrigger->Trigger();
     }
@@ -128,21 +133,21 @@ void TizenVectorAnimationManager::Process(bool postProcessor)
 // This function is called in the main thread.
 void TizenVectorAnimationManager::OnEventTriggered()
 {
-  std::vector< TizenVectorAnimationEventHandler* > handlers;
+  std::vector<TizenVectorAnimationEventHandler*> handlers;
 
   {
-    Dali::Mutex::ScopedLock lock( mMutex );
+    Dali::Mutex::ScopedLock lock(mMutex);
 
     // Copy the list to the local variable and clear
     handlers = mTriggeredHandlers;
     mTriggeredHandlers.clear();
   }
 
-  for( auto&& iter : handlers )
+  for(auto&& iter : handlers)
   {
     // Check if it is valid
-    auto handler = std::find( mEventHandlers.begin(), mEventHandlers.end(), iter );
-    if( handler != mEventHandlers.end() )
+    auto handler = std::find(mEventHandlers.begin(), mEventHandlers.end(), iter);
+    if(handler != mEventHandlers.end())
     {
       iter->NotifyEvent();
     }
@@ -151,4 +156,4 @@ void TizenVectorAnimationManager::OnEventTriggered()
 
 } // namespace Plugin
 
-} // namespace Dali;
+} // namespace Dali

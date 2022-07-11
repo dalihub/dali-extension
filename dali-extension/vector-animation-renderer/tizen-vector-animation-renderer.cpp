@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,34 +19,33 @@
 #include <dali-extension/vector-animation-renderer/tizen-vector-animation-renderer.h>
 
 // EXTERNAL INCLUDES
-#include <dali/public-api/object/property-array.h>
-#include <dali/integration-api/debug.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
-#include <cstring> // for strlen()
+#include <dali/integration-api/debug.h>
+#include <dali/public-api/object/property-array.h>
 #include <tbm_surface_internal.h>
+#include <cstring> // for strlen()
 
 // INTERNAL INCLUDES
 #include <dali-extension/vector-animation-renderer/tizen-vector-animation-manager.h>
 
 // The plugin factories
-extern "C" DALI_EXPORT_API Dali::VectorAnimationRendererPlugin* CreateVectorAnimationRendererPlugin( void )
+extern "C" DALI_EXPORT_API Dali::VectorAnimationRendererPlugin* CreateVectorAnimationRendererPlugin(void)
 {
   return new Dali::Plugin::TizenVectorAnimationRenderer;
 }
 
 namespace Dali
 {
-
 namespace Plugin
 {
-
 namespace
 {
+const char* const PIXEL_AREA_UNIFORM_NAME("pixelArea");
+const Vector4     FULL_TEXTURE_RECT(0.f, 0.f, 1.f, 1.f);
 
-const char* const PIXEL_AREA_UNIFORM_NAME( "pixelArea" );
-
-const Vector4 FULL_TEXTURE_RECT( 0.f, 0.f, 1.f, 1.f );
-
+#if defined(DEBUG_ENABLED)
+Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_VECTOR_ANIMATION");
+#endif
 } // unnamed namespace
 
 TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
@@ -60,32 +59,34 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mTargetSurface(),
   mVectorRenderer(),
   mUploadCompletedSignal(),
-  mTbmQueue( NULL ),
-  mTotalFrameNumber( 0 ),
-  mWidth( 0 ),
-  mHeight( 0 ),
-  mDefaultWidth( 0 ),
-  mDefaultHeight( 0 ),
-  mFrameRate( 60.0f ),
-  mResourceReady( false ),
-  mShaderChanged( false ),
-  mResourceReadyTriggered( false )
+  mTbmQueue(NULL),
+  mTotalFrameNumber(0),
+  mWidth(0),
+  mHeight(0),
+  mDefaultWidth(0),
+  mDefaultHeight(0),
+  mFrameRate(60.0f),
+  mLoadFailed(false),
+  mResourceReady(false),
+  mShaderChanged(false),
+  mResourceReadyTriggered(false)
 {
+  TizenVectorAnimationManager::Get().AddEventHandler(*this);
 }
 
 TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer()
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
   ResetBuffers();
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::~TizenVectorAnimationRenderer: this = %p\n", this );
+  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
 }
 
 void TizenVectorAnimationRenderer::Finalize()
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  TizenVectorAnimationManager::Get().RemoveEventHandler( *this );
+  TizenVectorAnimationManager::Get().RemoveEventHandler(*this);
 
   mRenderer.Reset();
   mTexture.Reset();
@@ -94,51 +95,50 @@ void TizenVectorAnimationRenderer::Finalize()
   mVectorRenderer.reset();
 
   mTargetSurface = nullptr;
-  mTbmQueue = NULL;
+  mTbmQueue      = NULL;
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Finalize: [%p]\n", this );
+  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "[%p]\n", this);
 }
 
-bool TizenVectorAnimationRenderer::Load(const std::string &url)
+bool TizenVectorAnimationRenderer::Load(const std::string& url)
 {
   mUrl = url;
 
-  mVectorRenderer = rlottie::Animation::loadFromFile( mUrl );
-  if( !mVectorRenderer )
+  mVectorRenderer = rlottie::Animation::loadFromFile(mUrl);
+  if(!mVectorRenderer)
   {
-    DALI_LOG_ERROR( "Failed to load a Lottie file [%s] [%p]\n", mUrl.c_str(), this );
+    DALI_LOG_ERROR("Failed to load a Lottie file [%s] [%p]\n", mUrl.c_str(), this);
+    mLoadFailed = true;
     return false;
   }
 
   mTotalFrameNumber = mVectorRenderer->totalFrame();
-  mFrameRate = static_cast< float >( mVectorRenderer->frameRate() );
+  mFrameRate        = static_cast<float>(mVectorRenderer->frameRate());
 
   size_t w, h;
-  mVectorRenderer->size( w, h );
-  mDefaultWidth = static_cast< uint32_t >( w );
-  mDefaultHeight = static_cast< uint32_t >( h );
+  mVectorRenderer->size(w, h);
+  mDefaultWidth  = static_cast<uint32_t>(w);
+  mDefaultHeight = static_cast<uint32_t>(h);
 
-  TizenVectorAnimationManager::Get().AddEventHandler( *this );
-
-  DALI_LOG_RELEASE_INFO("TizenVectorAnimationRenderer::Load: file [%s] [%p]\n", url.c_str(), this);
+  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "file [%s] [%p]\n", url.c_str(), this);
 
   return true;
 }
 
-void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
+void TizenVectorAnimationRenderer::SetRenderer(Renderer renderer)
 {
-  mRenderer = renderer;
+  mRenderer      = renderer;
   mShaderChanged = false;
 
-  if( mTargetSurface )
+  if(mTargetSurface)
   {
-    Dali::Mutex::ScopedLock lock( mMutex );
+    Dali::Mutex::ScopedLock lock(mMutex);
 
-    if( mResourceReady && mRenderedTexture )
+    if(mResourceReady && mRenderedTexture)
     {
       TextureSet textureSet = renderer.GetTextures();
 
-      textureSet.SetTexture( 0, mRenderedTexture );
+      textureSet.SetTexture(0, mRenderedTexture);
 
       mUploadCompletedSignal.Emit();
     }
@@ -147,28 +147,34 @@ void TizenVectorAnimationRenderer::SetRenderer( Renderer renderer )
   }
 }
 
-void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
+void TizenVectorAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  if( mWidth == width && mHeight == height )
+  if(mWidth == width && mHeight == height)
   {
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: Same size (%d, %d) [%p]\n", mWidth, mHeight, this );
+    DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Same size (%d, %d) [%p]\n", mWidth, mHeight, this);
     return;
   }
 
-  mTargetSurface = NativeImageSourceQueue::New( width, height, NativeImageSourceQueue::ColorFormat::RGBA8888 );
+  if(mLoadFailed)
+  {
+    DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Load is failed. Do not make texture [%p]\n", this);
+    return;
+  }
 
-  mTexture = Texture::New( *mTargetSurface );
+  mTargetSurface = NativeImageSourceQueue::New(width, height, NativeImageSourceQueue::ColorFormat::RGBA8888);
 
-  if( mRenderer )
+  mTexture = Texture::New(*mTargetSurface);
+
+  if(mRenderer)
   {
     SetShader();
   }
 
-  mTbmQueue = AnyCast< tbm_surface_queue_h >( mTargetSurface->GetNativeImageSourceQueue() );
+  mTbmQueue = AnyCast<tbm_surface_queue_h>(mTargetSurface->GetNativeImageSourceQueue());
 
-  mWidth = width;
+  mWidth  = width;
   mHeight = height;
 
   mResourceReady = false;
@@ -176,27 +182,27 @@ void TizenVectorAnimationRenderer::SetSize( uint32_t width, uint32_t height )
   // Reset the previous texture to destroy it in the main thread
   mPreviousTexture.Reset();
 
-  DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::SetSize: width = %d, height = %d [%p]\n", mWidth, mHeight, this );
+  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "width = %d, height = %d [%p]\n", mWidth, mHeight, this);
 }
 
-bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
+bool TizenVectorAnimationRenderer::Render(uint32_t frameNumber)
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  if( !mTbmQueue || !mVectorRenderer || !mTargetSurface )
+  if(!mTbmQueue || !mVectorRenderer || !mTargetSurface)
   {
     return false;
   }
 
-  int canDequeue = tbm_surface_queue_can_dequeue( mTbmQueue, 0 );
-  if( !canDequeue )
+  int canDequeue = tbm_surface_queue_can_dequeue(mTbmQueue, 0);
+  if(!canDequeue)
   {
     // Ignore the previous image which is inserted to the queue.
     mTargetSurface->IgnoreSourceImage();
 
     // Check again
-    canDequeue = tbm_surface_queue_can_dequeue( mTbmQueue, 0 );
-    if( !canDequeue )
+    canDequeue = tbm_surface_queue_can_dequeue(mTbmQueue, 0);
+    if(!canDequeue)
     {
       return false;
     }
@@ -204,80 +210,80 @@ bool TizenVectorAnimationRenderer::Render( uint32_t frameNumber )
 
   tbm_surface_h tbmSurface;
 
-  if( tbm_surface_queue_dequeue( mTbmQueue, &tbmSurface ) != TBM_SURFACE_QUEUE_ERROR_NONE )
+  if(tbm_surface_queue_dequeue(mTbmQueue, &tbmSurface) != TBM_SURFACE_QUEUE_ERROR_NONE)
   {
-    DALI_LOG_ERROR( "Failed to dequeue a tbm_surface [%p]\n", this );
+    DALI_LOG_ERROR("Failed to dequeue a tbm_surface [%p]\n", this);
     return false;
   }
 
   tbm_surface_info_s info;
-  int ret = tbm_surface_map( tbmSurface, TBM_OPTION_WRITE, &info );
-  if( ret != TBM_SURFACE_ERROR_NONE )
+  int                ret = tbm_surface_map(tbmSurface, TBM_OPTION_WRITE, &info);
+  if(ret != TBM_SURFACE_ERROR_NONE)
   {
-    DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this );
-    tbm_surface_queue_cancel_dequeue( mTbmQueue, tbmSurface );
+    DALI_LOG_ERROR("TizenVectorAnimationRenderer::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this);
+    tbm_surface_queue_cancel_dequeue(mTbmQueue, tbmSurface);
     return false;
   }
 
   unsigned char* buffer = info.planes[0].ptr;
-  if( info.width != mWidth || info.height != mHeight || !buffer )
+  if(info.width != mWidth || info.height != mHeight || !buffer)
   {
-    DALI_LOG_ERROR( "TizenVectorAnimationRenderer::Render: Invalid tbm surface! [%d, %d, %p] [%p]\n", info.width, info.height, buffer, this );
-    tbm_surface_unmap( tbmSurface );
-    tbm_surface_queue_cancel_dequeue( mTbmQueue, tbmSurface );
+    DALI_LOG_ERROR("TizenVectorAnimationRenderer::Render: Invalid tbm surface! [%d, %d, %p] [%p]\n", info.width, info.height, buffer, this);
+    tbm_surface_unmap(tbmSurface);
+    tbm_surface_queue_cancel_dequeue(mTbmQueue, tbmSurface);
     return false;
   }
 
   rlottie::Surface surface;
-  bool existing = false;
+  bool             existing = false;
 
-  if( !mResourceReady )
+  if(!mResourceReady)
   {
     // Need to reset buffer list
     ResetBuffers();
   }
   else
   {
-    for( auto&& iter : mBuffers )
+    for(auto&& iter : mBuffers)
     {
-      if( iter.first == tbmSurface )
+      if(iter.first == tbmSurface)
       {
         // Find the buffer in the existing list
         existing = true;
-        surface = iter.second;
+        surface  = iter.second;
         break;
       }
     }
   }
 
-  if( !existing )
+  if(!existing)
   {
-    tbm_surface_internal_ref( tbmSurface );
+    tbm_surface_internal_ref(tbmSurface);
 
     // Create Surface object
-    surface = rlottie::Surface( reinterpret_cast< uint32_t* >( buffer ), mWidth, mHeight, static_cast< size_t >( info.planes[0].stride ) );
+    surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), mWidth, mHeight, static_cast<size_t>(info.planes[0].stride));
 
     // Push the buffer
-    mBuffers.push_back( SurfacePair( tbmSurface, surface ) );
+    mBuffers.push_back(SurfacePair(tbmSurface, surface));
   }
 
   // Render the frame
-  mVectorRenderer->renderSync( frameNumber, surface );
+  mVectorRenderer->renderSync(frameNumber, surface);
 
-  tbm_surface_unmap( tbmSurface );
+  tbm_surface_unmap(tbmSurface);
 
-  tbm_surface_queue_enqueue( mTbmQueue, tbmSurface );
+  tbm_surface_queue_enqueue(mTbmQueue, tbmSurface);
 
-  if( !mResourceReady )
+  if(!mResourceReady)
   {
-    mPreviousTexture = mRenderedTexture;  // It is used to destroy the object in the main thread.
-    mRenderedTexture = mTexture;
-    mResourceReady = true;
+    mPreviousTexture        = mRenderedTexture; // It is used to destroy the object in the main thread.
+    mRenderedTexture        = mTexture;
+    mResourceReady          = true;
     mResourceReadyTriggered = true;
 
-    TizenVectorAnimationManager::Get().TriggerEvent( *this );
+    TizenVectorAnimationManager::Get().TriggerEvent(*this);
 
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::Render: Resource ready [current = %d] [%p]\n", frameNumber, this );
+    DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Resource ready [current = %d] [%p]\n", frameNumber, this);
   }
 
   return true;
@@ -293,43 +299,43 @@ float TizenVectorAnimationRenderer::GetFrameRate() const
   return mFrameRate;
 }
 
-void TizenVectorAnimationRenderer::GetDefaultSize( uint32_t& width, uint32_t& height ) const
+void TizenVectorAnimationRenderer::GetDefaultSize(uint32_t& width, uint32_t& height) const
 {
-  width = mDefaultWidth;
+  width  = mDefaultWidth;
   height = mDefaultHeight;
 }
 
-void TizenVectorAnimationRenderer::GetLayerInfo( Property::Map& map ) const
+void TizenVectorAnimationRenderer::GetLayerInfo(Property::Map& map) const
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  if( mVectorRenderer )
+  if(mVectorRenderer)
   {
     auto layerInfo = mVectorRenderer->layers();
 
-    for( auto&& iter : layerInfo )
+    for(auto&& iter : layerInfo)
     {
       Property::Array frames;
-      frames.PushBack( std::get< 1 >( iter ) );
-      frames.PushBack( std::get< 2 >( iter ) );
-      map.Add( std::get< 0 >( iter ), frames );
+      frames.PushBack(std::get<1>(iter));
+      frames.PushBack(std::get<2>(iter));
+      map.Add(std::get<0>(iter), frames);
     }
   }
 }
 
-bool TizenVectorAnimationRenderer::GetMarkerInfo( const std::string& marker, uint32_t& startFrame, uint32_t& endFrame ) const
+bool TizenVectorAnimationRenderer::GetMarkerInfo(const std::string& marker, uint32_t& startFrame, uint32_t& endFrame) const
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  if( mVectorRenderer )
+  if(mVectorRenderer)
   {
     auto markerList = mVectorRenderer->markers();
-    for( auto&& iter : markerList )
+    for(auto&& iter : markerList)
     {
-      if( std::get< 0 >( iter ).compare( marker ) == 0 )
+      if(std::get<0>(iter).compare(marker) == 0)
       {
-        startFrame = static_cast< uint32_t >( std::get< 1 >( iter ) );
-        endFrame = static_cast< uint32_t >( std::get< 2 >( iter ) );
+        startFrame = static_cast<uint32_t>(std::get<1>(iter));
+        endFrame   = static_cast<uint32_t>(std::get<2>(iter));
         return true;
       }
     }
@@ -337,14 +343,10 @@ bool TizenVectorAnimationRenderer::GetMarkerInfo( const std::string& marker, uin
   return false;
 }
 
-void TizenVectorAnimationRenderer::IgnoreRenderedFrame()
+void TizenVectorAnimationRenderer::InvalidateBuffer()
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
-
-  if( mTargetSurface )
-  {
-    mTargetSurface->IgnoreSourceImage();
-  }
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mResourceReady = false;
 }
 
 VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRenderer::UploadCompletedSignal()
@@ -354,17 +356,17 @@ VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRe
 
 void TizenVectorAnimationRenderer::NotifyEvent()
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  if( mResourceReadyTriggered )
+  if(mResourceReadyTriggered)
   {
-    DALI_LOG_RELEASE_INFO( "TizenVectorAnimationRenderer::NotifyEvent: Set Texture [%p]\n", this );
+    DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Set Texture [%p]\n", this);
 
     // Set texture
-    if( mRenderer && mRenderedTexture )
+    if(mRenderer && mRenderedTexture)
     {
       TextureSet textureSet = mRenderer.GetTextures();
-      textureSet.SetTexture( 0, mRenderedTexture );
+      textureSet.SetTexture(0, mRenderedTexture);
     }
 
     mResourceReadyTriggered = false;
@@ -377,7 +379,7 @@ void TizenVectorAnimationRenderer::NotifyEvent()
 
 void TizenVectorAnimationRenderer::SetShader()
 {
-  if( mShaderChanged )
+  if(mShaderChanged)
   {
     return;
   }
@@ -388,20 +390,20 @@ void TizenVectorAnimationRenderer::SetShader()
   std::string vertexShader;
 
   // Get the current fragment shader source
-  Property::Value program = shader.GetProperty( Shader::Property::PROGRAM );
-  Property::Map* map = program.GetMap();
-  if( map )
+  Property::Value program = shader.GetProperty(Shader::Property::PROGRAM);
+  Property::Map*  map     = program.GetMap();
+  if(map)
   {
-    Property::Value* fragment = map->Find( "fragment" );
-    if( fragment )
+    Property::Value* fragment = map->Find("fragment");
+    if(fragment)
     {
-      fragmentShader = fragment->Get< std::string >();
+      fragmentShader = fragment->Get<std::string>();
     }
 
-    Property::Value* vertex = map->Find( "vertex" );
-    if( vertex )
+    Property::Value* vertex = map->Find("vertex");
+    if(vertex)
     {
-      vertexShader = vertex->Get< std::string >();
+      vertexShader = vertex->Get<std::string>();
     }
   }
 
@@ -409,23 +411,23 @@ void TizenVectorAnimationRenderer::SetShader()
   mTargetSurface->ApplyNativeFragmentShader(fragmentShader);
 
   // Set the modified shader again
-  Shader newShader = Shader::New( vertexShader, fragmentShader );
-  newShader.RegisterProperty( PIXEL_AREA_UNIFORM_NAME, FULL_TEXTURE_RECT );
+  Shader newShader = Shader::New(vertexShader, fragmentShader);
+  newShader.RegisterProperty(PIXEL_AREA_UNIFORM_NAME, FULL_TEXTURE_RECT);
 
-  mRenderer.SetShader( newShader );
+  mRenderer.SetShader(newShader);
 
   mShaderChanged = true;
 }
 
 void TizenVectorAnimationRenderer::ResetBuffers()
 {
-  for( auto&& iter : mBuffers )
+  for(auto&& iter : mBuffers)
   {
-    tbm_surface_internal_unref( iter.first );
+    tbm_surface_internal_unref(iter.first);
   }
   mBuffers.clear();
 }
 
 } // namespace Plugin
 
-} // namespace Dali;
+} // namespace Dali
