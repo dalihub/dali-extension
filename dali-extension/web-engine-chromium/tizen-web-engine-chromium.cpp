@@ -36,10 +36,12 @@
 #include <Elementary.h>
 #include <Evas.h>
 
+#include <dali/devel-api/adaptor-framework/lifecycle-controller.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/images/pixel-data.h>
+#include <dali/public-api/signals/slot-delegate.h>
 
 #include <ewk_main_internal.h>
 #include <ewk_settings_product.h>
@@ -176,7 +178,7 @@ public:
   }
 
 private:
-  WebEngineManager()
+  WebEngineManager() : mSlotDelegate(this)
   {
     elm_init(0, 0);
     ewk_init();
@@ -187,8 +189,23 @@ private:
 
     Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
     mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
+    LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
   }
 
+  void OnTerminated()
+  {
+    for (auto it = mContainerClients.begin(); it != mContainerClients.end(); it++)
+    {
+      evas_object_del(it->mWebView);
+    }
+    mContainerClients.clear();
+    ecore_evas_free(mWindow);
+    ewk_shutdown();
+    elm_shutdown();
+    DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");
+  }
+
+  SlotDelegate<WebEngineManager>          mSlotDelegate;
   std::unique_ptr<WebEngineContext>       mWebEngineContext;
   std::unique_ptr<WebEngineCookieManager> mWebEngineCookieManager;
   Ecore_Evas*                             mWindow;
