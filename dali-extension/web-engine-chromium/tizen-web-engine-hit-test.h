@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_HIT_TEST_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 // EXTERNAL INCLUDES
 #include <Eina.h>
 #include <Evas.h>
-#include <dali/devel-api/adaptor-framework/web-engine-hit-test.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-hit-test.h>
 #include <dali/public-api/object/property-map.h>
 #include <ewk_hit_test_internal.h>
 #include <string>
@@ -30,7 +30,6 @@ namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineHitTest for hit test.
  */

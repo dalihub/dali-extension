@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_WEB_ENGINE_SETTINGS_H
 
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@
 
 // EXTERNAL INCLUDES
 #include <string>
-#include <dali/devel-api/adaptor-framework/web-engine-settings.h>
+
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-settings.h>
 
 struct Ewk_Settings;
 
@@ -28,19 +29,16 @@ namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineSettings for settings of chromium.
  */
 class TizenWebEngineSettings : public Dali::WebEngineSettings
 {
-
 public:
-
   /**
    * @brief Constructor.
    */
-  TizenWebEngineSettings( Ewk_Settings* );
+  TizenWebEngineSettings(Ewk_Settings*);
 
   /**
    * @brief Destructor.
@@ -53,7 +51,7 @@ public:
    * @param[in] allowed if true, allow to run mixed contents,
    *      otherwise not allow
    */
-  void AllowMixedContents( bool allowed ) override;
+  void AllowMixedContents(bool allowed) override;
 
   /**
    * @brief Enable the spatial navigation or not.
@@ -61,7 +59,7 @@ public:
    * @param[in] enabled if true, use spatial navigation,
    *       otherwise to disable
    */
-  void EnableSpatialNavigation( bool enabled ) override;
+  void EnableSpatialNavigation(bool enabled) override;
 
   /**
    * @brief Get the default font size.
@@ -75,7 +73,7 @@ public:
    *
    * @param[in] size a new default font size to set
    */
-  void SetDefaultFontSize( uint32_t size ) override;
+  void SetDefaultFontSize(uint32_t size) override;
 
   /**
    * @brief Enables/disables web security.
@@ -84,7 +82,7 @@ public:
    *       otherwise to disable
    *
    */
-  void EnableWebSecurity( bool enabled ) override;
+  void EnableWebSecurity(bool enabled) override;
 
   /**
    * @brief Enables/disables cache builder.
@@ -92,7 +90,7 @@ public:
    * @param[in] enabled if true, to enable cache builder
    *        otherwise to disable
    */
-  void EnableCacheBuilder( bool enabled ) override;
+  void EnableCacheBuilder(bool enabled) override;
 
   /**
    * @brief Enables/disables use scrollbar thumb focus notifications.
@@ -100,7 +98,7 @@ public:
    * @param[in] used if true, to enable use scrollbar thumb focus notifications
    *        otherwise to disable
    */
-  void UseScrollbarThumbFocusNotifications( bool used ) override;
+  void UseScrollbarThumbFocusNotifications(bool used) override;
 
   /**
    * @brief Enables/disables do not track.
@@ -108,7 +106,7 @@ public:
    * @param[in] enabled if true, to enable do not track
    *        otherwise to disable
    */
-  void EnableDoNotTrack( bool enabled ) override;
+  void EnableDoNotTrack(bool enabled) override;
 
   /**
    * @brief Allow/Disallow file access from external url
@@ -116,7 +114,7 @@ public:
    * @param[in] allowed if true, to allow file access from external url
    *       otherwise to disallow
    */
-  void AllowFileAccessFromExternalUrl( bool allowed ) override;
+  void AllowFileAccessFromExternalUrl(bool allowed) override;
 
   /**
    * @brief Check if javascript is enabled or not.
@@ -131,7 +129,7 @@ public:
    * @param[in] enabled if true, to enable javascript
    *       otherwise to disable
    */
-  void EnableJavaScript( bool enabled ) override;
+  void EnableJavaScript(bool enabled) override;
 
   /**
    * @brief Check if auto fitting is enabled or not.
@@ -146,7 +144,7 @@ public:
    * @param[in] enabled if true, to enable auto fitting
    *       otherwise to disable
    */
-  void EnableAutoFitting( bool enabled ) override;
+  void EnableAutoFitting(bool enabled) override;
 
   /**
    * @brief Check if plugins are enabled or not.
@@ -161,7 +159,7 @@ public:
    * @param[in] enabled if true, to enable plugins
    *       otherwise to disable
    */
-  void EnablePlugins( bool enabled ) override;
+  void EnablePlugins(bool enabled) override;
 
   /**
    * @brief Check if private browsing is enabled or not.
@@ -176,7 +174,7 @@ public:
    * @param[in] enabled if true, to enable private browsing
    *       otherwise to disable
    */
-  void EnablePrivateBrowsing( bool enabled ) override;
+  void EnablePrivateBrowsing(bool enabled) override;
 
   /**
    * @brief Check if link magnifier is enabled or not.
@@ -191,7 +189,7 @@ public:
    * @param[in] enabled if true, to enable link magnifier
    *        otherwise to disable
    */
-  void EnableLinkMagnifier( bool enabled ) override;
+  void EnableLinkMagnifier(bool enabled) override;
 
   /**
    * @brief Check if keypad without user action is used or not.
@@ -206,7 +204,7 @@ public:
    * @param[in] used if true, to use keypad without user action
    *       otherwise to unused
    */
-  void UseKeypadWithoutUserAction( bool used ) override;
+  void UseKeypadWithoutUserAction(bool used) override;
 
   /**
    * @brief Check if autofill password form is enabled or not.
@@ -221,7 +219,7 @@ public:
    * @param[in] enabled if true, to enable autofill password form
    *       otherwise to disable
    */
-  void EnableAutofillPasswordForm( bool enabled ) override;
+  void EnableAutofillPasswordForm(bool enabled) override;
 
   /**
    * @brief Check if form candidate data is enabled or not.
@@ -236,7 +234,7 @@ public:
    * @param[in] enabled if true, to enable form candidate data
    *       otherwise to disable
    */
-  void EnableFormCandidateData( bool enabled ) override;
+  void EnableFormCandidateData(bool enabled) override;
 
   /**
    * @brief Check if text selection is enabled or not.
@@ -251,7 +249,7 @@ public:
    * @param[in] enabled if true, to enable text selection
    *       otherwise to disable
    */
-  void EnableTextSelection( bool enabled ) override;
+  void EnableTextSelection(bool enabled) override;
 
   /**
    * @brief Check if text autosizing is enabled or not.
@@ -266,7 +264,7 @@ public:
    * @param[in] enabled if true, to enable text autosizing
    *       otherwise to disable
    */
-  void EnableTextAutosizing( bool enabled ) override;
+  void EnableTextAutosizing(bool enabled) override;
 
   /**
    * @brief Check if arrow scroll is enabled or not.
@@ -281,7 +279,7 @@ public:
    * @param[in] enabled if true, to enable arrow scroll
    *        otherwise to disable
    */
-  void EnableArrowScroll( bool enabled ) override;
+  void EnableArrowScroll(bool enabled) override;
 
   /**
    * @brief Check if clipboard is enabled or not.
@@ -296,7 +294,7 @@ public:
    * @param[in] enabled if true, to enable clipboard
    *        otherwise to disable
    */
-  void EnableClipboard( bool enabled ) override;
+  void EnableClipboard(bool enabled) override;
 
   /**
    * @brief Check if ime panel is enabled or not.
@@ -311,7 +309,7 @@ public:
    * @param[in] enabled if true, to enable ime panel
    *        otherwise to disable
    */
-  void EnableImePanel( bool enabled ) override;
+  void EnableImePanel(bool enabled) override;
 
   /**
    * @brief Enables/disables if the scripts can open new windows.
@@ -319,7 +317,7 @@ public:
    * @param[in] allowed if true, the scripts can open new windows,
    *       otherwise not
    */
-  void AllowScriptsOpenWindows( bool allowed ) override;
+  void AllowScriptsOpenWindows(bool allowed) override;
 
   /**
    * @brief Check if images are loaded automatically or not.
@@ -334,7 +332,7 @@ public:
    * @param[in] automatic if true, to load images automatically,
    *       otherwise not
    */
-  void AllowImagesLoadAutomatically( bool automatic ) override;
+  void AllowImagesLoadAutomatically(bool automatic) override;
 
   /**
    * @brief Get the default encoding name.
@@ -348,7 +346,7 @@ public:
    *
    * @param[in] defaultTextEncodingName a default encoding name to set
    */
-  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override;
+  void SetDefaultTextEncodingName(const std::string& defaultTextEncodingName) override;
 
   /**
    * @brief Enables/disables the viewport meta tag.
@@ -414,9 +412,7 @@ public:
   bool IsExtraFeatureEnabled(const std::string& feature) const override;
 
 private:
-
   Ewk_Settings* ewkSettings;
-
 };
 } // namespace Plugin
 } // namespace Dali

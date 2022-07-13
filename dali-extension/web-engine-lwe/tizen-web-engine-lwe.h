@@ -2,7 +2,7 @@
 #define DALI_TIZEN_WEB_ENGINE_LWE_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@
 // EXTERNAL INCLUDES
 #include <LWEWebView.h>
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
-#include <dali/devel-api/adaptor-framework/web-engine-plugin.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/public-api/adaptor-framework/native-image-source.h>
 #include <dali/public-api/adaptor-framework/timer.h>
-#include <list>
 #include <string.h>
+#include <list>
 #include <vector>
 
 #ifndef DALI_USE_TBMSURFACE
@@ -131,14 +131,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHtmlStringOverrideCurrentEntry()
    */
-  bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
-                                          const std::string& unreachableUrl) override;
+  bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri, const std::string& unreachableUrl) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadContents()
    */
-  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
-                    const std::string& encoding, const std::string& baseUri) override;
+  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Reload()
@@ -576,21 +574,21 @@ private:
   void DispatchKeyUpEvent(LWE::KeyValue keyCode);
 
 private:
-  std::string mUrl;
-  size_t      mOutputWidth;
-  size_t      mOutputHeight;
-  size_t      mOutputStride;
-  uint8_t*    mOutputBuffer;
-  bool mIsMouseLbuttonDown;
-  bool mCanGoBack;
-  bool mCanGoForward;
-  pthread_mutex_t            mOutputBufferMutex;
-  LWE::WebContainer*         mWebContainer;
+  std::string        mUrl;
+  size_t             mOutputWidth;
+  size_t             mOutputHeight;
+  size_t             mOutputStride;
+  uint8_t*           mOutputBuffer;
+  bool               mIsMouseLbuttonDown;
+  bool               mCanGoBack;
+  bool               mCanGoForward;
+  pthread_mutex_t    mOutputBufferMutex;
+  LWE::WebContainer* mWebContainer;
 #ifdef DALI_USE_TBMSURFACE
   tbm_surface_h              mTbmSurface;
   Dali::NativeImageSourcePtr mNativeImageSourcePtr;
 #else
-  Dali::BufferImage          mBufferImage;
+  Dali::BufferImage mBufferImage;
 #endif
 
   std::function<void(LWE::WebContainer*, const LWE::WebContainer::RenderResult&)> mOnRenderedHandler;

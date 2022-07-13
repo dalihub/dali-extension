@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/application-devel.h>
-#include <dali/devel-api/adaptor-framework/web-engine-back-forward-list-item.h>
-#include <dali/devel-api/adaptor-framework/web-engine-back-forward-list.h>
-#include <dali/devel-api/adaptor-framework/web-engine-context.h>
-#include <dali/devel-api/adaptor-framework/web-engine-cookie-manager.h>
-#include <dali/devel-api/adaptor-framework/web-engine-hit-test.h>
-#include <dali/devel-api/adaptor-framework/web-engine-security-origin.h>
-#include <dali/devel-api/adaptor-framework/web-engine-settings.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-back-forward-list-item.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-back-forward-list.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-context.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-cookie-manager.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-hit-test.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-security-origin.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-settings.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/events/key-event.h>
@@ -48,7 +48,7 @@ extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin(void)
 
 extern "C" DALI_EXPORT_API void DestroyWebEnginePlugin(Dali::WebEnginePlugin* plugin)
 {
-  if (plugin != NULL)
+  if(plugin != NULL)
   {
     delete plugin;
   }
@@ -60,45 +60,44 @@ namespace Plugin
 {
 namespace
 {
-
 LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed)
 {
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
-  if (strcmp("Left", DALIKeyString) == 0)
+  if(strcmp("Left", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::ArrowLeftKey;
   }
-  else if (strcmp("Right", DALIKeyString) == 0)
+  else if(strcmp("Right", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::ArrowRightKey;
   }
-  else if (strcmp("Up", DALIKeyString) == 0)
+  else if(strcmp("Up", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::ArrowUpKey;
   }
-  else if (strcmp("Down", DALIKeyString) == 0)
+  else if(strcmp("Down", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::ArrowDownKey;
   }
-  else if (strcmp("space", DALIKeyString) == 0)
+  else if(strcmp("space", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::SpaceKey;
   }
-  else if (strcmp("Return", DALIKeyString) == 0)
+  else if(strcmp("Return", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::EnterKey;
   }
-  else if (strcmp("BackSpace", DALIKeyString) == 0)
+  else if(strcmp("BackSpace", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::BackspaceKey;
   }
-  else if (strcmp("Escape", DALIKeyString) == 0)
+  else if(strcmp("Escape", DALIKeyString) == 0)
   {
     keyValue = LWE::KeyValue::EscapeKey;
   }
-  else if (strcmp("minus", DALIKeyString) == 0)
+  else if(strcmp("minus", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::MinusMarkKey;
     }
@@ -107,9 +106,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::UnderScoreMarkKey;
     }
   }
-  else if (strcmp("equal", DALIKeyString) == 0)
+  else if(strcmp("equal", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::PlusMarkKey;
     }
@@ -118,9 +117,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::EqualitySignKey;
     }
   }
-  else if (strcmp("bracketleft", DALIKeyString) == 0)
+  else if(strcmp("bracketleft", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::LeftCurlyBracketMarkKey;
     }
@@ -129,9 +128,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::LeftSquareBracketKey;
     }
   }
-  else if (strcmp("bracketright", DALIKeyString) == 0)
+  else if(strcmp("bracketright", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::RightCurlyBracketMarkKey;
     }
@@ -140,9 +139,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::RightSquareBracketKey;
     }
   }
-  else if (strcmp("semicolon", DALIKeyString) == 0)
+  else if(strcmp("semicolon", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::ColonMarkKey;
     }
@@ -151,9 +150,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::SemiColonMarkKey;
     }
   }
-  else if (strcmp("apostrophe", DALIKeyString) == 0)
+  else if(strcmp("apostrophe", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::DoubleQuoteMarkKey;
     }
@@ -162,9 +161,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::SingleQuoteMarkKey;
     }
   }
-  else if (strcmp("comma", DALIKeyString) == 0)
+  else if(strcmp("comma", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::LessThanMarkKey;
     }
@@ -173,9 +172,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::CommaMarkKey;
     }
   }
-  else if (strcmp("period", DALIKeyString) == 0)
+  else if(strcmp("period", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::GreaterThanSignKey;
     }
@@ -184,9 +183,9 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::PeriodKey;
     }
   }
-  else if (strcmp("slash", DALIKeyString) == 0)
+  else if(strcmp("slash", DALIKeyString) == 0)
   {
-    if (isShiftPressed)
+    if(isShiftPressed)
     {
       keyValue = LWE::KeyValue::QuestionMarkKey;
     }
@@ -195,14 +194,14 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
       keyValue = LWE::KeyValue::SlashKey;
     }
   }
-  else if (strlen(DALIKeyString) == 1)
+  else if(strlen(DALIKeyString) == 1)
   {
     char ch = DALIKeyString[0];
-    if (ch >= '0' && ch <= '9')
+    if(ch >= '0' && ch <= '9')
     {
-      if (isShiftPressed)
+      if(isShiftPressed)
       {
-        switch (ch)
+        switch(ch)
         {
           case '1':
           {
@@ -261,10 +260,10 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
         keyValue = (LWE::KeyValue)(LWE::KeyValue::Digit0Key + ch - '0');
       }
     }
-    else if (ch >= 'a' && ch <= 'z')
+    else if(ch >= 'a' && ch <= 'z')
     {
       int kv = LWE::KeyValue::LowerAKey + ch - 'a';
-      if (isShiftPressed)
+      if(isShiftPressed)
       {
         kv -= ('z' - 'a');
         kv -= 7;
@@ -280,7 +279,8 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
 class Locker
 {
 public:
-  Locker(pthread_mutex_t& lock) : m_lock(lock)
+  Locker(pthread_mutex_t& lock)
+  : m_lock(lock)
   {
     pthread_mutex_lock(&m_lock);
   }
@@ -295,22 +295,25 @@ protected:
 };
 
 TizenWebEngineLWE::TizenWebEngineLWE()
-  : mUrl("")
-  , mOutputWidth(0)
-  , mOutputHeight(0)
-  , mOutputStride(0)
-  , mOutputBuffer(NULL)
-  , mIsMouseLbuttonDown(false)
-  , mCanGoBack(false)
-  , mCanGoForward(false)
-  , mWebContainer(NULL)
+: mUrl(""),
+  mOutputWidth(0),
+  mOutputHeight(0),
+  mOutputStride(0),
+  mOutputBuffer(NULL),
+  mIsMouseLbuttonDown(false),
+  mCanGoBack(false),
+  mCanGoForward(false),
+  mWebContainer(NULL)
 #ifdef DALI_USE_TBMSURFACE
-  , mTbmSurface(NULL)
-  , mNativeImageSourcePtr(NULL)
+  ,
+  mTbmSurface(NULL),
+  mNativeImageSourcePtr(NULL)
 #else
-  , mBufferImage(NULL)
+  ,
+  mBufferImage(NULL)
 #endif
-  , mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::UpdateBuffer))
+  ,
+  mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::UpdateBuffer))
 {
   pthread_mutex_init(&mOutputBufferMutex, NULL);
 }
@@ -327,7 +330,7 @@ void TizenWebEngineLWE::UpdateBuffer()
 #ifdef DALI_USE_TBMSURFACE
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
 #else
-  if (mBufferImage)
+  if(mBufferImage)
   {
     mBufferImage.Update();
   }
@@ -336,62 +339,61 @@ void TizenWebEngineLWE::UpdateBuffer()
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
 {
-  mOutputWidth = width;
+  mOutputWidth  = width;
   mOutputHeight = height;
   mOutputStride = width * sizeof(uint32_t);
   mOutputBuffer = (uint8_t*)malloc(width * height * sizeof(uint32_t));
 
-  mOnRenderedHandler = [this](LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult)
-      {
-        size_t w = mOutputWidth;
-        size_t h = mOutputHeight;
-        if (renderResult.updatedWidth != w || renderResult.updatedHeight != h)
-        {
-          return;
-        }
-        Locker l(mOutputBufferMutex);
-        uint8_t* dstBuffer;
-        size_t dstStride;
+  mOnRenderedHandler = [this](LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult) {
+    size_t w = mOutputWidth;
+    size_t h = mOutputHeight;
+    if(renderResult.updatedWidth != w || renderResult.updatedHeight != h)
+    {
+      return;
+    }
+    Locker   l(mOutputBufferMutex);
+    uint8_t* dstBuffer;
+    size_t   dstStride;
 
 #ifdef DALI_USE_TBMSURFACE
-        tbm_surface_info_s tbmSurfaceInfo;
-        if (tbm_surface_map(mTbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &tbmSurfaceInfo) != TBM_SURFACE_ERROR_NONE)
-        {
-          DALI_LOG_ERROR("Fail to map tbm_surface\n");
-        }
+    tbm_surface_info_s tbmSurfaceInfo;
+    if(tbm_surface_map(mTbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &tbmSurfaceInfo) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Fail to map tbm_surface\n");
+    }
 
-        DALI_ASSERT_ALWAYS(tbmSurfaceInfo.format == TBM_FORMAT_ARGB8888 && "Unsupported TizenWebEngineLWE tbm format");
-        dstBuffer = tbmSurfaceInfo.planes[0].ptr;
-        dstStride = tbmSurfaceInfo.planes[0].stride;
+    DALI_ASSERT_ALWAYS(tbmSurfaceInfo.format == TBM_FORMAT_ARGB8888 && "Unsupported TizenWebEngineLWE tbm format");
+    dstBuffer = tbmSurfaceInfo.planes[0].ptr;
+    dstStride = tbmSurfaceInfo.planes[0].stride;
 #else
-        dstBuffer = mBufferImage.GetBuffer();
-        dstStride = mBufferImage.GetBufferStride();
+    dstBuffer = mBufferImage.GetBuffer();
+    dstStride = mBufferImage.GetBufferStride();
 #endif
 
-        uint32_t srcStride = renderResult.updatedWidth * sizeof(uint32_t);
-        uint8_t* srcBuffer = static_cast<uint8_t*>(renderResult.updatedBufferAddress);
+    uint32_t srcStride = renderResult.updatedWidth * sizeof(uint32_t);
+    uint8_t* srcBuffer = static_cast<uint8_t*>(renderResult.updatedBufferAddress);
 
-        if (dstStride == srcStride)
-        {
-          memcpy(dstBuffer, srcBuffer, tbmSurfaceInfo.planes[0].size);
-        }
-        else
-        {
-          for (auto y = renderResult.updatedY; y < (renderResult.updatedHeight + renderResult.updatedY); y++)
-          {
-            auto start = renderResult.updatedX;
-            memcpy(dstBuffer + (y * dstStride) + (start * 4), srcBuffer + (y * srcStride) + (start * 4), srcStride);
-          }
-        }
+    if(dstStride == srcStride)
+    {
+      memcpy(dstBuffer, srcBuffer, tbmSurfaceInfo.planes[0].size);
+    }
+    else
+    {
+      for(auto y = renderResult.updatedY; y < (renderResult.updatedHeight + renderResult.updatedY); y++)
+      {
+        auto start = renderResult.updatedX;
+        memcpy(dstBuffer + (y * dstStride) + (start * 4), srcBuffer + (y * srcStride) + (start * 4), srcStride);
+      }
+    }
 
 #ifdef DALI_USE_TBMSURFACE
-        if (tbm_surface_unmap(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
-        {
-          DALI_LOG_ERROR("Fail to unmap tbm_surface\n");
-        }
+    if(tbm_surface_unmap(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Fail to unmap tbm_surface\n");
+    }
 #endif
-        mUpdateBufferTrigger.Trigger();
-      };
+    mUpdateBufferTrigger.Trigger();
+  };
 
   mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {
   };
@@ -406,13 +408,13 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   };
 
 #ifdef DALI_USE_TBMSURFACE
-  mTbmSurface = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+  mTbmSurface           = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
   mNativeImageSourcePtr = Dali::NativeImageSource::New(mTbmSurface);
 #else
   mBufferImage = Dali::BufferImage::New(width, height, Dali::Pixel::BGRA8888);
 #endif
 
-  if (!LWE::LWE::IsInitialized())
+  if(!LWE::LWE::IsInitialized())
   {
     std::string dataPath = DevelApplication::GetDataPath();
     LWE::LWE::Initialize((dataPath + DB_NAME_LOCAL_STORAGE).c_str(),
@@ -422,51 +424,51 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   mWebContainer = LWE::WebContainer::Create(mOutputWidth, mOutputHeight, 1.0, "", locale.data(), timezoneId.data());
 
   mWebContainer->RegisterPreRenderingHandler(
-      [this]() -> LWE::WebContainer::RenderInfo {
-        if (mOutputBuffer == NULL)
-        {
-          mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
-          mOutputStride = mOutputWidth * sizeof(uint32_t);
-        }
+    [this]() -> LWE::WebContainer::RenderInfo {
+      if(mOutputBuffer == NULL)
+      {
+        mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
+        mOutputStride = mOutputWidth * sizeof(uint32_t);
+      }
 
-        ::LWE::WebContainer::RenderInfo result;
-        result.updatedBufferAddress = mOutputBuffer;
-        result.bufferStride = mOutputStride;
+      ::LWE::WebContainer::RenderInfo result;
+      result.updatedBufferAddress = mOutputBuffer;
+      result.bufferStride         = mOutputStride;
 
-        return result;
-      });
+      return result;
+    });
 
   mWebContainer->RegisterOnRenderedHandler(
-      [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult) {
-        mOnRenderedHandler(container, renderResult);
-      });
+    [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult) {
+      mOnRenderedHandler(container, renderResult);
+    });
   mWebContainer->RegisterOnReceivedErrorHandler(
-      [this](LWE::WebContainer* container, LWE::ResourceError error) {
-        mCanGoBack = container->CanGoBack();
-        mCanGoForward = container->CanGoForward();
-        mOnReceivedError(container, error);
-      });
+    [this](LWE::WebContainer* container, LWE::ResourceError error) {
+      mCanGoBack    = container->CanGoBack();
+      mCanGoForward = container->CanGoForward();
+      mOnReceivedError(container, error);
+    });
   mWebContainer->RegisterOnPageStartedHandler(
-      [this](LWE::WebContainer* container, const std::string& url) {
-        mUrl = url;
-        mCanGoBack = container->CanGoBack();
-        mCanGoForward = container->CanGoForward();
-        mOnPageStartedHandler(container, url);
-      });
+    [this](LWE::WebContainer* container, const std::string& url) {
+      mUrl          = url;
+      mCanGoBack    = container->CanGoBack();
+      mCanGoForward = container->CanGoForward();
+      mOnPageStartedHandler(container, url);
+    });
   mWebContainer->RegisterOnPageLoadedHandler(
-      [this](LWE::WebContainer* container, const std::string& url) {
-        mUrl = url;
-        mCanGoBack = container->CanGoBack();
-        mCanGoForward = container->CanGoForward();
-        mOnPageFinishedHandler(container, url);
-      });
+    [this](LWE::WebContainer* container, const std::string& url) {
+      mUrl          = url;
+      mCanGoBack    = container->CanGoBack();
+      mCanGoForward = container->CanGoForward();
+      mOnPageFinishedHandler(container, url);
+    });
   mWebContainer->RegisterOnLoadResourceHandler(
-      [this](LWE::WebContainer* container, const std::string& url) {
-        mUrl = url;
-        mCanGoBack = container->CanGoBack();
-        mCanGoForward = container->CanGoForward();
-        mOnLoadResourceHandler(container, url);
-      });
+    [this](LWE::WebContainer* container, const std::string& url) {
+      mUrl          = url;
+      mCanGoBack    = container->CanGoBack();
+      mCanGoForward = container->CanGoForward();
+      mOnLoadResourceHandler(container, url);
+    });
 }
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
@@ -476,13 +478,13 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, c
 
 void TizenWebEngineLWE::Destroy()
 {
-  if (!mWebContainer)
+  if(!mWebContainer)
   {
     return;
   }
 
 #ifdef DALI_USE_TBMSURFACE
-  if (mTbmSurface != NULL && tbm_surface_destroy(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
+  if(mTbmSurface != NULL && tbm_surface_destroy(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
   {
     DALI_LOG_ERROR("Failed to destroy tbm_surface\n");
   }
@@ -496,53 +498,169 @@ void TizenWebEngineLWE::Destroy()
 class NullWebEngineSettings : public Dali::WebEngineSettings
 {
 public:
-  void AllowMixedContents(bool allowed) override {}
-  void EnableSpatialNavigation(bool enabled) override {}
-  uint32_t GetDefaultFontSize() const override { return 0; }
-  void SetDefaultFontSize( uint32_t size ) override {}
-  void EnableWebSecurity( bool enabled ) override {}
-  void EnableCacheBuilder( bool enabled ) override {}
-  void UseScrollbarThumbFocusNotifications( bool used ) override {}
-  void EnableDoNotTrack( bool enabled ) override {}
-  void AllowFileAccessFromExternalUrl( bool allowed ) override {}
-  bool IsJavaScriptEnabled() const override { return false; }
-  void EnableJavaScript( bool enabled ) override {}
-  bool IsAutoFittingEnabled() const override { return false; }
-  void EnableAutoFitting( bool enabled ) override {}
-  bool ArePluginsEnabled() const override { return false; }
-  void EnablePlugins( bool enabled ) override {}
-  bool IsPrivateBrowsingEnabled() const override { return false; }
-  void EnablePrivateBrowsing( bool enabled ) override {}
-  bool IsLinkMagnifierEnabled() const override { return false; }
-  void EnableLinkMagnifier( bool enabled ) override {}
-  bool IsKeypadWithoutUserActionUsed() const override { return false; }
-  void UseKeypadWithoutUserAction( bool used ) override {}
-  bool IsAutofillPasswordFormEnabled() const override { return false; }
-  void EnableAutofillPasswordForm( bool enabled ) override {}
-  bool IsFormCandidateDataEnabled() const override { return false; }
-  void EnableFormCandidateData( bool enabled ) override {}
-  bool IsTextSelectionEnabled() const override { return false; }
-  void EnableTextSelection( bool enabled ) override {}
-  bool IsTextAutosizingEnabled() const override { return false; }
-  void EnableTextAutosizing( bool enabled ) override {}
-  bool IsArrowScrollEnabled() const override { return false; }
-  void EnableArrowScroll( bool enabled ) override {}
-  bool IsClipboardEnabled() const override { return false; }
-  void EnableClipboard( bool enabled ) override {}
-  bool IsImePanelEnabled() const override { return false; }
-  void EnableImePanel( bool enabled ) override {}
-  void AllowScriptsOpenWindows( bool allowed ) override {}
-  bool AreImagesLoadedAutomatically() const override { return false; }
-  void AllowImagesLoadAutomatically( bool automatic ) override {}
-  std::string GetDefaultTextEncodingName() const override { return std::string(); }
-  void SetDefaultTextEncodingName( const std::string& defaultTextEncodingName ) override { }
-  bool SetViewportMetaTag(bool enable) override {return false;}
-  bool SetForceZoom(bool enable) override {return false;}
-  bool IsZoomForced() const override {return false;}
-  bool SetTextZoomEnabled(bool enable) override {return false;}
-  bool IsTextZoomEnabled() const override {return false;}
-  void SetExtraFeature(const std::string& feature, bool enable) override { }
-  bool IsExtraFeatureEnabled(const std::string& feature) const override {return false;}
+  void AllowMixedContents(bool allowed) override
+  {
+  }
+  void EnableSpatialNavigation(bool enabled) override
+  {
+  }
+  uint32_t GetDefaultFontSize() const override
+  {
+    return 0;
+  }
+  void SetDefaultFontSize(uint32_t size) override
+  {
+  }
+  void EnableWebSecurity(bool enabled) override
+  {
+  }
+  void EnableCacheBuilder(bool enabled) override
+  {
+  }
+  void UseScrollbarThumbFocusNotifications(bool used) override
+  {
+  }
+  void EnableDoNotTrack(bool enabled) override
+  {
+  }
+  void AllowFileAccessFromExternalUrl(bool allowed) override
+  {
+  }
+  bool IsJavaScriptEnabled() const override
+  {
+    return false;
+  }
+  void EnableJavaScript(bool enabled) override
+  {
+  }
+  bool IsAutoFittingEnabled() const override
+  {
+    return false;
+  }
+  void EnableAutoFitting(bool enabled) override
+  {
+  }
+  bool ArePluginsEnabled() const override
+  {
+    return false;
+  }
+  void EnablePlugins(bool enabled) override
+  {
+  }
+  bool IsPrivateBrowsingEnabled() const override
+  {
+    return false;
+  }
+  void EnablePrivateBrowsing(bool enabled) override
+  {
+  }
+  bool IsLinkMagnifierEnabled() const override
+  {
+    return false;
+  }
+  void EnableLinkMagnifier(bool enabled) override
+  {
+  }
+  bool IsKeypadWithoutUserActionUsed() const override
+  {
+    return false;
+  }
+  void UseKeypadWithoutUserAction(bool used) override
+  {
+  }
+  bool IsAutofillPasswordFormEnabled() const override
+  {
+    return false;
+  }
+  void EnableAutofillPasswordForm(bool enabled) override
+  {
+  }
+  bool IsFormCandidateDataEnabled() const override
+  {
+    return false;
+  }
+  void EnableFormCandidateData(bool enabled) override
+  {
+  }
+  bool IsTextSelectionEnabled() const override
+  {
+    return false;
+  }
+  void EnableTextSelection(bool enabled) override
+  {
+  }
+  bool IsTextAutosizingEnabled() const override
+  {
+    return false;
+  }
+  void EnableTextAutosizing(bool enabled) override
+  {
+  }
+  bool IsArrowScrollEnabled() const override
+  {
+    return false;
+  }
+  void EnableArrowScroll(bool enabled) override
+  {
+  }
+  bool IsClipboardEnabled() const override
+  {
+    return false;
+  }
+  void EnableClipboard(bool enabled) override
+  {
+  }
+  bool IsImePanelEnabled() const override
+  {
+    return false;
+  }
+  void EnableImePanel(bool enabled) override
+  {
+  }
+  void AllowScriptsOpenWindows(bool allowed) override
+  {
+  }
+  bool AreImagesLoadedAutomatically() const override
+  {
+    return false;
+  }
+  void AllowImagesLoadAutomatically(bool automatic) override
+  {
+  }
+  std::string GetDefaultTextEncodingName() const override
+  {
+    return std::string();
+  }
+  void SetDefaultTextEncodingName(const std::string& defaultTextEncodingName) override
+  {
+  }
+  bool SetViewportMetaTag(bool enable) override
+  {
+    return false;
+  }
+  bool SetForceZoom(bool enable) override
+  {
+    return false;
+  }
+  bool IsZoomForced() const override
+  {
+    return false;
+  }
+  bool SetTextZoomEnabled(bool enable) override
+  {
+    return false;
+  }
+  bool IsTextZoomEnabled() const override
+  {
+    return false;
+  }
+  void SetExtraFeature(const std::string& feature, bool enable) override
+  {
+  }
+  bool IsExtraFeatureEnabled(const std::string& feature) const override
+  {
+    return false;
+  }
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
@@ -560,20 +678,41 @@ public:
   {
     return Dali::WebEngineContext::CacheModel::DOCUMENT_VIEWER;
   }
-  void SetCacheModel(CacheModel cacheModel) override {}
-  void SetProxyUri(const std::string& uri) override {}
-  std::string GetProxyUri() const override { return ""; }
-  void SetProxyBypassRule(const std::string& proxy, const std::string& bypass) override { }
-  std::string GetProxyBypassRule() const override { return ""; }
-  void SetDefaultProxyAuth(const std::string& username, const std::string& password) override {}
-  void SetCertificateFilePath(const std::string& certificatePath) override {}
-  std::string GetCertificateFilePath() const override { return ""; }
-  void DeleteAllWebDatabase() override {}
+  void SetCacheModel(CacheModel cacheModel) override
+  {
+  }
+  void SetProxyUri(const std::string& uri) override
+  {
+  }
+  std::string GetProxyUri() const override
+  {
+    return "";
+  }
+  void SetProxyBypassRule(const std::string& proxy, const std::string& bypass) override
+  {
+  }
+  std::string GetProxyBypassRule() const override
+  {
+    return "";
+  }
+  void SetDefaultProxyAuth(const std::string& username, const std::string& password) override
+  {
+  }
+  void SetCertificateFilePath(const std::string& certificatePath) override
+  {
+  }
+  std::string GetCertificateFilePath() const override
+  {
+    return "";
+  }
+  void DeleteAllWebDatabase() override
+  {
+  }
   bool GetWebDatabaseOrigins(WebEngineSecurityOriginAcquiredCallback callback) override
   {
     return false;
   }
-  bool DeleteWebDatabase(WebEngineSecurityOrigin &origin) override
+  bool DeleteWebDatabase(WebEngineSecurityOrigin& origin) override
   {
     return false;
   }
@@ -581,42 +720,96 @@ public:
   {
     return false;
   }
-  bool GetWebStorageUsageForOrigin(WebEngineSecurityOrigin &origin, WebEngineStorageUsageAcquiredCallback callback) override
+  bool GetWebStorageUsageForOrigin(WebEngineSecurityOrigin& origin, WebEngineStorageUsageAcquiredCallback callback) override
   {
     return false;
   }
-  void DeleteAllWebStorage() override {}
-  bool DeleteWebStorage(WebEngineSecurityOrigin &origin) override
+  void DeleteAllWebStorage() override
+  {
+  }
+  bool DeleteWebStorage(WebEngineSecurityOrigin& origin) override
   {
     return false;
   }
-  void DeleteLocalFileSystem() override {}
-  void ClearCache() override {}
-  bool DeleteApplicationCache(WebEngineSecurityOrigin &origin) override
+  void DeleteLocalFileSystem() override
+  {
+  }
+  void ClearCache() override
+  {
+  }
+  bool DeleteApplicationCache(WebEngineSecurityOrigin& origin) override
   {
     return false;
   }
-  void GetFormPasswordList(WebEngineFormPasswordAcquiredCallback callback) override {}
-  void RegisterDownloadStartedCallback(WebEngineDownloadStartedCallback callback) override {}
-  void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override {}
-  void RegisterRequestInterceptedCallback(WebEngineRequestInterceptedCallback callback) override {}
-  void EnableCache(bool cacheDisabled) override {}
-  bool IsCacheEnabled() const override { return false; }
-  void SetAppId(const std::string& appId) override { }
-  bool SetAppVersion(const std::string& appVersion) override { return false; }
-  void SetApplicationType(const ApplicationType applicationType) override { }
-  void SetTimeOffset(float timeOffset) override { }
-  void SetTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override { }
-  void SetDefaultZoomFactor(float zoomFactor) override { }
-  float GetDefaultZoomFactor() const override { return 0;}
-  void RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes) override { }
-  void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes) override { }
-  bool DeleteAllApplicationCache() override { return false; }
-  bool DeleteAllWebIndexedDatabase() override { return false; }
-  void DeleteFormPasswordDataList(const std::vector<std::string>& list) override { }
-  void DeleteAllFormPasswordData() override { }
-  void DeleteAllFormCandidateData() override { }
-  bool FreeUnusedMemory() override { return false; }
+  void GetFormPasswordList(WebEngineFormPasswordAcquiredCallback callback) override
+  {
+  }
+  void RegisterDownloadStartedCallback(WebEngineDownloadStartedCallback callback) override
+  {
+  }
+  void RegisterMimeOverriddenCallback(WebEngineMimeOverriddenCallback callback) override
+  {
+  }
+  void RegisterRequestInterceptedCallback(WebEngineRequestInterceptedCallback callback) override
+  {
+  }
+  void EnableCache(bool cacheDisabled) override
+  {
+  }
+  bool IsCacheEnabled() const override
+  {
+    return false;
+  }
+  void SetAppId(const std::string& appId) override
+  {
+  }
+  bool SetAppVersion(const std::string& appVersion) override
+  {
+    return false;
+  }
+  void SetApplicationType(const ApplicationType applicationType) override
+  {
+  }
+  void SetTimeOffset(float timeOffset) override
+  {
+  }
+  void SetTimeZoneOffset(float timeZoneOffset, float daylightSavingTime) override
+  {
+  }
+  void SetDefaultZoomFactor(float zoomFactor) override
+  {
+  }
+  float GetDefaultZoomFactor() const override
+  {
+    return 0;
+  }
+  void RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes) override
+  {
+  }
+  void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes) override
+  {
+  }
+  bool DeleteAllApplicationCache() override
+  {
+    return false;
+  }
+  bool DeleteAllWebIndexedDatabase() override
+  {
+    return false;
+  }
+  void DeleteFormPasswordDataList(const std::vector<std::string>& list) override
+  {
+  }
+  void DeleteAllFormPasswordData() override
+  {
+  }
+  void DeleteAllFormCandidateData() override
+  {
+  }
+  bool FreeUnusedMemory() override
+  {
+    return false;
+  }
 };
 
 Dali::WebEngineContext& TizenWebEngineLWE::GetContext() const
@@ -630,14 +823,22 @@ Dali::WebEngineContext& TizenWebEngineLWE::GetContext() const
 class NullWebEngineCookieManager : public Dali::WebEngineCookieManager
 {
 public:
-  void SetCookieAcceptPolicy(CookieAcceptPolicy policy) override {}
+  void SetCookieAcceptPolicy(CookieAcceptPolicy policy) override
+  {
+  }
   CookieAcceptPolicy GetCookieAcceptPolicy() const override
   {
     return Dali::WebEngineCookieManager::CookieAcceptPolicy::ALWAYS;
   }
-  void SetPersistentStorage(const std::string& path, CookiePersistentStorage storage) override {}
-  void ClearCookies() override {}
-  void ChangesWatch(WebEngineCookieManagerChangesWatchCallback callback) override {}
+  void SetPersistentStorage(const std::string& path, CookiePersistentStorage storage) override
+  {
+  }
+  void ClearCookies() override
+  {
+  }
+  void ChangesWatch(WebEngineCookieManagerChangesWatchCallback callback) override
+  {
+  }
 };
 
 Dali::WebEngineCookieManager& TizenWebEngineLWE::GetCookieManager() const
@@ -651,21 +852,48 @@ Dali::WebEngineCookieManager& TizenWebEngineLWE::GetCookieManager() const
 class NullWebEngineBackForwardListItem : public Dali::WebEngineBackForwardListItem
 {
 public:
-  std::string GetUrl() const override { return std::string(); }
-  std::string GetTitle() const override { return std::string(); }
-  std::string GetOriginalUrl() const override { return std::string(); }
+  std::string GetUrl() const override
+  {
+    return std::string();
+  }
+  std::string GetTitle() const override
+  {
+    return std::string();
+  }
+  std::string GetOriginalUrl() const override
+  {
+    return std::string();
+  }
 };
 
 // NOT IMPLEMENTED
 class NullWebEngineBackForwardList : public Dali::WebEngineBackForwardList
 {
 public:
-  NullWebEngineBackForwardList( WebEngineBackForwardListItem* pItem ) : mItem( pItem ) { }
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetCurrentItem() const override { return NULL; }
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetPreviousItem() const override { return NULL; }
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetNextItem() const override { return NULL; }
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetItemAtIndex( uint32_t index ) const override { return NULL; }
-  uint32_t GetItemCount() const override { return 1; }
+  NullWebEngineBackForwardList(WebEngineBackForwardListItem* pItem)
+  : mItem(pItem)
+  {
+  }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetCurrentItem() const override
+  {
+    return NULL;
+  }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetPreviousItem() const override
+  {
+    return NULL;
+  }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetNextItem() const override
+  {
+    return NULL;
+  }
+  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetItemAtIndex(uint32_t index) const override
+  {
+    return NULL;
+  }
+  uint32_t GetItemCount() const override
+  {
+    return 1;
+  }
   std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetBackwardItems(int limit)
   {
     std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
@@ -676,6 +904,7 @@ public:
     std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
     return vec;
   }
+
 private:
   WebEngineBackForwardListItem* mItem;
 };
@@ -684,7 +913,7 @@ Dali::WebEngineBackForwardList& TizenWebEngineLWE::GetBackForwardList() const
 {
   // NOT IMPLEMENTED
   static NullWebEngineBackForwardListItem item;
-  static NullWebEngineBackForwardList list(&item);
+  static NullWebEngineBackForwardList     list(&item);
   return list;
 }
 
@@ -730,16 +959,13 @@ void TizenWebEngineLWE::LoadHtmlString(const std::string& str)
   mWebContainer->LoadData(str);
 }
 
-bool TizenWebEngineLWE::LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
-                                                           const std::string& unreachableUrl)
+bool TizenWebEngineLWE::LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri, const std::string& unreachableUrl)
 {
   // NOT IMPLEMENTED
   return false;
 }
 
-bool TizenWebEngineLWE::LoadContents(const std::string& contents, uint32_t contentSize,
-                                     const std::string& mimeType, const std::string& encoding,
-                                     const std::string& baseUri)
+bool TizenWebEngineLWE::LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
 {
   // NOT IMPLEMENTED
   return false;
@@ -873,11 +1099,10 @@ void TizenWebEngineLWE::EvaluateJavaScript(const std::string& script, std::funct
 void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string&)> handler)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
-  mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage",
-      [handler](const std::string& data) -> std::string {
-        handler(data);
-        return "";
-      });
+  mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler](const std::string& data) -> std::string {
+    handler(data);
+    return "";
+  });
 }
 
 void TizenWebEngineLWE::RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback)
@@ -959,29 +1184,29 @@ void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
 
-  if (mOutputWidth != (size_t)width || mOutputHeight != (size_t)height)
+  if(mOutputWidth != (size_t)width || mOutputHeight != (size_t)height)
   {
-    mOutputWidth = width;
+    mOutputWidth  = width;
     mOutputHeight = height;
     mOutputStride = width * sizeof(uint32_t);
 
 #ifdef DALI_USE_TBMSURFACE
     tbm_surface_h prevTbmSurface = mTbmSurface;
-    mTbmSurface = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+    mTbmSurface                  = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
     Dali::Any source(mTbmSurface);
     mNativeImageSourcePtr->SetSource(source);
-    if (prevTbmSurface != NULL && tbm_surface_destroy(prevTbmSurface) != TBM_SURFACE_ERROR_NONE)
+    if(prevTbmSurface != NULL && tbm_surface_destroy(prevTbmSurface) != TBM_SURFACE_ERROR_NONE)
     {
       DALI_LOG_ERROR("Failed to destroy tbm_surface\n");
     }
 #endif
 
     auto oldOutputBuffer = mOutputBuffer;
-    mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
-    mOutputStride = mOutputWidth * sizeof(uint32_t);
+    mOutputBuffer        = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
+    mOutputStride        = mOutputWidth * sizeof(uint32_t);
     mWebContainer->ResizeTo(mOutputWidth, mOutputHeight);
 
-    if (oldOutputBuffer)
+    if(oldOutputBuffer)
     {
       free(oldOutputBuffer);
     }
@@ -1033,28 +1258,29 @@ void TizenWebEngineLWE::DispatchMouseMoveEvent(float x, float y, bool isLButtonP
   DALI_ASSERT_ALWAYS(mWebContainer);
 
   mWebContainer->DispatchMouseMoveEvent(
-      isLButtonPressed ? LWE::MouseButtonValue::LeftButton
-                       : LWE::MouseButtonValue::NoButton,
-      isLButtonPressed ? LWE::MouseButtonsValue::LeftButtonDown
-                       : LWE::MouseButtonsValue::NoButtonDown,
-      x, y);
+    isLButtonPressed ? LWE::MouseButtonValue::LeftButton
+                     : LWE::MouseButtonValue::NoButton,
+    isLButtonPressed ? LWE::MouseButtonsValue::LeftButtonDown
+                     : LWE::MouseButtonsValue::NoButtonDown,
+    x,
+    y);
 }
 
 bool TizenWebEngineLWE::SendTouchEvent(const TouchEvent& touch)
 {
   size_t pointCount = touch.GetPointCount();
-  if (pointCount == 1)
+  if(pointCount == 1)
   {
     // Single touch event
     Dali::PointState::Type pointState = touch.GetState(0);
-    const Dali::Vector2& screen = touch.GetLocalPosition(0);
+    const Dali::Vector2&   screen     = touch.GetLocalPosition(0);
 
-    if (pointState == Dali::PointState::DOWN)
+    if(pointState == Dali::PointState::DOWN)
     {
       DispatchMouseDownEvent(screen.x, screen.y);
       mIsMouseLbuttonDown = true;
     }
-    else if (pointState == Dali::PointState::UP)
+    else if(pointState == Dali::PointState::UP)
     {
       DispatchMouseUpEvent(screen.x, screen.y);
       mIsMouseLbuttonDown = false;
@@ -1092,7 +1318,7 @@ void TizenWebEngineLWE::DispatchKeyUpEvent(LWE::KeyValue keyCode)
 bool TizenWebEngineLWE::SendKeyEvent(const Dali::KeyEvent& event)
 {
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
-  if (32 < event.GetKeyString().c_str()[0] && 127 > event.GetKeyString().c_str()[0])
+  if(32 < event.GetKeyString().c_str()[0] && 127 > event.GetKeyString().c_str()[0])
   {
     keyValue = static_cast<LWE::KeyValue>(event.GetKeyString().c_str()[0]);
   }
@@ -1100,12 +1326,12 @@ bool TizenWebEngineLWE::SendKeyEvent(const Dali::KeyEvent& event)
   {
     keyValue = KeyStringToKeyValue(event.GetKeyName().c_str(), event.GetKeyModifier() & 1);
   }
-  if (event.GetState() == Dali::KeyEvent::DOWN)
+  if(event.GetState() == Dali::KeyEvent::DOWN)
   {
     DispatchKeyDownEvent(keyValue);
     DispatchKeyPressEvent(keyValue);
   }
-  else if (event.GetState() == Dali::KeyEvent::UP)
+  else if(event.GetState() == Dali::KeyEvent::UP)
   {
     DispatchKeyUpEvent(keyValue);
   }
@@ -1229,7 +1455,6 @@ bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
   // NOT IMPLEMENTED
   return false;
 }
-
 
 void TizenWebEngineLWE::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
 {

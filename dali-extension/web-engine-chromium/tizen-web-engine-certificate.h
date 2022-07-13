@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_CERTIFICATE_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,12 @@
 #include <ewk_certificate_internal.h>
 #include <string>
 
-#include <dali/devel-api/adaptor-framework/web-engine-certificate.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-certificate.h>
 
 namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineCertificate for ssl certificate.
  */

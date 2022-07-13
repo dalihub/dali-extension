@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_CONSOLE_MESSAGE_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/web-engine-console-message.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-console-message.h>
 #include <ewk_console_message_internal.h>
 #include <string>
 
@@ -27,7 +27,6 @@ namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineConsoleMessage for console message.
  */

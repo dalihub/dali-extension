@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_WEB_ENGINE_CONTEXT_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include <Eina.h>
 
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
-#include <dali/devel-api/adaptor-framework/web-engine-context.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-context.h>
 #include <dali/devel-api/threading/mutex.h>
 
 #include <memory>
@@ -37,7 +37,6 @@ namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineContext for context of chromium.
  */
@@ -222,7 +221,7 @@ public:
   /**
    * @copydoc Dali::WebEngineContext::RegisterJsPluginMimeTypes()
    */
-  void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)override;
+  void RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes) override;
 
   /**
    * @copydoc Dali::WebEngineContext::DeleteAllApplicationCache()
