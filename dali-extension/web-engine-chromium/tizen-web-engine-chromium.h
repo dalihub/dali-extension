@@ -2,7 +2,7 @@
 #define DALI_TIZEN_WEB_ENGINE_CHROMIUM_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali-toolkit/dali-toolkit.h>
-#include <dali/devel-api/adaptor-framework/web-engine-plugin.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
 #include <dali/public-api/images/native-image-interface.h>
 
 #include <functional>
@@ -318,14 +318,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHtmlStringOverrideCurrentEntry()
    */
-  bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
-                                          const std::string& unreachableUrl) override;
+  bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri, const std::string& unreachableUrl) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadContents()
    */
-  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
-                    const std::string& encoding, const std::string& baseUri) override;
+  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Reload()
@@ -650,12 +648,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::SendHoverEvent()
    */
-  bool SendHoverEvent(const Dali::HoverEvent &event) override;
+  bool SendHoverEvent(const Dali::HoverEvent& event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendWheelEvent()
    */
-  bool SendWheelEvent(const Dali::WheelEvent &event) override;
+  bool SendWheelEvent(const Dali::WheelEvent& event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::FrameRenderedSignal()

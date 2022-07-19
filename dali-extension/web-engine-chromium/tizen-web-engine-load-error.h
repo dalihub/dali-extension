@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_LOAD_ERROR_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/web-engine-load-error.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-load-error.h>
 #include <ewk_error.h>
 #include <ewk_error_internal.h>
 #include <string>
@@ -28,7 +28,6 @@ namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineLoadError for loading error.
  */

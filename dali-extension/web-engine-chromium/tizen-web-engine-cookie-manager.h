@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_WEB_ENGINE_COOKIE_MANAGER_H
 
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/web-engine-cookie-manager.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-cookie-manager.h>
 #include <ewk_cookie_manager.h>
 #include <string>
 
@@ -27,15 +27,12 @@ namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineCookieManager for cookie manager of chromium.
  */
 class TizenWebEngineCookieManager : public Dali::WebEngineCookieManager
 {
-
 public:
-
   /**
    * @brief Constructor.
    */
@@ -72,17 +69,16 @@ public:
   void ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback) override;
 
 private:
-
   /**
    * @brief Callback for changing watch.
    *
    * @param[in] data Data for callback
    */
-  static void OnChangesWatch(void *data);
+  static void OnChangesWatch(void* data);
 
 private:
-  Ewk_Cookie_Manager*      mEwkCookieManager;
-  Ewk_Cookie_Accept_Policy mCookieAcceptancePolicy;
+  Ewk_Cookie_Manager*                                                      mEwkCookieManager;
+  Ewk_Cookie_Accept_Policy                                                 mCookieAcceptancePolicy;
   Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback mWebChangesWatchCallback;
 };
 

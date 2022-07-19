@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_BACK_FORWARD_LIST_H
 
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@
 
 // EXTERNAL INCLUDES
 #include <ewk_back_forward_list.h>
-#include <dali/devel-api/adaptor-framework/web-engine-back-forward-list.h>
-#include <dali/devel-api/adaptor-framework/web-engine-back-forward-list-item.h>
+
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-back-forward-list-item.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-back-forward-list.h>
 
 namespace Dali
 {
 namespace Plugin
 {
-
 class WebEngineBackForwardListItem;
 
 /**
@@ -35,9 +35,7 @@ class WebEngineBackForwardListItem;
  */
 class TizenWebEngineBackForwardList : public Dali::WebEngineBackForwardList
 {
-
 public:
-
   /**
    * @brief Constructor.
    */
@@ -93,7 +91,6 @@ public:
   std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetForwardItems(int limit) override;
 
 private:
-
   Ewk_Back_Forward_List* mEwkBackForwardList;
 };
 } // namespace Plugin

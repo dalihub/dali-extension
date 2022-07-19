@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_POLICY_DECISION_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,13 @@
 #include <memory>
 #include <string>
 
-#include <dali/devel-api/adaptor-framework/web-engine-frame.h>
-#include <dali/devel-api/adaptor-framework/web-engine-policy-decision.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-frame.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-policy-decision.h>
 
 namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEnginePolicyDecision for policy decision of chromium.
  */

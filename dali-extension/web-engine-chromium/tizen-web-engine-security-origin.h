@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_SECURITY_ORIGIN_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,12 @@
 #include <ewk_security_origin.h>
 #include <string>
 
-#include <dali/devel-api/adaptor-framework/web-engine-security-origin.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-security-origin.h>
 
 namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class TizenWebEngineSecurityOrigin for security origin.
  */
