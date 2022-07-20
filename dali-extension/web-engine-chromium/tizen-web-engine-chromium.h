@@ -271,16 +271,6 @@ public:
   Dali::WebEngineSettings& GetSettings() const override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::GetContext()
-   */
-  Dali::WebEngineContext& GetContext() const override;
-
-  /**
-   * @copydoc Dali::WebEnginePlugin::GetCookieManager()
-   */
-  Dali::WebEngineCookieManager& GetCookieManager() const override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::GetBackForwardList()
    */
   Dali::WebEngineBackForwardList& GetBackForwardList() const override;

@@ -43,6 +43,9 @@ TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context)
 
 TizenWebEngineContext::~TizenWebEngineContext()
 {
+  ewk_context_intercept_request_callback_set(mEwkContext, nullptr, nullptr);
+  ewk_context_did_start_download_callback_set(mEwkContext, nullptr, nullptr);
+  ewk_context_mime_override_callback_set(mEwkContext, nullptr, nullptr);
 }
 
 Dali::WebEngineContext::CacheModel TizenWebEngineContext::GetCacheModel() const
