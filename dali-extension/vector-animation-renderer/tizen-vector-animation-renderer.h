@@ -107,6 +107,11 @@ public:
   void InvalidateBuffer() override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::AddPropertyValueCallback()
+   */
+  void AddPropertyValueCallback(const std::string& keyPath, VectorProperty property, CallbackBase* callback, int32_t id) override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
@@ -133,6 +138,8 @@ private:
 
   std::string                         mUrl;                    ///< The content file path
   std::vector<SurfacePair>            mBuffers;                ///< EGL Image vector
+  std::vector<std::unique_ptr<CallbackBase>> mPropertyCallbacks; ///< Property callback list
+
   mutable Dali::Mutex                 mMutex;                  ///< Mutex
   Dali::Renderer                      mRenderer;               ///< Renderer
   Dali::Texture                       mTexture;                ///< Texture

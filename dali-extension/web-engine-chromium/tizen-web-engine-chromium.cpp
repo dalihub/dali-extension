@@ -36,10 +36,12 @@
 #include <Elementary.h>
 #include <Evas.h>
 
+#include <dali/devel-api/adaptor-framework/lifecycle-controller.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/images/pixel-data.h>
+#include <dali/public-api/signals/slot-delegate.h>
 
 #include <ewk_main_internal.h>
 #include <ewk_settings_product.h>
@@ -96,7 +98,7 @@ Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
   return returnVal;
 }
 
-}
+} // Anonymous namespace
 
 class WebViewContainerClientPair
 {
@@ -132,6 +134,16 @@ public:
     return mWindow;
   }
 
+  Dali::WebEngineContext* GetContext()
+  {
+    return mWebEngineContext.get();
+  }
+
+  Dali::WebEngineCookieManager* GetCookieManager()
+  {
+    return mWebEngineCookieManager.get();
+  }
+
   void AddContainerClient(WebViewContainerClient* client, Evas_Object* webView)
   {
     mContainerClients.push_back(WebViewContainerClientPair(client, webView));
@@ -153,18 +165,6 @@ public:
     }
   }
 
-  Evas_Object* FindWebView(WebViewContainerClient* client)
-  {
-    for (auto& webViewClient : mContainerClients)
-    {
-      if (webViewClient.mClient == client)
-      {
-        return webViewClient.mWebView;
-      }
-    }
-    return nullptr;
-  }
-
   WebViewContainerClient* FindContainerClient(Evas_Object* o)
   {
     for (auto& webViewClient : mContainerClients)
@@ -178,14 +178,37 @@ public:
   }
 
 private:
-  WebEngineManager()
+  WebEngineManager() : mSlotDelegate(this)
   {
     elm_init(0, 0);
     ewk_init();
     mWindow = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+
+    Ewk_Context* context = ewk_context_default_get();
+    mWebEngineContext.reset(new TizenWebEngineContext(context));
+
+    Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
+    mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
+    LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
   }
 
-  Ecore_Evas* mWindow;
+  void OnTerminated()
+  {
+    for (auto it = mContainerClients.begin(); it != mContainerClients.end(); it++)
+    {
+      evas_object_del(it->mWebView);
+    }
+    mContainerClients.clear();
+    ecore_evas_free(mWindow);
+    ewk_shutdown();
+    elm_shutdown();
+    DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");
+  }
+
+  SlotDelegate<WebEngineManager>          mSlotDelegate;
+  std::unique_ptr<WebEngineContext>       mWebEngineContext;
+  std::unique_ptr<WebEngineCookieManager> mWebEngineCookieManager;
+  Ecore_Evas*                             mWindow;
   std::vector<WebViewContainerClientPair> mContainerClients;
 };
 
@@ -198,12 +221,9 @@ public:
     , mWidth(width)
     , mHeight(height)
     , mWebEngineSettings(nullptr)
-    , mWebEngineContext(nullptr)
-    , mWebEngineCookieManager(nullptr)
     , mWebEngineBackForwardList(nullptr)
   {
     InitWebView(0, nullptr);
-
     WebEngineManager::Get().AddContainerClient(&mClient, mWebView);
   }
 
@@ -213,19 +233,15 @@ public:
     , mWidth(width)
     , mHeight(height)
     , mWebEngineSettings(nullptr)
-    , mWebEngineContext(nullptr)
-    , mWebEngineCookieManager(nullptr)
     , mWebEngineBackForwardList(nullptr)
   {
     InitWebView(argc, argv);
-
     WebEngineManager::Get().AddContainerClient(&mClient, mWebView);
   }
 
   ~WebViewContainerForDali()
   {
     WebEngineManager::Get().RemoveContainerClient(mWebView);
-
     evas_object_del(mWebView);
   }
 
@@ -245,12 +261,6 @@ public:
 
     Ewk_Settings* settings = ewk_view_settings_get(mWebView);
     mWebEngineSettings.reset(new TizenWebEngineSettings(settings));
-
-    context = ewk_view_context_get(mWebView);
-    mWebEngineContext.reset(new TizenWebEngineContext(context));
-
-    Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
-    mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
 
     Ewk_Back_Forward_List* backForwardList = ewk_view_back_forward_list_get(mWebView);
     mWebEngineBackForwardList.reset(new TizenWebEngineBackForwardList(backForwardList));
@@ -337,14 +347,18 @@ public:
   bool LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri,
                                           const std::string& unreachableUrl)
   {
-    return ewk_view_html_string_override_current_entry_load(mWebView, html.c_str(), basicUri.c_str(), unreachableUrl.c_str());
+    char* cBasicUri = basicUri.length() ?  (char *)basicUri.c_str() : nullptr;
+    char* cUnreachableUrl = unreachableUrl.length() ?  (char *)unreachableUrl.c_str() : nullptr;
+    return ewk_view_html_string_override_current_entry_load(mWebView, html.c_str(), cBasicUri, cUnreachableUrl);
   }
 
   bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
                     const std::string& encoding, const std::string& baseUri)
   {
-    return ewk_view_contents_set(mWebView, contents.c_str(), contentSize, (char *)mimeType.c_str(),
-                                 (char *)encoding.c_str(), (char *)baseUri.c_str());
+    char* cMimeType = mimeType.length() ?  (char *)mimeType.c_str() : nullptr;
+    char* cEncoding = encoding.length() ?  (char *)encoding.c_str() : nullptr;
+    char* cBaseUri = baseUri.length() ?  (char *)baseUri.c_str() : nullptr;
+    return ewk_view_contents_set(mWebView, contents.c_str(), contentSize, cMimeType, cEncoding, cBaseUri);
   }
 
   std::string GetTitle()
@@ -540,18 +554,6 @@ public:
   {
     static TizenWebEngineSettings dummy(nullptr);
     return mWebEngineSettings ? *mWebEngineSettings : dummy;
-  }
-
-  Dali::WebEngineContext& GetContext()
-  {
-    static TizenWebEngineContext dummy(nullptr);
-    return mWebEngineContext ? *mWebEngineContext : dummy;
-  }
-
-  Dali::WebEngineCookieManager& GetCookieManager()
-  {
-    static TizenWebEngineCookieManager dummy(nullptr);
-    return mWebEngineCookieManager ? *mWebEngineCookieManager : dummy;
   }
 
   Dali::WebEngineBackForwardList& GetBackForwardList()
@@ -1173,8 +1175,6 @@ private:
   uint32_t    mHeight;
 
   std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
-  std::unique_ptr<WebEngineContext>         mWebEngineContext;
-  std::unique_ptr<WebEngineCookieManager>   mWebEngineCookieManager;
   std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
 };
 
@@ -1595,33 +1595,6 @@ Dali::WebEngineSettings& TizenWebEngineChromium::GetSettings() const
 
   DALI_LOG_ERROR("WebViewContainer is null.");
   static TizenWebEngineSettings dummy(nullptr);
-
-  return dummy;
-}
-
-Dali::WebEngineContext& TizenWebEngineChromium::GetContext() const
-{
-  if (mWebViewContainer)
-  {
-    return mWebViewContainer->GetContext();
-  }
-
-  DALI_LOG_ERROR("WebViewContainer is null.");
-  static TizenWebEngineContext dummy(nullptr);
-
-  return dummy;
-}
-
-Dali::WebEngineCookieManager& TizenWebEngineChromium::GetCookieManager() const
-{
-  if (mWebViewContainer)
-  {
-    return mWebViewContainer->GetCookieManager();
-  }
-
-  DALI_LOG_ERROR("WebViewContainer is null.");
-  static TizenWebEngineCookieManager dummy(nullptr);
-
   return dummy;
 }
 
@@ -1634,7 +1607,6 @@ Dali::WebEngineBackForwardList& TizenWebEngineChromium::GetBackForwardList() con
 
   DALI_LOG_ERROR("WebViewContainer is null.");
   static TizenWebEngineBackForwardList dummy(nullptr);
-
   return dummy;
 }
 
@@ -2184,6 +2156,16 @@ void TizenWebEngineChromium::PlainTextRecieved(const std::string& plainText)
 
 } // namespace Plugin
 } // namespace Dali
+
+extern "C" DALI_EXPORT_API Dali::WebEngineContext* GetWebEngineContext()
+{
+  return Dali::Plugin::WebEngineManager::Get().GetContext();
+}
+
+extern "C" DALI_EXPORT_API Dali::WebEngineCookieManager* GetWebEngineCookieManager()
+{
+  return Dali::Plugin::WebEngineManager::Get().GetCookieManager();
+}
 
 extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin()
 {
