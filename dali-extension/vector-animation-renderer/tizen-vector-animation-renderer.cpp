@@ -403,7 +403,7 @@ void TizenVectorAnimationRenderer::AddPropertyValueCallback(const std::string& k
                                                                 });
       break;
     }
-    case VectorProperty::STROKE_OPACTY:
+    case VectorProperty::STROKE_OPACITY:
     {
       mVectorRenderer->setValue<rlottie::Property::StrokeOpacity>(keyPath,
                                                                   [property, callback, id](const rlottie::FrameInfo& info) {
