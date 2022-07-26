@@ -21,6 +21,8 @@
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-request-interceptor.h>
 
+#include <Evas.h>
+
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -50,6 +52,11 @@ public:
    * @brief Destructor.
    */
   virtual ~TizenWebEngineRequestInterceptor() final;
+
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::GetWebEngine()
+   */
+  Dali::WebEnginePlugin* GetWebEngine() const override;
 
   /**
    * @copydoc Dali::WebEngineRequestInterceptor::GetUrl()
@@ -137,6 +144,7 @@ private:
 
 private:
   Ewk_Intercept_Request* ewkRequestInterceptor;
+  Evas_Object*           ewkWebView;
   std::string            requestUrl;
   std::string            requestMethod;
   Dali::Property::Map    requestHeaders;
