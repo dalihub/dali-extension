@@ -34,6 +34,12 @@ AC_ARG_ENABLE([debug],
               [enable_debug=$enableval],
               [enable_debug=no])
 
+AC_ARG_ENABLE([web-engine-plugin],
+              [AC_HELP_STRING([--enable-web-engine-plugin],
+                              [Turns on web engine plugin build])],
+              [enable_web_engine_plugin=$enableval],
+              [enable_web_engine_plugin=no])
+
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
@@ -43,8 +49,10 @@ AC_CONFIG_SUBDIRS(color-controller)
 
 if test "x$with_tizen_55_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(vector-animation-renderer)
+if test "x$enable_web_engine_plugin" = "xyes"; then
   AC_CONFIG_SUBDIRS(web-engine-chromium)
   AC_CONFIG_SUBDIRS(web-engine-lwe)
+fi
 fi
 
 if test "x$with_tizen_65_or_greater" = "xyes"; then
