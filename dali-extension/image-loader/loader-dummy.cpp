@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2022 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,19 @@
 // HEADER
 #include "loader-dummy.h"
 
-#include <dali/integration-api/debug.h>
-#include <dali/public-api/images/image.h>
 #include <dali/devel-api/adaptor-framework/pixel-buffer.h>
+#include <dali/integration-api/debug.h>
 // INTERNAL INCLUDES
 
 namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * This code is a dummy code. You can implement it here.
  */
 
-bool LoadImageHeader( const Dali::ImageLoader::Input& input, unsigned int& width, unsigned int& height )
+bool LoadImageHeader(const Dali::ImageLoader::Input& input, unsigned int& width, unsigned int& height)
 {
   bool success = false;
   /* Loads the header of a image file and fills in the width and height appropriately. */
@@ -40,8 +38,7 @@ bool LoadImageHeader( const Dali::ImageLoader::Input& input, unsigned int& width
   return success;
 }
 
-
-bool LoadBitmapFromImage( const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap )
+bool LoadBitmapFromImage(const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap)
 {
   bool success = false;
   /* Loads the bitmap from an image file.  This function checks the header first */
@@ -49,5 +46,5 @@ bool LoadBitmapFromImage( const Dali::ImageLoader::Input& input, Dali::Devel::Pi
   return success;
 }
 
-}
-}
+} // namespace Plugin
+} // namespace Dali

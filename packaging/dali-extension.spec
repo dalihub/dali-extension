@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.1.32
+Version:    2.1.33
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -30,6 +30,10 @@ Source0:    %{name}-%{version}.tar.gz
 %define tizen_65_or_greater 1
 %endif
 
+%if %{undefined NO_WEB_FRAMEWORK}
+%define enable_web_engine_plugin 1
+%endif
+
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
@@ -39,11 +43,14 @@ BuildRequires:  pkgconfig(dali2-adaptor)
 BuildRequires:  pkgconfig(dali2-toolkit)
 BuildRequires:  pkgconfig(dlog)
 
-# For evas-plugin
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
+BuildRequires:  pkgconfig(ecore-wl2)
+
+# For evas-plugin
+%if 0%{?enable_evas_plugin}
 BuildRequires:  pkgconfig(elementary)
 BuildRequires:  pkgconfig(evas)
-BuildRequires:  pkgconfig(ecore-wl2)
+%endif
 
 %if 0%{?tizen_65_or_greater}
 BuildRequires:  pkgconfig(rive_tizen)
@@ -115,7 +122,7 @@ CameraPlayer plugin to play a camera file for Dali
 %package web-engine-chromium-plugin
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(chromium-efl)
 BuildRequires: pkgconfig(elementary)
@@ -166,7 +173,7 @@ Plugin to load color theme
 %package web-engine-lwe-plugin
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(lightweight-web-engine)
 %endif
@@ -209,9 +216,6 @@ Header & package configuration of rive-animation-view
 %define dali_data_ro_dir         %TZ_SYS_RO_SHARE/dali/
 %define dev_include_path %{_includedir}
 
-# Use Image Loader Plugin
-%define use_image_loader 0
-
 ##############################
 # Build
 ##############################
@@ -248,12 +252,20 @@ autoreconf --install
 %if 0%{?tizen_65_or_greater}
            --with-tizen-65-or-greater \
 %endif
+%if 0%{?enable_web_engine_plugin} == 1
+           --enable-web-engine-plugin \
+%endif
+%if 0%{?enable_image_loader}
+           --enable-imageloader-extension \
+%endif
+%if 0%{?enable_color_controller}
+           --enable-color-controller \
+%endif
+%if 0%{?enable_evas_plugin}
+           --enable-evas-plugin \
+%endif
            --enable-ecore-wl2 \
            --enable-keyextension
-%if 0%{?use_image_loader}
-%configure \
-           --enable-imageloader-extension
-%endif
 
 make %{?jobs:-j%jobs}
 
@@ -299,7 +311,7 @@ exit 0
 /sbin/ldconfig
 exit 0
 
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %post web-engine-chromium-plugin
 pushd %{_libdir}
 ln -sf libdali2-web-engine-chromium-plugin.so libdali2-web-engine-plugin.so
@@ -308,9 +320,11 @@ popd
 exit 0
 %endif
 
+%if 0%{?enable_image_loader}
 %post image-loader-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater}
 %post vector-animation-renderer-plugin
@@ -324,11 +338,13 @@ exit 0
 exit 0
 %endif
 
+%if 0%{?enable_color_controller}
 %post color-controller-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %post web-engine-lwe-plugin
 /sbin/ldconfig
 exit 0
@@ -359,15 +375,17 @@ exit 0
 /sbin/ldconfig
 exit 0
 
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %postun web-engine-chromium-plugin
 /sbin/ldconfig
 exit 0
 %endif
 
+%if 0%{?enable_image_loader}
 %postun image-loader-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater}
 %postun vector-animation-renderer-plugin
@@ -381,11 +399,13 @@ exit 0
 exit 0
 %endif
 
+%if 0%{?enable_color_controller}
 %postun color-controller-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %postun web-engine-lwe-plugin
 /sbin/ldconfig
 exit 0
@@ -427,7 +447,7 @@ exit 0
 %license LICENSE
 %endif
 
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %files web-engine-chromium-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
@@ -435,7 +455,7 @@ exit 0
 %license LICENSE
 %endif
 
-%if 0%{?use_image_loader}
+%if 0%{?enable_image_loader}
 %files image-loader-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
@@ -464,13 +484,15 @@ exit 0
 %{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
 %endif
 
+%if 0%{?enable_color_controller}
 %files color-controller-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-color-controller-plugin.so*
 %license LICENSE
+%endif
 
-%if 0%{?tizen_55_or_greater}
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %files web-engine-lwe-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
