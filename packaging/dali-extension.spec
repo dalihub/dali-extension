@@ -30,10 +30,6 @@ Source0:    %{name}-%{version}.tar.gz
 %define tizen_65_or_greater 1
 %endif
 
-%if %{undefined NO_WEB_FRAMEWORK}
-%define enable_web_engine_plugin 1
-%endif
-
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
@@ -119,7 +115,7 @@ CameraPlayer plugin to play a camera file for Dali
 %package web-engine-chromium-plugin
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(chromium-efl)
 BuildRequires: pkgconfig(elementary)
@@ -170,7 +166,7 @@ Plugin to load color theme
 %package web-engine-lwe-plugin
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(lightweight-web-engine)
 %endif
@@ -252,9 +248,6 @@ autoreconf --install
 %if 0%{?tizen_65_or_greater}
            --with-tizen-65-or-greater \
 %endif
-%if 0%{?enable_web_engine_plugin} == 1
-           --enable-web-engine-plugin \
-%endif
            --enable-ecore-wl2 \
            --enable-keyextension
 %if 0%{?use_image_loader}
@@ -306,7 +299,7 @@ exit 0
 /sbin/ldconfig
 exit 0
 
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 %post web-engine-chromium-plugin
 pushd %{_libdir}
 ln -sf libdali2-web-engine-chromium-plugin.so libdali2-web-engine-plugin.so
@@ -335,7 +328,7 @@ exit 0
 /sbin/ldconfig
 exit 0
 
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 %post web-engine-lwe-plugin
 /sbin/ldconfig
 exit 0
@@ -366,7 +359,7 @@ exit 0
 /sbin/ldconfig
 exit 0
 
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 %postun web-engine-chromium-plugin
 /sbin/ldconfig
 exit 0
@@ -392,7 +385,7 @@ exit 0
 /sbin/ldconfig
 exit 0
 
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 %postun web-engine-lwe-plugin
 /sbin/ldconfig
 exit 0
@@ -434,7 +427,7 @@ exit 0
 %license LICENSE
 %endif
 
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 %files web-engine-chromium-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
@@ -477,7 +470,7 @@ exit 0
 %{_libdir}/libdali2-color-controller-plugin.so*
 %license LICENSE
 
-%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%if 0%{?tizen_55_or_greater}
 %files web-engine-lwe-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
