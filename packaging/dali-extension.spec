@@ -34,6 +34,8 @@ Source0:    %{name}-%{version}.tar.gz
 %define enable_web_engine_plugin 1
 %endif
 
+%define enable_color_controller 1
+
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
