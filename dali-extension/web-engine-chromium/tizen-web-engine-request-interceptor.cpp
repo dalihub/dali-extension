@@ -16,6 +16,9 @@
  */
 
 #include "tizen-web-engine-request-interceptor.h"
+#include "tizen-web-engine-manager.h"
+
+#include <ewk_intercept_request_internal.h>
 
 namespace Dali
 {
@@ -25,6 +28,8 @@ namespace Plugin
 TizenWebEngineRequestInterceptor::TizenWebEngineRequestInterceptor(Ewk_Intercept_Request* interceptor)
   : ewkRequestInterceptor(interceptor)
 {
+  ewkWebView = ewk_intercept_request_view_get(ewkRequestInterceptor);
+
   const char* url = ewk_intercept_request_url_get(ewkRequestInterceptor);
   if (url)
   {
@@ -48,6 +53,11 @@ TizenWebEngineRequestInterceptor::TizenWebEngineRequestInterceptor(Ewk_Intercept
 
 TizenWebEngineRequestInterceptor::~TizenWebEngineRequestInterceptor()
 {
+}
+
+Dali::WebEnginePlugin* TizenWebEngineRequestInterceptor::GetWebEngine() const
+{
+  return WebEngineManager::Get().Find(ewkWebView);
 }
 
 std::string TizenWebEngineRequestInterceptor::GetUrl() const
