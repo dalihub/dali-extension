@@ -27,11 +27,10 @@
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
 
-// RIVE - THORVG INCLUDES
-#include <thorvg.h>
+// RIVE - INCLUDES
+#include <rive_tizen.hpp>
 #include <rive/animation/linear_animation_instance.hpp>
 #include <rive/artboard.hpp>
-//
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-event-handler.h>
@@ -259,8 +258,6 @@ private:
   NativeImageSourceQueuePtr              mTargetSurface;         ///< The target surface
   UploadCompletedSignalType              mUploadCompletedSignal; ///< Upload completed signal
   tbm_surface_queue_h                    mTbmQueue;              ///< Tbm surface queue handle
-  std::unique_ptr<tvg::SwCanvas>         mSwCanvas;              ///< ThorVG SW canvas handle
-  rive::File                             *mFile;                 ///< Rive file handle
   rive::Artboard                         *mArtboard;             ///< Rive artboard handle
   std::vector<Animation>                 mAnimations;            ///< Rive animations
   rive::LinearAnimation                  *mAnimation;            ///< Rive animation handle
@@ -274,6 +271,7 @@ private:
   bool                                   mResourceReady;         ///< Whether the resource is ready
   bool                                   mShaderChanged;         ///< Whether the shader is changed to support native image
   bool                                   mResourceReadyTriggered;///< Whether the resource ready is triggered
+  RiveTizen                              *mRiveTizenAdapter;     ///< Rive Tizen Adapter
 };
 
 } // namespace Internal
