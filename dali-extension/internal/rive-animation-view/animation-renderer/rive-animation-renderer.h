@@ -27,12 +27,11 @@
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
 
-#include <rive_tizen.hpp>
-
 // RIVE - THORVG INCLUDES
 #include <thorvg.h>
 #include <rive/animation/linear_animation_instance.hpp>
 #include <rive/artboard.hpp>
+//
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-event-handler.h>
@@ -275,7 +274,6 @@ private:
   bool                                   mResourceReady;         ///< Whether the resource is ready
   bool                                   mShaderChanged;         ///< Whether the shader is changed to support native image
   bool                                   mResourceReadyTriggered;///< Whether the resource ready is triggered
-  RiveTizen                              *mRiveTizenAdapter;     ///< Rive Tizen Adapter
 };
 
 } // namespace Internal

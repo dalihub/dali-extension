@@ -33,6 +33,7 @@
 #include <rive/shapes/paint/fill.hpp>
 #include <rive/shapes/paint/solid_color.hpp>
 #include <rive/shapes/paint/stroke.hpp>
+#include <rive/tvg_renderer.hpp>
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
@@ -64,6 +65,8 @@ RiveAnimationRenderer::RiveAnimationRenderer()
   mTargetSurface(),
   mUploadCompletedSignal(),
   mTbmQueue(NULL),
+  mSwCanvas(nullptr),
+  mFile(nullptr),
   mArtboard(nullptr),
   mAnimation(nullptr),
   mStartFrameNumber(0),
@@ -75,23 +78,24 @@ RiveAnimationRenderer::RiveAnimationRenderer()
   mFrameRate(60.0f),
   mResourceReady(false),
   mShaderChanged(false),
-  mResourceReadyTriggered(false),
-  mRiveTizenAdapter(nullptr)
+  mResourceReadyTriggered(false)
 {
-  mRiveTizenAdapter = new RiveTizen();
+  tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
 }
 
 RiveAnimationRenderer::~RiveAnimationRenderer()
 {
   Dali::Mutex::ScopedLock lock(mMutex);
+
   ClearRiveAnimations();
 
-  if (mRiveTizenAdapter)
+  if(mFile)
   {
-    delete mRiveTizenAdapter;
+    delete mFile;
   }
 
-  mRiveTizenAdapter = nullptr;
+  mSwCanvas->clear();
+  tvg::Initializer::term(tvg::CanvasEngine::Sw);
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::~RiveAnimationRenderer: this = %p\n", this);
 }
@@ -112,15 +116,30 @@ void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
     return;
   }
 
+  auto reader = rive::BinaryReader(&bytes[0], bytes.Size());
+
+  if(mFile)
+  {
+    delete mFile;
+  }
+
+  auto result = rive::File::import(reader, &mFile);
+  if(result != rive::ImportResult::success)
+  {
+    DALI_LOG_ERROR("Failed to import %s", filename.c_str());
+    return;
+  }
+
+  mArtboard = mFile->artboard();
+  mArtboard->advance(0.0f);
+
   ClearRiveAnimations();
-  mRiveTizenAdapter->loadRiveResource(&bytes[0], bytes.Size());
-  mArtboard = mRiveTizenAdapter->getArtboard();
 
   for(unsigned int i = 0; i < mArtboard->animationCount(); i++)
   {
     auto               animation = mArtboard->animation(i);
     const std::string& name      = animation->name();
-    mAnimations.emplace_back(Animation(mRiveTizenAdapter->createLinearAnimationInstance(i), name, false));
+    mAnimations.emplace_back(Animation(new rive::LinearAnimationInstance(animation), name, false));
   }
 
   mAnimation = mArtboard->firstAnimation();
@@ -217,7 +236,7 @@ void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 bool RiveAnimationRenderer::Render(double elapsed)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-  if(!mTbmQueue || !mTargetSurface || mAnimations.empty())
+  if(!mTbmQueue || !mTargetSurface || !mArtboard || mAnimations.empty())
   {
     return false;
   }
@@ -264,7 +283,13 @@ bool RiveAnimationRenderer::Render(double elapsed)
 
   tbm_surface_internal_ref(tbmSurface);
 
-  mRiveTizenAdapter->createCanvas(buffer, info.width, info.height, info.planes[0].stride / 4);
+  if(!mSwCanvas)
+  {
+    mSwCanvas = tvg::SwCanvas::gen();
+    mSwCanvas->mempool(tvg::SwCanvas::MempoolPolicy::Individual);
+  }
+  mSwCanvas->clear();
+  mSwCanvas->target((uint32_t*)buffer, info.planes[0].stride / 4, info.width, info.height, tvg::SwCanvas::ARGB8888);
 
   // Render Rive animation by elapsed time
   for(auto& animation : mAnimations)
@@ -273,16 +298,32 @@ bool RiveAnimationRenderer::Render(double elapsed)
     {
       if(animation.enable)
       {
-        mRiveTizenAdapter->animationAdvanceApply(animation.instance.get(), elapsed);
+        animation.instance->advance(elapsed);
+        animation.instance->apply(mArtboard);
       }
       else if(animation.elapsed >= 0.0f)
       {
-        mRiveTizenAdapter->animationApply(animation.instance.get(), elapsed);
+        animation.instance->time(animation.elapsed);
+        animation.instance->apply(mArtboard);
       }
     }
   }
+  mArtboard->advance(elapsed);
 
-  if (!mRiveTizenAdapter->render(elapsed, info.width, info.height))
+  rive::TvgRenderer renderer(mSwCanvas.get());
+  renderer.save();
+  renderer.align(rive::Fit::contain,
+                 rive::Alignment::center,
+                 rive::AABB(0, 0, info.width, info.height),
+                 mArtboard->bounds());
+  mArtboard->draw(&renderer);
+  renderer.restore();
+
+  if(mSwCanvas->draw() == tvg::Result::Success)
+  {
+    mSwCanvas->sync();
+  }
+  else
   {
     tbm_surface_unmap(tbmSurface);
     tbm_surface_queue_cancel_dequeue(mTbmQueue, tbmSurface);
@@ -334,7 +375,8 @@ void RiveAnimationRenderer::EnableAnimation(const std::string& animationName, bo
     {
       if(mAnimations[i].instance)
       {
-        mAnimations[i].instance.reset(mRiveTizenAdapter->createLinearAnimationInstance(i));
+        auto animation = mArtboard->animation(i);
+        mAnimations[i].instance.reset(new rive::LinearAnimationInstance(animation));
       }
       mAnimations[i].enable = enable;
       return;
