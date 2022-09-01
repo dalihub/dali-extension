@@ -23,7 +23,9 @@
 
 #include <dali-toolkit/dali-toolkit.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
+#include <dali/public-api/adaptor-framework/timer.h>
 #include <dali/public-api/images/native-image-interface.h>
+#include <dali/public-api/signals/slot-delegate.h>
 
 #include <ewk_view_internal.h>
 
@@ -84,11 +86,6 @@ public:
   Dali::WebEngineBackForwardList& GetBackForwardList() const override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::LoadUrl()
-   */
-  void LoadUrl(const std::string& url) override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
    */
   NativeImageSourcePtr GetNativeImageSource() override;
@@ -107,6 +104,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::GetUrl()
    */
   std::string GetUrl() const override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::LoadUrl()
+   */
+  void LoadUrl(const std::string& url) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHtmlString()
@@ -791,6 +793,12 @@ private:
 
   bool FeedTouchEvent(const TouchEvent& touch);
 
+  bool OnAsyncLoadHtmlString();
+
+  bool OnAsyncLoadHtmlStringOverrideCurrentEntry();
+
+  bool OnAsyncLoadContents();
+
   // ewk web view.
   Evas_Object*                              mWebView;
   uint32_t                                  mWidth;
@@ -798,9 +806,24 @@ private:
   std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
   std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
 
+  // load html asynchronously.
+  SlotDelegate<TizenWebEngineChromium> mSlotDelegate;
+  Dali::Timer                          mAsyncLoadHtmlTimer;
+  std::string                          mHtmlString;
+  Dali::Timer                          mAsyncLoadHtmlOverridedTimer;
+  std::string                          mOverridedHtmlString;
+  std::string                          mBasicUri;
+  std::string                          mUnreachableUrl;
+  Dali::Timer                          mAsyncLoadContentsTimer;
+  std::string                          mContents;
+  uint32_t                             mContentSize;
+  std::string                          mMimeType;
+  std::string                          mEncoding;
+  std::string                          mContentsBaseUri;
+
   // render.
-  Dali::NativeImageSourcePtr                mDaliImageSrc;
-  WebEngineFrameRenderedSignalType          mFrameRenderedSignal;
+  Dali::NativeImageSourcePtr       mDaliImageSrc;
+  WebEngineFrameRenderedSignalType mFrameRenderedSignal;
 
   // callback.
   WebEnginePageLoadCallback                mLoadStartedCallback;

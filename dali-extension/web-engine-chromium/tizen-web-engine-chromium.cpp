@@ -130,8 +130,12 @@ TizenWebEngineChromium::TizenWebEngineChromium()
   : mWebView(nullptr)
   , mWidth(0)
   , mHeight(0)
+  , mSlotDelegate(this)
   , mJavaScriptEvaluationCount(0)
 {
+  mAsyncLoadHtmlTimer = Dali::Timer::New(0);
+  mAsyncLoadHtmlOverridedTimer = Dali::Timer::New(0);
+  mAsyncLoadContentsTimer = Dali::Timer::New(0);
 }
 
 TizenWebEngineChromium::~TizenWebEngineChromium()
@@ -159,16 +163,24 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t ar
 
 void TizenWebEngineChromium::Destroy()
 {
+  if (!mAsyncLoadHtmlTimer.TickSignal().Empty())
+  {
+    mAsyncLoadHtmlTimer.TickSignal().Disconnect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadHtmlString);
+  }
+  if (!mAsyncLoadHtmlOverridedTimer.TickSignal().Empty())
+  {
+    mAsyncLoadHtmlOverridedTimer.TickSignal().Disconnect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadHtmlStringOverrideCurrentEntry);
+  }
+  if (!mAsyncLoadContentsTimer.TickSignal().Empty())
+  {
+    mAsyncLoadContentsTimer.TickSignal().Disconnect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadContents);
+  }
+
   mJavaScriptEvaluationResultHandlers.clear();
   mJavaScriptMessageHandlers.clear();
 
   WebEngineManager::Get().Remove(mWebView);
   evas_object_del(mWebView);
-}
-
-void TizenWebEngineChromium::LoadUrl(const std::string& path)
-{
-  ewk_view_url_set(mWebView, path.c_str());
 }
 
 std::string TizenWebEngineChromium::GetTitle() const
@@ -198,25 +210,89 @@ std::string TizenWebEngineChromium::GetUrl() const
   return url ? std::string(url) : std::string();
 }
 
+void TizenWebEngineChromium::LoadUrl(const std::string& path)
+{
+  ewk_view_url_set(mWebView, path.c_str());
+}
+
 void TizenWebEngineChromium::LoadHtmlString(const std::string& html)
 {
-  ewk_view_html_string_load(mWebView, html.c_str(), 0, 0);
+  mHtmlString = html;
+  if (mAsyncLoadHtmlTimer.IsRunning())
+  {
+    mAsyncLoadHtmlTimer.Stop();
+  }
+  mAsyncLoadHtmlTimer.TickSignal().Connect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadHtmlString);
+  mAsyncLoadHtmlTimer.Start();
+}
+
+bool TizenWebEngineChromium::OnAsyncLoadHtmlString()
+{
+  mAsyncLoadHtmlTimer.TickSignal().Disconnect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadHtmlString);
+  bool ret = ewk_view_html_string_load(mWebView, mHtmlString.c_str(), 0, 0);
+  if (!ret)
+  {
+    DALI_LOG_ERROR("Failed to load html string asynchronously.");
+  }
+  return false;
 }
 
 bool TizenWebEngineChromium::LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri, const std::string& unreachableUrl)
 {
-  char* cBasicUri = basicUri.length() ?  (char *)basicUri.c_str() : nullptr;
-  char* cUnreachableUrl = unreachableUrl.length() ?  (char *)unreachableUrl.c_str() : nullptr;
-  return ewk_view_html_string_override_current_entry_load(mWebView, html.c_str(), cBasicUri, cUnreachableUrl);
+  mOverridedHtmlString = html;
+  mBasicUri = basicUri;
+  mUnreachableUrl = unreachableUrl;
+  if (mAsyncLoadHtmlOverridedTimer.IsRunning())
+  {
+    mAsyncLoadHtmlOverridedTimer.Stop();
+  }
+  mAsyncLoadHtmlOverridedTimer.TickSignal().Connect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadHtmlStringOverrideCurrentEntry);
+  mAsyncLoadHtmlOverridedTimer.Start();
+  return true;
+}
+
+bool TizenWebEngineChromium::OnAsyncLoadHtmlStringOverrideCurrentEntry()
+{
+  mAsyncLoadHtmlOverridedTimer.TickSignal().Disconnect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadHtmlStringOverrideCurrentEntry);
+  char* cBasicUri = mBasicUri.length() ?  (char *)mBasicUri.c_str() : nullptr;
+  char* cUnreachableUrl = mUnreachableUrl.length() ?  (char *)mUnreachableUrl.c_str() : nullptr;
+  bool ret = ewk_view_html_string_override_current_entry_load(mWebView, mOverridedHtmlString.c_str(), cBasicUri, cUnreachableUrl);
+  if (!ret)
+  {
+    DALI_LOG_ERROR("Failed to load html string asynchronously for overriding current entry.");
+  }
+  return false;
 }
 
 bool TizenWebEngineChromium::LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
                                           const std::string& encoding, const std::string& baseUri)
 {
-  char* cMimeType = mimeType.length() ?  (char *)mimeType.c_str() : nullptr;
-  char* cEncoding = encoding.length() ?  (char *)encoding.c_str() : nullptr;
-  char* cBaseUri = baseUri.length() ?  (char *)baseUri.c_str() : nullptr;
-  return ewk_view_contents_set(mWebView, contents.c_str(), contentSize, cMimeType, cEncoding, cBaseUri);
+  mContents = contents;
+  mContentSize = contentSize;
+  mMimeType = mimeType;
+  mEncoding = encoding;
+  mContentsBaseUri = baseUri;
+  if (mAsyncLoadContentsTimer.IsRunning())
+  {
+    mAsyncLoadContentsTimer.Stop();
+  }
+  mAsyncLoadContentsTimer.TickSignal().Connect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadContents);
+  mAsyncLoadContentsTimer.Start();
+  return true;
+}
+
+bool TizenWebEngineChromium::OnAsyncLoadContents()
+{
+  mAsyncLoadContentsTimer.TickSignal().Disconnect(mSlotDelegate, &TizenWebEngineChromium::OnAsyncLoadContents);
+  char* cMimeType = mMimeType.length() ?  (char *)mMimeType.c_str() : nullptr;
+  char* cEncoding = mEncoding.length() ?  (char *)mEncoding.c_str() : nullptr;
+  char* cBaseUri = mContentsBaseUri.length() ?  (char *)mContentsBaseUri.c_str() : nullptr;
+  bool ret = ewk_view_contents_set(mWebView, mContents.c_str(), mContentSize, cMimeType, cEncoding, cBaseUri);
+  if (!ret)
+  {
+    DALI_LOG_ERROR("Failed to load contents asynchronously.");
+  }
+  return false;
 }
 
 void TizenWebEngineChromium::Reload()
