@@ -47,8 +47,6 @@ TizenWebEngineRequestInterceptor::TizenWebEngineRequestInterceptor(Ewk_Intercept
   {
     eina_hash_foreach(hash, &TizenWebEngineRequestInterceptor::IterateRequestHeaders, this);
   }
-
-  mIsThreadWaiting = true;
 }
 
 TizenWebEngineRequestInterceptor::~TizenWebEngineRequestInterceptor()
@@ -76,13 +74,6 @@ std::string TizenWebEngineRequestInterceptor::GetMethod() const
 }
 
 bool TizenWebEngineRequestInterceptor::Ignore()
-{
-  std::unique_lock<std::mutex> lock(mMutex);
-  mTaskQueue.push_back(std::bind(&TizenWebEngineRequestInterceptor::IgnoreIo, this));
-  return true;
-}
-
-bool TizenWebEngineRequestInterceptor::IgnoreIo()
 {
   return ewk_intercept_request_ignore(ewkRequestInterceptor);
 }
@@ -131,33 +122,6 @@ bool TizenWebEngineRequestInterceptor::AddResponse(const std::string& headers, c
 bool TizenWebEngineRequestInterceptor::WriteResponseChunk(const int8_t* chunk, uint32_t length)
 {
   return ewk_intercept_request_response_write_chunk(ewkRequestInterceptor, (const char*)chunk, length);
-}
-
-void TizenWebEngineRequestInterceptor::WaitAndRunTasks()
-{
-  // wait for tasks from main thread.
-  std::unique_lock<std::mutex> lock(mMutex);
-  while(mIsThreadWaiting)
-  {
-    mCondition.wait(lock);
-  }
-  mIsThreadWaiting = true;
-
-  // execute tasks on io thread.
-  for(std::vector<TaskCallback>::iterator iter = mTaskQueue.begin(); iter != mTaskQueue.end(); iter++)
-  {
-    (*iter)();
-  }
-  mTaskQueue.clear();
-}
-
-void TizenWebEngineRequestInterceptor::NotifyTaskReady()
-{
-  std::unique_lock<std::mutex> lock(mMutex);
-  mIsThreadWaiting = false;
-
-  // wake up the io thread
-  mCondition.notify_all();
 }
 
 Eina_Bool TizenWebEngineRequestInterceptor::IterateRequestHeaders(const Eina_Hash*, const void* key, void* data, void* fdata)

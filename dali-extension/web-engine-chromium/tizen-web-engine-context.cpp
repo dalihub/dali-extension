@@ -37,8 +37,6 @@ TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context)
   , mWebRequestInterceptedCallback(nullptr)
   , mEwkContext(context)
 {
-  EventThreadCallback* callback = new Dali::EventThreadCallback(Dali::MakeCallback(this, &TizenWebEngineContext::OnRequestInterceptedEventCallback));
-  mRequestInterceptorEventTrigger = std::unique_ptr<Dali::EventThreadCallback>(callback);
 }
 
 TizenWebEngineContext::~TizenWebEngineContext()
@@ -236,7 +234,6 @@ void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<st
   {
     list = eina_list_append(list, (*it).c_str());
   }
-
   ewk_context_register_url_schemes_as_cors_enabled(mEwkContext, list);
 }
 
@@ -247,7 +244,6 @@ void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::str
   {
     list = eina_list_append(list, (*it).c_str());
   }
-
   ewk_context_register_jsplugin_mime_types(mEwkContext, list);
 }
 
@@ -268,7 +264,6 @@ void TizenWebEngineContext::DeleteFormPasswordDataList(const std::vector<std::st
   {
     eList = eina_list_append(eList, (*it).c_str());
   }
-
   ewk_context_form_password_data_list_free(mEwkContext, eList);
 }
 
@@ -289,33 +284,10 @@ bool TizenWebEngineContext::FreeUnusedMemory()
 
 void TizenWebEngineContext::RequestIntercepted(Dali::WebEngineRequestInterceptorPtr interceptor)
 {
+  if (mWebRequestInterceptedCallback)
   {
-    Mutex::ScopedLock lock(mMutex);
-    mRequestInterceptorQueue.push(interceptor);
-    // Trigger an event on main thread.
-    mRequestInterceptorEventTrigger->Trigger();
+    mWebRequestInterceptedCallback(interceptor);
   }
-
-  // Wait for tasks from main thread and execute tasks.
-  TizenWebEngineRequestInterceptor* requestInterceptor = static_cast<TizenWebEngineRequestInterceptor*>(interceptor.Get());
-  requestInterceptor->WaitAndRunTasks();
-}
-
-void TizenWebEngineContext::OnRequestInterceptedEventCallback()
-{
-  Dali::WebEngineRequestInterceptorPtr interceptor;
-  {
-    Mutex::ScopedLock lock(mMutex);
-    interceptor = mRequestInterceptorQueue.front();
-    mRequestInterceptorQueue.pop();
-  }
-
-  // Execuate callback.
-  mWebRequestInterceptedCallback(interceptor);
-
-  // Notify io thread that tasks are ready on main thread.
-  TizenWebEngineRequestInterceptor* requestInterceptor = static_cast<TizenWebEngineRequestInterceptor*>(interceptor.Get());
-  requestInterceptor->NotifyTaskReady();
 }
 
 void TizenWebEngineContext::OnRequestIntercepted(Ewk_Context*, Ewk_Intercept_Request* request, void* userData)
