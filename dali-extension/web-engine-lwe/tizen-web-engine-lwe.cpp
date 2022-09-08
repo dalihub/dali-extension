@@ -894,6 +894,31 @@ void TizenWebEngineLWE::EnableVideoHole( bool enabled )
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPageLoadFinishedCallback(WebEnginePageLoadCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
 {
   // NOT IMPLEMENTED

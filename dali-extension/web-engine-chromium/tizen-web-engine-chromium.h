@@ -24,6 +24,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine-plugin.h>
 #include <dali/public-api/images/native-image-interface.h>
 
+#include <memory>
 #include <tbm_surface.h>
 #include <unordered_map>
 
@@ -75,6 +76,13 @@ public:
   virtual void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) = 0;
 
   /**
+   * @brief Callback function to be called by WebViewContainer when navigation
+   * policy would be decided.
+   * @param [in] decision Policy need be decided.
+   */
+  virtual void NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
+
+  /**
    * @brief Callback function to be called by WebViewContainer when it gets JavaScript evalution result.
    * @param [in] key An unsigned integer representing the result handler
    * @param [in] result Result string from JavaScript runtime
@@ -104,8 +112,6 @@ class TizenWebEngineChromium : public Dali::WebEnginePlugin, public WebViewConta
 {
 
 public:
-
-  typedef std::function< void(const std::string&) > JavaScriptCallback;
 
   /**
    * @brief Constructor.
@@ -253,12 +259,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::EvaluateJavaScript()
    */
-  void EvaluateJavaScript( const std::string& script, std::function< void( const std::string& ) > resultHandler ) override;
+  void EvaluateJavaScript( const std::string& script, JavaScriptMessageHandlerCallback resultHandler ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
    */
-  void AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void( const std::string& ) > handler ) override;
+  void AddJavaScriptMessageHandler( const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler ) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearAllTilesResources()
@@ -315,24 +321,29 @@ public:
   void EnableVideoHole( bool enabled ) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::PageLoadStartedSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterPageLoadStartedCallback()
    */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadStartedSignal() override;
+  void RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::PageLoadFinishedSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterPageLoadFinishedCallback()
    */
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType& PageLoadFinishedSignal() override;
+  void RegisterPageLoadFinishedCallback(WebEnginePageLoadCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::PageLoadErrorSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterPageLoadErrorCallback()
    */
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& PageLoadErrorSignal() override;
+  void RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::ScrollEdgeReachedSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterScrollEdgeReachedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& ScrollEdgeReachedSignal() override;
+  void RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNavigationPolicyDecidedCallback()
+   */
+  void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
@@ -368,6 +379,11 @@ public:
   void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) override;
 
   /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::NavigationPolicyDecided()
+   */
+  void NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> policy) override;
+
+  /**
    * @copydoc Dali::Plugin::WebViewContainerClient::RunJavaScriptEvaluationResultHandler()
    */
   void RunJavaScriptEvaluationResultHandler( size_t key, const char* result ) override;
@@ -389,16 +405,15 @@ private:
   std::string                                             mUrl;
   size_t                                                  mJavaScriptEvaluationCount;
 
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mLoadStartedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadSignalType      mLoadFinishedSignal;
-  Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType mLoadErrorSignal;
+  WebEnginePageLoadCallback                mLoadStartedCallback;
+  WebEnginePageLoadCallback                mLoadFinishedCallback;
+  WebEnginePageLoadErrorCallback           mLoadErrorCallback;
+  WebEngineScrollEdgeReachedCallback       mScrollEdgeReachedCallback;
+  WebEngineNavigationPolicyDecidedCallback mNavigationPolicyDecidedCallback;
+  PlainTextReceivedCallback                mPlainTextReceivedCallback;
 
-  Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType mScrollEdgeReachedSignal;
-
-  std::unordered_map< size_t, JavaScriptCallback >        mJavaScriptEvaluationResultHandlers;
-  std::unordered_map< std::string, JavaScriptCallback >   mJavaScriptMessageHandlers;
-  
-  PlainTextReceivedCallback                               mPlainTextReceivedCallback;
+  std::unordered_map< size_t, JavaScriptMessageHandlerCallback >      mJavaScriptEvaluationResultHandlers;
+  std::unordered_map< std::string, JavaScriptMessageHandlerCallback > mJavaScriptMessageHandlers;
 };
 } // namespace Plugin
 } // namespace Dali

@@ -20,6 +20,7 @@
 #include "tizen-web-engine-back-forward-list.h"
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
+#include "tizen-web-engine-policy-decision.h"
 #include "tizen-web-engine-settings.h"
 
 #include <Ecore.h>
@@ -45,9 +46,51 @@ namespace Plugin
 
 namespace
 {
+
 // const
 const std::string EMPTY_STRING;
+
+template <typename Callback, typename... Args>
+void ExecuteCallback(Callback callback, Args... args)
+{
+  if (callback)
+  {
+    callback(args...);
+  }
 }
+
+template <typename Callback, typename Arg>
+void ExecuteCallback(Callback callback, std::unique_ptr<Arg> arg)
+{
+  if (callback)
+  {
+    callback(std::move(arg));
+  }
+}
+
+template <typename Ret, typename Callback, typename... Args>
+Ret ExecuteCallbackReturn(Callback callback, Args... args)
+{
+  Ret returnVal = Ret();
+  if (callback)
+  {
+    returnVal = callback(args...);
+  }
+  return returnVal;
+}
+
+template <typename Ret, typename Callback, typename Arg>
+Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
+{
+  Ret returnVal = Ret();
+  if (callback)
+  {
+    returnVal = callback(std::move(arg));
+  }
+  return returnVal;
+}
+
+} // anonymous namespace.
 
 class WebViewContainerClientPair {
 public:
@@ -61,10 +104,10 @@ public:
   Evas_Object* mWebView;
 };
 
+//
+// A class for managing multiple WebViews
+//
 class WebEngineManager {
-  //
-  // A class for managing multiple WebViews
-  //
 public:
   static WebEngineManager& Get()
   {
@@ -108,7 +151,7 @@ public:
         return webViewClient.mClient;
       }
     }
-    return 0;
+    return nullptr;
   }
 
 private:
@@ -220,6 +263,9 @@ public:
     evas_object_smart_callback_add( mWebView, "edge,bottom",
                                     &WebViewContainerForDali::OnEdgeBottom,
                                     &mClient );
+    evas_object_smart_callback_add(mWebView, "policy,navigation,decide",
+                                   &WebViewContainerForDali::OnNavigationPolicyDecided,
+                                   &mClient);
 
     evas_object_resize( mWebView, mWidth, mHeight );
     evas_object_show( mWebView );
@@ -563,6 +609,14 @@ private:
     client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::BOTTOM );
   }
 
+  static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
+    std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
+    client->NavigationPolicyDecided(std::move(webPolicyDecision));
+  }
+
   static void OnEvaluateJavaScript( Evas_Object* o, const char* result, void* data )
   {
     auto client = WebEngineManager::Get().FindContainerClient( o );
@@ -828,7 +882,7 @@ void TizenWebEngineChromium::GoBack()
   }
 }
 
-void TizenWebEngineChromium::EvaluateJavaScript( const std::string& script, std::function< void( const std::string& ) > resultHandler )
+void TizenWebEngineChromium::EvaluateJavaScript( const std::string& script, JavaScriptMessageHandlerCallback resultHandler )
 {
   if( mWebViewContainer )
   {
@@ -851,7 +905,7 @@ void TizenWebEngineChromium::EvaluateJavaScript( const std::string& script, std:
   }
 }
 
-void TizenWebEngineChromium::AddJavaScriptMessageHandler( const std::string& exposedObjectName, std::function< void( const std::string& ) > handler )
+void TizenWebEngineChromium::AddJavaScriptMessageHandler( const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler )
 {
   if( mWebViewContainer )
   {
@@ -1001,24 +1055,29 @@ void TizenWebEngineChromium::EnableVideoHole( bool enabled )
   }
 }
 
-Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadStartedSignal()
+void TizenWebEngineChromium::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
 {
-  return mLoadStartedSignal;
+  mLoadStartedCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEnginePageLoadSignalType& TizenWebEngineChromium::PageLoadFinishedSignal()
+void TizenWebEngineChromium::RegisterPageLoadFinishedCallback(WebEnginePageLoadCallback callback)
 {
-  return mLoadFinishedSignal;
+  mLoadFinishedCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEnginePageLoadErrorSignalType& TizenWebEngineChromium::PageLoadErrorSignal()
+void TizenWebEngineChromium::RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback)
 {
-  return mLoadErrorSignal;
+  mLoadErrorCallback = callback;
 }
 
-Dali::WebEnginePlugin::WebEngineScrollEdgeReachedSignalType& TizenWebEngineChromium::ScrollEdgeReachedSignal()
+void TizenWebEngineChromium::RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback)
 {
-  return mScrollEdgeReachedSignal;
+  mScrollEdgeReachedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
+{
+  mNavigationPolicyDecidedCallback = callback;
 }
 
 void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
@@ -1046,25 +1105,31 @@ void TizenWebEngineChromium::UpdateImage( tbm_surface_h buffer )
 void TizenWebEngineChromium::LoadStarted()
 {
   DALI_LOG_RELEASE_INFO( "#LoadStarted : %s\n", GetUrl().c_str() );
-  mLoadStartedSignal.Emit( GetUrl() );
+  ExecuteCallback(mLoadStartedCallback, GetUrl());
 }
 
 void TizenWebEngineChromium::LoadFinished()
 {
   DALI_LOG_RELEASE_INFO( "#LoadFinished : %s\n", GetUrl().c_str() );
-  mLoadFinishedSignal.Emit( GetUrl() );
+  ExecuteCallback(mLoadFinishedCallback, GetUrl());
 }
 
 void TizenWebEngineChromium::LoadError( const char* url, int errorCode )
 {
   std::string stdUrl( url );
-  mLoadErrorSignal.Emit( stdUrl, errorCode );
+  ExecuteCallback(mLoadErrorCallback, stdUrl, errorCode);
 }
 
 void TizenWebEngineChromium::ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge )
 {
   DALI_LOG_RELEASE_INFO( "#ScrollEdgeReached : %d\n", edge );
-  mScrollEdgeReachedSignal.Emit( edge );
+  ExecuteCallback(mScrollEdgeReachedCallback, edge);
+}
+
+void TizenWebEngineChromium::NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision)
+{
+  DALI_LOG_RELEASE_INFO("#NavigationPolicyDecided.\n");
+  ExecuteCallback(mNavigationPolicyDecidedCallback, std::move(decision));
 }
 
 void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler( size_t key, const char* result )
@@ -1097,10 +1162,7 @@ void TizenWebEngineChromium::RunJavaScriptMessageHandler( const std::string& obj
 
 void TizenWebEngineChromium::PlainTextRecieved(const std::string& plainText)
 {
-  if (mPlainTextReceivedCallback)
-  {
-    mPlainTextReceivedCallback(plainText);
-  }
+  ExecuteCallback(mPlainTextReceivedCallback, plainText);
 }
 
 } // namespace Plugin
