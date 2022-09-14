@@ -112,8 +112,19 @@ void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
     return;
   }
 
+  if(bytes.Size() == 0)
+  {
+    DALI_LOG_ERROR("Failed to load: empty file %s", filename.c_str());
+    return;
+  }
+
   ClearRiveAnimations();
-  mRiveTizenAdapter->loadRiveResource(&bytes[0], bytes.Size());
+  if(!mRiveTizenAdapter->loadRiveResource(&bytes[0], bytes.Size()))
+  {
+    DALI_LOG_ERROR("Failed to load resource file %s", filename.c_str());
+    return;
+  }
+
   mArtboard = mRiveTizenAdapter->getArtboard();
 
   for(unsigned int i = 0; i < mArtboard->animationCount(); i++)
@@ -277,7 +288,7 @@ bool RiveAnimationRenderer::Render(double elapsed)
       }
       else if(animation.elapsed >= 0.0f)
       {
-        mRiveTizenAdapter->animationApply(animation.instance.get(), elapsed);
+        mRiveTizenAdapter->animationApply(animation.instance.get(), animation.elapsed);
       }
     }
   }
