@@ -45,11 +45,14 @@ BuildRequires:  pkgconfig(dali2-adaptor)
 BuildRequires:  pkgconfig(dali2-toolkit)
 BuildRequires:  pkgconfig(dlog)
 
-# For evas-plugin
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
+BuildRequires:  pkgconfig(ecore-wl2)
+
+# For evas-plugin
+%if 0%{?enable_evas_plugin}
 BuildRequires:  pkgconfig(elementary)
 BuildRequires:  pkgconfig(evas)
-BuildRequires:  pkgconfig(ecore-wl2)
+%endif
 
 %if 0%{?tizen_65_or_greater}
 BuildRequires:  pkgconfig(rive_tizen)
@@ -215,9 +218,6 @@ Header & package configuration of rive-animation-view
 %define dali_data_ro_dir         %TZ_SYS_RO_SHARE/dali/
 %define dev_include_path %{_includedir}
 
-# Use Image Loader Plugin
-%define use_image_loader 0
-
 ##############################
 # Build
 ##############################
@@ -257,12 +257,17 @@ autoreconf --install
 %if 0%{?enable_web_engine_plugin} == 1
            --enable-web-engine-plugin \
 %endif
+%if 0%{?enable_image_loader}
+           --enable-imageloader-extension \
+%endif
+%if 0%{?enable_color_controller}
+           --enable-color-controller \
+%endif
+%if 0%{?enable_evas_plugin}
+           --enable-evas-plugin \
+%endif
            --enable-ecore-wl2 \
            --enable-keyextension
-%if 0%{?use_image_loader}
-%configure \
-           --enable-imageloader-extension
-%endif
 
 make %{?jobs:-j%jobs}
 
@@ -317,9 +322,11 @@ popd
 exit 0
 %endif
 
+%if 0%{?enable_image_loader}
 %post image-loader-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater}
 %post vector-animation-renderer-plugin
@@ -333,9 +340,11 @@ exit 0
 exit 0
 %endif
 
+%if 0%{?enable_color_controller}
 %post color-controller-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %post web-engine-lwe-plugin
@@ -374,9 +383,11 @@ exit 0
 exit 0
 %endif
 
+%if 0%{?enable_image_loader}
 %postun image-loader-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater}
 %postun vector-animation-renderer-plugin
@@ -390,9 +401,11 @@ exit 0
 exit 0
 %endif
 
+%if 0%{?enable_color_controller}
 %postun color-controller-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %postun web-engine-lwe-plugin
@@ -444,7 +457,7 @@ exit 0
 %license LICENSE
 %endif
 
-%if 0%{?use_image_loader}
+%if 0%{?enable_image_loader}
 %files image-loader-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
@@ -473,11 +486,13 @@ exit 0
 %{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
 %endif
 
+%if 0%{?enable_color_controller}
 %files color-controller-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-color-controller-plugin.so*
 %license LICENSE
+%endif
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %files web-engine-lwe-plugin
