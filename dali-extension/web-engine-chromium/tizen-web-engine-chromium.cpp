@@ -1003,9 +1003,9 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
   point.state = state;
   pointList = eina_list_append(pointList, &point);
 
-  ewk_view_feed_touch_event(mWebView, type, pointList, 0);
+  bool fed = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
   eina_list_free(pointList);
-  return false;
+  return fed;
 }
 
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
