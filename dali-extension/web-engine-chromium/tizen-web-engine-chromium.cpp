@@ -139,6 +139,10 @@ public:
         mContainerClients.erase( it );
         break;
       }
+      else
+      {
+        it++;
+      }
     }
   }
 
@@ -487,16 +491,16 @@ public:
     }
 
     Eina_List* pointList = 0;
-    Ewk_Touch_Point* point = new Ewk_Touch_Point;
-    point->id = 0;
-    point->x = touch.GetScreenPosition( 0 ).x;
-    point->y = touch.GetScreenPosition( 0 ).y;
-    point->state = state;
-    pointList = eina_list_append( pointList, point );
+    Ewk_Touch_Point point;
+    point.id = 0;
+    point.x = touch.GetScreenPosition( 0 ).x;
+    point.y = touch.GetScreenPosition( 0 ).y;
+    point.state = state;
+    pointList = eina_list_append( pointList, &point );
 
-    ewk_view_feed_touch_event( mWebView, type, pointList, 0 );
+    bool fed = ewk_view_feed_touch_event( mWebView, type, pointList, 0 );
     eina_list_free( pointList );
-    return false;
+    return fed;
   }
 
   bool SendKeyEvent( const Dali::KeyEvent& keyEvent )
