@@ -32,7 +32,6 @@ namespace Dali
 {
 namespace Plugin
 {
-
 /**
  * @brief A class for managing multiple web views
  */
@@ -40,6 +39,8 @@ class WebEngineManager
 {
 public:
   static WebEngineManager& Get();
+
+  static bool IsAvailable();
 
   WebEngineManager(WebEngineManager const&) = delete;
 
@@ -60,6 +61,8 @@ public:
 private:
   WebEngineManager();
 
+  ~WebEngineManager();
+
   void OnTerminated();
 
   SlotDelegate<WebEngineManager>                 mSlotDelegate;
@@ -67,6 +70,7 @@ private:
   std::unique_ptr<WebEngineCookieManager>        mWebEngineCookieManager;
   Ecore_Evas*                                    mWindow;
   std::map<Evas_Object*, Dali::WebEnginePlugin*> mWebEngines;
+  bool                                           mWebEngineManagerAvailable;
 };
 
 } // namespace Plugin

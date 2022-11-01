@@ -33,15 +33,20 @@ namespace Dali
 {
 namespace Plugin
 {
-
 WebEngineManager& WebEngineManager::Get()
 {
   static WebEngineManager instance;
   return instance;
 }
 
+bool WebEngineManager::IsAvailable()
+{
+  return Get().mWebEngineManagerAvailable;
+}
+
 WebEngineManager::WebEngineManager()
-  : mSlotDelegate(this)
+: mSlotDelegate(this),
+  mWebEngineManagerAvailable(true)
 {
   elm_init(0, 0);
   ewk_init();
@@ -53,6 +58,15 @@ WebEngineManager::WebEngineManager()
   Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
   mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
   Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
+}
+
+WebEngineManager::~WebEngineManager()
+{
+  if(mWebEngineManagerAvailable)
+  {
+    // Call OnTerminated directly.
+    OnTerminated();
+  }
 }
 
 Ecore_Evas* WebEngineManager::GetWindow()
@@ -78,7 +92,7 @@ void WebEngineManager::Add(Evas_Object* webView, Dali::WebEnginePlugin* engine)
 void WebEngineManager::Remove(Evas_Object* webView)
 {
   auto iter = mWebEngines.find(webView);
-  if (iter != mWebEngines.end())
+  if(iter != mWebEngines.end())
   {
     mWebEngines.erase(iter);
   }
@@ -87,7 +101,7 @@ void WebEngineManager::Remove(Evas_Object* webView)
 Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
 {
   auto iter = mWebEngines.find(webView);
-  if (iter != mWebEngines.end())
+  if(iter != mWebEngines.end())
   {
     return iter->second;
   }
@@ -99,12 +113,27 @@ Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
 
 void WebEngineManager::OnTerminated()
 {
-  for (auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
+  // App is terminated. Now web engine is not available anymore.
+  mWebEngineManagerAvailable = false;
+
+  Dali::LifecycleController::Get().TerminateSignal().Disconnect(mSlotDelegate, &WebEngineManager::OnTerminated);
+
+  for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
   {
-    evas_object_del(it->first);
+    // Destroy WebEngine
+    auto webEnginePlugin = it->second;
+    if(webEnginePlugin)
+    {
+      webEnginePlugin->Destroy();
+    }
   }
   mWebEngines.clear();
   ecore_evas_free(mWindow);
+
+  // Release context and cookie manager before ewk_shutdown.
+  mWebEngineContext.reset();
+  mWebEngineCookieManager.reset();
+
   ewk_shutdown();
   elm_shutdown();
   DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");

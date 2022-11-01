@@ -20,8 +20,8 @@
 #include "tizen-web-engine-back-forward-list.h"
 #include "tizen-web-engine-certificate.h"
 #include "tizen-web-engine-console-message.h"
-#include "tizen-web-engine-context-menu.h"
 #include "tizen-web-engine-context-menu-item.h"
+#include "tizen-web-engine-context-menu.h"
 #include "tizen-web-engine-form-repost-decision.h"
 #include "tizen-web-engine-hit-test.h"
 #include "tizen-web-engine-http-auth-handler.h"
@@ -48,44 +48,42 @@ namespace Dali
 {
 namespace Plugin
 {
-
 namespace
 {
-
-template <typename Callback, typename... Args>
+template<typename Callback, typename... Args>
 void ExecuteCallback(Callback callback, Args... args)
 {
-  if (callback)
+  if(callback)
   {
     callback(args...);
   }
 }
 
-template <typename Callback, typename Arg>
+template<typename Callback, typename Arg>
 void ExecuteCallback(Callback callback, std::unique_ptr<Arg> arg)
 {
-  if (callback)
+  if(callback)
   {
     callback(std::move(arg));
   }
 }
 
-template <typename Ret, typename Callback, typename... Args>
+template<typename Ret, typename Callback, typename... Args>
 Ret ExecuteCallbackReturn(Callback callback, Args... args)
 {
   Ret returnVal = Ret();
-  if (callback)
+  if(callback)
   {
     returnVal = callback(args...);
   }
   return returnVal;
 }
 
-template <typename Ret, typename Callback, typename Arg>
+template<typename Ret, typename Callback, typename Arg>
 Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
 {
   Ret returnVal = Ret();
-  if (callback)
+  if(callback)
   {
     returnVal = callback(std::move(arg));
   }
@@ -100,7 +98,7 @@ public:
   explicit TBMSurfaceSourceInitializer(NativeImageSourcePtr& imageSrc, uint32_t width, uint32_t height)
   {
     mSurface = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
-    if (!mSurface)
+    if(!mSurface)
     {
       DALI_LOG_ERROR("Failed to create tbm surface.");
     }
@@ -113,9 +111,9 @@ public:
 
   ~TBMSurfaceSourceInitializer()
   {
-    if (mSurface)
+    if(mSurface)
     {
-      if (tbm_surface_destroy(mSurface) != TBM_SURFACE_ERROR_NONE)
+      if(tbm_surface_destroy(mSurface) != TBM_SURFACE_ERROR_NONE)
       {
         DALI_LOG_ERROR("Failed to destroy tbm surface.");
       }
@@ -127,10 +125,10 @@ private:
 };
 
 TizenWebEngineChromium::TizenWebEngineChromium()
-  : mWebView(nullptr)
-  , mWidth(0)
-  , mHeight(0)
-  , mJavaScriptEvaluationCount(0)
+: mWebView(nullptr),
+  mWidth(0),
+  mHeight(0),
+  mJavaScriptEvaluationCount(0)
 {
 }
 
@@ -141,7 +139,7 @@ TizenWebEngineChromium::~TizenWebEngineChromium()
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneID)
 {
-  mWidth = width;
+  mWidth  = width;
   mHeight = height;
   InitWebView(0, nullptr);
   WebEngineManager::Get().Add(mWebView, this);
@@ -150,7 +148,7 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
-  mWidth = width;
+  mWidth  = width;
   mHeight = height;
   InitWebView(argc, argv);
   WebEngineManager::Get().Add(mWebView, this);
@@ -162,8 +160,15 @@ void TizenWebEngineChromium::Destroy()
   mJavaScriptEvaluationResultHandlers.clear();
   mJavaScriptMessageHandlers.clear();
 
-  WebEngineManager::Get().Remove(mWebView);
-  evas_object_del(mWebView);
+  if(mWebView)
+  {
+    if(WebEngineManager::IsAvailable())
+    {
+      WebEngineManager::Get().Remove(mWebView);
+    }
+    evas_object_del(mWebView);
+    mWebView = nullptr;
+  }
 }
 
 void TizenWebEngineChromium::LoadUrl(const std::string& path)
@@ -180,7 +185,7 @@ std::string TizenWebEngineChromium::GetTitle() const
 Dali::PixelData TizenWebEngineChromium::GetFavicon() const
 {
   Evas_Object* iconObject = ewk_view_favicon_get(mWebView);
-  if (!iconObject)
+  if(!iconObject)
   {
     return Dali::PixelData();
   }
@@ -205,17 +210,16 @@ void TizenWebEngineChromium::LoadHtmlString(const std::string& html)
 
 bool TizenWebEngineChromium::LoadHtmlStringOverrideCurrentEntry(const std::string& html, const std::string& basicUri, const std::string& unreachableUrl)
 {
-  char* cBasicUri = basicUri.length() ?  (char *)basicUri.c_str() : nullptr;
-  char* cUnreachableUrl = unreachableUrl.length() ?  (char *)unreachableUrl.c_str() : nullptr;
+  char* cBasicUri       = basicUri.length() ? (char*)basicUri.c_str() : nullptr;
+  char* cUnreachableUrl = unreachableUrl.length() ? (char*)unreachableUrl.c_str() : nullptr;
   return ewk_view_html_string_override_current_entry_load(mWebView, html.c_str(), cBasicUri, cUnreachableUrl);
 }
 
-bool TizenWebEngineChromium::LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType,
-                                          const std::string& encoding, const std::string& baseUri)
+bool TizenWebEngineChromium::LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
 {
-  char* cMimeType = mimeType.length() ?  (char *)mimeType.c_str() : nullptr;
-  char* cEncoding = encoding.length() ?  (char *)encoding.c_str() : nullptr;
-  char* cBaseUri = baseUri.length() ?  (char *)baseUri.c_str() : nullptr;
+  char* cMimeType = mimeType.length() ? (char*)mimeType.c_str() : nullptr;
+  char* cEncoding = encoding.length() ? (char*)encoding.c_str() : nullptr;
+  char* cBaseUri  = baseUri.length() ? (char*)baseUri.c_str() : nullptr;
   return ewk_view_contents_set(mWebView, contents.c_str(), contentSize, cMimeType, cEncoding, cBaseUri);
 }
 
@@ -338,13 +342,13 @@ void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, JavaS
   {
     mJavaScriptEvaluationResultHandlers.emplace(mJavaScriptEvaluationCount, resultHandler);
   }
-  catch (std::bad_alloc& e)
+  catch(std::bad_alloc& e)
   {
     badAlloc = true;
     DALI_LOG_ERROR("Too many ongoing JavaScript evaluations.");
   }
 
-  if (!badAlloc)
+  if(!badAlloc)
   {
     ewk_view_script_execute(mWebView, script.c_str(), &TizenWebEngineChromium::OnEvaluateJavaScript, (void*)mJavaScriptEvaluationCount);
     mJavaScriptEvaluationCount++;
@@ -353,7 +357,7 @@ void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, JavaS
 
 void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler)
 {
-  if (mJavaScriptMessageHandlers.emplace(exposedObjectName, handler).second)
+  if(mJavaScriptMessageHandlers.emplace(exposedObjectName, handler).second)
   {
     ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptMessage, exposedObjectName.c_str());
   }
@@ -432,8 +436,8 @@ Dali::WebEngineBackForwardList& TizenWebEngineChromium::GetBackForwardList() con
 std::unique_ptr<Dali::WebEngineHitTest> TizenWebEngineChromium::CreateHitTest(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode)
 {
   // sync...
-  Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
-  Ewk_Hit_Test* hitTest = ewk_view_hit_test_new(mWebView, x, y, (int)mode);
+  Evas*                                   evas    = ecore_evas_get(WebEngineManager::Get().GetWindow());
+  Ewk_Hit_Test*                           hitTest = ewk_view_hit_test_new(mWebView, x, y, (int)mode);
   std::unique_ptr<Dali::WebEngineHitTest> webHitTest(new TizenWebEngineHitTest(hitTest, evas, true));
   return webHitTest;
 }
@@ -441,13 +445,13 @@ std::unique_ptr<Dali::WebEngineHitTest> TizenWebEngineChromium::CreateHitTest(in
 bool TizenWebEngineChromium::CreateHitTestAsynchronously(int32_t x, int32_t y, Dali::WebEngineHitTest::HitTestMode mode, WebEngineHitTestCreatedCallback callback)
 {
   mHitTestCreatedCallback = callback;
-  bool result = ewk_view_hit_test_request(mWebView, x, y, (int)mode, &TizenWebEngineChromium::OnHitTestCreated, this);
+  bool result             = ewk_view_hit_test_request(mWebView, x, y, (int)mode, &TizenWebEngineChromium::OnHitTestCreated, this);
   return result;
 }
 
 void TizenWebEngineChromium::SetSize(uint32_t width, uint32_t height)
 {
-  mWidth = width;
+  mWidth  = width;
   mHeight = height;
   evas_object_resize(mWebView, mWidth, mHeight);
 }
@@ -490,22 +494,22 @@ bool TizenWebEngineChromium::SendTouchEvent(const Dali::TouchEvent& touch)
 bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
 {
   void* evasKeyEvent = 0;
-  if (keyEvent.GetState() == Dali::KeyEvent::DOWN)
+  if(keyEvent.GetState() == Dali::KeyEvent::DOWN)
   {
     Evas_Event_Key_Down downEvent;
     memset(&downEvent, 0, sizeof(Evas_Event_Key_Down));
-    downEvent.key = keyEvent.GetKeyName().c_str();
+    downEvent.key    = keyEvent.GetKeyName().c_str();
     downEvent.string = keyEvent.GetKeyString().c_str();
-    evasKeyEvent = static_cast<void*>(&downEvent);
+    evasKeyEvent     = static_cast<void*>(&downEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, true);
   }
   else
   {
     Evas_Event_Key_Up upEvent;
     memset(&upEvent, 0, sizeof(Evas_Event_Key_Up));
-    upEvent.key = keyEvent.GetKeyName().c_str();
+    upEvent.key    = keyEvent.GetKeyName().c_str();
     upEvent.string = keyEvent.GetKeyString().c_str();
-    evasKeyEvent = static_cast<void*>(&upEvent);
+    evasKeyEvent   = static_cast<void*>(&upEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, false);
   }
   return false;
@@ -519,9 +523,9 @@ bool TizenWebEngineChromium::SendHoverEvent(const Dali::HoverEvent& event)
 bool TizenWebEngineChromium::SendWheelEvent(const Dali::WheelEvent& wheel)
 {
   Eina_Bool direction = wheel.GetDirection() ? false : true;
-  int step = wheel.GetDelta();
-  float x = wheel.GetPoint().x;
-  float y = wheel.GetPoint().y;
+  int       step      = wheel.GetDelta();
+  float     x         = wheel.GetPoint().x;
+  float     y         = wheel.GetPoint().y;
   ewk_view_feed_mouse_wheel(mWebView, direction, step, x, y);
   return false;
 }
@@ -589,14 +593,14 @@ Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
 
   std::string_view plugId;
 
-  if (auto* data = static_cast<const char*>(evas_object_data_get(mWebView, plugIdKey)))
+  if(auto* data = static_cast<const char*>(evas_object_data_get(mWebView, plugIdKey)))
   {
     plugId = {data};
   }
 
   // We expect plugId to be of the form ":1.23:/org/a11y/atspi/accessible/root"
   auto pos = plugId.rfind(':');
-  if (pos == std::string_view::npos || pos == 0)
+  if(pos == std::string_view::npos || pos == 0)
   {
     DALI_LOG_ERROR("Cannot parse PlugID set by Chromium: %s = \"%s\"", plugIdKey, plugId.data());
     return {};
@@ -624,9 +628,9 @@ Dali::PixelData TizenWebEngineChromium::GetScreenshot(Dali::Rect<int32_t> viewAr
 {
   Eina_Rectangle rect;
   EINA_RECTANGLE_SET(&rect, viewArea.x, viewArea.y, viewArea.width, viewArea.height);
-  Evas *evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
-  Evas_Object *snapShotObject = ewk_view_screenshot_contents_get(mWebView, rect, scaleFactor, evas);
-  if (!snapShotObject)
+  Evas*        evas           = ecore_evas_get(WebEngineManager::Get().GetWindow());
+  Evas_Object* snapShotObject = ewk_view_screenshot_contents_get(mWebView, rect, scaleFactor, evas);
+  if(!snapShotObject)
   {
     return Dali::PixelData();
   }
@@ -637,7 +641,7 @@ bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::Rect<int32_t> vie
 {
   Eina_Rectangle rect;
   EINA_RECTANGLE_SET(&rect, viewArea.x, viewArea.y, viewArea.width, viewArea.height);
-  Evas *evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
+  Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
   return ewk_view_screenshot_contents_get_async(mWebView, rect, scaleFactor, evas, &TizenWebEngineChromium::OnScreenshotCaptured, this);
 }
 
@@ -753,12 +757,12 @@ void TizenWebEngineChromium::RegisterContextMenuHiddenCallback(WebEngineContextM
 void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler(size_t key, const char* result)
 {
   auto handler = mJavaScriptEvaluationResultHandlers.find(key);
-  if (handler == mJavaScriptEvaluationResultHandlers.end())
+  if(handler == mJavaScriptEvaluationResultHandlers.end())
   {
     return;
   }
 
-  if (handler->second)
+  if(handler->second)
   {
     std::string stored(result);
     handler->second(stored);
@@ -770,7 +774,7 @@ void TizenWebEngineChromium::RunJavaScriptEvaluationResultHandler(size_t key, co
 void TizenWebEngineChromium::RunJavaScriptMessageHandler(const std::string& objectName, const std::string& message)
 {
   auto handler = mJavaScriptMessageHandlers.find(objectName);
-  if (handler == mJavaScriptMessageHandlers.end())
+  if(handler == mJavaScriptMessageHandlers.end())
   {
     return;
   }
@@ -821,13 +825,13 @@ void TizenWebEngineChromium::PlainTextRecieved(const std::string& plainText)
 
 void TizenWebEngineChromium::InitWebView(uint32_t argc, char** argv)
 {
-  if (argc > 0)
+  if(argc > 0)
   {
     ewk_set_arguments(argc, argv);
   }
 
-  Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
-  Ewk_Context* context = ewk_context_default_get();
+  Ecore_Wl2_Window* win     = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
+  Ewk_Context*      context = ewk_context_default_get();
   ewk_context_max_refresh_rate_set(context, 60);
   mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
   ewk_view_offscreen_rendering_enabled_set(mWebView, true);
@@ -841,60 +845,24 @@ void TizenWebEngineChromium::InitWebView(uint32_t argc, char** argv)
 
   ewk_settings_viewport_meta_tag_set(settings, false);
 
-  evas_object_smart_callback_add(mWebView, "offscreen,frame,rendered",
-                                 &TizenWebEngineChromium::OnFrameRendered,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "load,started",
-                                 &TizenWebEngineChromium::OnLoadStarted,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "load,progress",
-                                 &TizenWebEngineChromium::OnLoadInProgress,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "load,finished",
-                                 &TizenWebEngineChromium::OnLoadFinished,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "load,error",
-                                 &TizenWebEngineChromium::OnLoadError,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "url,changed",
-                                 &TizenWebEngineChromium::OnUrlChanged,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "console,message",
-                                 &TizenWebEngineChromium::OnConsoleMessageReceived,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "edge,left",
-                                 &TizenWebEngineChromium::OnEdgeLeft,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "edge,right",
-                                 &TizenWebEngineChromium::OnEdgeRight,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "edge,top",
-                                 &TizenWebEngineChromium::OnEdgeTop,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "edge,bottom",
-                                 &TizenWebEngineChromium::OnEdgeBottom,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "form,repost,warning,show",
-                                 &TizenWebEngineChromium::OnFormRepostDecided,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "policy,response,decide",
-                                 &TizenWebEngineChromium::OnResponsePolicyDecided,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "policy,navigation,decide",
-                                 &TizenWebEngineChromium::OnNavigationPolicyDecided,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "request,certificate,confirm",
-                                 &TizenWebEngineChromium::OnCertificateConfirmed,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "ssl,certificate,changed",
-                                 &TizenWebEngineChromium::OnSslCertificateChanged,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "contextmenu,show",
-                                 &TizenWebEngineChromium::OnContextMenuShown,
-                                 this);
-  evas_object_smart_callback_add(mWebView, "contextmenu,hide",
-                                 &TizenWebEngineChromium::OnContextMenuHidden,
-                                 this);
+  evas_object_smart_callback_add(mWebView, "offscreen,frame,rendered", &TizenWebEngineChromium::OnFrameRendered, this);
+  evas_object_smart_callback_add(mWebView, "load,started", &TizenWebEngineChromium::OnLoadStarted, this);
+  evas_object_smart_callback_add(mWebView, "load,progress", &TizenWebEngineChromium::OnLoadInProgress, this);
+  evas_object_smart_callback_add(mWebView, "load,finished", &TizenWebEngineChromium::OnLoadFinished, this);
+  evas_object_smart_callback_add(mWebView, "load,error", &TizenWebEngineChromium::OnLoadError, this);
+  evas_object_smart_callback_add(mWebView, "url,changed", &TizenWebEngineChromium::OnUrlChanged, this);
+  evas_object_smart_callback_add(mWebView, "console,message", &TizenWebEngineChromium::OnConsoleMessageReceived, this);
+  evas_object_smart_callback_add(mWebView, "edge,left", &TizenWebEngineChromium::OnEdgeLeft, this);
+  evas_object_smart_callback_add(mWebView, "edge,right", &TizenWebEngineChromium::OnEdgeRight, this);
+  evas_object_smart_callback_add(mWebView, "edge,top", &TizenWebEngineChromium::OnEdgeTop, this);
+  evas_object_smart_callback_add(mWebView, "edge,bottom", &TizenWebEngineChromium::OnEdgeBottom, this);
+  evas_object_smart_callback_add(mWebView, "form,repost,warning,show", &TizenWebEngineChromium::OnFormRepostDecided, this);
+  evas_object_smart_callback_add(mWebView, "policy,response,decide", &TizenWebEngineChromium::OnResponsePolicyDecided, this);
+  evas_object_smart_callback_add(mWebView, "policy,navigation,decide", &TizenWebEngineChromium::OnNavigationPolicyDecided, this);
+  evas_object_smart_callback_add(mWebView, "request,certificate,confirm", &TizenWebEngineChromium::OnCertificateConfirmed, this);
+  evas_object_smart_callback_add(mWebView, "ssl,certificate,changed", &TizenWebEngineChromium::OnSslCertificateChanged, this);
+  evas_object_smart_callback_add(mWebView, "contextmenu,show", &TizenWebEngineChromium::OnContextMenuShown, this);
+  evas_object_smart_callback_add(mWebView, "contextmenu,hide", &TizenWebEngineChromium::OnContextMenuHidden, this);
 
   ewk_view_authentication_callback_set(mWebView, &TizenWebEngineChromium::OnAuthenticationChallenged, this);
 
@@ -905,7 +873,7 @@ void TizenWebEngineChromium::InitWebView(uint32_t argc, char** argv)
 bool TizenWebEngineChromium::FeedMouseEvent(const TouchEvent& touch)
 {
   Ewk_Mouse_Button_Type type = (Ewk_Mouse_Button_Type)0;
-  switch (touch.GetMouseButton(0))
+  switch(touch.GetMouseButton(0))
   {
     case MouseButton::PRIMARY:
     {
@@ -928,7 +896,7 @@ bool TizenWebEngineChromium::FeedMouseEvent(const TouchEvent& touch)
     }
   }
 
-  switch (touch.GetState(0))
+  switch(touch.GetState(0))
   {
     case PointState::DOWN:
     {
@@ -961,31 +929,31 @@ bool TizenWebEngineChromium::FeedMouseEvent(const TouchEvent& touch)
 
 bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
 {
-  Ewk_Touch_Event_Type type = EWK_TOUCH_START;
+  Ewk_Touch_Event_Type   type  = EWK_TOUCH_START;
   Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
-  switch (touch.GetState(0))
+  switch(touch.GetState(0))
   {
     case PointState::DOWN:
     {
-      type = EWK_TOUCH_START;
+      type  = EWK_TOUCH_START;
       state = EVAS_TOUCH_POINT_DOWN;
       break;
     }
     case PointState::UP:
     {
-      type = EWK_TOUCH_END;
+      type  = EWK_TOUCH_END;
       state = EVAS_TOUCH_POINT_UP;
       break;
     }
     case PointState::MOTION:
     {
-      type = EWK_TOUCH_MOVE;
+      type  = EWK_TOUCH_MOVE;
       state = EVAS_TOUCH_POINT_MOVE;
       break;
     }
     case PointState::INTERRUPTED:
     {
-      type = EWK_TOUCH_CANCEL;
+      type  = EWK_TOUCH_CANCEL;
       state = EVAS_TOUCH_POINT_CANCEL;
       break;
     }
@@ -995,13 +963,13 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
     }
   }
 
-  Eina_List* pointList = 0;
+  Eina_List*      pointList = 0;
   Ewk_Touch_Point point;
-  point.id = 0;
-  point.x = touch.GetScreenPosition(0).x;
-  point.y = touch.GetScreenPosition(0).y;
+  point.id    = 0;
+  point.x     = touch.GetScreenPosition(0).x;
+  point.y     = touch.GetScreenPosition(0).y;
   point.state = state;
-  pointList = eina_list_append(pointList, &point);
+  pointList   = eina_list_append(pointList, &point);
 
   bool fed = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
   eina_list_free(pointList);
@@ -1012,7 +980,7 @@ Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* imag
 {
   // color-space is argb8888.
   uint8_t* pixelBuffer = (uint8_t*)evas_object_image_data_get(image, false);
-  if (!pixelBuffer)
+  if(!pixelBuffer)
   {
     return Dali::PixelData();
   }
@@ -1020,21 +988,19 @@ Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* imag
   int width = 0, height = 0;
   evas_object_image_size_get(image, &width, &height);
 
-  uint32_t bufferSize = width * height * 4;
+  uint32_t bufferSize      = width * height * 4;
   uint8_t* convertedBuffer = new uint8_t[bufferSize];
 
   // convert the color-space to rgba8888.
-  for (uint32_t i = 0; i < bufferSize; i += 4)
+  for(uint32_t i = 0; i < bufferSize; i += 4)
   {
-    convertedBuffer[i] = pixelBuffer[i + 1];
+    convertedBuffer[i]     = pixelBuffer[i + 1];
     convertedBuffer[i + 1] = pixelBuffer[i + 2];
     convertedBuffer[i + 2] = pixelBuffer[i + 3];
     convertedBuffer[i + 3] = pixelBuffer[i];
   }
 
-  return Dali::PixelData::New(convertedBuffer, bufferSize, width, height,
-                              Dali::Pixel::Format::RGBA8888,
-                              Dali::PixelData::ReleaseFunction::DELETE_ARRAY);
+  return Dali::PixelData::New(convertedBuffer, bufferSize, width, height, Dali::Pixel::Format::RGBA8888, Dali::PixelData::ReleaseFunction::DELETE_ARRAY);
 }
 
 void TizenWebEngineChromium::OnFrameRendered(void* data, Evas_Object*, void* buffer)
@@ -1063,23 +1029,23 @@ void TizenWebEngineChromium::OnLoadFinished(void* data, Evas_Object*, void*)
 
 void TizenWebEngineChromium::OnLoadError(void* data, Evas_Object*, void* rawError)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Error* error = static_cast<Ewk_Error*>(rawError);
+  auto                                      pThis = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Error*                                error = static_cast<Ewk_Error*>(rawError);
   std::unique_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
   pThis->LoadError(std::move(loadError));
 }
 
 void TizenWebEngineChromium::OnUrlChanged(void* data, Evas_Object*, void* newUrl)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  std::string url = static_cast<char*>(newUrl);
+  auto        pThis = static_cast<TizenWebEngineChromium*>(data);
+  std::string url   = static_cast<char*>(newUrl);
   pThis->UrlChanged(url);
 }
 
 void TizenWebEngineChromium::OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(eventInfo);
+  auto                                           pThis   = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Console_Message*                           message = static_cast<Ewk_Console_Message*>(eventInfo);
   std::unique_ptr<Dali::WebEngineConsoleMessage> webConsoleMessage(new TizenWebEngineConsoleMessage(message));
   pThis->ConsoleMessageReceived(std::move(webConsoleMessage));
 }
@@ -1110,63 +1076,63 @@ void TizenWebEngineChromium::OnEdgeBottom(void* data, Evas_Object*, void*)
 
 void TizenWebEngineChromium::OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Form_Repost_Decision_Request* decisionRequest = static_cast<Ewk_Form_Repost_Decision_Request*>(eventInfo);
+  auto                                               pThis           = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Form_Repost_Decision_Request*                  decisionRequest = static_cast<Ewk_Form_Repost_Decision_Request*>(eventInfo);
   std::unique_ptr<Dali::WebEngineFormRepostDecision> webDecisionRequest(new TizenWebEngineFormRepostDecision(decisionRequest));
   pThis->RequestFormRepostDecided(std::move(webDecisionRequest));
 }
 
 void TizenWebEngineChromium::OnResponsePolicyDecided(void* data, Evas_Object*, void* policy)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
+  auto                                           pThis          = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Policy_Decision*                           policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
   std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
   pThis->ResponsePolicyDecided(std::move(webPolicyDecision));
 }
 
 void TizenWebEngineChromium::OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Policy_Decision* policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
+  auto                                           pThis          = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Policy_Decision*                           policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
   std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
   pThis->NavigationPolicyDecided(std::move(webPolicyDecision));
 }
 
 void TizenWebEngineChromium::OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Certificate_Policy_Decision* policyDecision = static_cast<Ewk_Certificate_Policy_Decision*>(eventInfo);
+  auto                                        pThis          = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Certificate_Policy_Decision*            policyDecision = static_cast<Ewk_Certificate_Policy_Decision*>(eventInfo);
   std::unique_ptr<Dali::WebEngineCertificate> webPolicyDecision(new TizenWebEngineCertificate(policyDecision));
   pThis->CertificateConfirmed(std::move(webPolicyDecision));
 }
 
 void TizenWebEngineChromium::OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Certificate_Info* info = static_cast<Ewk_Certificate_Info*>(eventInfo);
+  auto                                        pThis = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Certificate_Info*                       info  = static_cast<Ewk_Certificate_Info*>(eventInfo);
   std::unique_ptr<Dali::WebEngineCertificate> webCertiInfo(new TizenWebEngineCertificate(info));
   pThis->SslCertificateChanged(std::move(webCertiInfo));
 }
 
 void TizenWebEngineChromium::OnContextMenuShown(void* data, Evas_Object*, void* eventInfo)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Context_Menu* menu = (Ewk_Context_Menu*)eventInfo;
+  auto                                        pThis = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Context_Menu*                           menu  = (Ewk_Context_Menu*)eventInfo;
   std::unique_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
   pThis->ContextMenuShown(std::move(contextMenu));
 }
 
 void TizenWebEngineChromium::OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_Context_Menu* menu = (Ewk_Context_Menu*)eventInfo;
+  auto                                        pThis = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Context_Menu*                           menu  = (Ewk_Context_Menu*)eventInfo;
   std::unique_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
   pThis->ContextMenuHidden(std::move(contextMenu));
 }
 
 void TizenWebEngineChromium::OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto                                            pThis = static_cast<TizenWebEngineChromium*>(data);
   std::unique_ptr<Dali::WebEngineHttpAuthHandler> authHandler(new TizenWebEngineHttpAuthHandler(authChallenge));
   pThis->AuthenticationChallenged(std::move(authHandler));
 }
@@ -1174,7 +1140,7 @@ void TizenWebEngineChromium::OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_C
 void TizenWebEngineChromium::OnEvaluateJavaScript(Evas_Object* o, const char* result, void* data)
 {
   auto plugin = WebEngineManager::Get().Find(o);
-  if (plugin)
+  if(plugin)
   {
     auto pThis = static_cast<TizenWebEngineChromium*>(plugin);
     pThis->RunJavaScriptEvaluationResultHandler((size_t)data, result);
@@ -1184,7 +1150,7 @@ void TizenWebEngineChromium::OnEvaluateJavaScript(Evas_Object* o, const char* re
 void TizenWebEngineChromium::OnJavaScriptMessage(Evas_Object* o, Ewk_Script_Message message)
 {
   auto plugin = WebEngineManager::Get().Find(o);
-  if (plugin)
+  if(plugin)
   {
     auto pThis = static_cast<TizenWebEngineChromium*>(plugin);
     pThis->RunJavaScriptMessageHandler(message.name, static_cast<char*>(message.body));
@@ -1194,8 +1160,8 @@ void TizenWebEngineChromium::OnJavaScriptMessage(Evas_Object* o, Ewk_Script_Mess
 Eina_Bool TizenWebEngineChromium::OnJavaScriptAlert(Evas_Object* o, const char* alert_text, void* data)
 {
   bool result = false;
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  if (pThis)
+  auto pThis  = static_cast<TizenWebEngineChromium*>(data);
+  if(pThis)
   {
     result = pThis->JavaScriptAlert(const_cast<char*>(alert_text));
   }
@@ -1205,8 +1171,8 @@ Eina_Bool TizenWebEngineChromium::OnJavaScriptAlert(Evas_Object* o, const char* 
 Eina_Bool TizenWebEngineChromium::OnJavaScriptConfirm(Evas_Object* o, const char* message, void* data)
 {
   bool result = false;
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  if (pThis)
+  auto pThis  = static_cast<TizenWebEngineChromium*>(data);
+  if(pThis)
   {
     result = pThis->JavaScriptConfirm(const_cast<char*>(message));
   }
@@ -1216,8 +1182,8 @@ Eina_Bool TizenWebEngineChromium::OnJavaScriptConfirm(Evas_Object* o, const char
 Eina_Bool TizenWebEngineChromium::OnJavaScriptPrompt(Evas_Object* o, const char* message, const char* default_value, void* data)
 {
   bool result = false;
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  if (pThis)
+  auto pThis  = static_cast<TizenWebEngineChromium*>(data);
+  if(pThis)
   {
     result = pThis->JavaScriptPrompt(const_cast<char*>(message), const_cast<char*>(default_value));
   }
@@ -1226,15 +1192,15 @@ Eina_Bool TizenWebEngineChromium::OnJavaScriptPrompt(Evas_Object* o, const char*
 
 void TizenWebEngineChromium::OnHitTestCreated(Evas_Object*, int x, int y, int hitTestMode, Ewk_Hit_Test* hitTest, void* data)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
+  auto                                    pThis = static_cast<TizenWebEngineChromium*>(data);
+  Evas*                                   evas  = ecore_evas_get(WebEngineManager::Get().GetWindow());
   std::unique_ptr<Dali::WebEngineHitTest> webHitTest(new TizenWebEngineHitTest(hitTest, evas, false));
   pThis->HitTestCreated(std::move(webHitTest));
 }
 
 void TizenWebEngineChromium::OnScreenshotCaptured(Evas_Object* image, void* data)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto            pThis     = static_cast<TizenWebEngineChromium*>(data);
   Dali::PixelData pixelData = ConvertImageColorSpace(image);
   pThis->ScreenshotCaptured(pixelData);
 }
@@ -1247,10 +1213,10 @@ void TizenWebEngineChromium::OnVideoPlaying(Evas_Object*, Eina_Bool isPlaying, v
 
 void TizenWebEngineChromium::OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto        pThis = static_cast<TizenWebEngineChromium*>(data);
   std::string resultText;
 
-  if (plainText != nullptr)
+  if(plainText != nullptr)
   {
     resultText = std::string(plainText);
   }
@@ -1260,16 +1226,16 @@ void TizenWebEngineChromium::OnPlainTextReceived(Evas_Object* o, const char* pla
 
 Eina_Bool TizenWebEngineChromium::OnGeolocationPermission(Evas_Object*, Ewk_Geolocation_Permission_Request* request, void* data)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto                       pThis          = static_cast<TizenWebEngineChromium*>(data);
   const Ewk_Security_Origin* securityOrigin = ewk_geolocation_permission_request_origin_get(request);
-  std::string host = ewk_security_origin_host_get(securityOrigin);
-  std::string protocol = ewk_security_origin_protocol_get(securityOrigin);
+  std::string                host           = ewk_security_origin_host_get(securityOrigin);
+  std::string                protocol       = ewk_security_origin_protocol_get(securityOrigin);
   return pThis->GeolocationPermission(host, protocol);
 }
 
 void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
 {
-  if (!buffer)
+  if(!buffer)
   {
     return;
   }
@@ -1379,7 +1345,7 @@ extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin()
 
 extern "C" DALI_EXPORT_API void DestroyWebEnginePlugin(Dali::WebEnginePlugin* plugin)
 {
-  if (plugin)
+  if(plugin)
   {
     delete plugin;
   }
