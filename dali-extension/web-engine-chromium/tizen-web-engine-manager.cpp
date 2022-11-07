@@ -113,10 +113,14 @@ Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
 
 void WebEngineManager::OnTerminated()
 {
+  // Ignore duplicated termination
+  if(DALI_UNLIKELY(!mWebEngineManagerAvailable))
+  {
+    return;
+  }
+
   // App is terminated. Now web engine is not available anymore.
   mWebEngineManagerAvailable = false;
-
-  Dali::LifecycleController::Get().TerminateSignal().Disconnect(mSlotDelegate, &WebEngineManager::OnTerminated);
 
   for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
   {

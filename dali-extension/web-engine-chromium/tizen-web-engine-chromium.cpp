@@ -139,20 +139,26 @@ TizenWebEngineChromium::~TizenWebEngineChromium()
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneID)
 {
-  mWidth  = width;
-  mHeight = height;
-  InitWebView(0, nullptr);
-  WebEngineManager::Get().Add(mWebView, this);
-  TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
+  if(WebEngineManager::IsAvailable())
+  {
+    mWidth  = width;
+    mHeight = height;
+    InitWebView(0, nullptr);
+    WebEngineManager::Get().Add(mWebView, this);
+    TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
+  }
 }
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
-  mWidth  = width;
-  mHeight = height;
-  InitWebView(argc, argv);
-  WebEngineManager::Get().Add(mWebView, this);
-  TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
+  if(WebEngineManager::IsAvailable())
+  {
+    mWidth  = width;
+    mHeight = height;
+    InitWebView(argc, argv);
+    WebEngineManager::Get().Add(mWebView, this);
+    TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
+  }
 }
 
 void TizenWebEngineChromium::Destroy()
