@@ -370,7 +370,7 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     dstStride = mBufferImage.GetBufferStride();
 #endif
 
-    uint32_t srcStride = renderResult.updatedWidth * sizeof(uint32_t);
+    uint32_t srcStride = static_cast<uint32_t>(renderResult.updatedWidth * sizeof(uint32_t));
     uint8_t* srcBuffer = static_cast<uint8_t*>(renderResult.updatedBufferAddress);
 
     if(dstStride == srcStride)

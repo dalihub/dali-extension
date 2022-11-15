@@ -116,7 +116,7 @@ bool TizenVectorAnimationRenderer::Load(const std::string& url)
     return false;
   }
 
-  mTotalFrameNumber = mVectorRenderer->totalFrame();
+  mTotalFrameNumber = static_cast<uint32_t>(mVectorRenderer->totalFrame());
   mFrameRate        = static_cast<float>(mVectorRenderer->frameRate());
 
   size_t w, h;
