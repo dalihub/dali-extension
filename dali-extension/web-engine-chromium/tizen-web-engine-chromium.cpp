@@ -139,26 +139,34 @@ TizenWebEngineChromium::~TizenWebEngineChromium()
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneID)
 {
-  if(WebEngineManager::IsAvailable())
+  // Check if web engine is available and make sure that web engine is initialized.
+  if(!WebEngineManager::IsAvailable())
   {
-    mWidth  = width;
-    mHeight = height;
-    InitWebView(0, nullptr);
-    WebEngineManager::Get().Add(mWebView, this);
-    TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
+    DALI_LOG_ERROR("Web engine has been terminated in current process.");
+    return;
   }
+
+  mWidth  = width;
+  mHeight = height;
+  InitWebView(0, nullptr);
+  WebEngineManager::Get().Add(mWebView, this);
+  TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
 }
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
-  if(WebEngineManager::IsAvailable())
+  // Check if web engine is available and make sure that web engine is initialized.
+  if(!WebEngineManager::IsAvailable())
   {
-    mWidth  = width;
-    mHeight = height;
-    InitWebView(argc, argv);
-    WebEngineManager::Get().Add(mWebView, this);
-    TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
+    DALI_LOG_ERROR("Web engine has been terminated in current process.");
+    return;
   }
+
+  mWidth  = width;
+  mHeight = height;
+  InitWebView(argc, argv);
+  WebEngineManager::Get().Add(mWebView, this);
+  TBMSurfaceSourceInitializer initializer(mDaliImageSrc, mWidth, mHeight);
 }
 
 void TizenWebEngineChromium::Destroy()
