@@ -33,6 +33,12 @@ namespace Dali
 {
 namespace Plugin
 {
+namespace
+{
+// @todo : If we make this value as member of WebEngineManager, we got crashed due to 'elm_init' symbol found failed.
+static bool gWebEngineManagerAvailable = true; // Default as true
+} // namespace
+
 WebEngineManager& WebEngineManager::Get()
 {
   static WebEngineManager instance;
@@ -41,13 +47,14 @@ WebEngineManager& WebEngineManager::Get()
 
 bool WebEngineManager::IsAvailable()
 {
-  return Get().mWebEngineManagerAvailable;
+  return gWebEngineManagerAvailable;
 }
 
 WebEngineManager::WebEngineManager()
-: mSlotDelegate(this),
-  mWebEngineManagerAvailable(true)
+: mSlotDelegate(this)
 {
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is created.\n");
+
   elm_init(0, 0);
   ewk_init();
   mWindow = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
@@ -58,11 +65,13 @@ WebEngineManager::WebEngineManager()
   Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
   mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
   Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
+
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is created fully.\n");
 }
 
 WebEngineManager::~WebEngineManager()
 {
-  if(mWebEngineManagerAvailable)
+  if(gWebEngineManagerAvailable)
   {
     // Call OnTerminated directly.
     OnTerminated();
@@ -114,13 +123,14 @@ Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
 void WebEngineManager::OnTerminated()
 {
   // Ignore duplicated termination
-  if(DALI_UNLIKELY(!mWebEngineManagerAvailable))
+  if(DALI_UNLIKELY(!gWebEngineManagerAvailable))
   {
     return;
   }
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed.\n");
 
   // App is terminated. Now web engine is not available anymore.
-  mWebEngineManagerAvailable = false;
+  gWebEngineManagerAvailable = false;
 
   for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
   {
