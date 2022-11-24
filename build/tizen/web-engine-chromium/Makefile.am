@@ -42,5 +42,6 @@ libdali2_web_engine_chromium_plugin_la_LIBADD = \
                       $(WEB_ENGINE_CHROMIUM_LIBS)
 
 libdali2_web_engine_chromium_plugin_la_LDFLAGS = \
-                      -rdynamic
+                      -rdynamic \
+                      -lelementary
 
