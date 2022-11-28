@@ -290,33 +290,36 @@ public:
 
     ewk_settings_viewport_meta_tag_set(settings, false);
 
-    evas_object_smart_callback_add( mWebView, "offscreen,frame,rendered",
-                                    &WebViewContainerForDali::OnFrameRendered,
-                                    &mClient );
-    evas_object_smart_callback_add( mWebView, "load,started",
-                                    &WebViewContainerForDali::OnLoadStarted,
-                                    &mClient );
-    evas_object_smart_callback_add( mWebView, "load,finished",
-                                    &WebViewContainerForDali::OnLoadFinished,
-                                    &mClient );
-    evas_object_smart_callback_add( mWebView, "load,error",
-                                    &WebViewContainerForDali::OnLoadError,
-                                    &mClient );
-    evas_object_smart_callback_add( mWebView, "console,message",
-                                    &WebViewContainerForDali::OnConsoleMessage,
-                                    this );
-    evas_object_smart_callback_add( mWebView, "edge,left",
-                                    &WebViewContainerForDali::OnEdgeLeft,
-                                    &mClient );
-    evas_object_smart_callback_add( mWebView, "edge,right",
-                                    &WebViewContainerForDali::OnEdgeRight,
-                                    &mClient );
-    evas_object_smart_callback_add( mWebView, "edge,top",
-                                    &WebViewContainerForDali::OnEdgeTop,
-                                    &mClient );
-    evas_object_smart_callback_add( mWebView, "edge,bottom",
-                                    &WebViewContainerForDali::OnEdgeBottom,
-                                    &mClient );
+    evas_object_smart_callback_add(mWebView, "offscreen,frame,rendered",
+                                   &WebViewContainerForDali::OnFrameRendered,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "load,started",
+                                   &WebViewContainerForDali::OnLoadStarted,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "load,finished",
+                                   &WebViewContainerForDali::OnLoadFinished,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "load,error",
+                                   &WebViewContainerForDali::OnLoadError,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "url,changed",
+                                   &WebViewContainerForDali::OnUrlChanged,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "console,message",
+                                   &WebViewContainerForDali::OnConsoleMessage,
+                                   this);
+    evas_object_smart_callback_add(mWebView, "edge,left",
+                                   &WebViewContainerForDali::OnEdgeLeft,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "edge,right",
+                                   &WebViewContainerForDali::OnEdgeRight,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "edge,top",
+                                   &WebViewContainerForDali::OnEdgeTop,
+                                   &mClient);
+    evas_object_smart_callback_add(mWebView, "edge,bottom",
+                                   &WebViewContainerForDali::OnEdgeBottom,
+                                   &mClient);
     evas_object_smart_callback_add(mWebView, "policy,navigation,decide",
                                    &WebViewContainerForDali::OnNavigationPolicyDecided,
                                    &mClient);
@@ -661,6 +664,13 @@ private:
   {
     auto client = static_cast<WebViewContainerClient*>( data );
     client->ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge::BOTTOM );
+  }
+
+  static void OnUrlChanged(void* data, Evas_Object*, void* newUrl)
+  {
+    auto client = static_cast<WebViewContainerClient*>(data);
+    std::string url = static_cast<char*>(newUrl);
+    client->UrlChanged(url);
   }
 
   static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy)
@@ -1129,6 +1139,11 @@ void TizenWebEngineChromium::RegisterScrollEdgeReachedCallback(WebEngineScrollEd
   mScrollEdgeReachedCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback)
+{
+  mUrlChangedCallback = callback;
+}
+
 void TizenWebEngineChromium::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
 {
   mNavigationPolicyDecidedCallback = callback;
@@ -1178,6 +1193,12 @@ void TizenWebEngineChromium::ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdg
 {
   DALI_LOG_RELEASE_INFO( "#ScrollEdgeReached : %d\n", edge );
   ExecuteCallback(mScrollEdgeReachedCallback, edge);
+}
+
+void TizenWebEngineChromium::UrlChanged(const std::string& url)
+{
+  DALI_LOG_RELEASE_INFO("#UrlChanged : %s\n", url.c_str());
+  ExecuteCallback(mUrlChangedCallback, url);
 }
 
 void TizenWebEngineChromium::NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision)

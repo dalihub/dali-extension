@@ -76,6 +76,13 @@ public:
   virtual void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) = 0;
 
   /**
+   * @brief Callback function to be called by WebViewContainer when url is
+   * changed.
+   * @param [in] url New url after url is changed.
+   */
+  virtual void UrlChanged(const std::string &url) = 0;
+
+  /**
    * @brief Callback function to be called by WebViewContainer when navigation
    * policy would be decided.
    * @param [in] decision Policy need be decided.
@@ -341,6 +348,11 @@ public:
   void RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterUrlChangedCallback()
+   */
+  void RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterNavigationPolicyDecidedCallback()
    */
   void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
@@ -379,6 +391,11 @@ public:
   void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) override;
 
   /**
+   * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
+   */
+  void UrlChanged(const std::string &url) override;
+
+  /**
    * @copydoc Dali::Plugin::WebViewContainerClient::NavigationPolicyDecided()
    */
   void NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> policy) override;
@@ -409,11 +426,12 @@ private:
   WebEnginePageLoadCallback                mLoadFinishedCallback;
   WebEnginePageLoadErrorCallback           mLoadErrorCallback;
   WebEngineScrollEdgeReachedCallback       mScrollEdgeReachedCallback;
+  WebEngineUrlChangedCallback              mUrlChangedCallback;
   WebEngineNavigationPolicyDecidedCallback mNavigationPolicyDecidedCallback;
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
 
-  std::unordered_map< size_t, JavaScriptMessageHandlerCallback >      mJavaScriptEvaluationResultHandlers;
-  std::unordered_map< std::string, JavaScriptMessageHandlerCallback > mJavaScriptMessageHandlers;
+  std::unordered_map<size_t, JavaScriptMessageHandlerCallback>      mJavaScriptEvaluationResultHandlers;
+  std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptMessageHandlers;
 };
 } // namespace Plugin
 } // namespace Dali
