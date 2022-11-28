@@ -32,10 +32,12 @@
 #include <EWebKit_internal.h>
 #include <EWebKit_product.h>
 
+#include <dali/devel-api/adaptor-framework/lifecycle-controller.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/public-api/images/pixel-data.h>
+#include <dali/public-api/signals/slot-delegate.h>
 
 using namespace Dali;
 
@@ -112,8 +114,12 @@ public:
   static WebEngineManager& Get()
   {
     static WebEngineManager instance;
-
     return instance;
+  }
+
+  static bool IsAvailable()
+  {
+    return Get().mWebEngineManagerAvailable;
   }
 
   WebEngineManager(WebEngineManager const&) = delete;
@@ -160,14 +166,50 @@ public:
 
 private:
   WebEngineManager()
+  : mSlotDelegate(this),
+    mWebEngineManagerAvailable(true)
   {
     elm_init( 0, 0 );
     ewk_init();
     mWindow = ecore_evas_new( "wayland_egl", 0, 0, 1, 1, 0 );
+    LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
   }
 
-  Ecore_Evas* mWindow;
-  std::vector< WebViewContainerClientPair > mContainerClients;
+  ~WebEngineManager()
+  {
+    if(mWebEngineManagerAvailable)
+    {
+      // Call OnTerminated directly.
+      OnTerminated();
+    }
+  }
+
+  void OnTerminated()
+  {
+    // Ignore duplicated termination
+    if(DALI_UNLIKELY(!mWebEngineManagerAvailable))
+    {
+      return;
+    }
+
+    // App is terminated. Now web engine is not available anymore.
+    mWebEngineManagerAvailable = false;
+
+    for (auto it = mContainerClients.begin(); it != mContainerClients.end(); it++)
+    {
+      evas_object_del(it->mWebView);
+    }
+    mContainerClients.clear();
+    ecore_evas_free(mWindow);
+    ewk_shutdown();
+    elm_shutdown();
+    DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");
+  }
+
+  SlotDelegate<WebEngineManager>          mSlotDelegate;
+  Ecore_Evas*                             mWindow;
+  std::vector<WebViewContainerClientPair> mContainerClients;
+  bool                                    mWebEngineManagerAvailable;
 };
 
 class WebViewContainerForDali
@@ -184,7 +226,6 @@ public:
       mWebEngineBackForwardList( 0 )
   {
     InitWebView( 0, 0 );
-
     WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
   }
 
@@ -199,19 +240,28 @@ public:
       mWebEngineBackForwardList( 0 )
   {
     InitWebView( argc, argv );
-
     WebEngineManager::Get().AddContainerClient( &mClient, mWebView );
   }
 
   ~WebViewContainerForDali()
   {
-    WebEngineManager::Get().RemoveContainerClient( mWebView );
-
-    evas_object_del( mWebView );
+    if(WebEngineManager::IsAvailable())
+    {
+      WebEngineManager::Get().RemoveContainerClient(mWebView);
+    }
+    evas_object_del(mWebView);
+    mWebView = nullptr;
   }
 
   void InitWebView( int argc, char** argv )
   {
+    // Check if web engine is available and make sure that web engine is initialized.
+    if(!WebEngineManager::IsAvailable())
+    {
+      DALI_LOG_ERROR("Web engine has been terminated in current process.");
+      return;
+    }
+
     if ( argc > 0 )
     {
       ewk_set_arguments( argc, argv );
