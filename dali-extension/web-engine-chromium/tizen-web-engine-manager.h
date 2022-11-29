@@ -70,6 +70,7 @@ private:
   std::unique_ptr<WebEngineCookieManager>        mWebEngineCookieManager;
   Ecore_Evas*                                    mWindow;
   std::map<Evas_Object*, Dali::WebEnginePlugin*> mWebEngines;
+  bool                                           mWebEngineManagerAvailable;
 };
 
 } // namespace Plugin
