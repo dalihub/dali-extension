@@ -293,6 +293,20 @@ bool TizenVectorAnimationRenderer::Render(uint32_t frameNumber)
   return true;
 }
 
+void TizenVectorAnimationRenderer::RenderStopped()
+{
+  if(mTargetSurface)
+  {
+    // Animation is stopped. Free empty buffers
+    mTargetSurface->FreeReleasedBuffers();
+
+    {
+      Dali::Mutex::ScopedLock lock(mMutex);
+      ResetBuffers();
+    }
+  }
+}
+
 uint32_t TizenVectorAnimationRenderer::GetTotalFrameNumber() const
 {
   return mTotalFrameNumber;
