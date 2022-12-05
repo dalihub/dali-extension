@@ -39,6 +39,8 @@
 #include <dali/public-api/images/pixel-data.h>
 #include <dali/public-api/signals/slot-delegate.h>
 
+#include <stdexcept>
+
 using namespace Dali;
 
 namespace Dali
@@ -180,7 +182,14 @@ private:
     if(mWebEngineManagerAvailable)
     {
       // Call OnTerminated directly.
-      OnTerminated();
+      try
+      {
+        OnTerminated();
+      }
+      catch(std::invalid_argument const& ex)
+      {
+        DALI_LOG_RELEASE_INFO("Failed to destroy web engine:%s!\n", ex.what());
+      }
     }
   }
 
