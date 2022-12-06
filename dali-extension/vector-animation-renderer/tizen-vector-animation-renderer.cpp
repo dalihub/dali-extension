@@ -19,6 +19,7 @@
 #include <dali-extension/vector-animation-renderer/tizen-vector-animation-renderer.h>
 
 // EXTERNAL INCLUDES
+#include <dali/devel-api/adaptor-framework/environment-variable.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/property-array.h>
@@ -46,6 +47,16 @@ const Vector4     FULL_TEXTURE_RECT(0.f, 0.f, 1.f, 1.f);
 #if defined(DEBUG_ENABLED)
 Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_VECTOR_ANIMATION");
 #endif
+
+constexpr auto VECTOR_ANIMATION_ENABLE_RELEASED_BUFFER_FREE = "DALI_VECTOR_ANIMATION_ENABLE_RELEASED_BUFFER_FREE";
+
+bool IsReleasedBufferFreeEnabled()
+{
+  static auto enabledString = EnvironmentVariable::GetEnvironmentVariable(VECTOR_ANIMATION_ENABLE_RELEASED_BUFFER_FREE);
+  static bool enabled       = enabledString ? (std::atoi(enabledString) > 0 ? true : false) : false;
+  return enabled;
+}
+
 } // unnamed namespace
 
 TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
@@ -295,7 +306,7 @@ bool TizenVectorAnimationRenderer::Render(uint32_t frameNumber)
 
 void TizenVectorAnimationRenderer::RenderStopped()
 {
-  if(mTargetSurface)
+  if(IsReleasedBufferFreeEnabled() && mTargetSurface)
   {
     // Animation is stopped. Free empty buffers
     mTargetSurface->FreeReleasedBuffers();
