@@ -5,5 +5,6 @@ web_engine_chromium_plugin_src_files = \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-context.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-cookie-manager.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-frame.cpp \
+   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-manager.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-policy-decision.cpp \
    $(extension_src_dir)/web-engine-chromium/tizen-web-engine-settings.cpp

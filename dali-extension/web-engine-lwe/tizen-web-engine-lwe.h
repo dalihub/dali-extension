@@ -122,7 +122,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
    */
-  const std::string& GetUrl() override;
+  std::string GetUrl() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHTMLString()
@@ -217,7 +217,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUserAgent()
    */
-  const std::string& GetUserAgent() const override;
+  std::string GetUserAgent() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetUserAgent()
@@ -285,6 +285,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::RegisterNavigationPolicyDecidedCallback()
    */
   void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNewWindowCreatedCallback()
+   */
+  void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()

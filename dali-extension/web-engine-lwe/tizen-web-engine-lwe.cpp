@@ -629,7 +629,7 @@ Dali::PixelData TizenWebEngineLWE::GetFavicon() const
   return Dali::PixelData();
 }
 
-const std::string& TizenWebEngineLWE::GetUrl()
+std::string TizenWebEngineLWE::GetUrl() const
 {
   DALI_ASSERT_ALWAYS( mWebContainer );
   return mUrl;
@@ -738,7 +738,7 @@ void TizenWebEngineLWE::ClearHistory()
   mCanGoBack = mWebContainer->CanGoBack();
 }
 
-const std::string& TizenWebEngineLWE::GetUserAgent() const
+std::string TizenWebEngineLWE::GetUserAgent() const
 {
   // NOT IMPLEMENTED
   return EMPTY_STRING;
@@ -920,6 +920,11 @@ void TizenWebEngineLWE::RegisterUrlChangedCallback(WebEngineUrlChangedCallback c
 }
 
 void TizenWebEngineLWE::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback)
 {
   // NOT IMPLEMENTED
 }

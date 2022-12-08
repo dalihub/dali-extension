@@ -19,11 +19,13 @@
  */
 
 // EXTERNAL INCLUDES
-#include <functional>
+#include <Evas.h>
+
 #include <dali-toolkit/dali-toolkit.h>
 #include <dali/devel-api/adaptor-framework/web-engine-plugin.h>
 #include <dali/public-api/images/native-image-interface.h>
 
+#include <ewk_view_internal.h>
 #include <memory>
 #include <tbm_surface.h>
 #include <unordered_map>
@@ -36,90 +38,13 @@ class PixelData;
 namespace Plugin
 {
 
-class WebViewContainerForDali;
-
 /**
- * @brief The interface class to represent client of corresponding WebView container (WebViewContainerForDali).
+ * @brief A class implements Dali::WebEnginePlugin for tizen chromium.
  */
-class WebViewContainerClient
+class TizenWebEngineChromium : public Dali::WebEnginePlugin
 {
 
 public:
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when surface is updated.
-   * @param [in] buffer The surface
-   */
-  virtual void UpdateImage( tbm_surface_h buffer ) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when page loading is started.
-   */
-  virtual void LoadStarted() = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when page loading is finished.
-   */
-  virtual void LoadFinished() = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when an error occurs in page loading.
-   * @param [in] url Failing URL for this error
-   * @param [in] errorCode The error code
-   */
-  virtual void LoadError( const char* url, int errorCode ) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when scroll edge is reached.
-   * @param [in] e Scroll edge reached.
-   */
-  virtual void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when url is
-   * changed.
-   * @param [in] url New url after url is changed.
-   */
-  virtual void UrlChanged(const std::string &url) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when navigation
-   * policy would be decided.
-   * @param [in] decision Policy need be decided.
-   */
-  virtual void NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> decision) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when it gets JavaScript evalution result.
-   * @param [in] key An unsigned integer representing the result handler
-   * @param [in] result Result string from JavaScript runtime
-   * @see Dali::Plugin::TizenWebEngineChromium::EvaluateJavaScript
-   */
-  virtual void RunJavaScriptEvaluationResultHandler( size_t key, const char* result ) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer when a message handler is called from JavaScript runtime.
-   * @param [in] objectName Exposed object name of the message handler
-   * @param [in] message Message from JavaScript runtime
-   * @see Dali::Plugin::TizenWebEngineChromium::AddJavaScriptMessageHandler
-   */
-  virtual void RunJavaScriptMessageHandler( const std::string& objectName, const std::string& message ) = 0;
-
-  /**
-   * @brief Callback function to be called by WebViewContainer as a result of getting plain text.
-   * @param [in] plainText The obtained plain text.
-   */
-  virtual void PlainTextRecieved(const std::string& plainText) = 0;
-};
-
-/**
- * @brief A class implements WebViewContainerClient and Dali::WebEnginePlugin for tizen chromium.
- */
-class TizenWebEngineChromium : public Dali::WebEnginePlugin, public WebViewContainerClient
-{
-
-public:
-
   /**
    * @brief Constructor.
    */
@@ -136,12 +61,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create( int width, int height, const std::string& locale, const std::string& timezoneID ) override;
+  void Create(int width, int height, const std::string& locale, const std::string& timezoneID) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Create()
    */
-  void Create( int width, int height, int argc, char** argv ) override;
+  void Create(int width, int height, int argc, char** argv) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Destroy()
@@ -171,7 +96,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::LoadUrl()
    */
-  void LoadUrl( const std::string& url ) override;
+  void LoadUrl(const std::string& url) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
@@ -191,7 +116,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUrl()
    */
-  const std::string& GetUrl() override;
+  std::string GetUrl() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::LoadHtmlString()
@@ -221,27 +146,27 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::ScrollBy()
    */
-  void ScrollBy( int deltaX, int deltaY ) override;
+  void ScrollBy(int deltaX, int deltaY) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetScrollPosition()
    */
-  void SetScrollPosition( int x, int y ) override;
+  void SetScrollPosition(int x, int y) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollPosition()
    */
-  void GetScrollPosition( int& x, int& y ) const override;
+  void GetScrollPosition(int& x, int& y) const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetScrollSize()
    */
-  void GetScrollSize( int& width, int& height ) const override;
+  void GetScrollSize(int& width, int& height) const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetContentSize()
    */
-  void GetContentSize( int& width, int& height ) const override;
+  void GetContentSize(int& width, int& height) const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::CanGoForward()
@@ -266,12 +191,12 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::EvaluateJavaScript()
    */
-  void EvaluateJavaScript( const std::string& script, JavaScriptMessageHandlerCallback resultHandler ) override;
+  void EvaluateJavaScript(const std::string& script, JavaScriptMessageHandlerCallback resultHandler) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
    */
-  void AddJavaScriptMessageHandler( const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler ) override;
+  void AddJavaScriptMessageHandler(const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ClearAllTilesResources()
@@ -286,46 +211,46 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetUserAgent()
    */
-  const std::string& GetUserAgent() const override;
+  std::string GetUserAgent() const override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetUserAgent()
    */
-  void SetUserAgent( const std::string& userAgent ) override;
+  void SetUserAgent(const std::string& userAgent) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetSize()
    */
-  void SetSize( int width, int height ) override;
+  void SetSize(int width, int height) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendTouchEvent()
    */
-  bool SendTouchEvent( const Dali::TouchEvent& touch ) override;
+  bool SendTouchEvent(const Dali::TouchEvent& touch) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SendKeyEvent()
    */
-  bool SendKeyEvent( const Dali::KeyEvent& event ) override;
+  bool SendKeyEvent(const Dali::KeyEvent& event) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetFocus()
    * @param[in] focused True if web view is focused, false otherwise.
    */
-  void SetFocus( bool focused ) override;
+  void SetFocus(bool focused) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::UpdateDisplayArea()
    * @brief Update display area.
    * @param[in] displayArea A display area to be updated.
    */
-  void UpdateDisplayArea( Dali::Rect< int > displayArea ) override;
+  void UpdateDisplayArea(Dali::Rect< int > displayArea) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::EnableVideoHole()
    * @param[in] enabled True if video hole is enabled, false otherwise.
    */
-  void EnableVideoHole( bool enabled ) override;
+  void EnableVideoHole(bool enabled) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterPageLoadStartedCallback()
@@ -358,69 +283,45 @@ public:
   void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNewWindowCreatedCallback()
+   */
+  void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
    */
   void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
 
-  // WebViewContainerClient Interface
+private:
+  void UpdateImage(tbm_surface_h buffer);
+  void InitWebView(int argc, char** argv);
 
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::UpdateImage()
-   */
-  void UpdateImage( tbm_surface_h buffer ) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::LoadStarted()
-   */
-  void LoadStarted() override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::LoadFinished()
-   */
-  void LoadFinished() override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::LoadError()
-   */
-  void LoadError( const char* url, int errorCode ) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::ScrollEdgeReached()
-   */
-  void ScrollEdgeReached( Dali::WebEnginePlugin::ScrollEdge edge ) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::UrlChanged()
-   */
-  void UrlChanged(const std::string &url) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::NavigationPolicyDecided()
-   */
-  void NavigationPolicyDecided(std::unique_ptr<Dali::WebEnginePolicyDecision> policy) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::RunJavaScriptEvaluationResultHandler()
-   */
-  void RunJavaScriptEvaluationResultHandler( size_t key, const char* result ) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::RunJavaScriptMessageHandler()
-   */
-  void RunJavaScriptMessageHandler( const std::string& objectName, const std::string& message ) override;
-
-  /**
-   * @copydoc Dali::Plugin::WebViewContainerClient::PlainTextRecieved()
-   */
-  void PlainTextRecieved(const std::string& plainText) override;
+  static void OnFrameRendered(void* data, Evas_Object*, void* buffer);
+  static void OnLoadStarted(void* data, Evas_Object*, void*);
+  static void OnLoadFinished(void* data, Evas_Object*, void*);
+  static void OnLoadError(void* data, Evas_Object*, void* rawError);
+  static void OnConsoleMessage(void*, Evas_Object*, void* eventInfo);
+  static void OnEdgeLeft(void* data, Evas_Object*, void*);
+  static void OnEdgeRight(void* data, Evas_Object*, void*);
+  static void OnEdgeTop(void* data, Evas_Object*, void*);
+  static void OnEdgeBottom(void* data, Evas_Object*, void*);
+  static void OnUrlChanged(void* data, Evas_Object*, void* newUrl);
+  static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
+  static void OnNewWindowCreated(void* data, Evas_Object*, void* out_view);
+  static void OnJavaScriptEvaluated(Evas_Object*, const char* result, void* data);
+  static void OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
+  static void OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data);
 
 private:
+  Dali::NativeImageSourcePtr               mDaliImageSrc;
+  Evas_Object*                             mWebView;
+  int                                      mWidth;
+  int                                      mHeight;
 
-  WebViewContainerForDali*                                mWebViewContainer;
-  Dali::NativeImageSourcePtr                              mDaliImageSrc;
-  std::string                                             mUrl;
-  size_t                                                  mJavaScriptEvaluationCount;
+  std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
+  std::unique_ptr<WebEngineContext>         mWebEngineContext;
+  std::unique_ptr<WebEngineCookieManager>   mWebEngineCookieManager;
+  std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
 
   WebEnginePageLoadCallback                mLoadStartedCallback;
   WebEnginePageLoadCallback                mLoadFinishedCallback;
@@ -428,10 +329,10 @@ private:
   WebEngineScrollEdgeReachedCallback       mScrollEdgeReachedCallback;
   WebEngineUrlChangedCallback              mUrlChangedCallback;
   WebEngineNavigationPolicyDecidedCallback mNavigationPolicyDecidedCallback;
+  WebEngineNewWindowCreatedCallback        mNewWindowCreatedCallback;
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
-
-  std::unordered_map<size_t, JavaScriptMessageHandlerCallback>      mJavaScriptEvaluationResultHandlers;
-  std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptMessageHandlers;
+  JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
+  JavaScriptMessageHandlerCallback         mJavaScriptInjectedCallback;
 };
 } // namespace Plugin
 } // namespace Dali
