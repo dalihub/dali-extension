@@ -292,6 +292,11 @@ public:
   void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFrameRenderedCallback()
+   */
+  void RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
    */
   void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;

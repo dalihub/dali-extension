@@ -288,6 +288,11 @@ public:
   void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFrameRenderedCallback()
+   */
+  void RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
    */
   void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
@@ -313,10 +318,10 @@ private:
   static void OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data);
 
 private:
-  Dali::NativeImageSourcePtr               mDaliImageSrc;
-  Evas_Object*                             mWebView;
-  int                                      mWidth;
-  int                                      mHeight;
+  Dali::NativeImageSourcePtr mDaliImageSrc;
+  Evas_Object*               mWebView;
+  int                        mWidth;
+  int                        mHeight;
 
   std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
   std::unique_ptr<WebEngineContext>         mWebEngineContext;
@@ -330,6 +335,7 @@ private:
   WebEngineUrlChangedCallback              mUrlChangedCallback;
   WebEngineNavigationPolicyDecidedCallback mNavigationPolicyDecidedCallback;
   WebEngineNewWindowCreatedCallback        mNewWindowCreatedCallback;
+  WebEngineFrameRenderedCallback           mFrameRenderedCallback;
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
   JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
   JavaScriptMessageHandlerCallback         mJavaScriptInjectedCallback;

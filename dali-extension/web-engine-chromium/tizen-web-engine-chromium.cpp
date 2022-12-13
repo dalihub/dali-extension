@@ -100,40 +100,9 @@ Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
 
 } // anonymous namespace.
 
-class TBMSurfaceSourceInitializer
-{
-public:
-  explicit TBMSurfaceSourceInitializer(NativeImageSourcePtr& imageSrc, int width, int height)
-  {
-    mSurface = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
-    if(!mSurface)
-    {
-      DALI_LOG_ERROR("Failed to create tbm surface.");
-    }
-
-    Any tbmSource( mSurface );
-    imageSrc = NativeImageSource::New(tbmSource);
-    Any emptySource(0);
-    imageSrc->SetSource(emptySource);
-  }
-
-  ~TBMSurfaceSourceInitializer()
-  {
-    if(mSurface)
-    {
-      if(tbm_surface_destroy(mSurface) != TBM_SURFACE_ERROR_NONE)
-      {
-        DALI_LOG_ERROR("Failed to destroy tbm surface.");
-      }
-    }
-  }
-
-private:
-  tbm_surface_h mSurface;
-};
-
 TizenWebEngineChromium::TizenWebEngineChromium()
-: mWebView(nullptr)
+: mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT))
+, mWebView(nullptr)
 , mWidth(0)
 , mHeight(0)
 {
@@ -157,7 +126,6 @@ void TizenWebEngineChromium::Create(int width, int height, const std::string& lo
   mHeight = height;
   InitWebView(0, 0);
   WebEngineManager::Get().Add(mWebView, this);
-  TBMSurfaceSourceInitializer initializer(mDaliImageSrc, width, height);
 }
 
 void TizenWebEngineChromium::Create(int width, int height, int argc, char** argv)
@@ -173,7 +141,6 @@ void TizenWebEngineChromium::Create(int width, int height, int argc, char** argv
   mHeight = height;
   InitWebView(argc, argv);
   WebEngineManager::Get().Add(mWebView, this);
-  TBMSurfaceSourceInitializer initializer(mDaliImageSrc, width, height);
 }
 
 void TizenWebEngineChromium::InitWebView(int argc, char** argv)
@@ -547,6 +514,11 @@ void TizenWebEngineChromium::RegisterNewWindowCreatedCallback(WebEngineNewWindow
   mNewWindowCreatedCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback)
+{
+  mFrameRenderedCallback = callback;
+}
+
 void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
 {
   mPlainTextReceivedCallback = callback;
@@ -563,6 +535,7 @@ void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
   Any source(buffer);
   mDaliImageSrc->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
+  ExecuteCallback(mFrameRenderedCallback);
 }
 
 void TizenWebEngineChromium::OnFrameRendered(void* data, Evas_Object*, void* buffer)

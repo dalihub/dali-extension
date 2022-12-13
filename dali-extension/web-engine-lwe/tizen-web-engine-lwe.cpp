@@ -929,6 +929,11 @@ void TizenWebEngineLWE::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreat
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::GetPlainTextAsynchronously(PlainTextReceivedCallback callback)
 {
   // NOT IMPLEMENTED
