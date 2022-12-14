@@ -459,12 +459,9 @@ public:
   bool SendWheelEvent(const Dali::WheelEvent& event) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::FrameRenderedSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterFrameRenderedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& FrameRenderedSignal() override
-  {
-    return mFrameRenderedSignal;
-  }
+  void RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterPageLoadStartedCallback()
@@ -515,6 +512,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::RegisterNavigationPolicyDecidedCallback()
    */
   void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNewWindowCreatedCallback()
+   */
+  void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterCertificateConfirmedCallback()
@@ -589,8 +591,6 @@ private:
   std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
   EventThreadCallback mUpdateBufferTrigger;
-
-  WebEngineFrameRenderedSignalType mFrameRenderedSignal;
 };
 
 } // namespace Plugin

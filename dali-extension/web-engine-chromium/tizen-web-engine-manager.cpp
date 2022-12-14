@@ -29,15 +29,12 @@
 #include <ewk_context_internal.h>
 #include <ewk_main.h>
 
+#include <stdexcept>
+
 namespace Dali
 {
 namespace Plugin
 {
-namespace
-{
-// @todo : If we make this value as member of WebEngineManager, we got crashed due to 'elm_init' symbol found failed.
-static bool gWebEngineManagerAvailable = true; // Default as true
-} // namespace
 
 WebEngineManager& WebEngineManager::Get()
 {
@@ -47,11 +44,12 @@ WebEngineManager& WebEngineManager::Get()
 
 bool WebEngineManager::IsAvailable()
 {
-  return gWebEngineManagerAvailable;
+  return Get().mWebEngineManagerAvailable;
 }
 
 WebEngineManager::WebEngineManager()
-: mSlotDelegate(this)
+: mSlotDelegate(this),
+  mWebEngineManagerAvailable(true)
 {
   DALI_LOG_RELEASE_INFO("#WebEngineManager is created.\n");
 
@@ -71,10 +69,17 @@ WebEngineManager::WebEngineManager()
 
 WebEngineManager::~WebEngineManager()
 {
-  if(gWebEngineManagerAvailable)
+  if(mWebEngineManagerAvailable)
   {
-    // Call OnTerminated directly.
-    OnTerminated();
+    try
+    {
+      // Call OnTerminated directly.
+      OnTerminated();
+    }
+    catch(std::invalid_argument const& ex)
+    {
+      DALI_LOG_RELEASE_INFO("Failed to destroy web engine:%s!\n", ex.what());
+    }
   }
 }
 
@@ -114,23 +119,32 @@ Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
   {
     return iter->second;
   }
-  else
+  return nullptr;
+}
+
+Evas_Object* WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
+{
+  for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
   {
-    return nullptr;
+    if (it->second == plugin)
+    {
+      return it->first;
+    }
   }
+  return nullptr;
 }
 
 void WebEngineManager::OnTerminated()
 {
   // Ignore duplicated termination
-  if(DALI_UNLIKELY(!gWebEngineManagerAvailable))
+  if(DALI_UNLIKELY(!mWebEngineManagerAvailable))
   {
     return;
   }
   DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed.\n");
 
   // App is terminated. Now web engine is not available anymore.
-  gWebEngineManagerAvailable = false;
+  mWebEngineManagerAvailable = false;
 
   for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
   {

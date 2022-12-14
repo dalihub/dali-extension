@@ -30,6 +30,9 @@
 
 namespace Dali
 {
+class WebEngineContext;
+class WebEngineCookieManager;
+
 namespace Plugin
 {
 /**
@@ -58,6 +61,8 @@ public:
 
   Dali::WebEnginePlugin* Find(Evas_Object* o);
 
+  Evas_Object* Find(Dali::WebEnginePlugin* plugin);
+
 private:
   WebEngineManager();
 
@@ -70,6 +75,7 @@ private:
   std::unique_ptr<WebEngineCookieManager>        mWebEngineCookieManager;
   Ecore_Evas*                                    mWindow;
   std::map<Evas_Object*, Dali::WebEnginePlugin*> mWebEngines;
+  bool                                           mWebEngineManagerAvailable;
 };
 
 } // namespace Plugin
