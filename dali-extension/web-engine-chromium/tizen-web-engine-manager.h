@@ -30,6 +30,9 @@
 
 namespace Dali
 {
+class WebEngineContext;
+class WebEngineCookieManager;
+
 namespace Plugin
 {
 /**
@@ -57,6 +60,8 @@ public:
   void Remove(Evas_Object* webView);
 
   Dali::WebEnginePlugin* Find(Evas_Object* o);
+
+  Evas_Object* Find(Dali::WebEnginePlugin* plugin);
 
 private:
   WebEngineManager();

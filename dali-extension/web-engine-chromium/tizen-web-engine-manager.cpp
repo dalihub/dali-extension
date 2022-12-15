@@ -29,6 +29,8 @@
 #include <ewk_context_internal.h>
 #include <ewk_main.h>
 
+#include <stdexcept>
+
 namespace Dali
 {
 namespace Plugin
@@ -69,8 +71,15 @@ WebEngineManager::~WebEngineManager()
 {
   if(mWebEngineManagerAvailable)
   {
-    // Call OnTerminated directly.
-    OnTerminated();
+    try
+    {
+      // Call OnTerminated directly.
+      OnTerminated();
+    }
+    catch(std::invalid_argument const& ex)
+    {
+      DALI_LOG_RELEASE_INFO("Failed to destroy web engine:%s!\n", ex.what());
+    }
   }
 }
 
@@ -110,10 +119,19 @@ Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
   {
     return iter->second;
   }
-  else
+  return nullptr;
+}
+
+Evas_Object* WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
+{
+  for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
   {
-    return nullptr;
+    if (it->second == plugin)
+    {
+      return it->first;
+    }
   }
+  return nullptr;
 }
 
 void WebEngineManager::OnTerminated()
