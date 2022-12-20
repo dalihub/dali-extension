@@ -61,12 +61,22 @@ private:
 
   ~WebEngineManager();
 
+  // FIXME: ewk_shutdown() should be called only when app is terminated.
+  //        The singleton instance of WebEngineManager can be destructed before app is terminated.
+  //        So it has been fixed that ewk_shutdown() is only called in OnTerminated().
+  void OnDestructed();
+
   void OnTerminated();
 
   SlotDelegate<WebEngineManager>                 mSlotDelegate;
   Ecore_Evas*                                    mWindow;
   std::map<Evas_Object*, Dali::WebEnginePlugin*> mWebEngines;
   bool                                           mWebEngineManagerAvailable;
+
+  // FIXME: ewk_shutdown() should be called only when app is terminated.
+  //        The singleton instance of WebEngineManager can be destructed before app is terminated.
+  //        So it has been fixed that ewk_shutdown() is only called in OnTerminated().
+  bool                                           initialized = false;
 };
 
 } // namespace Plugin

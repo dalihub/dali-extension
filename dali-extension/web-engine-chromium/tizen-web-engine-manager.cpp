@@ -86,8 +86,13 @@ WebEngineManager::WebEngineManager()
 : mSlotDelegate(this)
 , mWebEngineManagerAvailable(true)
 {
-  elm_init(0, 0);
-  ewk_init();
+  if (!initialized)
+  {
+    elm_init(0, 0);
+    ewk_init();
+    initialized = true;
+  }
+
   mWindow = ecore_evas_new( "wayland_egl", 0, 0, 1, 1, 0 );
   LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
 }
@@ -96,16 +101,42 @@ WebEngineManager::~WebEngineManager()
 {
   if(mWebEngineManagerAvailable)
   {
-    // Call OnTerminated directly.
+    // Call OnDestructed directly.
     try
     {
-      OnTerminated();
+      OnDestructed();
     }
     catch(std::invalid_argument const& ex)
     {
       DALI_LOG_RELEASE_INFO("Failed to destroy web engine:%s!\n", ex.what());
     }
   }
+}
+
+// FIXME: ewk_shutdown() should be called only when app is terminated.
+//        The singleton instance of WebEngineManager can be destructed before app is terminated.
+//        So it has been fixed that ewk_shutdown() is only called in OnTerminated().
+void WebEngineManager::OnDestructed()
+{
+  // Ignore duplicated termination
+  if(DALI_UNLIKELY(!mWebEngineManagerAvailable))
+  {
+    return;
+  }
+
+  // App is terminated. Now web engine is not available anymore.
+  mWebEngineManagerAvailable = false;
+
+  for (auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
+  {
+    if (it->second)
+    {
+      it->second->Destroy();
+    }
+  }
+  mWebEngines.clear();
+  ecore_evas_free(mWindow);
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is destructed.\n");
 }
 
 void WebEngineManager::OnTerminated()
@@ -128,8 +159,14 @@ void WebEngineManager::OnTerminated()
   }
   mWebEngines.clear();
   ecore_evas_free(mWindow);
-  ewk_shutdown();
-  elm_shutdown();
+
+  if (initialized)
+  {
+    ewk_shutdown();
+    elm_shutdown();
+    initialized = false;
+  }
+
   DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");
 }
 
