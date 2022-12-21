@@ -338,7 +338,8 @@ private:
   WebEngineFrameRenderedCallback           mFrameRenderedCallback;
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
   JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
-  JavaScriptMessageHandlerCallback         mJavaScriptInjectedCallback;
+
+  std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptMessageHandlers;
 };
 } // namespace Plugin
 } // namespace Dali
