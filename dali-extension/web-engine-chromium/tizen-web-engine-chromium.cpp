@@ -191,6 +191,7 @@ void TizenWebEngineChromium::InitWebView(int argc, char** argv)
 
 void TizenWebEngineChromium::Destroy()
 {
+  mJavaScriptMessageHandlers.clear();
   if(WebEngineManager::IsAvailable())
   {
     WebEngineManager::Get().Remove(mWebView);
@@ -332,8 +333,14 @@ void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, JavaS
 
 void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler)
 {
-  mJavaScriptInjectedCallback = handler;
-  ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptInjected, exposedObjectName.c_str());
+  if(mJavaScriptMessageHandlers.emplace(exposedObjectName, handler).second)
+  {
+    ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptInjected, exposedObjectName.c_str());
+  }
+  else
+  {
+    DALI_LOG_ERROR("Callback for (%s) already exists.", exposedObjectName.c_str());
+  }
 }
 
 void TizenWebEngineChromium::ClearAllTilesResources()
@@ -669,7 +676,13 @@ void TizenWebEngineChromium::OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Mes
     {
       resultText = static_cast<char*>(message.body);
     }
-    ExecuteCallback(pThis->mJavaScriptInjectedCallback, resultText);
+
+    auto handler = pThis->mJavaScriptMessageHandlers.find(message.name);
+    if(handler == pThis->mJavaScriptMessageHandlers.end())
+    {
+      return;
+    }
+    handler->second(resultText);
   }
 }
 
