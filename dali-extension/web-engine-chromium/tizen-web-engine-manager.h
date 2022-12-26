@@ -43,8 +43,9 @@ public:
   static bool IsAvailable();
 
   WebEngineManager(WebEngineManager const&) = delete;
-
-  void operator=(WebEngineManager const&) = delete;
+  WebEngineManager(WebEngineManager&&) = delete;
+  WebEngineManager& operator=(WebEngineManager const&) = delete;;
+  WebEngineManager& operator=(WebEngineManager&&) = delete;
 
   Ecore_Evas* GetWindow();
 
@@ -61,22 +62,14 @@ private:
 
   ~WebEngineManager();
 
-  // FIXME: ewk_shutdown() should be called only when app is terminated.
-  //        The singleton instance of WebEngineManager can be destructed before app is terminated.
-  //        So it has been fixed that ewk_shutdown() is only called in OnTerminated().
-  void OnDestructed();
-
   void OnTerminated();
+
+  void DestroyWebEngines();
 
   SlotDelegate<WebEngineManager>                 mSlotDelegate;
   Ecore_Evas*                                    mWindow;
   std::map<Evas_Object*, Dali::WebEnginePlugin*> mWebEngines;
   bool                                           mWebEngineManagerAvailable;
-
-  // FIXME: ewk_shutdown() should be called only when app is terminated.
-  //        The singleton instance of WebEngineManager can be destructed before app is terminated.
-  //        So it has been fixed that ewk_shutdown() is only called in OnTerminated().
-  bool                                           initialized = false;
 };
 
 } // namespace Plugin
