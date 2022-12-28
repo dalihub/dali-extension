@@ -16,7 +16,6 @@
  */
 
 // CLASS HEADER
-#include "rive-animation-view-impl.h"
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/window-devel.h>
@@ -29,6 +28,7 @@
 
 // INTERNAL INCLUDES
 #include <dali-extension/devel-api/rive-animation-view/rive-animation-view.h>
+#include "rive-animation-view-impl.h"
 
 namespace Dali
 {
