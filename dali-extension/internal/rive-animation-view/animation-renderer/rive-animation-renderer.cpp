@@ -16,12 +16,14 @@
  */
 
 // CLASS HEADER
+#include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer.h>
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/file-loader.h>
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/property-array.h>
+#include <tbm_surface_internal.h>
 #include <time.h>
 #include <cmath>
 #include <cstring> // for strlen()
@@ -33,9 +35,7 @@
 #include <rive/shapes/paint/stroke.hpp>
 
 // INTERNAL INCLUDES
-#include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer.h>
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
-#include <tbm_surface_internal.h>
 
 namespace Dali
 {

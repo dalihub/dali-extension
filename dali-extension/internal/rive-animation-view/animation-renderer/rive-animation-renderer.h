@@ -26,6 +26,7 @@
 #include <memory>
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
+#include <dali/integration-api/debug.h> ///< note : Debug::DebugPriority::DEBUG can be removed due to <rive/rive_types.hpp>.
 
 // RIVE - INCLUDES
 #include <rive_tizen.hpp>

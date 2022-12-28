@@ -16,6 +16,7 @@
  */
 
 // CLASS HEADER
+#include <dali-extension/internal/rive-animation-view/rive-animation-task.h>
 
 // EXTERNAL INCLUDES
 #include <dali/integration-api/debug.h>
@@ -25,7 +26,6 @@
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/rive-animation-manager.h>
 #include <dali-extension/internal/rive-animation-view/rive-animation-thread.h>
-#include <dali-extension/internal/rive-animation-view/rive-animation-task.h>
 
 namespace Dali
 {

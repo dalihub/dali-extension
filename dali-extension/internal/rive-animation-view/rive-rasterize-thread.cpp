@@ -16,6 +16,7 @@
  */
 
 // CLASS HEADER
+#include <dali-extension/internal/rive-animation-view/rive-rasterize-thread.h>
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/thread-settings.h>
@@ -23,7 +24,6 @@
 #include <dali/integration-api/debug.h>
 #include <chrono>
 #include <thread>
-#include <dali-extension/internal/rive-animation-view/rive-rasterize-thread.h>
 
 namespace Dali
 {

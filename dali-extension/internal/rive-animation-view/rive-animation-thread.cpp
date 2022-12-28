@@ -16,6 +16,7 @@
  */
 
 // CLASS HEADER
+#include <dali-extension/internal/rive-animation-view/rive-animation-thread.h>
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/environment-variable.h>
@@ -23,7 +24,6 @@
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <thread>
-#include <dali-extension/internal/rive-animation-view/rive-animation-thread.h>
 
 namespace Dali
 {
