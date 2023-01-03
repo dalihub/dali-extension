@@ -113,6 +113,36 @@ public:
    */
   void SetNodePosition(const std::string& nodeName, Vector2 position);
 
+/**
+   * @copydoc Dali::Extension::RiveAnimationView::PointerMove
+   */
+  void PointerMove(float x, float y);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::PointerDown
+   */
+  void PointerDown(float x, float y);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::PointerUp
+   */
+  void PointerUp(float x, float y);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetNumberState
+   */
+  bool SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::SetBooleanState
+   */
+  bool SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value);
+
+  /**
+   * @copydoc Dali::Extension::RiveAnimationView::FireState
+   */
+  bool FireState(const std::string& stateMachineName, const std::string& inputName);
+
   /**
    * @copydoc Dali::Extension::RiveAnimationView::AnimationFinishedSignal
    */
