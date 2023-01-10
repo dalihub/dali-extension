@@ -1278,6 +1278,11 @@ bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
   return false;
 }
 
+void TizenWebEngineLWE::RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
 {
   // NOT IMPLEMENTED
@@ -1324,6 +1329,11 @@ void TizenWebEngineLWE::RegisterResponsePolicyDecidedCallback(WebEngineResponseP
 }
 
 void TizenWebEngineLWE::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback)
 {
   // NOT IMPLEMENTED
 }
