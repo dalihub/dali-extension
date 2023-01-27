@@ -128,6 +128,36 @@ void RiveAnimationView::SetNodePosition(const std::string& nodeName, Vector2 pos
   Extension::GetImplementation(*this).SetNodePosition(nodeName, position);
 }
 
+void RiveAnimationView::PointerMove(float x, float y)
+{
+  Extension::GetImplementation(*this).PointerMove(x, y);
+}
+
+void RiveAnimationView::PointerDown(float x, float y)
+{
+  Extension::GetImplementation(*this).PointerDown(x, y);
+}
+
+void RiveAnimationView::PointerUp(float x, float y)
+{
+  Extension::GetImplementation(*this).PointerUp(x, y);
+}
+
+bool RiveAnimationView::SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value)
+{
+  return Extension::GetImplementation(*this).SetNumberState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationView::SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value)
+{
+  return Extension::GetImplementation(*this).SetBooleanState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationView::FireState(const std::string& stateMachineName, const std::string& inputName)
+{
+  return Extension::GetImplementation(*this).FireState(stateMachineName, inputName);
+}
+
 RiveAnimationView::AnimationSignalType& RiveAnimationView::AnimationFinishedSignal()
 {
   return Extension::GetImplementation(*this).AnimationFinishedSignal();

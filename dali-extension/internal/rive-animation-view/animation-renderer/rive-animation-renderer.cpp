@@ -370,78 +370,73 @@ void RiveAnimationRenderer::SetAnimationElapsedTime(const std::string& animation
 void RiveAnimationRenderer::SetShapeFillColor(const std::string& fillName, Vector4 color)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto colorInstance = mArtboard->find<rive::Fill>(fillName.c_str());
-  if(!colorInstance)
-  {
-    return;
-  }
-  colorInstance->paint()->as<rive::SolidColor>()->colorValue(rive::colorARGB(color.a, color.r, color.g, color.b));
+  mRiveTizenAdapter->setShapeFillColor(fillName, color.a, color.r, color.g, color.b);
 }
 
 void RiveAnimationRenderer::SetShapeStrokeColor(const std::string& strokeName, Vector4 color)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto colorInstance = mArtboard->find<rive::Stroke>(strokeName.c_str());
-  if(!colorInstance)
-  {
-    return;
-  }
-  colorInstance->paint()->as<rive::SolidColor>()->colorValue(rive::colorARGB(color.a, color.r, color.g, color.b));
+  mRiveTizenAdapter->setShapeStrokeColor(strokeName, color.a, color.r, color.g, color.b);
 }
 
 void RiveAnimationRenderer::SetNodeOpacity(const std::string& nodeName, float opacity)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->opacity(opacity);
+  mRiveTizenAdapter->setNodeOpacity(nodeName, opacity);
 }
 
 void RiveAnimationRenderer::SetNodeScale(const std::string& nodeName, Vector2 scale)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->scaleX(scale.x);
-  nodeInstance->scaleY(scale.y);
+  mRiveTizenAdapter->setNodeScale(nodeName, scale.x, scale.y);
 }
 
 void RiveAnimationRenderer::SetNodeRotation(const std::string& nodeName, Degree degree)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-  auto                    node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->rotation(degree.degree);
+  mRiveTizenAdapter->setNodeRotation(nodeName, degree.degree);
 }
 
 void RiveAnimationRenderer::SetNodePosition(const std::string& nodeName, Vector2 position)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->setNodePosition(nodeName, position.x, position.y);
+}
 
-  auto node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->x(position.x);
-  nodeInstance->y(position.y);
+void RiveAnimationRenderer::PointerMove(float x, float y)
+{
+    Dali::Mutex::ScopedLock lock(mMutex);
+    mRiveTizenAdapter->pointerMove(x, y);
+}
+
+void RiveAnimationRenderer::PointerDown(float x, float y)
+{
+    Dali::Mutex::ScopedLock lock(mMutex);
+    mRiveTizenAdapter->pointerDown(x, y);
+}
+
+void RiveAnimationRenderer::PointerUp(float x, float y)
+{
+    Dali::Mutex::ScopedLock lock(mMutex);
+    mRiveTizenAdapter->pointerUp(x, y);
+}
+
+bool RiveAnimationRenderer::SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value)
+{
+    Dali::Mutex::ScopedLock lock(mMutex);
+    return mRiveTizenAdapter->setNumberState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationRenderer::SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value)
+{
+    Dali::Mutex::ScopedLock lock(mMutex);
+    return mRiveTizenAdapter->setBooleanState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationRenderer::FireState(const std::string& stateMachineName, const std::string& inputName)
+{
+    Dali::Mutex::ScopedLock lock(mMutex);
+    return mRiveTizenAdapter->fireState(stateMachineName, inputName);
 }
 
 void RiveAnimationRenderer::IgnoreRenderedFrame()

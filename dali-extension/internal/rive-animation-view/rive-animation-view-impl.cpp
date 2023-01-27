@@ -416,6 +416,36 @@ void RiveAnimationView::SetNodePosition(const std::string& nodeName, Vector2 pos
   TriggerVectorRasterization();
 }
 
+void RiveAnimationView::PointerMove(float x, float y)
+{
+  mRiveAnimationTask->PointerMove(x, y);
+}
+
+void RiveAnimationView::PointerDown(float x, float y)
+{
+  mRiveAnimationTask->PointerDown(x, y);
+}
+
+void RiveAnimationView::PointerUp(float x, float y)
+{
+  mRiveAnimationTask->PointerUp(x, y);
+}
+
+bool RiveAnimationView::SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value)
+{
+  return mRiveAnimationTask->SetNumberState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationView::SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value)
+{
+  return mRiveAnimationTask->SetBooleanState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationView::FireState(const std::string& stateMachineName, const std::string& inputName)
+{
+  return mRiveAnimationTask->FireState(stateMachineName, inputName);
+}
+
 Dali::Extension::RiveAnimationView::AnimationSignalType& RiveAnimationView::AnimationFinishedSignal()
 {
   return mFinishedSignal;

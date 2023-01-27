@@ -188,6 +188,59 @@ public:
    */
   TimePoint GetNextFrameTime();
 
+  /**
+   * @brief Informs the current state machine that a pointing device coordinates are changed.
+   *
+   * @param[in] x position of the mouse or the touch pointer.
+   * @param[in] y position of the mouse or the touch pointer.
+   */
+  void PointerMove(float x, float y);
+
+  /**
+   * @brief Informs the current state machine that a pointing device button is pressed.
+   *
+   * @param[in] x position of the mouse or the touch pointer.
+   * @param[in] y position of the mouse or the touch pointer.
+   */
+  void PointerDown(float x, float y);
+
+  /**
+   * @brief Informs the current state machine that a pointing device button is released.
+   *
+   * @param[in] x position of the mouse or the touch pointer.
+   * @param[in] y position of the mouse or the touch pointer.
+   */
+  void PointerUp(float x, float y);
+
+  /**
+   * @brief Sets the input state on a number input.
+   *
+   * @param[in] stateMachineName The state machine name.
+   * @param[in] inputName The input name.
+   * @param[in] value The number value.
+   * @return Returns true is success, false otherwise.
+   */
+  bool SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value);
+
+  /**
+   * @brief Sets the input state on a boolean input.
+   *
+   * @param[in] stateMachineName The state machine name.
+   * @param[in] inputName The input name.
+   * @param[in] value The boolean value.
+   * @return Returns true is success, false otherwise.
+   */
+  bool SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value);
+
+  /**
+   * @brief Fires a trigger input.
+   *
+   * @param[in] stateMachineName The state machine name.
+   * @param[in] inputName The input name.
+   * @return Returns true is success, false otherwise.
+   */
+  bool FireState(const std::string& stateMachineName, const std::string& inputName);
+
 private:
   /**
    * @brief Play the rive animation.

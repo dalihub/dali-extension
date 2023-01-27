@@ -189,6 +189,56 @@ public:
   void SetNodePosition(const std::string& nodeName, Vector2 position);
 
   /**
+   * @brief Inform current state machine that a pointing device coordinates are changed.
+   *
+   * @param[in] x, y The position of mouse or touch pointer
+   */
+  void PointerMove(float x, float y);
+
+  /**
+   * @brief Inform current state machine that a pointing device button is released.
+   *
+   * @param[in] x, y The position of mouse or touch pointer
+   */
+  void PointerDown(float x, float y);
+
+  /**
+   * @brief Inform current state machine that a pointing device button is pressed.
+   *
+   * @param[in] x, y The position of mouse or touch pointer
+   */
+  void PointerUp(float x, float y);
+
+  /**
+   * @brief Set input state on a number input.
+   *
+   * @param[in] stateMachineName Name of the stateMachine. Empty for default state machine.
+   * @param[in] inputName Name of the input.
+   * @param[in] value Number value
+   * @return True if success, false otherwise.
+   */
+  bool SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value);
+
+  /**
+   * @brief Set input state on a boolean input.
+   *
+   * @param[in] stateMachineName Name of the stateMachine. Empty for default state machine.
+   * @param[in] inputName Name of the input.
+   * @param[in] value Boolean value
+   * @return True if success, false otherwise.
+   */
+  bool SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value);
+
+  /**
+   * @brief Fire a trigger input.
+   *
+   * @param[in] stateMachineName Name of the stateMachine. Empty for default state machine.
+   * @param[in] inputName Name of the input.
+   * @return True if success, false otherwise.
+   */
+  bool FireState(const std::string& stateMachineName, const std::string& inputName);
+
+  /**
    * @brief Ignores a rendered frame which is not shown yet.
    */
   void IgnoreRenderedFrame();
