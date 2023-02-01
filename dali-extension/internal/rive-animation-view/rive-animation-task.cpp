@@ -157,6 +157,36 @@ void RiveAnimationTask::SetSize(uint32_t width, uint32_t height)
   }
 }
 
+void RiveAnimationTask::PointerMove(float x, float y)
+{
+  mVectorRenderer->PointerMove(x, y);
+}
+
+void RiveAnimationTask::PointerDown(float x, float y)
+{
+  mVectorRenderer->PointerDown(x, y);
+}
+
+void RiveAnimationTask::PointerUp(float x, float y)
+{
+  mVectorRenderer->PointerUp(x, y);
+}
+
+bool RiveAnimationTask::SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value)
+{
+  return mVectorRenderer->SetNumberState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationTask::SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value)
+{
+  return mVectorRenderer->SetBooleanState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationTask::FireState(const std::string& stateMachineName, const std::string& inputName)
+{
+  return mVectorRenderer->FireState(stateMachineName, inputName);
+}
+
 void RiveAnimationTask::PlayAnimation()
 {
   if(mPlayState != PlayState::PLAYING)
