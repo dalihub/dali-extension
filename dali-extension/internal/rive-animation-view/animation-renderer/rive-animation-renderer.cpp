@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ RiveAnimationRenderer::~RiveAnimationRenderer()
   Dali::Mutex::ScopedLock lock(mMutex);
   ClearRiveAnimations();
 
-  if (mRiveTizenAdapter)
+  if(mRiveTizenAdapter)
   {
     delete mRiveTizenAdapter;
   }
@@ -293,7 +293,7 @@ bool RiveAnimationRenderer::Render(double elapsed)
     }
   }
 
-  if (!mRiveTizenAdapter->render(elapsed, info.width, info.height))
+  if(!mRiveTizenAdapter->render(elapsed, info.width, info.height))
   {
     tbm_surface_unmap(tbmSurface);
     tbm_surface_queue_cancel_dequeue(mTbmQueue, tbmSurface);
@@ -405,38 +405,56 @@ void RiveAnimationRenderer::SetNodePosition(const std::string& nodeName, Vector2
 
 void RiveAnimationRenderer::PointerMove(float x, float y)
 {
-    Dali::Mutex::ScopedLock lock(mMutex);
-    mRiveTizenAdapter->pointerMove(x, y);
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->pointerMove(x, y);
+#endif
 }
 
 void RiveAnimationRenderer::PointerDown(float x, float y)
 {
-    Dali::Mutex::ScopedLock lock(mMutex);
-    mRiveTizenAdapter->pointerDown(x, y);
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->pointerDown(x, y);
+#endif
 }
 
 void RiveAnimationRenderer::PointerUp(float x, float y)
 {
-    Dali::Mutex::ScopedLock lock(mMutex);
-    mRiveTizenAdapter->pointerUp(x, y);
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->pointerUp(x, y);
+#endif
 }
 
 bool RiveAnimationRenderer::SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value)
 {
-    Dali::Mutex::ScopedLock lock(mMutex);
-    return mRiveTizenAdapter->setNumberState(stateMachineName, inputName, value);
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  return mRiveTizenAdapter->setNumberState(stateMachineName, inputName, value);
+#else
+  return false;
+#endif
 }
 
 bool RiveAnimationRenderer::SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value)
 {
-    Dali::Mutex::ScopedLock lock(mMutex);
-    return mRiveTizenAdapter->setBooleanState(stateMachineName, inputName, value);
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  return mRiveTizenAdapter->setBooleanState(stateMachineName, inputName, value);
+#else
+  return false;
+#endif
 }
 
 bool RiveAnimationRenderer::FireState(const std::string& stateMachineName, const std::string& inputName)
 {
-    Dali::Mutex::ScopedLock lock(mMutex);
-    return mRiveTizenAdapter->fireState(stateMachineName, inputName);
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  return mRiveTizenAdapter->fireState(stateMachineName, inputName);
+#else
+  return false;
+#endif
 }
 
 void RiveAnimationRenderer::IgnoreRenderedFrame()
