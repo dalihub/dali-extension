@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -787,7 +787,7 @@ bool TizenWebEngineLWE::LoadHtmlStringOverrideCurrentEntry(const std::string& ht
   return false;
 }
 
-bool TizenWebEngineLWE::LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
+bool TizenWebEngineLWE::LoadContents(const int8_t* contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
 {
   // NOT IMPLEMENTED
   return false;

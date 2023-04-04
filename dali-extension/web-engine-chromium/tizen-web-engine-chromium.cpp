@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -247,12 +247,12 @@ bool TizenWebEngineChromium::LoadHtmlStringOverrideCurrentEntry(const std::strin
   return ewk_view_html_string_override_current_entry_load(mWebView, html.c_str(), cBasicUri, cUnreachableUrl);
 }
 
-bool TizenWebEngineChromium::LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
+bool TizenWebEngineChromium::LoadContents(const int8_t* contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
 {
   char* cMimeType = mimeType.length() ? (char*)mimeType.c_str() : nullptr;
   char* cEncoding = encoding.length() ? (char*)encoding.c_str() : nullptr;
   char* cBaseUri  = baseUri.length() ? (char*)baseUri.c_str() : nullptr;
-  return ewk_view_contents_set(mWebView, contents.c_str(), contentSize, cMimeType, cEncoding, cBaseUri);
+  return ewk_view_contents_set(mWebView, (const char*)contents, contentSize, cMimeType, cEncoding, cBaseUri);
 }
 
 void TizenWebEngineChromium::Reload()
