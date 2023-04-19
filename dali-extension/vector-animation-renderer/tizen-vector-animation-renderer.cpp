@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -525,25 +525,31 @@ VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRe
 
 void TizenVectorAnimationRenderer::NotifyEvent()
 {
-  Dali::Mutex::ScopedLock lock(mMutex);
-
-  if(mResourceReadyTriggered)
+  bool emitSignal = false;
   {
-    DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Set Texture [%p]\n", this);
+    Dali::Mutex::ScopedLock lock(mMutex);
 
-    // Set texture
-    if(mRenderer && mRenderedTexture)
+    if(mResourceReadyTriggered)
     {
-      TextureSet textureSet = mRenderer.GetTextures();
-      textureSet.SetTexture(0, mRenderedTexture);
+      DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Set Texture [%p]\n", this);
+
+      // Set texture
+      if(mRenderer && mRenderedTexture)
+      {
+        TextureSet textureSet = mRenderer.GetTextures();
+        textureSet.SetTexture(0, mRenderedTexture);
+      }
+
+      mResourceReadyTriggered = false;
+      emitSignal              = true;
     }
 
-    mResourceReadyTriggered = false;
-
+    mPreviousTexture.Reset();
+  }
+  if(emitSignal)
+  {
     mUploadCompletedSignal.Emit();
   }
-
-  mPreviousTexture.Reset();
 }
 
 void TizenVectorAnimationRenderer::SetShader()
