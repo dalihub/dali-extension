@@ -186,8 +186,6 @@ void TizenWebEngineChromium::InitWebView(uint32_t argc, char** argv)
   evas_object_smart_callback_add(mWebView, "contextmenu,show", &TizenWebEngineChromium::OnContextMenuShown, this);
   evas_object_smart_callback_add(mWebView, "contextmenu,hide", &TizenWebEngineChromium::OnContextMenuHidden, this);
 
-  ewk_view_authentication_callback_set(mWebView, &TizenWebEngineChromium::OnAuthenticationChallenged, this);
-
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
 }
@@ -380,7 +378,14 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& expo
 void TizenWebEngineChromium::RegisterJavaScriptAlertCallback(JavaScriptAlertCallback callback)
 {
   mJavaScriptAlertCallback = callback;
-  ewk_view_javascript_alert_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptAlert, this);
+  if (mJavaScriptAlertCallback)
+  {
+    ewk_view_javascript_alert_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptAlert, this);
+  }
+  else
+  {
+    ewk_view_javascript_alert_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::JavaScriptAlertReply()
@@ -391,7 +396,14 @@ void TizenWebEngineChromium::JavaScriptAlertReply()
 void TizenWebEngineChromium::RegisterJavaScriptConfirmCallback(JavaScriptConfirmCallback callback)
 {
   mJavaScriptConfirmCallback = callback;
-  ewk_view_javascript_confirm_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptConfirm, this);
+  if (mJavaScriptConfirmCallback)
+  {
+    ewk_view_javascript_confirm_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptConfirm, this);
+  }
+  else
+  {
+    ewk_view_javascript_confirm_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::JavaScriptConfirmReply(bool confirmed)
@@ -402,7 +414,14 @@ void TizenWebEngineChromium::JavaScriptConfirmReply(bool confirmed)
 void TizenWebEngineChromium::RegisterJavaScriptPromptCallback(JavaScriptPromptCallback callback)
 {
   mJavaScriptPromptCallback = callback;
-  ewk_view_javascript_prompt_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptPrompt, this);
+  if (mJavaScriptPromptCallback)
+  {
+    ewk_view_javascript_prompt_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptPrompt, this);
+  }
+  else
+  {
+    ewk_view_javascript_prompt_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::JavaScriptPromptReply(const std::string& result)
@@ -863,6 +882,14 @@ void TizenWebEngineChromium::RegisterSslCertificateChangedCallback(WebEngineCert
 void TizenWebEngineChromium::RegisterHttpAuthHandlerCallback(WebEngineHttpAuthHandlerCallback callback)
 {
   mHttpAuthHandlerCallback = callback;
+  if (mHttpAuthHandlerCallback)
+  {
+    ewk_view_authentication_callback_set(mWebView, &TizenWebEngineChromium::OnAuthenticationChallenged, this);
+  }
+  else
+  {
+    ewk_view_authentication_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::RegisterContextMenuShownCallback(WebEngineContextMenuShownCallback callback)

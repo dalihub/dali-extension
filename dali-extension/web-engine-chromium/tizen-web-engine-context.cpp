@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,19 +160,33 @@ void TizenWebEngineContext::GetFormPasswordList(Dali::WebEngineContext::WebEngin
 void TizenWebEngineContext::RegisterDownloadStartedCallback(Dali::WebEngineContext::WebEngineDownloadStartedCallback callback)
 {
   mWebDownloadStartedCallback = callback;
-  ewk_context_did_start_download_callback_set(mEwkContext, &TizenWebEngineContext::OnDownloadStarted, this);
+  if (mWebDownloadStartedCallback)
+  {
+    ewk_context_did_start_download_callback_set(mEwkContext, &TizenWebEngineContext::OnDownloadStarted, this);
+  }
+  else
+  {
+    ewk_context_did_start_download_callback_set(mEwkContext, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineContext::RegisterMimeOverriddenCallback(Dali::WebEngineContext::WebEngineMimeOverriddenCallback callback)
 {
   mWebMimeOverriddenCallback = callback;
-  ewk_context_mime_override_callback_set(mEwkContext, &TizenWebEngineContext::OnMimeOverridden, this);
+  if (mWebMimeOverriddenCallback)
+  {
+    ewk_context_mime_override_callback_set(mEwkContext, &TizenWebEngineContext::OnMimeOverridden, this);
+  }
+  else
+  {
+    ewk_context_mime_override_callback_set(mEwkContext, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineContext::RegisterRequestInterceptedCallback(Dali::WebEngineContext::WebEngineRequestInterceptedCallback callback)
 {
   mWebRequestInterceptedCallback = callback;
-  if (callback)
+  if (mWebRequestInterceptedCallback)
   {
     ewk_context_intercept_request_callback_set(mEwkContext, &TizenWebEngineContext::OnRequestIntercepted, this);
   }
