@@ -935,7 +935,6 @@ void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
   {
     return;
   }
-  DALI_LOG_RELEASE_INFO("#UpdateImage : %s\n", GetUrl().c_str());
   Any source(buffer);
   mDaliImageSrc->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
