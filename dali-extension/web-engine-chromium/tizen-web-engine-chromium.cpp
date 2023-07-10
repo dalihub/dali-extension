@@ -125,12 +125,15 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::
 
   mWidth  = width;
   mHeight = height;
-  InitWebView(0, nullptr);
+  InitWebView();
   WebEngineManager::Get().Add(mWebView, this);
 }
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
+  // This API must be called at first.
+  ewk_set_arguments(argc, argv);
+
   // Check if web engine is available and make sure that web engine is initialized.
   if(!WebEngineManager::IsAvailable())
   {
@@ -140,17 +143,12 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t ar
 
   mWidth  = width;
   mHeight = height;
-  InitWebView(argc, argv);
+  InitWebView();
   WebEngineManager::Get().Add(mWebView, this);
 }
 
-void TizenWebEngineChromium::InitWebView(uint32_t argc, char** argv)
+void TizenWebEngineChromium::InitWebView()
 {
-  if(argc > 0)
-  {
-    ewk_set_arguments(argc, argv);
-  }
-
   Ecore_Wl2_Window* win     = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
   Ewk_Context*      context = ewk_context_default_get();
   ewk_context_max_refresh_rate_set(context, 60);
