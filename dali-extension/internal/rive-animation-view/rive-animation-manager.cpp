@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, fa
 } // unnamed namespace
 
 std::unique_ptr<RiveAnimationManager> RiveAnimationManager::mInstance = nullptr;
-std::once_flag                        RiveAnimationManager::mOnceFlag;
+std::once_flag RiveAnimationManager::mOnceFlag;
 
 RiveAnimationManager& RiveAnimationManager::GetInstance()
 {
@@ -60,6 +60,10 @@ RiveAnimationManager::RiveAnimationManager()
 
 RiveAnimationManager::~RiveAnimationManager()
 {
+  for(auto&& iter : mEventCallbacks)
+  {
+    delete iter;
+  }
   mEventCallbacks.clear();
 
   if(mProcessorRegistered)
@@ -100,7 +104,7 @@ RiveAnimationThread& RiveAnimationManager::GetRiveAnimationThread()
 
 void RiveAnimationManager::RegisterEventCallback(CallbackBase* callback)
 {
-  mEventCallbacks.emplace_back(std::unique_ptr<Dali::CallbackBase>(callback));
+  mEventCallbacks.push_back(callback);
 
   if(!mProcessorRegistered)
   {
@@ -111,11 +115,7 @@ void RiveAnimationManager::RegisterEventCallback(CallbackBase* callback)
 
 void RiveAnimationManager::UnregisterEventCallback(CallbackBase* callback)
 {
-  auto iter = std::find_if(mEventCallbacks.begin(),
-                           mEventCallbacks.end(),
-                           [callback](const std::unique_ptr<CallbackBase>& element) {
-                             return element.get() == callback;
-                           });
+  auto iter = std::find(mEventCallbacks.begin(), mEventCallbacks.end(), callback);
   if(iter != mEventCallbacks.end())
   {
     mEventCallbacks.erase(iter);
@@ -136,6 +136,7 @@ void RiveAnimationManager::Process(bool postProcessor)
   for(auto&& iter : mEventCallbacks)
   {
     CallbackBase::Execute(*iter);
+    delete iter;
   }
   mEventCallbacks.clear();
 
@@ -145,6 +146,6 @@ void RiveAnimationManager::Process(bool postProcessor)
 
 } // namespace Internal
 
-} // namespace Extension
+} // namespace Toolkit
 
 } // namespace Dali
