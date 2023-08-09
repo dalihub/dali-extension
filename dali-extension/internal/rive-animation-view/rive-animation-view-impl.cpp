@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@
 #include "rive-animation-view-impl.h"
 
 // EXTERNAL INCLUDES
+#include <dali-toolkit/devel-api/controls/control-devel.h>
 #include <dali/devel-api/adaptor-framework/window-devel.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/rendering/renderer-devel.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/type-registry-helper.h>
 #include <dali/public-api/object/type-registry.h>
-#include <dali-toolkit/devel-api/controls/control-devel.h>
 
 // INTERNAL INCLUDES
 #include <dali-extension/devel-api/rive-animation-view/rive-animation-view.h>
@@ -38,7 +38,6 @@ namespace Internal
 {
 namespace
 {
-
 Geometry CreateQuadGeometry()
 {
   const float halfWidth  = 0.5f;
@@ -79,28 +78,27 @@ DALI_PROPERTY_REGISTRATION(Extension, RiveAnimationView, "playState", INTEGER, P
 DALI_TYPE_REGISTRATION_END()
 
 const char* VERTEX_SHADER = DALI_COMPOSE_SHADER(
-  attribute mediump vec2 aPosition;\n
-  uniform highp   mat4 uMvpMatrix;\n
-  uniform highp   vec3 uSize;\n
-  varying mediump vec2 vTexCoord;\n
-  \n
-  void main()\n
-  {\n
-    gl_Position = uMvpMatrix * vec4(aPosition * uSize.xy, 0.0, 1.0);\n
-    vTexCoord = aPosition + vec2(0.5);\n
-  }\n
-);
+  attribute mediump vec2     aPosition;\n
+    uniform highp mat4       uMvpMatrix;\n
+      uniform highp vec3     uSize;\n
+        varying mediump vec2 vTexCoord;\n
+  \n void main()\n {
+          \n
+            gl_Position = uMvpMatrix * vec4(aPosition * uSize.xy, 0.0, 1.0);
+          \n
+            vTexCoord = aPosition + vec2(0.5);
+          \n
+        }\n);
 
 const char* FRAGMENT_SHADER = DALI_COMPOSE_SHADER(
-  varying mediump vec2 vTexCoord;\n
-  uniform sampler2D sTexture;\n
-  uniform lowp vec4 uColor;\n
-  \n
-  void main()\n
-  {\n
-      gl_FragColor = texture2D( sTexture, vTexCoord ) * uColor;\n
-  }\n
-);
+  varying mediump vec2  vTexCoord;\n
+    uniform sampler2D   sTexture;\n
+      uniform lowp vec4 uColor;\n
+  \n void main()\n {
+        \n
+          gl_FragColor = texture2D(sTexture, vTexCoord) * uColor;
+        \n
+      }\n);
 
 #if defined(DEBUG_ENABLED)
 Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_RIVE_ANIMATION");
@@ -124,6 +122,7 @@ RiveAnimationView::~RiveAnimationView()
     if(mEventCallback)
     {
       riveAnimationManager.UnregisterEventCallback(mEventCallback);
+      mEventCallback = nullptr;
     }
 
     // Finalize animation task and disconnect the signal in the main thread
@@ -175,7 +174,6 @@ void RiveAnimationView::OnSceneConnection(int depth)
   }
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationView::OnSceneConnection [%p]\n", this);
-
 }
 
 void RiveAnimationView::OnSceneDisconnection()
@@ -473,7 +471,7 @@ void RiveAnimationView::SetUrl(const std::string& url)
 
   Geometry geometry = CreateQuadGeometry();
   Shader   shader   = Shader::New(VERTEX_SHADER, FRAGMENT_SHADER);
-  mRenderer  = Renderer::New(geometry, shader);
+  mRenderer         = Renderer::New(geometry, shader);
 
   TextureSet textureSet = TextureSet::New();
   mRenderer.SetTextures(textureSet);
@@ -543,14 +541,14 @@ void RiveAnimationView::SendAnimationData()
 
 void RiveAnimationView::ClearAnimationsData()
 {
-    mAnimationData.animations.clear();
-    mAnimationData.elapsedTimes.clear();
-    mAnimationData.fillColors.clear();
-    mAnimationData.strokeColors.clear();
-    mAnimationData.opacities.clear();
-    mAnimationData.scales.clear();
-    mAnimationData.rotations.clear();
-    mAnimationData.positions.clear();
+  mAnimationData.animations.clear();
+  mAnimationData.elapsedTimes.clear();
+  mAnimationData.fillColors.clear();
+  mAnimationData.strokeColors.clear();
+  mAnimationData.opacities.clear();
+  mAnimationData.scales.clear();
+  mAnimationData.rotations.clear();
+  mAnimationData.positions.clear();
 }
 
 void RiveAnimationView::SetVectorImageSize()
@@ -594,7 +592,7 @@ void RiveAnimationView::OnScaleNotification(PropertyNotification& source)
 
 void RiveAnimationView::OnSizeNotification(PropertyNotification& source)
 {
-  Vector3 size       = Self().GetCurrentProperty<Vector3>(Actor::Property::SIZE);
+  Vector3 size = Self().GetCurrentProperty<Vector3>(Actor::Property::SIZE);
   mSize.width  = size.width;
   mSize.height = size.height;
 
