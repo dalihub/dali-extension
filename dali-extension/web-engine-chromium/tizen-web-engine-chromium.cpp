@@ -756,6 +756,7 @@ Dali::PixelData TizenWebEngineChromium::GetScreenshot(Dali::Rect<int32_t> viewAr
 
 bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, ScreenshotCapturedCallback callback)
 {
+  mScreenshotCapturedCallback = callback;
   Eina_Rectangle rect;
   EINA_RECTANGLE_SET(&rect, viewArea.x, viewArea.y, viewArea.width, viewArea.height);
   Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
@@ -764,6 +765,7 @@ bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::Rect<int32_t> vie
 
 bool TizenWebEngineChromium::CheckVideoPlayingAsynchronously(VideoPlayingCallback callback)
 {
+  mVideoPlayingCallback = callback;
   return ewk_view_is_video_playing(mWebView, &TizenWebEngineChromium::OnVideoPlaying, this);
 }
 
@@ -775,6 +777,7 @@ void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallbac
 
 void TizenWebEngineChromium::RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback)
 {
+  mGeolocationPermissionCallback = callback;
   ewk_view_geolocation_permission_callback_set(mWebView, &TizenWebEngineChromium::OnGeolocationPermission, this);
 }
 
