@@ -126,12 +126,15 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::
 
   mWidth  = width;
   mHeight = height;
-  InitWebView(0, nullptr);
+  InitWebView();
   WebEngineManager::Get().Add(mWebView, this);
 }
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
+  // This API must be called at first.
+  ewk_set_arguments(argc, argv);
+
   // Check if web engine is available and make sure that web engine is initialized.
   if(!WebEngineManager::IsAvailable())
   {
@@ -141,17 +144,12 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t ar
 
   mWidth  = width;
   mHeight = height;
-  InitWebView(argc, argv);
+  InitWebView();
   WebEngineManager::Get().Add(mWebView, this);
 }
 
-void TizenWebEngineChromium::InitWebView(uint32_t argc, char** argv)
+void TizenWebEngineChromium::InitWebView()
 {
-  if(argc > 0)
-  {
-    ewk_set_arguments(argc, argv);
-  }
-
   Ecore_Wl2_Window* win     = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
   Ewk_Context*      context = ewk_context_default_get();
   ewk_context_max_refresh_rate_set(context, 60);
@@ -186,8 +184,6 @@ void TizenWebEngineChromium::InitWebView(uint32_t argc, char** argv)
   evas_object_smart_callback_add(mWebView, "ssl,certificate,changed", &TizenWebEngineChromium::OnSslCertificateChanged, this);
   evas_object_smart_callback_add(mWebView, "contextmenu,show", &TizenWebEngineChromium::OnContextMenuShown, this);
   evas_object_smart_callback_add(mWebView, "contextmenu,hide", &TizenWebEngineChromium::OnContextMenuHidden, this);
-
-  ewk_view_authentication_callback_set(mWebView, &TizenWebEngineChromium::OnAuthenticationChallenged, this);
 
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
@@ -381,7 +377,14 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& expo
 void TizenWebEngineChromium::RegisterJavaScriptAlertCallback(JavaScriptAlertCallback callback)
 {
   mJavaScriptAlertCallback = callback;
-  ewk_view_javascript_alert_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptAlert, this);
+  if (mJavaScriptAlertCallback)
+  {
+    ewk_view_javascript_alert_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptAlert, this);
+  }
+  else
+  {
+    ewk_view_javascript_alert_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::JavaScriptAlertReply()
@@ -392,7 +395,14 @@ void TizenWebEngineChromium::JavaScriptAlertReply()
 void TizenWebEngineChromium::RegisterJavaScriptConfirmCallback(JavaScriptConfirmCallback callback)
 {
   mJavaScriptConfirmCallback = callback;
-  ewk_view_javascript_confirm_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptConfirm, this);
+  if (mJavaScriptConfirmCallback)
+  {
+    ewk_view_javascript_confirm_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptConfirm, this);
+  }
+  else
+  {
+    ewk_view_javascript_confirm_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::JavaScriptConfirmReply(bool confirmed)
@@ -403,7 +413,14 @@ void TizenWebEngineChromium::JavaScriptConfirmReply(bool confirmed)
 void TizenWebEngineChromium::RegisterJavaScriptPromptCallback(JavaScriptPromptCallback callback)
 {
   mJavaScriptPromptCallback = callback;
-  ewk_view_javascript_prompt_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptPrompt, this);
+  if (mJavaScriptPromptCallback)
+  {
+    ewk_view_javascript_prompt_callback_set(mWebView, &TizenWebEngineChromium::OnJavaScriptPrompt, this);
+  }
+  else
+  {
+    ewk_view_javascript_prompt_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::JavaScriptPromptReply(const std::string& result)
@@ -867,6 +884,14 @@ void TizenWebEngineChromium::RegisterSslCertificateChangedCallback(WebEngineCert
 void TizenWebEngineChromium::RegisterHttpAuthHandlerCallback(WebEngineHttpAuthHandlerCallback callback)
 {
   mHttpAuthHandlerCallback = callback;
+  if (mHttpAuthHandlerCallback)
+  {
+    ewk_view_authentication_callback_set(mWebView, &TizenWebEngineChromium::OnAuthenticationChallenged, this);
+  }
+  else
+  {
+    ewk_view_authentication_callback_set(mWebView, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineChromium::RegisterContextMenuShownCallback(WebEngineContextMenuShownCallback callback)
