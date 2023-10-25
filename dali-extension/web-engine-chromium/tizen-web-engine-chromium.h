@@ -39,7 +39,6 @@ class PixelData;
 
 namespace Plugin
 {
-
 /**
  * @brief A class implements Dali::WebEnginePlugin for tizen chromium.
  */
@@ -546,41 +545,46 @@ public:
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
-  static void OnFrameRendered(void* data, Evas_Object*, void* buffer);
-  static void OnLoadStarted(void* data, Evas_Object*, void*);
-  static void OnLoadInProgress(void* data, Evas_Object*, void*);
-  static void OnLoadFinished(void* data, Evas_Object*, void*);
-  static void OnLoadError(void* data, Evas_Object*, void* rawError);
-  static void OnUrlChanged(void* data, Evas_Object*, void* newUrl);
-  static void OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo);
-  static void OnEdgeLeft(void* data, Evas_Object*, void*);
-  static void OnEdgeRight(void* data, Evas_Object*, void*);
-  static void OnEdgeTop(void* data, Evas_Object*, void*);
-  static void OnEdgeBottom(void* data, Evas_Object*, void*);
-  static void OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo);
-  static void OnResponsePolicyDecided(void* data, Evas_Object*, void* policy);
-  static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
-  static void OnNewWindowCreated(void* data, Evas_Object*, void* out_view);
-  static void OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo);
-  static void OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo);
-  static void OnContextMenuShown(void* data, Evas_Object*, void* eventInfo);
-  static void OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo);
-  static void OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data);
-  static void OnJavaScriptEvaluated(Evas_Object* o, const char* result, void* data);
-  static void OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
+  static void      OnFrameRendered(void* data, Evas_Object*, void* buffer);
+  static void      OnLoadStarted(void* data, Evas_Object*, void*);
+  static void      OnLoadInProgress(void* data, Evas_Object*, void*);
+  static void      OnLoadFinished(void* data, Evas_Object*, void*);
+  static void      OnLoadError(void* data, Evas_Object*, void* rawError);
+  static void      OnUrlChanged(void* data, Evas_Object*, void* newUrl);
+  static void      OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo);
+  static void      OnEdgeLeft(void* data, Evas_Object*, void*);
+  static void      OnEdgeRight(void* data, Evas_Object*, void*);
+  static void      OnEdgeTop(void* data, Evas_Object*, void*);
+  static void      OnEdgeBottom(void* data, Evas_Object*, void*);
+  static void      OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo);
+  static void      OnResponsePolicyDecided(void* data, Evas_Object*, void* policy);
+  static void      OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
+  static void      OnNewWindowCreated(void* data, Evas_Object*, void* out_view);
+  static void      OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo);
+  static void      OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo);
+  static void      OnContextMenuShown(void* data, Evas_Object*, void* eventInfo);
+  static void      OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo);
+  static void      OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data);
+  static void      OnJavaScriptEvaluated(Evas_Object* o, const char* result, void* data);
+  static void      OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
   static Eina_Bool OnJavaScriptAlert(Evas_Object* o, const char* alert_text, void*);
   static Eina_Bool OnJavaScriptConfirm(Evas_Object* o, const char* message, void*);
   static Eina_Bool OnJavaScriptPrompt(Evas_Object* o, const char* message, const char* default_value, void*);
-  static void OnHitTestCreated(Evas_Object*, int x, int y, int hitTestMode, Ewk_Hit_Test* hitTest, void* data);
-  static void OnScreenshotCaptured(Evas_Object* image, void* data);
-  static void OnVideoPlaying(Evas_Object*, Eina_Bool isPlaying, void* data);
-  static void OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data);
+  static void      OnHitTestCreated(Evas_Object*, int x, int y, int hitTestMode, Ewk_Hit_Test* hitTest, void* data);
+  static void      OnScreenshotCaptured(Evas_Object* image, void* data);
+  static void      OnVideoPlaying(Evas_Object*, Eina_Bool isPlaying, void* data);
+  static void      OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data);
   static Eina_Bool OnGeolocationPermission(Evas_Object*, Ewk_Geolocation_Permission_Request* request, void* data);
 
   void UpdateImage(tbm_surface_h buffer);
   void InitWebView();
   bool FeedMouseEvent(const TouchEvent& touch);
   bool FeedTouchEvent(const TouchEvent& touch);
+
+  /**
+   * @brief Destroy and re-create native image source.
+   */
+  void ResetDaliImageSource();
 
   // ewk web view.
   Dali::NativeImageSourcePtr                mDaliImageSrc;
