@@ -80,7 +80,8 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mLoadFailed(false),
   mResourceReady(false),
   mShaderChanged(false),
-  mResourceReadyTriggered(false)
+  mResourceReadyTriggered(false),
+  mEnableFixedCache(false)
 {
   TizenVectorAnimationManager::Get().AddEventHandler(*this);
 }
@@ -204,6 +205,15 @@ bool TizenVectorAnimationRenderer::Render(uint32_t frameNumber)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
+  if(mEnableFixedCache)
+  {
+    if(mDecodedBuffers.size() < mTotalFrameNumber)
+    {
+      mDecodedBuffers.clear();
+      mDecodedBuffers.resize(mTotalFrameNumber, std::make_pair<std::vector<uint8_t>, bool>(std::vector<uint8_t>(), false));
+    }
+  }
+
   if(!mTbmQueue || !mVectorRenderer || !mTargetSurface)
   {
     return false;
@@ -232,7 +242,15 @@ bool TizenVectorAnimationRenderer::Render(uint32_t frameNumber)
   }
 
   tbm_surface_info_s info;
-  int                ret = tbm_surface_map(tbmSurface, TBM_OPTION_WRITE, &info);
+  int                ret = TBM_SURFACE_ERROR_NONE;
+  if(mEnableFixedCache && !mDecodedBuffers[frameNumber].second)
+  {
+    ret = tbm_surface_map(tbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &info);
+  }
+  else
+  {
+    ret = tbm_surface_map(tbmSurface, TBM_SURF_OPTION_WRITE, &info);
+  }
   if(ret != TBM_SURFACE_ERROR_NONE)
   {
     DALI_LOG_ERROR("TizenVectorAnimationRenderer::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this);
@@ -271,19 +289,35 @@ bool TizenVectorAnimationRenderer::Render(uint32_t frameNumber)
     }
   }
 
-  if(!existing)
+  if(mEnableFixedCache && mDecodedBuffers[frameNumber].second)
   {
-    tbm_surface_internal_ref(tbmSurface);
-
-    // Create Surface object
-    surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), mWidth, mHeight, static_cast<size_t>(info.planes[0].stride));
-
-    // Push the buffer
-    mBuffers.push_back(SurfacePair(tbmSurface, surface));
+    const int bufferSize = mWidth * mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
+    memcpy(buffer, &mDecodedBuffers[frameNumber].first[0], bufferSize);
   }
+  else
+  {
+    if(!existing)
+    {
+      tbm_surface_internal_ref(tbmSurface);
 
-  // Render the frame
-  mVectorRenderer->renderSync(frameNumber, surface);
+      // Create Surface object
+      surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), mWidth, mHeight, static_cast<size_t>(info.planes[0].stride));
+
+      // Push the buffer
+      mBuffers.push_back(SurfacePair(tbmSurface, surface));
+    }
+
+    // Render the frame
+    mVectorRenderer->renderSync(frameNumber, surface);
+
+    if(mEnableFixedCache)
+    {
+      const uint32_t       bufferSize = mWidth * mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
+      std::vector<uint8_t> rasterizeBuffer(buffer, buffer + bufferSize);
+      mDecodedBuffers[frameNumber].first  = std::move(rasterizeBuffer);
+      mDecodedBuffers[frameNumber].second = true;
+    }
+  }
 
   tbm_surface_unmap(tbmSurface);
 
@@ -527,6 +561,13 @@ void TizenVectorAnimationRenderer::AddPropertyValueCallback(const std::string& k
       break;
     }
   }
+}
+
+void TizenVectorAnimationRenderer::KeepRasterizedBuffer()
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mEnableFixedCache = true;
+  mDecodedBuffers.clear();
 }
 
 VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRenderer::UploadCompletedSignal()

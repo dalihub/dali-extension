@@ -20,6 +20,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
+#include <dali/devel-api/adaptor-framework/pixel-buffer.h>
 #include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/public-api/common/vector-wrapper.h>
@@ -116,6 +117,8 @@ public:
    */
   void AddPropertyValueCallback(const std::string& keyPath, VectorProperty property, CallbackBase* callback, int32_t id) override;
 
+  void KeepRasterizedBuffer();
+
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
    */
@@ -144,6 +147,7 @@ private:
   std::string                         mUrl;                    ///< The content file path
   std::vector<SurfacePair>            mBuffers;                ///< EGL Image vector
   std::vector<std::unique_ptr<CallbackBase>> mPropertyCallbacks; ///< Property callback list
+  std::vector<std::pair<std::vector<uint8_t>, bool>> mDecodedBuffers;
 
   mutable Dali::Mutex                 mMutex;                  ///< Mutex
   Dali::Renderer                      mRenderer;               ///< Renderer
@@ -164,6 +168,7 @@ private:
   bool                                mResourceReady;          ///< Whether the resource is ready
   bool                                mShaderChanged;          ///< Whether the shader is changed to support native image
   bool                                mResourceReadyTriggered; ///< Whether the resource ready is triggered
+  bool                                mEnableFixedCache;
 };
 
 } // namespace Plugin
