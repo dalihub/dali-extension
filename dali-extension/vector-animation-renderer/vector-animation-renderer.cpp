@@ -21,6 +21,7 @@
 // EXTERNAL INCLUDES
 #include <dali/devel-api/common/hash.h>
 #include <dali/integration-api/debug.h>
+#include <dali/integration-api/texture-integ.h>
 #include <dali/public-api/object/property-array.h>
 
 #include <cstring> // for strlen()
@@ -58,7 +59,8 @@ VectorAnimationRenderer::VectorAnimationRenderer()
   mLoadFailed(false),
   mResourceReady(false),
   mShaderChanged(false),
-  mResourceReadyTriggered(false)
+  mResourceReadyTriggered(false),
+  mEnableFixedCache(false)
 {
   VectorAnimationPluginManager::Get().AddEventHandler(*this);
 }
@@ -419,6 +421,13 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
       break;
     }
   }
+}
+
+void VectorAnimationRenderer::KeepRasterizedBuffer()
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mEnableFixedCache = true;
+  mDecodedBuffers.clear();
 }
 
 VectorAnimationRendererPlugin::UploadCompletedSignalType& VectorAnimationRenderer::UploadCompletedSignal()
