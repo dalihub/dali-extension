@@ -20,6 +20,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
+#include <dali/devel-api/common/hash.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/property-array.h>
 #include <tbm_surface_internal.h>
@@ -125,6 +126,34 @@ bool TizenVectorAnimationRenderer::Load(const std::string& url)
   mDefaultHeight = static_cast<uint32_t>(h);
 
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "file [%s] [%p]\n", url.c_str(), this);
+
+  return true;
+}
+
+bool TizenVectorAnimationRenderer::Load(const Dali::Vector<uint8_t>& data)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  std::string jsonData(data.Begin(), data.End());    ///< Convert from raw buffer to string.
+  auto        hashValue = Dali::CalculateHash(data); ///< Will be used for rlottie internal cache system.
+
+  mVectorRenderer = rlottie::Animation::loadFromData(jsonData, std::to_string(hashValue));
+  if(!mVectorRenderer)
+  {
+    DALI_LOG_ERROR("Failed to load a Lottie data [data size : %zu byte] [%p]\n", data.Size(), this);
+    mLoadFailed = true;
+    return false;
+  }
+
+  mTotalFrameNumber = static_cast<uint32_t>(mVectorRenderer->totalFrame());
+  mFrameRate        = static_cast<float>(mVectorRenderer->frameRate());
+
+  size_t w, h;
+  mVectorRenderer->size(w, h);
+  mDefaultWidth  = static_cast<uint32_t>(w);
+  mDefaultHeight = static_cast<uint32_t>(h);
+
+  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "data [data size : %zu byte] [%p]\n", data.Size(), this);
 
   return true;
 }

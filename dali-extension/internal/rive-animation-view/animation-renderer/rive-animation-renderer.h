@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_RENDERER_H
 
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/debug.h> ///< note : Debug::DebugPriority::DEBUG can be removed due to <rive/rive_types.hpp>.
+#include <dali/public-api/common/dali-vector.h>
 #include <dali/public-api/common/vector-wrapper.h>
 #include <dali/public-api/rendering/renderer.h>
 #include <tbm_surface.h>
@@ -73,6 +74,14 @@ public:
    * @return True if loading success, false otherwise.
    */
   bool Load(const std::string& url);
+
+  /**
+   * @brief Loads the animation file from data.
+   *
+   * @param[in] data The url of the vector animation file
+   * @return True if loading success, false otherwise.
+   */
+  bool Load(const Dali::Vector<uint8_t>& data);
 
   /**
    * @brief Finalizes the renderer. It will be called in the main thread.
@@ -290,6 +299,11 @@ private:
    * @brief Load rive resource file for artboard.
    */
   void LoadRiveFile(const std::string& filename);
+
+  /**
+   * @brief Load rive resource data for artboard.
+   */
+  void LoadRiveData(const Dali::Vector<uint8_t>& data);
 
   /**
    * @brief Clear Loaded Animations.

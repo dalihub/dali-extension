@@ -2,7 +2,7 @@
 #define DALI_TIZEN_VECTOR_ANIMATION_RENDERER_PLUGIN_H
 
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,11 @@ public:
    * @copydoc Dali::VectorAnimationRendererPlugin::Load()
    */
   bool Load(const std::string& url) override;
+
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::Load()
+   */
+  bool Load(const Dali::Vector<uint8_t>& data) override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::SetRenderer()
