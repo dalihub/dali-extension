@@ -137,7 +137,7 @@ bool TizenVectorAnimationRenderer::Load(const Dali::Vector<uint8_t>& data)
   std::string jsonData(data.Begin(), data.End());    ///< Convert from raw buffer to string.
   auto        hashValue = Dali::CalculateHash(data); ///< Will be used for rlottie internal cache system.
 
-  mVectorRenderer = rlottie::Animation::loadFromData(jsonData, std::to_string(hashValue));
+  mVectorRenderer = rlottie::Animation::loadFromData(std::move(jsonData), std::to_string(hashValue));
   if(!mVectorRenderer)
   {
     DALI_LOG_ERROR("Failed to load a Lottie data [data size : %zu byte] [%p]\n", data.Size(), this);
