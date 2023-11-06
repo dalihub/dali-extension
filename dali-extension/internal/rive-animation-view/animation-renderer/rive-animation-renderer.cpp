@@ -103,7 +103,6 @@ void RiveAnimationRenderer::ClearRiveAnimations()
 
 void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
 {
-  std::streampos        length = 0;
   Dali::Vector<uint8_t> bytes;
 
   if(!Dali::FileLoader::ReadFile(filename, bytes))
@@ -112,16 +111,21 @@ void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
     return;
   }
 
+  LoadRiveData(bytes);
+}
+
+void RiveAnimationRenderer::LoadRiveData(const Dali::Vector<uint8_t>& bytes)
+{
   if(bytes.Size() == 0)
   {
-    DALI_LOG_ERROR("Failed to load: empty file %s", filename.c_str());
+    DALI_LOG_ERROR("Failed to load: empty file");
     return;
   }
 
   ClearRiveAnimations();
-  if(!mRiveTizenAdapter->loadRiveResource(&bytes[0], bytes.Size()))
+  if(!mRiveTizenAdapter->loadRiveResource(const_cast<uint8_t*>(&bytes[0]), bytes.Size()))
   {
-    DALI_LOG_ERROR("Failed to load resource file %s", filename.c_str());
+    DALI_LOG_ERROR("Failed to load resource file");
     return;
   }
 
@@ -150,6 +154,16 @@ bool RiveAnimationRenderer::Load(const std::string& url)
   RiveAnimationRendererManager::Get().AddEventHandler(*this);
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this);
+
+  return true;
+}
+
+bool RiveAnimationRenderer::Load(const Dali::Vector<uint8_t>& data)
+{
+  LoadRiveData(data);
+  RiveAnimationRendererManager::Get().AddEventHandler(*this);
+
+  DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Initialize: data [data size : %zu byte] [%p]\n", data.Size(), this);
 
   return true;
 }
