@@ -112,6 +112,11 @@ public:
   bool GetMarkerInfo(const std::string& marker, uint32_t& startFrame, uint32_t& endFrame) const override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::GetMarkerInfo()
+   */
+  void GetMarkerInfo(Property::Map& map) const override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::InvalidateBuffer()
    */
   void InvalidateBuffer() override;
@@ -146,8 +151,8 @@ private:
 private:
   using SurfacePair = std::pair<tbm_surface_h, rlottie::Surface>;
 
-  std::string                         mUrl;                    ///< The content file path
-  std::vector<SurfacePair>            mBuffers;                ///< EGL Image vector
+  std::string                                mUrl;               ///< The content file path
+  std::vector<SurfacePair>                   mBuffers;           ///< EGL Image vector
   std::vector<std::unique_ptr<CallbackBase>> mPropertyCallbacks; ///< Property callback list
 
   mutable Dali::Mutex                 mMutex;                  ///< Mutex
