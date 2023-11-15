@@ -1,0 +1,6 @@
+SET( root_dir ${ROOT_SRC_DIR}/dali-extension/vector-animation-renderer )
+
+SET( SOURCES ${SOURCES}
+  ${root_dir}/tizen-vector-animation-manager.cpp
+  ${root_dir}/tizen-vector-animation-renderer-x.cpp
+)
