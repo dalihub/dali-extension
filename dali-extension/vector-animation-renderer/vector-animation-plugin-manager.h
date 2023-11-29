@@ -1,8 +1,8 @@
-#ifndef DALI_TIZEN_VECTOR_ANIMATION_MANAGER_H
-#define DALI_TIZEN_VECTOR_ANIMATION_MANAGER_H
+#ifndef DALI_VECTOR_ANIMATION_PLUGIN_MANAGER_H
+#define DALI_VECTOR_ANIMATION_PLUGIN_MANAGER_H
 
 /*
- * Copyright (c) 2019 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 #include <memory>
 
 // INTERNAL INCLUDES
-#include <dali-extension/vector-animation-renderer/tizen-vector-animation-event-handler.h>
+#include <dali-extension/vector-animation-renderer/vector-animation-event-handler.h>
 
 namespace Dali
 {
@@ -37,35 +37,35 @@ namespace Plugin
 /**
  * @brief Tizen vector animation manager
  */
-class TizenVectorAnimationManager : public Integration::Processor
+class VectorAnimationPluginManager : public Integration::Processor
 {
 public:
 
   /**
-   * @brief Create or retrieve TizenVectorAnimationManager singleton.
+   * @brief Create or retrieve VectorAnimationPluginManager singleton.
    *
-   * @return A reference to the TizenVectorAnimationManager.
+   * @return A reference to the VectorAnimationPluginManager.
    */
-  static TizenVectorAnimationManager& Get();
+  static VectorAnimationPluginManager& Get();
 
   /**
    * @brief Add the event handler.
    *
    * @param handler The event handler to add.
    */
-  void AddEventHandler( TizenVectorAnimationEventHandler& handler );
+  void AddEventHandler( VectorAnimationEventHandler& handler );
 
   /**
    * @brief Remove the event handler.
    *
    * @param handler The event handler to remove.
    */
-  void RemoveEventHandler( TizenVectorAnimationEventHandler& handler );
+  void RemoveEventHandler( VectorAnimationEventHandler& handler );
 
   /**
    * @brief Trigger the event.
    */
-  void TriggerEvent( TizenVectorAnimationEventHandler& handler );
+  void TriggerEvent( VectorAnimationEventHandler& handler );
 
 protected: // Implementation of Processor
 
@@ -86,23 +86,23 @@ private:
   /**
    * @brief Constructor.
    */
-  TizenVectorAnimationManager();
+  VectorAnimationPluginManager();
 
   /**
    * @brief Destructor.
    */
-  virtual ~TizenVectorAnimationManager();
+  virtual ~VectorAnimationPluginManager();
 
   // Undefined
-  TizenVectorAnimationManager( const TizenVectorAnimationManager& ) = delete;
+  VectorAnimationPluginManager( const VectorAnimationPluginManager& ) = delete;
 
   // Undefined
-  TizenVectorAnimationManager& operator=( const TizenVectorAnimationManager& ) = delete;
+  VectorAnimationPluginManager& operator=( const VectorAnimationPluginManager& ) = delete;
 
 private:
 
-  std::vector< TizenVectorAnimationEventHandler* > mEventHandlers;
-  std::vector< TizenVectorAnimationEventHandler* > mTriggeredHandlers;
+  std::vector< VectorAnimationEventHandler* > mEventHandlers;
+  std::vector< VectorAnimationEventHandler* > mTriggeredHandlers;
   Dali::Mutex                                      mMutex;
   std::unique_ptr< EventThreadCallback >           mEventTrigger;
 };

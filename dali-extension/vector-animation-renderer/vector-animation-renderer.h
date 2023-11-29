@@ -1,5 +1,5 @@
-#ifndef DALI_TIZEN_VECTOR_ANIMATION_RENDERER_X_H
-#define DALI_TIZEN_VECTOR_ANIMATION_RENDERER_X_H
+#ifndef DALI_EXTENSION_VECTOR_ANIMATION_RENDERER_H
+#define DALI_EXTENSION_VECTOR_ANIMATION_RENDERER_H
 
 /*
  * Copyright (c) 2023 Samsung Electronics Co., Ltd.
@@ -19,17 +19,14 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
-#include <dali/devel-api/adaptor-framework/pixel-buffer.h>
 #include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
 #include <dali/devel-api/threading/mutex.h>
-#include <dali/public-api/adaptor-framework/native-image-source.h>
 #include <dali/public-api/common/vector-wrapper.h>
 #include <rlottie.h>
 #include <memory>
 
 // INTERNAL INCLUDES
-#include <dali-extension/vector-animation-renderer/tizen-vector-animation-event-handler.h>
+#include <dali-extension/vector-animation-renderer/vector-animation-event-handler.h>
 
 namespace Dali
 {
@@ -38,18 +35,18 @@ namespace Plugin
 /**
  * @brief Implementation of the Tizen vector animation renderer class which has Tizen platform dependency.
  */
-class TizenVectorAnimationRenderer : public Dali::VectorAnimationRendererPlugin, public TizenVectorAnimationEventHandler
+class VectorAnimationRenderer : public Dali::VectorAnimationRendererPlugin, public VectorAnimationEventHandler
 {
 public:
   /**
    * @brief Constructor.
    */
-  TizenVectorAnimationRenderer();
+  VectorAnimationRenderer();
 
   /**
    * @brief Destructor.
    */
-  virtual ~TizenVectorAnimationRenderer();
+  virtual ~VectorAnimationRenderer();
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::Finalize()
@@ -75,16 +72,6 @@ public:
    * @copydoc Dali::VectorAnimationRendererPlugin::SetSize()
    */
   void SetSize(uint32_t width, uint32_t height) override;
-
-  /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::Render()
-   */
-  bool Render(uint32_t frameNumber) override;
-
-  /**
-   * @copydoc Dali::VectorAnimationRendererPlugin::RenderStopped()
-   */
-  void RenderStopped() override;
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::GetTotalFrameNumber()
@@ -131,54 +118,81 @@ public:
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
 
-protected: // Implementation of TizenVectorAnimationEventHandler
+protected: // Implementation of VectorAnimationEventHandler
   /**
-   * @copydoc Dali::Plugin::TizenVectorAnimationEventHandler::NotifyEvent()
+   * @copydoc Dali::Plugin::VectorAnimationEventHandler::NotifyEvent()
    */
   void NotifyEvent() override;
 
-private:
+protected:
   /**
    * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
    */
-  void SetShader();
+  virtual void SetShader() = 0;
 
   /**
    * @brief Reset buffer list.
    */
-  void ResetBuffers();
+  virtual void ResetBuffers() = 0;
+
+  /**
+   * @brief Reset properties
+   */
+  virtual void OnFinalize() = 0;
+
+  /**
+   * @brief Apply the changes of Size
+   */
+  virtual void OnSetSize() = 0;
 
   /**
    * @brief Event callback to process events.
    */
-  void OnLottieRendered();
+  virtual void OnLottieRendered() = 0;
 
-private:
+  /**
+   * @brief Prepare target
+   */
+  virtual void PrepareTarget() = 0;
+
+  /**
+   * @brief Retrieve whether the target is prepared or not.
+   */
+  virtual bool IsTargetPrepared() = 0;
+
+  /**
+   * @brief Retrieve whether the rendering is ready or not.
+   */
+  virtual bool IsRenderReady() = 0;
+
+  /**
+   * @brief Retrieve target texture.
+   */
+  virtual Dali::Texture GetTargetTexture() = 0;
+
+protected:
   std::string                                mUrl;               ///< The content file path
   std::vector<std::unique_ptr<CallbackBase>> mPropertyCallbacks; ///< Property callback list
 
-  mutable Dali::Mutex                  mMutex;                  ///< Mutex
-  Dali::Renderer                       mRenderer;               ///< Renderer
-  Dali::Texture                        mTexture;                ///< Texture
-  rlottie::Surface                     mLottieSurface;          ///
-  std::unique_ptr<rlottie::Animation>  mVectorRenderer;         ///< The vector animation renderer
-  UploadCompletedSignalType            mUploadCompletedSignal;  ///< Upload completed signal
-  uint32_t                             mTotalFrameNumber;       ///< The total frame number
-  uint32_t                             mWidth;                  ///< The width of the surface
-  uint32_t                             mHeight;                 ///< The height of the surface
-  uint32_t                             mDefaultWidth;           ///< The width of the surface
-  uint32_t                             mDefaultHeight;          ///< The height of the surface
-  float                                mFrameRate;              ///< The frame rate of the content
-  bool                                 mLoadFailed;             ///< Whether the file is loaded
-  bool                                 mResourceReady;          ///< Whether the resource is ready
-  bool                                 mShaderChanged;          ///< Whether the shader is changed to support native image
-  bool                                 mResourceReadyTriggered; ///< Whether the resource ready is triggered
-  Dali::Devel::PixelBuffer             mPixelBuffer;            ///
-  std::unique_ptr<EventThreadCallback> mRenderCallback;         ///
+  mutable Dali::Mutex                 mMutex;                  ///< Mutex
+  Dali::Renderer                      mRenderer;               ///< Renderer
+  Dali::Texture                       mTexture;                ///< Texture
+  std::unique_ptr<rlottie::Animation> mVectorRenderer;         ///< The vector animation renderer
+  UploadCompletedSignalType           mUploadCompletedSignal;  ///< Upload completed signal
+  uint32_t                            mTotalFrameNumber;       ///< The total frame number
+  uint32_t                            mWidth;                  ///< The width of the surface
+  uint32_t                            mHeight;                 ///< The height of the surface
+  uint32_t                            mDefaultWidth;           ///< The width of the surface
+  uint32_t                            mDefaultHeight;          ///< The height of the surface
+  float                               mFrameRate;              ///< The frame rate of the content
+  bool                                mLoadFailed;             ///< Whether the file is loaded
+  bool                                mResourceReady;          ///< Whether the resource is ready
+  bool                                mShaderChanged;          ///< Whether the shader is changed to support native image
+  bool                                mResourceReadyTriggered; ///< Whether the resource ready is triggered
 };
 
 } // namespace Plugin
 
 } // namespace Dali
 
-#endif // DALI_TIZEN_VECTOR_ANIMATION_RENDERER_X_H
+#endif // DALI_EXTENSION_VECTOR_ANIMATION_RENDERER_H
