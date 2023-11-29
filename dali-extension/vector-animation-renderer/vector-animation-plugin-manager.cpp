@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 // CLASS HEADER
-#include <dali-extension/vector-animation-renderer/tizen-vector-animation-manager.h>
+#include <dali-extension/vector-animation-renderer/vector-animation-plugin-manager.h>
 
 // EXTERNAL INCLUDES
 #include <dali/integration-api/adaptor-framework/adaptor.h>
@@ -33,13 +33,13 @@ Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, 
 #endif
 } // unnamed namespace
 
-TizenVectorAnimationManager& TizenVectorAnimationManager::Get()
+VectorAnimationPluginManager& VectorAnimationPluginManager::Get()
 {
-  static TizenVectorAnimationManager animationManager;
+  static VectorAnimationPluginManager animationManager;
   return animationManager;
 }
 
-TizenVectorAnimationManager::TizenVectorAnimationManager()
+VectorAnimationPluginManager::VectorAnimationPluginManager()
 : mEventHandlers(),
   mTriggeredHandlers(),
   mMutex(),
@@ -47,12 +47,12 @@ TizenVectorAnimationManager::TizenVectorAnimationManager()
 {
 }
 
-TizenVectorAnimationManager::~TizenVectorAnimationManager()
+VectorAnimationPluginManager::~VectorAnimationPluginManager()
 {
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
 }
 
-void TizenVectorAnimationManager::AddEventHandler(TizenVectorAnimationEventHandler& handler)
+void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& handler)
 {
   if(mEventHandlers.end() == std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler))
   {
@@ -68,13 +68,13 @@ void TizenVectorAnimationManager::AddEventHandler(TizenVectorAnimationEventHandl
 
       if(!mEventTrigger)
       {
-        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &TizenVectorAnimationManager::OnEventTriggered)));
+        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
       }
     }
   }
 }
 
-void TizenVectorAnimationManager::RemoveEventHandler(TizenVectorAnimationEventHandler& handler)
+void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandler& handler)
 {
   auto iter = std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler);
   if(iter != mEventHandlers.end())
@@ -110,7 +110,7 @@ void TizenVectorAnimationManager::RemoveEventHandler(TizenVectorAnimationEventHa
   }
 }
 
-void TizenVectorAnimationManager::TriggerEvent(TizenVectorAnimationEventHandler& handler)
+void VectorAnimationPluginManager::TriggerEvent(VectorAnimationEventHandler& handler)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
@@ -125,15 +125,15 @@ void TizenVectorAnimationManager::TriggerEvent(TizenVectorAnimationEventHandler&
   }
 }
 
-void TizenVectorAnimationManager::Process(bool postProcessor)
+void VectorAnimationPluginManager::Process(bool postProcessor)
 {
   OnEventTriggered();
 }
 
 // This function is called in the main thread.
-void TizenVectorAnimationManager::OnEventTriggered()
+void VectorAnimationPluginManager::OnEventTriggered()
 {
-  std::vector<TizenVectorAnimationEventHandler*> handlers;
+  std::vector<VectorAnimationEventHandler*> handlers;
 
   {
     Dali::Mutex::ScopedLock lock(mMutex);

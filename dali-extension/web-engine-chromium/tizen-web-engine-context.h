@@ -261,11 +261,6 @@ private:
   void RequestIntercepted(Dali::WebEngineRequestInterceptorPtr interceptor);
 
   /**
-   * @brief Event callback for request interceptor is called on main thread.
-   */
-  void OnRequestInterceptedEventCallback();
-
-  /**
    * @brief Callback for intercepting http request.
    *
    * @param[in] context context of web engine
@@ -326,11 +321,7 @@ private:
   WebEngineDownloadStartedCallback        mWebDownloadStartedCallback;
   WebEngineMimeOverriddenCallback         mWebMimeOverriddenCallback;
   WebEngineRequestInterceptedCallback     mWebRequestInterceptedCallback;
-
-  Ewk_Context*                               mEwkContext;
-  Dali::Mutex                                mMutex;
-  std::unique_ptr<Dali::EventThreadCallback> mRequestInterceptorEventTrigger;
-  std::queue<WebEngineRequestInterceptorPtr> mRequestInterceptorQueue;
+  Ewk_Context*                            mEwkContext;
 };
 
 } // namespace Plugin

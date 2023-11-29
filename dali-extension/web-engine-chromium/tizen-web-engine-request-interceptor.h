@@ -21,6 +21,8 @@
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-request-interceptor.h>
 
+#include <Evas.h>
+
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -50,6 +52,11 @@ public:
    * @brief Destructor.
    */
   virtual ~TizenWebEngineRequestInterceptor() final;
+
+  /**
+   * @copydoc Dali::WebEngineRequestInterceptor::GetWebEngine()
+   */
+  Dali::WebEnginePlugin* GetWebEngine() const override;
 
   /**
    * @copydoc Dali::WebEngineRequestInterceptor::GetUrl()
@@ -101,28 +108,7 @@ public:
    */
   bool WriteResponseChunk(const int8_t* chunk, uint32_t length) override;
 
-  /**
-   * @brief Wait for and run tasks on io-thread.
-   */
-  void WaitAndRunTasks();
-
-  /**
-   * @brief Notify task ready on main thread.
-   */
-  void NotifyTaskReady();
-
 private:
-  /**
-   * @brief Task callback.
-   */
-  using TaskCallback = std::function<bool(void)>;
-
-  /**
-   * @copydoc Dali::WebEngineRequestInterceptor::Ignore()
-   * @note It is run on IO thread
-   */
-  bool IgnoreIo();
-
   /**
    * @brief Iterator attributes.
    *
@@ -137,14 +123,10 @@ private:
 
 private:
   Ewk_Intercept_Request* ewkRequestInterceptor;
+  Evas_Object*           ewkWebView;
   std::string            requestUrl;
   std::string            requestMethod;
   Dali::Property::Map    requestHeaders;
-
-  bool                      mIsThreadWaiting;
-  std::vector<TaskCallback> mTaskQueue;
-  std::mutex                mMutex;
-  std::condition_variable   mCondition;
 };
 
 } // namespace Plugin

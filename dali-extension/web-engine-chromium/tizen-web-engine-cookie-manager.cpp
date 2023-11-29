@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ TizenWebEngineCookieManager::TizenWebEngineCookieManager(Ewk_Cookie_Manager* man
 
 TizenWebEngineCookieManager::~TizenWebEngineCookieManager()
 {
+  ewk_cookie_manager_changes_watch(mEwkCookieManager, nullptr, nullptr);
 }
 
 void TizenWebEngineCookieManager::SetCookieAcceptPolicy(Dali::WebEngineCookieManager::CookieAcceptPolicy policy)
@@ -58,13 +59,23 @@ void TizenWebEngineCookieManager::ClearCookies()
 void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback)
 {
   mWebChangesWatchCallback = callback;
-  ewk_cookie_manager_changes_watch(mEwkCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, this);
+  if (mWebChangesWatchCallback)
+  {
+    ewk_cookie_manager_changes_watch(mEwkCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, this);
+  }
+  else
+  {
+    ewk_cookie_manager_changes_watch(mEwkCookieManager, nullptr, nullptr);
+  }
 }
 
 void TizenWebEngineCookieManager::OnChangesWatch(void *data)
 {
   TizenWebEngineCookieManager* pThis = static_cast<TizenWebEngineCookieManager*>(data);
-  pThis->mWebChangesWatchCallback();
+  if (pThis->mWebChangesWatchCallback)
+  {
+    pThis->mWebChangesWatchCallback();
+  }
 }
 
 } // namespace Plugin

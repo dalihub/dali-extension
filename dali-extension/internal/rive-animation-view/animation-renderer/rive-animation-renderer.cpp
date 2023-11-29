@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@
 #include <rive/shapes/paint/fill.hpp>
 #include <rive/shapes/paint/solid_color.hpp>
 #include <rive/shapes/paint/stroke.hpp>
-#include <rive/tvg_renderer.hpp>
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
@@ -65,8 +64,6 @@ RiveAnimationRenderer::RiveAnimationRenderer()
   mTargetSurface(),
   mUploadCompletedSignal(),
   mTbmQueue(NULL),
-  mSwCanvas(nullptr),
-  mFile(nullptr),
   mArtboard(nullptr),
   mAnimation(nullptr),
   mStartFrameNumber(0),
@@ -78,24 +75,23 @@ RiveAnimationRenderer::RiveAnimationRenderer()
   mFrameRate(60.0f),
   mResourceReady(false),
   mShaderChanged(false),
-  mResourceReadyTriggered(false)
+  mResourceReadyTriggered(false),
+  mRiveTizenAdapter(nullptr)
 {
-  tvg::Initializer::init(tvg::CanvasEngine::Sw, 0);
+  mRiveTizenAdapter = new RiveTizen();
 }
 
 RiveAnimationRenderer::~RiveAnimationRenderer()
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
   ClearRiveAnimations();
 
-  if(mFile)
+  if(mRiveTizenAdapter)
   {
-    delete mFile;
+    delete mRiveTizenAdapter;
   }
 
-  mSwCanvas->clear();
-  tvg::Initializer::term(tvg::CanvasEngine::Sw);
+  mRiveTizenAdapter = nullptr;
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::~RiveAnimationRenderer: this = %p\n", this);
 }
@@ -107,7 +103,6 @@ void RiveAnimationRenderer::ClearRiveAnimations()
 
 void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
 {
-  std::streampos        length = 0;
   Dali::Vector<uint8_t> bytes;
 
   if(!Dali::FileLoader::ReadFile(filename, bytes))
@@ -116,30 +111,31 @@ void RiveAnimationRenderer::LoadRiveFile(const std::string& filename)
     return;
   }
 
-  auto reader = rive::BinaryReader(&bytes[0], bytes.Size());
+  LoadRiveData(bytes);
+}
 
-  if(mFile)
+void RiveAnimationRenderer::LoadRiveData(const Dali::Vector<uint8_t>& bytes)
+{
+  if(bytes.Size() == 0)
   {
-    delete mFile;
-  }
-
-  auto result = rive::File::import(reader, &mFile);
-  if(result != rive::ImportResult::success)
-  {
-    DALI_LOG_ERROR("Failed to import %s", filename.c_str());
+    DALI_LOG_ERROR("Failed to load: empty file");
     return;
   }
 
-  mArtboard = mFile->artboard();
-  mArtboard->advance(0.0f);
-
   ClearRiveAnimations();
+  if(!mRiveTizenAdapter->loadRiveResource(const_cast<uint8_t*>(&bytes[0]), bytes.Size()))
+  {
+    DALI_LOG_ERROR("Failed to load resource file");
+    return;
+  }
+
+  mArtboard = mRiveTizenAdapter->getArtboard();
 
   for(unsigned int i = 0; i < mArtboard->animationCount(); i++)
   {
     auto               animation = mArtboard->animation(i);
     const std::string& name      = animation->name();
-    mAnimations.emplace_back(Animation(new rive::LinearAnimationInstance(animation), name, false));
+    mAnimations.emplace_back(Animation(mRiveTizenAdapter->createLinearAnimationInstance(i), name, false));
   }
 
   mAnimation = mArtboard->firstAnimation();
@@ -158,6 +154,16 @@ bool RiveAnimationRenderer::Load(const std::string& url)
   RiveAnimationRendererManager::Get().AddEventHandler(*this);
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Initialize: file [%s] [%p]\n", url.c_str(), this);
+
+  return true;
+}
+
+bool RiveAnimationRenderer::Load(const Dali::Vector<uint8_t>& data)
+{
+  LoadRiveData(data);
+  RiveAnimationRendererManager::Get().AddEventHandler(*this);
+
+  DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRenderer::Initialize: data [data size : %zu byte] [%p]\n", data.Size(), this);
 
   return true;
 }
@@ -236,7 +242,7 @@ void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 bool RiveAnimationRenderer::Render(double elapsed)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-  if(!mTbmQueue || !mTargetSurface || !mArtboard || mAnimations.empty())
+  if(!mTbmQueue || !mTargetSurface || mAnimations.empty())
   {
     return false;
   }
@@ -283,13 +289,7 @@ bool RiveAnimationRenderer::Render(double elapsed)
 
   tbm_surface_internal_ref(tbmSurface);
 
-  if(!mSwCanvas)
-  {
-    mSwCanvas = tvg::SwCanvas::gen();
-    mSwCanvas->mempool(tvg::SwCanvas::MempoolPolicy::Individual);
-  }
-  mSwCanvas->clear();
-  mSwCanvas->target((uint32_t*)buffer, info.planes[0].stride / 4, info.width, info.height, tvg::SwCanvas::ARGB8888);
+  mRiveTizenAdapter->createCanvas(buffer, info.width, info.height, info.planes[0].stride / 4);
 
   // Render Rive animation by elapsed time
   for(auto& animation : mAnimations)
@@ -298,32 +298,16 @@ bool RiveAnimationRenderer::Render(double elapsed)
     {
       if(animation.enable)
       {
-        animation.instance->advance(elapsed);
-        animation.instance->apply(mArtboard);
+        mRiveTizenAdapter->animationAdvanceApply(animation.instance.get(), elapsed);
       }
       else if(animation.elapsed >= 0.0f)
       {
-        animation.instance->time(animation.elapsed);
-        animation.instance->apply(mArtboard);
+        mRiveTizenAdapter->animationApply(animation.instance.get(), animation.elapsed);
       }
     }
   }
-  mArtboard->advance(elapsed);
 
-  rive::TvgRenderer renderer(mSwCanvas.get());
-  renderer.save();
-  renderer.align(rive::Fit::contain,
-                 rive::Alignment::center,
-                 rive::AABB(0, 0, info.width, info.height),
-                 mArtboard->bounds());
-  mArtboard->draw(&renderer);
-  renderer.restore();
-
-  if(mSwCanvas->draw() == tvg::Result::Success)
-  {
-    mSwCanvas->sync();
-  }
-  else
+  if(!mRiveTizenAdapter->render(elapsed, info.width, info.height))
   {
     tbm_surface_unmap(tbmSurface);
     tbm_surface_queue_cancel_dequeue(mTbmQueue, tbmSurface);
@@ -375,8 +359,7 @@ void RiveAnimationRenderer::EnableAnimation(const std::string& animationName, bo
     {
       if(mAnimations[i].instance)
       {
-        auto animation = mArtboard->animation(i);
-        mAnimations[i].instance.reset(new rive::LinearAnimationInstance(animation));
+        mAnimations[i].instance.reset(mRiveTizenAdapter->createLinearAnimationInstance(i));
       }
       mAnimations[i].enable = enable;
       return;
@@ -401,78 +384,91 @@ void RiveAnimationRenderer::SetAnimationElapsedTime(const std::string& animation
 void RiveAnimationRenderer::SetShapeFillColor(const std::string& fillName, Vector4 color)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto colorInstance = mArtboard->find<rive::Fill>(fillName.c_str());
-  if(!colorInstance)
-  {
-    return;
-  }
-  colorInstance->paint()->as<rive::SolidColor>()->colorValue(rive::colorARGB(color.a, color.r, color.g, color.b));
+  mRiveTizenAdapter->setShapeFillColor(fillName, color.a, color.r, color.g, color.b);
 }
 
 void RiveAnimationRenderer::SetShapeStrokeColor(const std::string& strokeName, Vector4 color)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto colorInstance = mArtboard->find<rive::Stroke>(strokeName.c_str());
-  if(!colorInstance)
-  {
-    return;
-  }
-  colorInstance->paint()->as<rive::SolidColor>()->colorValue(rive::colorARGB(color.a, color.r, color.g, color.b));
+  mRiveTizenAdapter->setShapeStrokeColor(strokeName, color.a, color.r, color.g, color.b);
 }
 
 void RiveAnimationRenderer::SetNodeOpacity(const std::string& nodeName, float opacity)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->opacity(opacity);
+  mRiveTizenAdapter->setNodeOpacity(nodeName, opacity);
 }
 
 void RiveAnimationRenderer::SetNodeScale(const std::string& nodeName, Vector2 scale)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-
-  auto node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->scaleX(scale.x);
-  nodeInstance->scaleY(scale.y);
+  mRiveTizenAdapter->setNodeScale(nodeName, scale.x, scale.y);
 }
 
 void RiveAnimationRenderer::SetNodeRotation(const std::string& nodeName, Degree degree)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
-  auto                    node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->rotation(degree.degree);
+  mRiveTizenAdapter->setNodeRotation(nodeName, degree.degree);
 }
 
 void RiveAnimationRenderer::SetNodePosition(const std::string& nodeName, Vector2 position)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->setNodePosition(nodeName, position.x, position.y);
+}
 
-  auto node = mArtboard->find(nodeName.c_str());
-  if(!node)
-  {
-    return;
-  }
-  auto nodeInstance = node->as<rive::Node>();
-  nodeInstance->x(position.x);
-  nodeInstance->y(position.y);
+void RiveAnimationRenderer::PointerMove(float x, float y)
+{
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->pointerMove(x, y);
+#endif
+}
+
+void RiveAnimationRenderer::PointerDown(float x, float y)
+{
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->pointerDown(x, y);
+#endif
+}
+
+void RiveAnimationRenderer::PointerUp(float x, float y)
+{
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mRiveTizenAdapter->pointerUp(x, y);
+#endif
+}
+
+bool RiveAnimationRenderer::SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value)
+{
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  return mRiveTizenAdapter->setNumberState(stateMachineName, inputName, value);
+#else
+  return false;
+#endif
+}
+
+bool RiveAnimationRenderer::SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value)
+{
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  return mRiveTizenAdapter->setBooleanState(stateMachineName, inputName, value);
+#else
+  return false;
+#endif
+}
+
+bool RiveAnimationRenderer::FireState(const std::string& stateMachineName, const std::string& inputName)
+{
+#if !defined(OS_TIZEN_TV)
+  Dali::Mutex::ScopedLock lock(mMutex);
+  return mRiveTizenAdapter->fireState(stateMachineName, inputName);
+#else
+  return false;
+#endif
 }
 
 void RiveAnimationRenderer::IgnoreRenderedFrame()

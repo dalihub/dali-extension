@@ -61,6 +61,22 @@ static void MediaPacketVideoDecodedCb(media_packet_h packet, void* user_data)
   player->PushPacket(packet);
 }
 
+static GMainContext* GetTizenGlibContext()
+{
+  static GMainContext* context = nullptr;
+
+  if(!context)
+  {
+    const char* env = getenv("TIZEN_GLIB_CONTEXT");
+    if(env)
+    {
+      context = (GMainContext*)strtoul(env, nullptr, 10);
+    }
+  }
+
+  return context;
+}
+
 static void EmitPlaybackFinishedSignal(void* user_data)
 {
   TizenVideoPlayer* player = static_cast<TizenVideoPlayer*>(user_data);
@@ -73,11 +89,36 @@ static void EmitPlaybackFinishedSignal(void* user_data)
 
   if(!player->mFinishedSignal.Empty())
   {
-    DALI_LOG_ERROR("EmitPlaybackFinishedSignal.3\n");
-    player->mFinishedSignal.Emit();
-  }
+    DALI_LOG_ERROR("EmitPlaybackFinishedSignal.\n");
 
-  player->Stop();
+    // This function is invoked on the main thread from MMFW.
+    // So the FinishedSignal has to be posted to UIThread when UIThread is enabled.
+    // If not, it causes an assertion in the timer.
+    // The timer has to run on the same thread as the adaptor's
+    GMainContext* context = GetTizenGlibContext();
+    if(context)
+    {
+      GSource* source = g_idle_source_new();
+      g_source_set_callback(
+        source,
+        [](gpointer userData) -> gboolean
+        {
+          auto* player = static_cast<TizenVideoPlayer*>(userData);
+          player->mFinishedSignal.Emit();
+          player->Stop();
+          return G_SOURCE_REMOVE;
+        },
+        player,
+        nullptr);
+      g_source_attach(source, context);
+      g_source_unref(source);
+    }
+    else
+    {
+      player->mFinishedSignal.Emit();
+      player->Stop();
+    }
+  }
 }
 
 // ToDo: VD player_set_play_position() doesn't work when callback pointer is NULL.
@@ -794,7 +835,7 @@ void TizenVideoPlayer::InitializeEnableSyncMode(Ecore_Wl2_Window* ecoreWlWindow)
   if(mEcoreWlWindow != ecoreWlWindow)
   {
     mEcoreWlWindow = ecoreWlWindow;
-    //check previous video subsurface and destroy
+    // check previous video subsurface and destroy
     if(mEcoreSubVideoWindow)
     {
       ecore_wl2_subsurface_del(mEcoreSubVideoWindow);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -370,7 +370,7 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     dstStride = mBufferImage.GetBufferStride();
 #endif
 
-    uint32_t srcStride = renderResult.updatedWidth * sizeof(uint32_t);
+    uint32_t srcStride = static_cast<uint32_t>(renderResult.updatedWidth * sizeof(uint32_t));
     uint8_t* srcBuffer = static_cast<uint8_t*>(renderResult.updatedBufferAddress);
 
     if(dstStride == srcStride)
@@ -787,7 +787,7 @@ bool TizenWebEngineLWE::LoadHtmlStringOverrideCurrentEntry(const std::string& ht
   return false;
 }
 
-bool TizenWebEngineLWE::LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
+bool TizenWebEngineLWE::LoadContents(const int8_t* contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri)
 {
   // NOT IMPLEMENTED
   return false;
@@ -1278,6 +1278,11 @@ bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
   return false;
 }
 
+void TizenWebEngineLWE::RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
 {
   // NOT IMPLEMENTED
@@ -1324,6 +1329,11 @@ void TizenWebEngineLWE::RegisterResponsePolicyDecidedCallback(WebEngineResponseP
 }
 
 void TizenWebEngineLWE::RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback)
 {
   // NOT IMPLEMENTED
 }

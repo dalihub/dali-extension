@@ -1,8 +1,8 @@
-#ifndef DALI_TIZEN_VECTOR_ANIMATION_EVENT_HANDLER_H
-#define DALI_TIZEN_VECTOR_ANIMATION_EVENT_HANDLER_H
+#ifndef DALI_VECTOR_ANIMATION_EVENT_HANDLER_H
+#define DALI_VECTOR_ANIMATION_EVENT_HANDLER_H
 
 /*
- * Copyright (c) 2019 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace Plugin
 /**
  * @brief Tizen vector animation event handler
  */
-class TizenVectorAnimationEventHandler
+class VectorAnimationEventHandler
 {
 public:
 
@@ -43,22 +43,22 @@ protected:
   /**
    * constructor
    */
-  TizenVectorAnimationEventHandler()
+  VectorAnimationEventHandler()
   {
   }
 
   /**
    * virtual destructor
    */
-  virtual ~TizenVectorAnimationEventHandler()
+  virtual ~VectorAnimationEventHandler()
   {
   }
 
   // Undefined copy constructor.
-  TizenVectorAnimationEventHandler( const TizenVectorAnimationEventHandler& ) = delete;
+  VectorAnimationEventHandler( const VectorAnimationEventHandler& ) = delete;
 
   // Undefined assignment operator.
-  TizenVectorAnimationEventHandler& operator=( const TizenVectorAnimationEventHandler& ) = delete;
+  VectorAnimationEventHandler& operator=( const VectorAnimationEventHandler& ) = delete;
 };
 
 } // namespace Plugin

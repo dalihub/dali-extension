@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,6 +124,7 @@ RiveAnimationView::~RiveAnimationView()
     if(mEventCallback)
     {
       riveAnimationManager.UnregisterEventCallback(mEventCallback);
+      mEventCallback = nullptr;
     }
 
     // Finalize animation task and disconnect the signal in the main thread
@@ -414,6 +415,36 @@ void RiveAnimationView::SetNodePosition(const std::string& nodeName, Vector2 pos
   mAnimationData.resendFlag |= RiveAnimationTask::RESEND_POSITION;
 
   TriggerVectorRasterization();
+}
+
+void RiveAnimationView::PointerMove(float x, float y)
+{
+  mRiveAnimationTask->PointerMove(x, y);
+}
+
+void RiveAnimationView::PointerDown(float x, float y)
+{
+  mRiveAnimationTask->PointerDown(x, y);
+}
+
+void RiveAnimationView::PointerUp(float x, float y)
+{
+  mRiveAnimationTask->PointerUp(x, y);
+}
+
+bool RiveAnimationView::SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value)
+{
+  return mRiveAnimationTask->SetNumberState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationView::SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value)
+{
+  return mRiveAnimationTask->SetBooleanState(stateMachineName, inputName, value);
+}
+
+bool RiveAnimationView::FireState(const std::string& stateMachineName, const std::string& inputName)
+{
+  return mRiveAnimationTask->FireState(stateMachineName, inputName);
 }
 
 Dali::Extension::RiveAnimationView::AnimationSignalType& RiveAnimationView::AnimationFinishedSignal()

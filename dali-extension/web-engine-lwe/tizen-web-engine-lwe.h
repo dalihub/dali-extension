@@ -2,7 +2,7 @@
 #define DALI_TIZEN_WEB_ENGINE_LWE_H
 
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::LoadContents()
    */
-  bool LoadContents(const std::string& contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri) override;
+  bool LoadContents(const int8_t* contents, uint32_t contentSize, const std::string& mimeType, const std::string& encoding, const std::string& baseUri) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::Reload()
@@ -459,12 +459,9 @@ public:
   bool SendWheelEvent(const Dali::WheelEvent& event) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::FrameRenderedSignal()
+   * @copydoc Dali::WebEnginePlugin::RegisterFrameRenderedCallback()
    */
-  Dali::WebEnginePlugin::WebEngineFrameRenderedSignalType& FrameRenderedSignal() override
-  {
-    return mFrameRenderedSignal;
-  }
+  void RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterPageLoadStartedCallback()
@@ -515,6 +512,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::RegisterNavigationPolicyDecidedCallback()
    */
   void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNewWindowCreatedCallback()
+   */
+  void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterCertificateConfirmedCallback()
@@ -589,8 +591,6 @@ private:
   std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
   EventThreadCallback mUpdateBufferTrigger;
-
-  WebEngineFrameRenderedSignalType mFrameRenderedSignal;
 };
 
 } // namespace Plugin

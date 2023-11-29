@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_RENDERER_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,20 @@
  */
 
 // EXTERNAL INCLUDES
+#include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
+#include <dali/devel-api/threading/mutex.h>
+#include <dali/integration-api/debug.h> ///< note : Debug::DebugPriority::DEBUG can be removed due to <rive/rive_types.hpp>.
+#include <dali/public-api/common/dali-vector.h>
 #include <dali/public-api/common/vector-wrapper.h>
 #include <dali/public-api/rendering/renderer.h>
-#include <dali/devel-api/threading/mutex.h>
-#include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
-#include <memory>
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
+#include <memory>
 
-// RIVE - THORVG INCLUDES
-#include <thorvg.h>
+// RIVE - INCLUDES
 #include <rive/animation/linear_animation_instance.hpp>
 #include <rive/artboard.hpp>
-//
+#include <rive_tizen.hpp>
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-event-handler.h>
@@ -73,6 +74,14 @@ public:
    * @return True if loading success, false otherwise.
    */
   bool Load(const std::string& url);
+
+  /**
+   * @brief Loads the animation file from data.
+   *
+   * @param[in] data The url of the vector animation file
+   * @return True if loading success, false otherwise.
+   */
+  bool Load(const Dali::Vector<uint8_t>& data);
 
   /**
    * @brief Finalizes the renderer. It will be called in the main thread.
@@ -189,6 +198,56 @@ public:
   void SetNodePosition(const std::string& nodeName, Vector2 position);
 
   /**
+   * @brief Inform current state machine that a pointing device coordinates are changed.
+   *
+   * @param[in] x, y The position of mouse or touch pointer
+   */
+  void PointerMove(float x, float y);
+
+  /**
+   * @brief Inform current state machine that a pointing device button is released.
+   *
+   * @param[in] x, y The position of mouse or touch pointer
+   */
+  void PointerDown(float x, float y);
+
+  /**
+   * @brief Inform current state machine that a pointing device button is pressed.
+   *
+   * @param[in] x, y The position of mouse or touch pointer
+   */
+  void PointerUp(float x, float y);
+
+  /**
+   * @brief Set input state on a number input.
+   *
+   * @param[in] stateMachineName Name of the stateMachine. Empty for default state machine.
+   * @param[in] inputName Name of the input.
+   * @param[in] value Number value
+   * @return True if success, false otherwise.
+   */
+  bool SetNumberState(const std::string& stateMachineName, const std::string& inputName, float value);
+
+  /**
+   * @brief Set input state on a boolean input.
+   *
+   * @param[in] stateMachineName Name of the stateMachine. Empty for default state machine.
+   * @param[in] inputName Name of the input.
+   * @param[in] value Boolean value
+   * @return True if success, false otherwise.
+   */
+  bool SetBooleanState(const std::string& stateMachineName, const std::string& inputName, bool value);
+
+  /**
+   * @brief Fire a trigger input.
+   *
+   * @param[in] stateMachineName Name of the stateMachine. Empty for default state machine.
+   * @param[in] inputName Name of the input.
+   * @return True if success, false otherwise.
+   */
+  bool FireState(const std::string& stateMachineName, const std::string& inputName);
+
+  /**
    * @brief Ignores a rendered frame which is not shown yet.
    */
   void IgnoreRenderedFrame();
@@ -201,31 +260,29 @@ public:
   UploadCompletedSignalType& UploadCompletedSignal();
 
 protected: // Implementation of RiveAnimationRendererEventHandler
-
   /**
    * @copydoc Dali::Plugin::RiveAnimationRendererEventHandler::NotifyEvent()
    */
   void NotifyEvent() override;
 
 private:
-
   /**
    * @brief Structure used to manage rive animations.
    */
   struct Animation
   {
   public:
-     Animation(rive::LinearAnimationInstance *animationInstance, const std::string& animationName, bool animationEnable)
-     : instance(animationInstance),
-       name(animationName),
-       enable(animationEnable),
-       elapsed(-1.0f)
-     {
-     }
-     std::unique_ptr<rive::LinearAnimationInstance> instance;
-     const std::string& name;
-     bool enable;
-     float elapsed;
+    Animation(rive::LinearAnimationInstance* animationInstance, const std::string& animationName, bool animationEnable)
+    : instance(animationInstance),
+      name(animationName),
+      enable(animationEnable),
+      elapsed(-1.0f)
+    {
+    }
+    std::unique_ptr<rive::LinearAnimationInstance> instance;
+    const std::string&                             name;
+    bool                                           enable;
+    float                                          elapsed;
   };
 
   /**
@@ -244,36 +301,39 @@ private:
   void LoadRiveFile(const std::string& filename);
 
   /**
+   * @brief Load rive resource data for artboard.
+   */
+  void LoadRiveData(const Dali::Vector<uint8_t>& data);
+
+  /**
    * @brief Clear Loaded Animations.
    */
   void ClearRiveAnimations();
 
 private:
-
-  std::string                            mUrl;                   ///< The content file path
-  mutable Dali::Mutex                    mMutex;                 ///< Mutex
-  Dali::Renderer                         mRenderer;              ///< Renderer
-  Dali::Texture                          mTexture;               ///< Texture
-  Dali::Texture                          mRenderedTexture;       ///< Rendered Texture
-  Dali::Texture                          mPreviousTexture;       ///< Previous rendered texture
-  NativeImageSourceQueuePtr              mTargetSurface;         ///< The target surface
-  UploadCompletedSignalType              mUploadCompletedSignal; ///< Upload completed signal
-  tbm_surface_queue_h                    mTbmQueue;              ///< Tbm surface queue handle
-  std::unique_ptr<tvg::SwCanvas>         mSwCanvas;              ///< ThorVG SW canvas handle
-  rive::File                             *mFile;                 ///< Rive file handle
-  rive::Artboard                         *mArtboard;             ///< Rive artboard handle
-  std::vector<Animation>                 mAnimations;            ///< Rive animations
-  rive::LinearAnimation                  *mAnimation;            ///< Rive animation handle
-  uint32_t                               mStartFrameNumber;      ///< The start frame number
-  uint32_t                               mTotalFrameNumber;      ///< The total frame number
-  uint32_t                               mWidth;                 ///< The width of the surface
-  uint32_t                               mHeight;                ///< The height of the surface
-  uint32_t                               mDefaultWidth;          ///< The width of the surface
-  uint32_t                               mDefaultHeight;         ///< The height of the surface
-  float                                  mFrameRate;             ///< The frame rate of the content
-  bool                                   mResourceReady;         ///< Whether the resource is ready
-  bool                                   mShaderChanged;         ///< Whether the shader is changed to support native image
-  bool                                   mResourceReadyTriggered;///< Whether the resource ready is triggered
+  std::string               mUrl;                    ///< The content file path
+  mutable Dali::Mutex       mMutex;                  ///< Mutex
+  Dali::Renderer            mRenderer;               ///< Renderer
+  Dali::Texture             mTexture;                ///< Texture
+  Dali::Texture             mRenderedTexture;        ///< Rendered Texture
+  Dali::Texture             mPreviousTexture;        ///< Previous rendered texture
+  NativeImageSourceQueuePtr mTargetSurface;          ///< The target surface
+  UploadCompletedSignalType mUploadCompletedSignal;  ///< Upload completed signal
+  tbm_surface_queue_h       mTbmQueue;               ///< Tbm surface queue handle
+  rive::Artboard*           mArtboard;               ///< Rive artboard handle
+  std::vector<Animation>    mAnimations;             ///< Rive animations
+  rive::LinearAnimation*    mAnimation;              ///< Rive animation handle
+  uint32_t                  mStartFrameNumber;       ///< The start frame number
+  uint32_t                  mTotalFrameNumber;       ///< The total frame number
+  uint32_t                  mWidth;                  ///< The width of the surface
+  uint32_t                  mHeight;                 ///< The height of the surface
+  uint32_t                  mDefaultWidth;           ///< The width of the surface
+  uint32_t                  mDefaultHeight;          ///< The height of the surface
+  float                     mFrameRate;              ///< The frame rate of the content
+  bool                      mResourceReady;          ///< Whether the resource is ready
+  bool                      mShaderChanged;          ///< Whether the shader is changed to support native image
+  bool                      mResourceReadyTriggered; ///< Whether the resource ready is triggered
+  RiveTizen*                mRiveTizenAdapter;       ///< Rive Tizen Adapter
 };
 
 } // namespace Internal

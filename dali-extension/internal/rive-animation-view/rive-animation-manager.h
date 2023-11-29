@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_MANAGER_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,10 +110,10 @@ private:
   static std::unique_ptr<RiveAnimationManager> mInstance;
   static std::once_flag                        mOnceFlag;
 
-  std::vector<CallbackBase*>           mEventCallbacks;
-  std::vector<LifecycleObserver*>      mLifecycleObservers;
-  std::unique_ptr<RiveAnimationThread> mRiveAnimationThread;
-  bool                                 mProcessorRegistered;
+  std::vector<std::unique_ptr<CallbackBase>> mEventCallbacks;
+  std::vector<LifecycleObserver*>            mLifecycleObservers;
+  std::unique_ptr<RiveAnimationThread>       mRiveAnimationThread;
+  bool                                       mProcessorRegistered;
 };
 
 } // namespace Internal

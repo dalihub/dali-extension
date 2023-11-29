@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.1.33
+Version:    2.3.0
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -33,6 +33,8 @@ Source0:    %{name}-%{version}.tar.gz
 %if %{undefined NO_WEB_FRAMEWORK}
 %define enable_web_engine_plugin 1
 %endif
+
+%define enable_color_controller 1
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig

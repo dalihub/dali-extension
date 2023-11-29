@@ -1,0 +1,7 @@
+SET( root_dir ${ROOT_SRC_DIR}/dali-extension/vector-animation-renderer )
+
+SET( SOURCES ${SOURCES}
+  ${root_dir}/vector-animation-renderer.cpp
+  ${root_dir}/vector-animation-renderer-x.cpp
+  ${root_dir}/vector-animation-plugin-manager.cpp
+)
