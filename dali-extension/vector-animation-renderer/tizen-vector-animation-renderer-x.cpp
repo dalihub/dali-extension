@@ -430,6 +430,10 @@ VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRe
   return mUploadCompletedSignal;
 }
 
+void TizenVectorAnimationRenderer::KeepRasterizedBuffer()
+{
+}
+
 void TizenVectorAnimationRenderer::NotifyEvent()
 {
   bool emitSignal = false;
