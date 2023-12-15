@@ -121,6 +121,11 @@ public:
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
 
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::KeepRasterizedBuffer()
+   */
+  void KeepRasterizedBuffer() override;
+
 protected: // Implementation of TizenVectorAnimationEventHandler
   /**
    * @copydoc Dali::Plugin::TizenVectorAnimationEventHandler::NotifyEvent()
