@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@
 #include <dali/devel-api/adaptor-framework/lifecycle-controller.h>
 #include <dali/integration-api/debug.h>
 
-#include <ewk_context.h>
-#include <ewk_context_internal.h>
 #include <ewk_main.h>
 
 #include <stdexcept>
@@ -57,11 +55,6 @@ WebEngineManager::WebEngineManager()
   ewk_init();
   mWindow = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
 
-  Ewk_Context* context = ewk_context_default_get();
-  mWebEngineContext.reset(new TizenWebEngineContext(context));
-
-  Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
-  mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
   Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
 
   DALI_LOG_RELEASE_INFO("#WebEngineManager is created fully.\n");
@@ -86,6 +79,14 @@ WebEngineManager::~WebEngineManager()
 Ecore_Evas* WebEngineManager::GetWindow()
 {
   return mWindow;
+}
+
+void WebEngineManager::SetContext(Ewk_Context* context)
+{
+  mWebEngineContext.reset(new TizenWebEngineContext(context));
+
+  Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
+  mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
 }
 
 Dali::WebEngineContext* WebEngineManager::GetContext()
