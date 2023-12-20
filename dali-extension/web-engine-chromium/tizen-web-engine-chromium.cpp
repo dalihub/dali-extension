@@ -971,15 +971,7 @@ Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* imag
 
   uint32_t bufferSize      = width * height * 4;
   uint8_t* convertedBuffer = new uint8_t[bufferSize];
-
-  // convert the color-space to rgba8888.
-  for(uint32_t i = 0; i < bufferSize; i += 4)
-  {
-    convertedBuffer[i]     = pixelBuffer[i + 1];
-    convertedBuffer[i + 1] = pixelBuffer[i + 2];
-    convertedBuffer[i + 2] = pixelBuffer[i + 3];
-    convertedBuffer[i + 3] = pixelBuffer[i];
-  }
+  std::memcpy(convertedBuffer, pixelBuffer, bufferSize);
 
   return Dali::PixelData::New(convertedBuffer, bufferSize, width, height, Dali::Pixel::Format::RGBA8888, Dali::PixelData::ReleaseFunction::DELETE_ARRAY);
 }
