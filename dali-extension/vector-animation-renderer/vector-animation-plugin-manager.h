@@ -19,10 +19,10 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/public-api/common/vector-wrapper.h>
-#include <dali/devel-api/threading/mutex.h>
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
+#include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/processor-interface.h>
+#include <dali/public-api/common/vector-wrapper.h>
 #include <memory>
 
 // INTERNAL INCLUDES
@@ -30,17 +30,14 @@
 
 namespace Dali
 {
-
 namespace Plugin
 {
-
 /**
  * @brief Tizen vector animation manager
  */
 class VectorAnimationPluginManager : public Integration::Processor
 {
 public:
-
   /**
    * @brief Create or retrieve VectorAnimationPluginManager singleton.
    *
@@ -53,36 +50,41 @@ public:
    *
    * @param handler The event handler to add.
    */
-  void AddEventHandler( VectorAnimationEventHandler& handler );
+  void AddEventHandler(VectorAnimationEventHandler& handler);
 
   /**
    * @brief Remove the event handler.
    *
    * @param handler The event handler to remove.
    */
-  void RemoveEventHandler( VectorAnimationEventHandler& handler );
+  void RemoveEventHandler(VectorAnimationEventHandler& handler);
 
   /**
    * @brief Trigger the event.
    */
-  void TriggerEvent( VectorAnimationEventHandler& handler );
+  void TriggerEvent(VectorAnimationEventHandler& handler);
 
 protected: // Implementation of Processor
-
   /**
    * @copydoc Dali::Integration::Processor::Process()
    */
   void Process(bool postProcessor) override;
 
-private:
+  /**
+   * @copydoc Dali::Integration::Processor::GetProcessorName()
+   */
+  std::string_view GetProcessorName() const override
+  {
+    return "VectorAnimationPluginManager";
+  }
 
+private:
   /**
    * @brief Event callback to process events.
    */
   void OnEventTriggered();
 
 private:
-
   /**
    * @brief Constructor.
    */
@@ -94,21 +96,20 @@ private:
   virtual ~VectorAnimationPluginManager();
 
   // Undefined
-  VectorAnimationPluginManager( const VectorAnimationPluginManager& ) = delete;
+  VectorAnimationPluginManager(const VectorAnimationPluginManager&) = delete;
 
   // Undefined
-  VectorAnimationPluginManager& operator=( const VectorAnimationPluginManager& ) = delete;
+  VectorAnimationPluginManager& operator=(const VectorAnimationPluginManager&) = delete;
 
 private:
-
-  std::vector< VectorAnimationEventHandler* > mEventHandlers;
-  std::vector< VectorAnimationEventHandler* > mTriggeredHandlers;
-  Dali::Mutex                                      mMutex;
-  std::unique_ptr< EventThreadCallback >           mEventTrigger;
+  std::vector<VectorAnimationEventHandler*> mEventHandlers;
+  std::vector<VectorAnimationEventHandler*> mTriggeredHandlers;
+  Dali::Mutex                               mMutex;
+  std::unique_ptr<EventThreadCallback>      mEventTrigger;
 };
 
 } // namespace Plugin
 
-} // namespace Dali;
+} // namespace Dali
 
 #endif // DALI_TIZEN_VECTOR_ANIMATION_MANAGER_H

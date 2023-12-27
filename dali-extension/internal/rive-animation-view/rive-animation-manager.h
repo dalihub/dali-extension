@@ -99,6 +99,14 @@ protected: // Implementation of Processor
    */
   void Process(bool postProcessor) override;
 
+  /**
+   * @copydoc Dali::Integration::Processor::GetProcessorName()
+   */
+  std::string_view GetProcessorName() const override
+  {
+    return "RiveAnimationManager";
+  }
+
 private:
   // Undefined
   RiveAnimationManager(const RiveAnimationManager& manager) = delete;
