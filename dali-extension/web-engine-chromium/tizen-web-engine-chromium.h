@@ -618,6 +618,7 @@ private:
   uint32_t                                  mHeight;
   std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
   std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
+  std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptInjectedCallbacks;
 
   // callback.
   WebEnginePageLoadCallback                mLoadStartedCallback;
@@ -650,7 +651,6 @@ private:
   GeolocationPermissionCallback            mGeolocationPermissionCallback;
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
   JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
-  JavaScriptMessageHandlerCallback         mJavaScriptInjectedCallback;
 };
 } // namespace Plugin
 } // namespace Dali

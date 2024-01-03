@@ -216,6 +216,8 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
 
 void TizenWebEngineChromium::Destroy()
 {
+  mJavaScriptInjectedCallbacks.clear();
+
   if(WebEngineManager::IsAvailable())
   {
     WebEngineManager::Get().Remove(mWebView);
@@ -395,7 +397,8 @@ void TizenWebEngineChromium::EvaluateJavaScript(const std::string& script, JavaS
 
 void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler)
 {
-  mJavaScriptInjectedCallback = handler;
+  mJavaScriptInjectedCallbacks.erase(exposedObjectName);
+  mJavaScriptInjectedCallbacks.insert(std::pair<std::string, JavaScriptMessageHandlerCallback>(exposedObjectName, handler));
   ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptInjected, exposedObjectName.c_str());
 }
 
@@ -1218,7 +1221,14 @@ void TizenWebEngineChromium::OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Mes
     {
       resultText = static_cast<char*>(message.body);
     }
-    ExecuteCallback(pThis->mJavaScriptInjectedCallback, resultText);
+
+    std::string key = static_cast<const char*>(message.name);
+    auto targetCallback = pThis->mJavaScriptInjectedCallbacks.find(key);
+
+    if (targetCallback != pThis->mJavaScriptInjectedCallbacks.end())
+    {
+      ExecuteCallback(targetCallback->second, resultText);
+    }
   }
 }
 
