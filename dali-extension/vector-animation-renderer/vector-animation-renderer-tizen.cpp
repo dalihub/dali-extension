@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,6 +173,9 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
       mBuffers.push_back(SurfacePair(tbmSurface, surface));
     }
 
+    // Render the frame
+    mVectorRenderer->renderSync(frameNumber, surface);
+
     if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()))
     {
       const uint32_t       bufferSize = mWidth * mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
@@ -181,9 +184,6 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
       mDecodedBuffers[frameNumber].second = true;
     }
   }
-
-  // Render the frame
-  mVectorRenderer->renderSync(frameNumber, surface);
 
   tbm_surface_unmap(tbmSurface);
 
