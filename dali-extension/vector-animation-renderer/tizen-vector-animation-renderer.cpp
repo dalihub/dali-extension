@@ -66,7 +66,7 @@ TizenVectorAnimationRenderer::TizenVectorAnimationRenderer()
   mRenderer(),
   mTexture(),
   mRenderedTexture(),
-  mPreviousTexture(),
+  mPreviousTextures(),
   mTargetSurface(),
   mVectorRenderer(),
   mUploadCompletedSignal(),
@@ -103,7 +103,7 @@ void TizenVectorAnimationRenderer::Finalize()
   mRenderer.Reset();
   mTexture.Reset();
   mRenderedTexture.Reset();
-  mPreviousTexture.Reset();
+  mPreviousTextures.clear();
   mVectorRenderer.reset();
 
   mTargetSurface = nullptr;
@@ -196,7 +196,7 @@ void TizenVectorAnimationRenderer::SetSize(uint32_t width, uint32_t height)
   mResourceReady = false;
 
   // Reset the previous texture to destroy it in the main thread
-  mPreviousTexture.Reset();
+  mPreviousTextures.clear();
 
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "width = %d, height = %d [%p]\n", mWidth, mHeight, this);
 }
@@ -325,7 +325,7 @@ bool TizenVectorAnimationRenderer::Render(uint32_t frameNumber)
 
   if(!mResourceReady)
   {
-    mPreviousTexture        = mRenderedTexture; // It is used to destroy the object in the main thread.
+    mPreviousTextures.push_back(mRenderedTexture); // It is used to destroy the object in the main thread.
     mRenderedTexture        = mTexture;
     mResourceReady          = true;
     mResourceReadyTriggered = true;
@@ -595,7 +595,7 @@ void TizenVectorAnimationRenderer::NotifyEvent()
     mUploadCompletedSignal.Emit();
   }
 
-  mPreviousTexture.Reset();
+  mPreviousTextures.clear();
 }
 
 void TizenVectorAnimationRenderer::SetShader()

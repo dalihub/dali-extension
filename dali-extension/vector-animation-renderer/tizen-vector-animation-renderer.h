@@ -153,7 +153,7 @@ private:
   Dali::Renderer                      mRenderer;               ///< Renderer
   Dali::Texture                       mTexture;                ///< Texture
   Dali::Texture                       mRenderedTexture;        ///< Rendered Texture
-  Dali::Texture                       mPreviousTexture;        ///< Previous rendered texture
+  std::vector<Dali::Texture>          mPreviousTextures;       ///< Previous rendered texture
   NativeImageSourceQueuePtr           mTargetSurface;          ///< The target surface
   std::unique_ptr<rlottie::Animation> mVectorRenderer;         ///< The vector animation renderer
   UploadCompletedSignalType           mUploadCompletedSignal;  ///< Upload completed signal
