@@ -108,10 +108,10 @@ private:
 
   std::vector<SurfacePair> mBuffers; ///< EGL Image vector
 
-  Dali::Texture             mRenderedTexture; ///< Rendered Texture
-  Dali::Texture             mPreviousTexture; ///< Previous rendered texture
-  NativeImageSourceQueuePtr mTargetSurface;   ///< The target surface
-  tbm_surface_queue_h       mTbmQueue;        ///< Tbm surface queue handle
+  Dali::Texture              mRenderedTexture;  ///< Rendered Texture
+  std::vector<Dali::Texture> mPreviousTextures; ///< Previous rendered texture
+  NativeImageSourceQueuePtr  mTargetSurface;    ///< The target surface
+  tbm_surface_queue_h        mTbmQueue;         ///< Tbm surface queue handle
 };
 
 } // namespace Plugin
