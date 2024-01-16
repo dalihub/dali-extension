@@ -455,6 +455,8 @@ void VectorAnimationRenderer::NotifyEvent()
       mResourceReadyTriggered = false;
       emitSignal              = true;
     }
+
+    OnNotify();
   }
   if(emitSignal)
   {

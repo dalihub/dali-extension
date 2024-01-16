@@ -154,6 +154,11 @@ protected:
   virtual void OnLottieRendered() = 0;
 
   /**
+   * @brief Notify event thread comes
+   */
+  virtual void OnNotify() = 0;
+
+  /**
    * @brief Prepare target
    */
   virtual void PrepareTarget() = 0;

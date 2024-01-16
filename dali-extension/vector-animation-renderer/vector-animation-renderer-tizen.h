@@ -84,6 +84,11 @@ private:
   {}
 
   /**
+   * @copydoc VectorAnimationRenderer::OnNotify()
+   */
+  void OnNotify() override;
+
+  /**
    * @copydoc VectorAnimationRenderer::PrepareTarget()
    */
   void PrepareTarget() override;
