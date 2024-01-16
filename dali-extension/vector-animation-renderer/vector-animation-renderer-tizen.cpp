@@ -287,6 +287,12 @@ void VectorAnimationRendererTizen::OnSetSize()
   mPreviousTextures.clear();
 }
 
+void VectorAnimationRendererTizen::OnNotify()
+{
+  // Reset the previous texture to destroy it in the main thread
+  mPreviousTextures.clear();
+}
+
 void VectorAnimationRendererTizen::PrepareTarget()
 {
   mTargetSurface = NativeImageSourceQueue::New(mWidth, mHeight, NativeImageSourceQueue::ColorFormat::RGBA8888);
