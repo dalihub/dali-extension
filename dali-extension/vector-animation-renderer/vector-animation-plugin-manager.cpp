@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <dali-extension/vector-animation-renderer/vector-animation-plugin-manager.h>
 
 // EXTERNAL INCLUDES
+#include <dali/devel-api/common/map-wrapper.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 
@@ -42,8 +43,10 @@ VectorAnimationPluginManager& VectorAnimationPluginManager::Get()
 VectorAnimationPluginManager::VectorAnimationPluginManager()
 : mEventHandlers(),
   mTriggeredHandlers(),
+  mTriggerOrderId(0u),
   mMutex(),
-  mEventTrigger()
+  mEventTrigger(),
+  mEventTriggered(false)
 {
 }
 
@@ -54,21 +57,22 @@ VectorAnimationPluginManager::~VectorAnimationPluginManager()
 
 void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& handler)
 {
-  if(mEventHandlers.end() == std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler))
+  if(mEventHandlers.end() == mEventHandlers.find(&handler))
   {
     if(mEventHandlers.empty())
     {
       Adaptor::Get().RegisterProcessor(*this);
     }
 
-    mEventHandlers.push_back(&handler);
+    mEventHandlers.insert(&handler);
 
     {
       Dali::Mutex::ScopedLock lock(mMutex);
 
       if(!mEventTrigger)
       {
-        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
+        mEventTrigger   = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
+        mEventTriggered = false;
       }
     }
   }
@@ -76,7 +80,7 @@ void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& 
 
 void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandler& handler)
 {
-  auto iter = std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler);
+  auto iter = mEventHandlers.find(&handler);
   if(iter != mEventHandlers.end())
   {
     mEventHandlers.erase(iter);
@@ -97,7 +101,7 @@ void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandle
   {
     Dali::Mutex::ScopedLock lock(mMutex);
 
-    auto triggeredHandler = std::find(mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler);
+    auto triggeredHandler = mTriggeredHandlers.find(&handler);
     if(triggeredHandler != mTriggeredHandlers.end())
     {
       mTriggeredHandlers.erase(triggeredHandler);
@@ -106,6 +110,7 @@ void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandle
     if(releaseEventTrigger)
     {
       mEventTrigger.reset();
+      mEventTriggered = false;
     }
   }
 }
@@ -114,13 +119,14 @@ void VectorAnimationPluginManager::TriggerEvent(VectorAnimationEventHandler& han
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
-  if(mTriggeredHandlers.end() == std::find(mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler))
+  if(mTriggeredHandlers.end() == mTriggeredHandlers.find(&handler))
   {
-    mTriggeredHandlers.push_back(&handler);
+    mTriggeredHandlers.insert({&handler, mTriggerOrderId++});
 
-    if(mEventTrigger)
+    if(mEventTrigger && !mEventTriggered)
     {
       mEventTrigger->Trigger();
+      mEventTriggered = true;
     }
   }
 }
@@ -133,23 +139,37 @@ void VectorAnimationPluginManager::Process(bool postProcessor)
 // This function is called in the main thread.
 void VectorAnimationPluginManager::OnEventTriggered()
 {
-  std::vector<VectorAnimationEventHandler*> handlers;
+  std::map<uint32_t, VectorAnimationEventHandler*> handlers;
+
+  decltype(mTriggeredHandlers) movedTriggeredHandlers;
 
   {
     Dali::Mutex::ScopedLock lock(mMutex);
 
     // Copy the list to the local variable and clear
-    handlers = mTriggeredHandlers;
+    movedTriggeredHandlers = std::move(mTriggeredHandlers);
     mTriggeredHandlers.clear();
+    mTriggeredHandlers.rehash(0u);
+
+    mTriggerOrderId = 0u;
+    mEventTriggered = false;
   }
+
+  // Reorder event handler ordered by trigger request.
+  for(auto&& iter : movedTriggeredHandlers)
+  {
+    handlers[iter.second] = iter.first;
+  }
+  movedTriggeredHandlers.clear();
 
   for(auto&& iter : handlers)
   {
+    auto* handler = iter.second;
+
     // Check if it is valid
-    auto handler = std::find(mEventHandlers.begin(), mEventHandlers.end(), iter);
-    if(handler != mEventHandlers.end())
+    if(mEventHandlers.end() != mEventHandlers.find(handler))
     {
-      iter->NotifyEvent();
+      handler->NotifyEvent();
     }
   }
 }
