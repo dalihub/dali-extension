@@ -27,6 +27,7 @@
 #include <dali/public-api/animation/constraints.h>
 #include <player.h>
 #include <string>
+#include <list>
 
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
@@ -237,6 +238,13 @@ public:
   Any GetVideoPlayerSurface();
 
 private:
+
+  /**
+   * @brief
+   *
+   */
+  void FrameCallback(int32_t frameId);
+
   /**
    * @brief Updates video frame image by timer if rendering targe is native image source
    */
@@ -295,8 +303,9 @@ private:
   Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
   RenderingTargetType        mTargetType;           ///< Current rendering target type
 
-  Dali::Mutex                  mPacketMutex;
-  Dali::Vector<media_packet_h> mPacketVector; ///< Container for media packet handle from Tizen player callback
+  Dali::Mutex                mPacketMutex;
+  std::list<media_packet_h>  mPacketList;           ///< Container for media packet handle from Tizen player callback
+  std::list<media_packet_h>  mDeletePacketList;     ///< Container for media packet handle from Tizen player callback
 
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
@@ -311,6 +320,7 @@ private:
   Dali::VideoSyncMode   mSyncMode;
 
   bool mIsInitForSyncMode; ///< the flag for synchronization with video player
+  int32_t mFrameId;
 
 public:
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
