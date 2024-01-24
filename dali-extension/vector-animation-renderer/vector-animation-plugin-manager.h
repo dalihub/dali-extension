@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_PLUGIN_MANAGER_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@
 #include <dali/integration-api/processor-interface.h>
 #include <dali/public-api/common/vector-wrapper.h>
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 // INTERNAL INCLUDES
 #include <dali-extension/vector-animation-renderer/vector-animation-event-handler.h>
@@ -102,10 +104,13 @@ private:
   VectorAnimationPluginManager& operator=(const VectorAnimationPluginManager&) = delete;
 
 private:
-  std::vector<VectorAnimationEventHandler*> mEventHandlers;
-  std::vector<VectorAnimationEventHandler*> mTriggeredHandlers;
-  Dali::Mutex                               mMutex;
-  std::unique_ptr<EventThreadCallback>      mEventTrigger;
+  std::unordered_set<VectorAnimationEventHandler*>           mEventHandlers;
+  std::unordered_map<VectorAnimationEventHandler*, uint32_t> mTriggeredHandlers; ///< first : trigger handler, second : trigger order.
+  uint32_t                                                   mTriggerOrderId;    ///< Be used when we need to determine the order of trigger handler.
+
+  Dali::Mutex                          mMutex;
+  std::unique_ptr<EventThreadCallback> mEventTrigger;
+  bool                                 mEventTriggered : 1;
 };
 
 } // namespace Plugin

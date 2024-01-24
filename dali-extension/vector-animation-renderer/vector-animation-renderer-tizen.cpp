@@ -52,7 +52,7 @@ Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, 
 VectorAnimationRendererTizen::VectorAnimationRendererTizen()
 : mBuffers(),
   mRenderedTexture(),
-  mPreviousTexture(),
+  mPreviousTextures(),
   mTargetSurface(),
   mTbmQueue(NULL)
 {
@@ -191,7 +191,8 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
   if(!mResourceReady)
   {
-    mPreviousTexture        = mRenderedTexture; // It is used to destroy the object in the main thread.
+    mPreviousTextures.push_back(mRenderedTexture); // It is used to destroy the object in the main thread.
+
     mRenderedTexture        = mTexture;
     mResourceReady          = true;
     mResourceReadyTriggered = true;
@@ -272,7 +273,7 @@ void VectorAnimationRendererTizen::ResetBuffers()
 void VectorAnimationRendererTizen::OnFinalize()
 {
   mRenderedTexture.Reset();
-  mPreviousTexture.Reset();
+  mPreviousTextures.clear();
 
   mTargetSurface = nullptr;
   mTbmQueue      = NULL;
@@ -283,7 +284,13 @@ void VectorAnimationRendererTizen::OnSetSize()
   mTbmQueue = AnyCast<tbm_surface_queue_h>(mTargetSurface->GetNativeImageSourceQueue());
 
   // Reset the previous texture to destroy it in the main thread
-  mPreviousTexture.Reset();
+  mPreviousTextures.clear();
+}
+
+void VectorAnimationRendererTizen::OnNotify()
+{
+  // Reset the previous texture to destroy it in the main thread
+  mPreviousTextures.clear();
 }
 
 void VectorAnimationRendererTizen::PrepareTarget()
