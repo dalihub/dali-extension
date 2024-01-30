@@ -315,7 +315,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
   mTargetType(NATIVE_IMAGE),
   mPacketMutex(),
-  mPacketVector(),
+  mPacketList(),
   mStreamInfo(NULL),
   mStreamType(SOUND_STREAM_TYPE_MEDIA),
   mCodecType(PLAYER_VIDEO_CODEC_TYPE_EX_DEFAULT),
@@ -1028,10 +1028,10 @@ bool TizenVideoPlayer::Update()
     mPacket = NULL;
   }
 
-  if(!mPacketVector.Empty())
+  if(!mPacketList.empty())
   {
-    mPacket = static_cast<media_packet_h>(mPacketVector[0]);
-    mPacketVector.Remove(mPacketVector.Begin());
+    mPacket = static_cast< media_packet_h >( mPacketList.front() );
+    mPacketList.pop_front();
   }
 
   if(mPacket == NULL)
@@ -1065,20 +1065,21 @@ void TizenVideoPlayer::DestroyPackets()
     mPacket = NULL;
   }
 
-  for(unsigned int i = 0; i < mPacketVector.Size(); ++i)
+  std::list<media_packet_h>::iterator iter = mPacketList.begin();
+  for (; iter != mPacketList.end(); ++iter)
   {
-    mPacket = static_cast<media_packet_h>(mPacketVector[i]);
-    error   = media_packet_destroy(mPacket);
-    DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
+    mPacket = *iter;
+    error = media_packet_destroy( mPacket );
+    DALI_LOG_ERROR( "Media packet destroy error: %d\n", error );
     mPacket = NULL;
   }
-  mPacketVector.Clear();
+  mPacketList.clear();
 }
 
 void TizenVideoPlayer::PushPacket(media_packet_h packet)
 {
   Dali::Mutex::ScopedLock lock(mPacketMutex);
-  mPacketVector.PushBack(packet);
+  mPacketList.push_back(packet);
 }
 
 void TizenVideoPlayer::SetDisplayArea(DisplayArea area)
