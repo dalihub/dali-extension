@@ -55,7 +55,7 @@ WebEngineManager::WebEngineManager()
 
   elm_init(0, 0);
   ewk_init();
-  mWindow = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  mWindow = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
 
   Ewk_Context* context = ewk_context_default_get();
   mWebEngineContext.reset(new TizenWebEngineContext(context));
