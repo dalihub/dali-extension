@@ -129,11 +129,6 @@ protected: // Implementation of VectorAnimationEventHandler
 
 protected:
   /**
-   * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
-   */
-  virtual void SetShader() = 0;
-
-  /**
    * @brief Reset buffer list.
    */
   virtual void ResetBuffers() = 0;
@@ -142,11 +137,6 @@ protected:
    * @brief Reset properties
    */
   virtual void OnFinalize() = 0;
-
-  /**
-   * @brief Apply the changes of Size
-   */
-  virtual void OnSetSize() = 0;
 
   /**
    * @brief Event callback to process events.
@@ -161,7 +151,17 @@ protected:
   /**
    * @brief Prepare target
    */
-  virtual void PrepareTarget() = 0;
+  virtual void PrepareTarget(uint32_t updatedDataIndex) = 0;
+
+  /**
+   * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
+   */
+  virtual void SetShader(uint32_t updatedDataIndex) = 0;
+
+  /**
+   * @brief Apply the changes of Size
+   */
+  virtual void OnSetSize(uint32_t updatedDataIndex) = 0;
 
   /**
    * @brief Retrieve whether the target is prepared or not.
@@ -178,19 +178,36 @@ protected:
    */
   virtual Dali::Texture GetTargetTexture() = 0;
 
+  void SetRenderingDataUpdated(bool renderingDataUpdated);
+
+  bool IsRenderingDataUpdated() const
+  {
+    return mIsRenderingDataUpdated;
+  }
+
+  class RenderingData
+  {
+  public:
+    Dali::Texture mTexture;   ///< Texture
+    uint32_t      mWidth{0};  ///< The width of the surface
+    uint32_t      mHeight{0}; ///< The height of the surface
+  };
+
 protected:
   std::string                                        mUrl;               ///< The content file path
   std::vector<std::unique_ptr<CallbackBase>>         mPropertyCallbacks; ///< Property callback list
   std::vector<std::pair<std::vector<uint8_t>, bool>> mDecodedBuffers;
 
+  bool                                mIsRenderingDataUpdated{false};
+  bool                                mIsDataActivated{false};
+  uint32_t                            mCurrentDataIndex{0};
+  std::shared_ptr<RenderingData>      mRenderingData[2];
   mutable Dali::Mutex                 mMutex;                  ///< Mutex
+  mutable Dali::Mutex                 mRenderingDataMutex;     ///< Mutex
   Dali::Renderer                      mRenderer;               ///< Renderer
-  Dali::Texture                       mTexture;                ///< Texture
   std::unique_ptr<rlottie::Animation> mVectorRenderer;         ///< The vector animation renderer
   UploadCompletedSignalType           mUploadCompletedSignal;  ///< Upload completed signal
   uint32_t                            mTotalFrameNumber;       ///< The total frame number
-  uint32_t                            mWidth;                  ///< The width of the surface
-  uint32_t                            mHeight;                 ///< The height of the surface
   uint32_t                            mDefaultWidth;           ///< The width of the surface
   uint32_t                            mDefaultHeight;          ///< The height of the surface
   float                               mFrameRate;              ///< The frame rate of the content

@@ -35,6 +35,8 @@ namespace Plugin
  */
 class VectorAnimationRendererTizen : public VectorAnimationRenderer
 {
+  class RenderingDataImpl;
+
 public:
   /**
    * @brief Constructor.
@@ -58,11 +60,6 @@ public:
 
 private:
   /**
-   * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
-   */
-  void SetShader() override;
-
-  /**
    * @brief Reset buffer list.
    */
   void ResetBuffers() override;
@@ -73,15 +70,11 @@ private:
   void OnFinalize() override;
 
   /**
-   * @copydoc VectorAnimationRenderer::OnSetSize()
-   */
-  void OnSetSize() override;
-
-  /**
    * @brief Event callback to process events.
    */
   void OnLottieRendered() override
-  {}
+  {
+  }
 
   /**
    * @copydoc VectorAnimationRenderer::OnNotify()
@@ -91,7 +84,17 @@ private:
   /**
    * @copydoc VectorAnimationRenderer::PrepareTarget()
    */
-  void PrepareTarget() override;
+  void PrepareTarget(uint32_t updatedDataIndex) override;
+
+  /**
+   * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
+   */
+  void SetShader(uint32_t updatedDataIndex) override;
+
+  /**
+   * @copydoc VectorAnimationRenderer::OnSetSize()
+   */
+  void OnSetSize(uint32_t updatedDataIndex) override;
 
   /**
    * @copydoc VectorAnimationRenderer::IsTargetPrepared()
@@ -113,10 +116,10 @@ private:
 
   std::vector<SurfacePair> mBuffers; ///< EGL Image vector
 
-  Dali::Texture              mRenderedTexture;  ///< Rendered Texture
-  std::vector<Dali::Texture> mPreviousTextures; ///< Previous rendered texture
-  NativeImageSourceQueuePtr  mTargetSurface;    ///< The target surface
-  tbm_surface_queue_h        mTbmQueue;         ///< Tbm surface queue handle
+  std::shared_ptr<RenderingDataImpl> mRenderingDataImpl[2];
+  std::shared_ptr<RenderingDataImpl> mCurrentRenderingData;
+  Dali::Texture                      mRenderedTexture;  ///< Rendered Texture
+  std::vector<Dali::Texture>         mPreviousTextures; ///< Previous rendered texture
 };
 
 } // namespace Plugin
