@@ -32,6 +32,7 @@
 
 #include <Ecore_Evas.h>
 #include <Ecore_Wl2.h>
+#include <Ecore_Input_Evas.h>
 
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
@@ -645,18 +646,30 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
   {
     Evas_Event_Key_Down downEvent;
     memset(&downEvent, 0, sizeof(Evas_Event_Key_Down));
-    downEvent.key    = keyEvent.GetKeyName().c_str();
+    downEvent.key = keyEvent.GetKeyName().c_str();
     downEvent.string = keyEvent.GetKeyString().c_str();
-    evasKeyEvent     = static_cast<void*>(&downEvent);
+    downEvent.keycode = keyEvent.GetKeyCode();
+    Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
+    ecore_event_evas_modifier_lock_update(evas, (unsigned int)keyEvent.GetKeyModifier());
+    downEvent.modifiers = const_cast<Evas_Modifier*>(evas_key_modifier_get(evas));
+    downEvent.locks = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
+
+    evasKeyEvent = static_cast<void*>(&downEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, true);
   }
   else
   {
     Evas_Event_Key_Up upEvent;
     memset(&upEvent, 0, sizeof(Evas_Event_Key_Up));
-    upEvent.key    = keyEvent.GetKeyName().c_str();
+    upEvent.key = keyEvent.GetKeyName().c_str();
     upEvent.string = keyEvent.GetKeyString().c_str();
-    evasKeyEvent   = static_cast<void*>(&upEvent);
+    upEvent.keycode = keyEvent.GetKeyCode();
+    Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
+    ecore_event_evas_modifier_lock_update(evas, (unsigned int)keyEvent.GetKeyModifier());
+    upEvent.modifiers = const_cast<Evas_Modifier*>(evas_key_modifier_get(evas));
+    upEvent.locks = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
+
+    evasKeyEvent = static_cast<void*>(&upEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, false);
   }
   return false;
