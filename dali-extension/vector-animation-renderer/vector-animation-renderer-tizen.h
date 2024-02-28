@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_RENDERER_TIZEN_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,13 +70,6 @@ private:
   void OnFinalize() override;
 
   /**
-   * @brief Event callback to process events.
-   */
-  void OnLottieRendered() override
-  {
-  }
-
-  /**
    * @copydoc VectorAnimationRenderer::OnNotify()
    */
   void OnNotify() override;
@@ -121,8 +114,8 @@ private:
 
   std::vector<SurfacePair> mBuffers; ///< EGL Image vector
 
-  Dali::Texture                      mRenderedTexture;  ///< Rendered Texture
-  std::vector<Dali::Texture>         mPreviousTextures; ///< Previous rendered texture
+  Dali::Texture              mRenderedTexture;  ///< Rendered Texture
+  std::vector<Dali::Texture> mPreviousTextures; ///< Previous rendered texture
 };
 
 } // namespace Plugin
