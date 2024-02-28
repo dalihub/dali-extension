@@ -84,17 +84,17 @@ private:
   /**
    * @copydoc VectorAnimationRenderer::PrepareTarget()
    */
-  void PrepareTarget(uint32_t updatedDataIndex) override;
+  void PrepareTarget(std::shared_ptr<RenderingData> renderingData) override;
 
   /**
    * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
    */
-  void SetShader(uint32_t updatedDataIndex) override;
+  void SetShader(std::shared_ptr<RenderingData> renderingData) override;
 
   /**
    * @copydoc VectorAnimationRenderer::OnSetSize()
    */
-  void OnSetSize(uint32_t updatedDataIndex) override;
+  void OnSetSize(std::shared_ptr<RenderingData> renderingData) override;
 
   /**
    * @copydoc VectorAnimationRenderer::IsTargetPrepared()
@@ -111,13 +111,16 @@ private:
    */
   Dali::Texture GetTargetTexture() override;
 
+  /**
+   * @copydoc VectorAnimationRenderer::CreateRenderingData()
+   */
+  std::shared_ptr<RenderingData> CreateRenderingData() override;
+
 private:
   using SurfacePair = std::pair<tbm_surface_h, rlottie::Surface>;
 
   std::vector<SurfacePair> mBuffers; ///< EGL Image vector
 
-  std::shared_ptr<RenderingDataImpl> mRenderingDataImpl[2];
-  std::shared_ptr<RenderingDataImpl> mCurrentRenderingData;
   Dali::Texture                      mRenderedTexture;  ///< Rendered Texture
   std::vector<Dali::Texture>         mPreviousTextures; ///< Previous rendered texture
 };

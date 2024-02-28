@@ -56,10 +56,6 @@ public:
 VectorAnimationRendererX::VectorAnimationRendererX()
 : mRenderCallback(std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationRendererX::OnLottieRendered))))
 {
-  mRenderingDataImpl[0] = std::make_shared<RenderingDataImpl>();
-  mRenderingDataImpl[1] = std::make_shared<RenderingDataImpl>();
-  mRenderingData[0] = mRenderingDataImpl[0];
-  mRenderingData[1] = mRenderingDataImpl[1];
 }
 
 VectorAnimationRendererX::~VectorAnimationRendererX()
@@ -72,23 +68,31 @@ VectorAnimationRendererX::~VectorAnimationRendererX()
 
 bool VectorAnimationRendererX::Render(uint32_t frameNumber)
 {
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    mCurrentRenderingData = mRenderingDataImpl[mCurrentDataIndex];
-    if(IsRenderingDataUpdated())
+    if(mPreparedRenderingData)
     {
+      mPreviousRenderingData.push_back(mCurrentRenderingData);
+      mCurrentRenderingData = mPreparedRenderingData;
+      mPreparedRenderingData.reset();
       mResourceReady = false;
-      mIsDataActivated = true;
     }
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
   }
 
-  Dali::Mutex::ScopedLock lock(mMutex);
-  if(!mVectorRenderer || !mCurrentRenderingData->mPixelBuffer)
+  if(!renderingDataImpl)
   {
     return false;
   }
 
-  mVectorRenderer->renderSync(frameNumber, mCurrentRenderingData->mLottieSurface);
+  Dali::Mutex::ScopedLock lock(mMutex);
+  if(!mVectorRenderer || !renderingDataImpl->mPixelBuffer)
+  {
+    return false;
+  }
+
+  mVectorRenderer->renderSync(frameNumber, renderingDataImpl->mLottieSurface);
   mRenderCallback->Trigger();
 
   if(!mResourceReady)
@@ -106,55 +110,57 @@ void VectorAnimationRendererX::RenderStopped()
 {
 }
 
+// This Method is called inside mMutex
 void VectorAnimationRendererX::ResetBuffers()
 {
-  for(auto&& renderingData : mRenderingDataImpl)
-  {
-    if(renderingData->mPixelBuffer)
-    {
-      uint32_t bufferSize = renderingData->mPixelBuffer.GetWidth() * renderingData->mPixelBuffer.GetHeight() * Dali::Pixel::GetBytesPerPixel(renderingData->mPixelBuffer.GetPixelFormat());
-      memset(renderingData->mPixelBuffer.GetBuffer(), 0, bufferSize);
-    }
-  }
 }
 
+// This Method is called inside mRenderingDataMutex
 void VectorAnimationRendererX::OnFinalize()
 {
 }
 
 void VectorAnimationRendererX::OnLottieRendered()
 {
-  Dali::Mutex::ScopedLock lock(mMutex);
-
-  if(mCurrentRenderingData->mPixelBuffer && mCurrentRenderingData->mTexture)
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
-    PixelData pixelData = mCurrentRenderingData->mPixelBuffer.CreatePixelData();
-    mCurrentRenderingData->mTexture.Upload(pixelData);
+    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+  }
+
+  Dali::Mutex::ScopedLock lock(mMutex);
+  if(renderingDataImpl && renderingDataImpl->mPixelBuffer && renderingDataImpl->mTexture)
+  {
+    PixelData pixelData = renderingDataImpl->mPixelBuffer.CreatePixelData();
+    renderingDataImpl->mTexture.Upload(pixelData);
   }
 }
 
+// This Method is called inside mMutex
 void VectorAnimationRendererX::OnNotify()
 {
-  // If RenderingData is updated, then clear previous renderingData
-  if(IsRenderingDataUpdated())
+}
+
+// This Method is called inside mRenderingDataMutex
+void VectorAnimationRendererX::PrepareTarget(std::shared_ptr<RenderingData> renderingData)
+{
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
+  renderingDataImpl->mTexture = Texture::New(Dali::TextureType::TEXTURE_2D, Dali::Pixel::BGRA8888, renderingDataImpl->mWidth, renderingDataImpl->mHeight);
+  renderingDataImpl->mPixelBuffer   = Dali::Devel::PixelBuffer::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, Dali::Pixel::BGRA8888);
+  renderingDataImpl->mLottieSurface = rlottie::Surface(reinterpret_cast<uint32_t*>(renderingDataImpl->mPixelBuffer.GetBuffer()), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(renderingDataImpl->mPixelBuffer.GetStride() * 4));
+}
+
+// This Method is called inside mRenderingDataMutex
+void VectorAnimationRendererX::SetShader(std::shared_ptr<RenderingData> renderingData)
+{
+  if(!renderingData)
   {
-    std::shared_ptr<RenderingDataImpl> oldRenderingData = mRenderingDataImpl[1u - mCurrentDataIndex];
-    SetRenderingDataUpdated(false);
+    DALI_LOG_ERROR("Target Surface is not yet prepared.\n");
+    return;
   }
-}
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
 
-void VectorAnimationRendererX::PrepareTarget(uint32_t updatedDataIndex)
-{
-  mRenderingDataImpl[updatedDataIndex]->mTexture = Texture::New(Dali::TextureType::TEXTURE_2D, Dali::Pixel::BGRA8888, mRenderingDataImpl[updatedDataIndex]->mWidth, mRenderingDataImpl[updatedDataIndex]->mHeight);
-
-  mRenderingDataImpl[updatedDataIndex]->mPixelBuffer   = Dali::Devel::PixelBuffer::New(mRenderingDataImpl[updatedDataIndex]->mWidth, mRenderingDataImpl[updatedDataIndex]->mHeight, Dali::Pixel::BGRA8888);
-  mRenderingDataImpl[updatedDataIndex]->mLottieSurface = rlottie::Surface(reinterpret_cast<uint32_t*>(mRenderingDataImpl[updatedDataIndex]->mPixelBuffer.GetBuffer()), mRenderingDataImpl[updatedDataIndex]->mWidth, mRenderingDataImpl[updatedDataIndex]->mHeight, static_cast<size_t>(mRenderingDataImpl[updatedDataIndex]->mPixelBuffer.GetStride() * 4));
-}
-
-void VectorAnimationRendererX::SetShader(uint32_t updatedDataIndex)
-{
-  std::shared_ptr<RenderingDataImpl> renderingData = mRenderingDataImpl[updatedDataIndex];
-  if(mShaderChanged || !renderingData->mTexture)
+  if(mShaderChanged || !renderingDataImpl->mTexture)
   {
     return;
   }
@@ -166,17 +172,40 @@ void VectorAnimationRendererX::SetShader(uint32_t updatedDataIndex)
 
 bool VectorAnimationRendererX::IsTargetPrepared()
 {
-  return (mCurrentRenderingData) ? !!mCurrentRenderingData->mPixelBuffer : false;
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
+  {
+    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mPreparedRenderingData ? mPreparedRenderingData : mCurrentRenderingData);
+  }
+  return (renderingDataImpl) ? !!renderingDataImpl->mPixelBuffer : false;
 }
 
+// This Method is called inside mMutex
 bool VectorAnimationRendererX::IsRenderReady()
 {
-  return mResourceReady && ((mCurrentRenderingData) ? !!mCurrentRenderingData->mTexture : false);
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
+  {
+    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+  }
+  return mResourceReady && ((renderingDataImpl) ? !!renderingDataImpl->mTexture : false);
 }
 
+// This Method is called inside mMutex
 Dali::Texture VectorAnimationRendererX::GetTargetTexture()
 {
-  return (mCurrentRenderingData) ? mCurrentRenderingData->mTexture : Texture();
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
+  {
+    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+  }
+  return (renderingDataImpl) ? renderingDataImpl->mTexture : Texture();
+}
+
+// This Method is called inside mRenderingDataMutex
+std::shared_ptr<VectorAnimationRenderer::RenderingData> VectorAnimationRendererX::CreateRenderingData()
+{
+  return std::make_shared<RenderingDataImpl>();
 }
 
 } // namespace Plugin
