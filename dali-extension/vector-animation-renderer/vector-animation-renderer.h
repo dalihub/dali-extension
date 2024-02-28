@@ -128,6 +128,15 @@ protected: // Implementation of VectorAnimationEventHandler
   void NotifyEvent() override;
 
 protected:
+
+  class RenderingData
+  {
+  public:
+    Dali::Texture mTexture;   ///< Texture
+    uint32_t      mWidth{0};  ///< The width of the surface
+    uint32_t      mHeight{0}; ///< The height of the surface
+  };
+
   /**
    * @brief Reset buffer list.
    */
@@ -151,17 +160,17 @@ protected:
   /**
    * @brief Prepare target
    */
-  virtual void PrepareTarget(uint32_t updatedDataIndex) = 0;
+  virtual void PrepareTarget(std::shared_ptr<RenderingData> renderingData) = 0;
 
   /**
    * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
    */
-  virtual void SetShader(uint32_t updatedDataIndex) = 0;
+  virtual void SetShader(std::shared_ptr<RenderingData> renderingData) = 0;
 
   /**
    * @brief Apply the changes of Size
    */
-  virtual void OnSetSize(uint32_t updatedDataIndex) = 0;
+  virtual void OnSetSize(std::shared_ptr<RenderingData> renderingData) = 0;
 
   /**
    * @brief Retrieve whether the target is prepared or not.
@@ -178,30 +187,25 @@ protected:
    */
   virtual Dali::Texture GetTargetTexture() = 0;
 
-  void SetRenderingDataUpdated(bool renderingDataUpdated);
+  /**
+   * @brief Clear Previous RenderingData
+   */
+  void ClearPreviousRenderingData();
 
-  bool IsRenderingDataUpdated() const
-  {
-    return mIsRenderingDataUpdated;
-  }
-
-  class RenderingData
-  {
-  public:
-    Dali::Texture mTexture;   ///< Texture
-    uint32_t      mWidth{0};  ///< The width of the surface
-    uint32_t      mHeight{0}; ///< The height of the surface
-  };
+  /**
+   * @brief Create RenderingData
+   */
+  virtual std::shared_ptr<RenderingData> CreateRenderingData() = 0;
 
 protected:
   std::string                                        mUrl;               ///< The content file path
   std::vector<std::unique_ptr<CallbackBase>>         mPropertyCallbacks; ///< Property callback list
   std::vector<std::pair<std::vector<uint8_t>, bool>> mDecodedBuffers;
 
-  bool                                mIsRenderingDataUpdated{false};
-  bool                                mIsDataActivated{false};
-  uint32_t                            mCurrentDataIndex{0};
-  std::shared_ptr<RenderingData>      mRenderingData[2];
+  std::shared_ptr<RenderingData>              mPreparedRenderingData;
+  std::shared_ptr<RenderingData>              mCurrentRenderingData;
+  std::vector<std::shared_ptr<RenderingData>> mPreviousRenderingData;
+
   mutable Dali::Mutex                 mMutex;                  ///< Mutex
   mutable Dali::Mutex                 mRenderingDataMutex;     ///< Mutex
   Dali::Renderer                      mRenderer;               ///< Renderer

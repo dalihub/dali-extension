@@ -61,10 +61,6 @@ VectorAnimationRendererTizen::VectorAnimationRendererTizen()
   mRenderedTexture(),
   mPreviousTextures()
 {
-  mRenderingDataImpl[0] = std::make_shared<RenderingDataImpl>();
-  mRenderingDataImpl[1] = std::make_shared<RenderingDataImpl>();
-  mRenderingData[0]     = mRenderingDataImpl[0];
-  mRenderingData[1]     = mRenderingDataImpl[1];
 }
 
 VectorAnimationRendererTizen::~VectorAnimationRendererTizen()
@@ -78,14 +74,22 @@ VectorAnimationRendererTizen::~VectorAnimationRendererTizen()
 // Called by VectorAnimationTaskThread
 bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 {
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    mCurrentRenderingData = mRenderingDataImpl[mCurrentDataIndex];
-    if(IsRenderingDataUpdated())
+    if(mPreparedRenderingData)
     {
+      mPreviousRenderingData.push_back(mCurrentRenderingData);
+      mCurrentRenderingData = mPreparedRenderingData;
+      mPreparedRenderingData.reset();
       mResourceReady = false;
-      mIsDataActivated = true;
     }
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+  }
+
+  if(!renderingDataImpl)
+  {
+    return false;
   }
 
   Dali::Mutex::ScopedLock lock(mMutex);
@@ -98,19 +102,19 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
     }
   }
 
-  if(!mCurrentRenderingData->mTbmQueue || !mVectorRenderer || !mCurrentRenderingData->mTargetSurface)
+  if(!renderingDataImpl->mTbmQueue || !mVectorRenderer || !renderingDataImpl->mTargetSurface)
   {
     return false;
   }
 
-  int canDequeue = tbm_surface_queue_can_dequeue(mCurrentRenderingData->mTbmQueue, 0);
+  int canDequeue = tbm_surface_queue_can_dequeue(renderingDataImpl->mTbmQueue, 0);
   if(!canDequeue)
   {
     // Ignore the previous image which is inserted to the queue.
-    mCurrentRenderingData->mTargetSurface->IgnoreSourceImage();
+    renderingDataImpl->mTargetSurface->IgnoreSourceImage();
 
     // Check again
-    canDequeue = tbm_surface_queue_can_dequeue(mCurrentRenderingData->mTbmQueue, 0);
+    canDequeue = tbm_surface_queue_can_dequeue(renderingDataImpl->mTbmQueue, 0);
     if(!canDequeue)
     {
       return false;
@@ -119,7 +123,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
   tbm_surface_h tbmSurface;
 
-  if(tbm_surface_queue_dequeue(mCurrentRenderingData->mTbmQueue, &tbmSurface) != TBM_SURFACE_QUEUE_ERROR_NONE)
+  if(tbm_surface_queue_dequeue(renderingDataImpl->mTbmQueue, &tbmSurface) != TBM_SURFACE_QUEUE_ERROR_NONE)
   {
     DALI_LOG_ERROR("Failed to dequeue a tbm_surface [%p]\n", this);
     return false;
@@ -139,16 +143,16 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
   if(ret != TBM_SURFACE_ERROR_NONE)
   {
     DALI_LOG_ERROR("VectorAnimationRendererTizen::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this);
-    tbm_surface_queue_cancel_dequeue(mCurrentRenderingData->mTbmQueue, tbmSurface);
+    tbm_surface_queue_cancel_dequeue(renderingDataImpl->mTbmQueue, tbmSurface);
     return false;
   }
 
   unsigned char* buffer = info.planes[0].ptr;
-  if(info.width != mCurrentRenderingData->mWidth || info.height != mCurrentRenderingData->mHeight || !buffer)
+  if(info.width != renderingDataImpl->mWidth || info.height != renderingDataImpl->mHeight || !buffer)
   {
     DALI_LOG_ERROR("VectorAnimationRendererTizen::Render: Invalid tbm surface! [%d, %d, %p] [%p]\n", info.width, info.height, buffer, this);
     tbm_surface_unmap(tbmSurface);
-    tbm_surface_queue_cancel_dequeue(mCurrentRenderingData->mTbmQueue, tbmSurface);
+    tbm_surface_queue_cancel_dequeue(renderingDataImpl->mTbmQueue, tbmSurface);
     return false;
   }
 
@@ -176,7 +180,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
   if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()) && mDecodedBuffers[frameNumber].second)
   {
-    const int bufferSize = mCurrentRenderingData->mWidth * mCurrentRenderingData->mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
+    const int bufferSize = renderingDataImpl->mWidth * renderingDataImpl->mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
     memcpy(buffer, &mDecodedBuffers[frameNumber].first[0], bufferSize);
   }
   else
@@ -186,7 +190,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
       tbm_surface_internal_ref(tbmSurface);
 
       // Create Surface object
-      surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), mCurrentRenderingData->mWidth, mCurrentRenderingData->mHeight, static_cast<size_t>(info.planes[0].stride));
+      surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(info.planes[0].stride));
 
       // Push the buffer
       mBuffers.push_back(SurfacePair(tbmSurface, surface));
@@ -194,7 +198,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
     if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()))
     {
-      const uint32_t       bufferSize = mCurrentRenderingData->mWidth * mCurrentRenderingData->mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
+      const uint32_t       bufferSize = renderingDataImpl->mWidth * renderingDataImpl->mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
       std::vector<uint8_t> rasterizeBuffer(buffer, buffer + bufferSize);
       mDecodedBuffers[frameNumber].first  = std::move(rasterizeBuffer);
       mDecodedBuffers[frameNumber].second = true;
@@ -206,13 +210,13 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
   tbm_surface_unmap(tbmSurface);
 
-  tbm_surface_queue_enqueue(mCurrentRenderingData->mTbmQueue, tbmSurface);
+  tbm_surface_queue_enqueue(renderingDataImpl->mTbmQueue, tbmSurface);
 
   if(!mResourceReady)
   {
     mPreviousTextures.push_back(mRenderedTexture); // It is used to destroy the object in the main thread.
 
-    mRenderedTexture        = mCurrentRenderingData->mTexture;
+    mRenderedTexture        = renderingDataImpl->mTexture;
     mResourceReady          = true;
     mResourceReadyTriggered = true;
 
@@ -226,10 +230,16 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
 void VectorAnimationRendererTizen::RenderStopped()
 {
-  if(mCurrentRenderingData->mTargetSurface)
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
+  {
+    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+  }
+
+  if(renderingDataImpl && renderingDataImpl->mTargetSurface)
   {
     // Animation is stopped. Free empty buffers
-    mCurrentRenderingData->mTargetSurface->FreeReleasedBuffers();
+    renderingDataImpl->mTargetSurface->FreeReleasedBuffers();
 
     {
       Dali::Mutex::ScopedLock lock(mMutex);
@@ -238,6 +248,7 @@ void VectorAnimationRendererTizen::RenderStopped()
   }
 }
 
+// This Method is called inside mMutex
 void VectorAnimationRendererTizen::ResetBuffers()
 {
   for(auto&& iter : mBuffers)
@@ -247,40 +258,30 @@ void VectorAnimationRendererTizen::ResetBuffers()
   mBuffers.clear();
 }
 
+// This Method is called inside mRenderingDataMutex
 void VectorAnimationRendererTizen::OnFinalize()
 {
   mRenderedTexture.Reset();
   mPreviousTextures.clear();
-
-  for(auto&& renderingData : mRenderingDataImpl)
-  {
-    renderingData->mTargetSurface = nullptr;
-    renderingData->mTbmQueue      = nullptr;
-  }
 }
 
+// This Method is called inside mMutex
 void VectorAnimationRendererTizen::OnNotify()
 {
   // Reset the previous texture to destroy it in the main thread
   mPreviousTextures.clear();
-
-  // If RenderingData is updated, then clear previous renderingData
-  if(IsRenderingDataUpdated())
-  {
-    std::shared_ptr<RenderingDataImpl> oldRenderingData = mRenderingDataImpl[1u - mCurrentDataIndex];
-    oldRenderingData->mTargetSurface                    = nullptr;
-    oldRenderingData->mTbmQueue                         = nullptr;
-    SetRenderingDataUpdated(false);
-  }
 }
 
-void VectorAnimationRendererTizen::PrepareTarget(uint32_t updatedDataIndex)
+// This Method is called inside mRenderingDataMutex
+void VectorAnimationRendererTizen::PrepareTarget(std::shared_ptr<RenderingData> renderingData)
 {
-  mRenderingDataImpl[updatedDataIndex]->mTargetSurface = NativeImageSourceQueue::New(mRenderingDataImpl[updatedDataIndex]->mWidth, mRenderingDataImpl[updatedDataIndex]->mHeight, NativeImageSourceQueue::ColorFormat::RGBA8888);
-  mRenderingDataImpl[updatedDataIndex]->mTexture       = Texture::New(*mRenderingDataImpl[updatedDataIndex]->mTargetSurface);
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
+  renderingDataImpl->mTargetSurface = NativeImageSourceQueue::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, NativeImageSourceQueue::ColorFormat::BGRA8888);
+  renderingDataImpl->mTexture       = Texture::New(*renderingDataImpl->mTargetSurface);
 }
 
-void VectorAnimationRendererTizen::SetShader(uint32_t updatedDataIndex)
+// This Method is called inside mRenderingDataMutex
+void VectorAnimationRendererTizen::SetShader(std::shared_ptr<RenderingData> renderingData)
 {
   if(mShaderChanged)
   {
@@ -311,7 +312,12 @@ void VectorAnimationRendererTizen::SetShader(uint32_t updatedDataIndex)
   }
 
   // Get custom fragment shader prefix
-  mRenderingDataImpl[updatedDataIndex]->mTargetSurface->ApplyNativeFragmentShader(fragmentShader);
+  if(!renderingData)
+  {
+    DALI_LOG_ERROR("Target Surface is not yet prepared.\n");
+  }
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
+  renderingDataImpl->mTargetSurface->ApplyNativeFragmentShader(fragmentShader);
 
   // Set the modified shader again
   Shader newShader = Shader::New(vertexShader, fragmentShader);
@@ -322,25 +328,39 @@ void VectorAnimationRendererTizen::SetShader(uint32_t updatedDataIndex)
   mShaderChanged = true;
 }
 
-void VectorAnimationRendererTizen::OnSetSize(uint32_t updatedDataIndex)
+// This Method is called inside mRenderingDataMutex
+void VectorAnimationRendererTizen::OnSetSize(std::shared_ptr<RenderingData> renderingData)
 {
-  std::shared_ptr<RenderingDataImpl> renderingData = mRenderingDataImpl[updatedDataIndex];
-  renderingData->mTbmQueue                         = AnyCast<tbm_surface_queue_h>(renderingData->mTargetSurface->GetNativeImageSourceQueue());
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
+  renderingDataImpl->mTbmQueue                         = AnyCast<tbm_surface_queue_h>(renderingDataImpl->mTargetSurface->GetNativeImageSourceQueue());
 }
 
 bool VectorAnimationRendererTizen::IsTargetPrepared()
 {
-  return (mCurrentRenderingData) ? !!mCurrentRenderingData->mTargetSurface : false;
+  std::shared_ptr<RenderingDataImpl> renderingDataImpl;
+  {
+    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mPreparedRenderingData ? mPreparedRenderingData : mCurrentRenderingData);
+  }
+  return (renderingDataImpl) ? !!renderingDataImpl->mTargetSurface : false;
 }
 
+// This Method is called inside mMutex
 bool VectorAnimationRendererTizen::IsRenderReady()
 {
   return (mResourceReady && mRenderedTexture);
 }
 
+// This Method is called inside mMutex
 Dali::Texture VectorAnimationRendererTizen::GetTargetTexture()
 {
   return mRenderedTexture;
+}
+
+// This Method is called inside mRenderingDataMutex
+std::shared_ptr<VectorAnimationRenderer::RenderingData> VectorAnimationRendererTizen::CreateRenderingData()
+{
+  return std::make_shared<RenderingDataImpl>();
 }
 
 } // namespace Plugin
