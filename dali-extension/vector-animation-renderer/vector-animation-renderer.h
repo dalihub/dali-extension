@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_VECTOR_ANIMATION_RENDERER_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,6 @@ protected: // Implementation of VectorAnimationEventHandler
   void NotifyEvent() override;
 
 protected:
-
   class RenderingData
   {
   public:
@@ -146,11 +145,6 @@ protected:
    * @brief Reset properties
    */
   virtual void OnFinalize() = 0;
-
-  /**
-   * @brief Event callback to process events.
-   */
-  virtual void OnLottieRendered() = 0;
 
   /**
    * @brief Notify event thread comes
