@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_RENDERER_X_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/adaptor-framework/pixel-buffer.h>
 #include <dali/public-api/adaptor-framework/native-image-source.h>
 
@@ -70,11 +69,6 @@ private:
   void OnFinalize() override;
 
   /**
-   * @brief Event callback to process events.
-   */
-  void OnLottieRendered() override;
-
-  /**
    * @copydoc VectorAnimationRenderer::OnNotify()
    */
   void OnNotify() override;
@@ -94,7 +88,8 @@ private:
    * @note This Method is called inside mRenderingDataMutex
    */
   void OnSetSize(std::shared_ptr<RenderingData> renderingData) override
-  {}
+  {
+  }
 
   /**
    * @copydoc VectorAnimationRenderer::IsTargetPrepared()
@@ -117,7 +112,7 @@ private:
   std::shared_ptr<RenderingData> CreateRenderingData() override;
 
 private:
-  std::unique_ptr<EventThreadCallback> mRenderCallback; ///
+  bool mUploadPixelBufferRequired;
 };
 
 } // namespace Plugin
