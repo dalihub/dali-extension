@@ -276,56 +276,8 @@ void VectorAnimationRendererTizen::OnNotify()
 void VectorAnimationRendererTizen::PrepareTarget(std::shared_ptr<RenderingData> renderingData)
 {
   std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
-  renderingDataImpl->mTargetSurface = NativeImageSourceQueue::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, NativeImageSourceQueue::ColorFormat::BGRA8888);
-  renderingDataImpl->mTexture       = Texture::New(*renderingDataImpl->mTargetSurface);
-}
-
-// This Method is called inside mRenderingDataMutex
-void VectorAnimationRendererTizen::SetShader(std::shared_ptr<RenderingData> renderingData)
-{
-  if(mShaderChanged)
-  {
-    return;
-  }
-
-  Shader shader = mRenderer.GetShader();
-
-  std::string fragmentShader;
-  std::string vertexShader;
-
-  // Get the current fragment shader source
-  Property::Value program = shader.GetProperty(Shader::Property::PROGRAM);
-  Property::Map*  map     = program.GetMap();
-  if(map)
-  {
-    Property::Value* fragment = map->Find("fragment");
-    if(fragment)
-    {
-      fragmentShader = fragment->Get<std::string>();
-    }
-
-    Property::Value* vertex = map->Find("vertex");
-    if(vertex)
-    {
-      vertexShader = vertex->Get<std::string>();
-    }
-  }
-
-  // Get custom fragment shader prefix
-  if(!renderingData)
-  {
-    DALI_LOG_ERROR("Target Surface is not yet prepared.\n");
-  }
-  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
-  renderingDataImpl->mTargetSurface->ApplyNativeFragmentShader(fragmentShader);
-
-  // Set the modified shader again
-  Shader newShader = Shader::New(vertexShader, fragmentShader);
-  newShader.RegisterProperty(PIXEL_AREA_UNIFORM_NAME, FULL_TEXTURE_RECT);
-
-  mRenderer.SetShader(newShader);
-
-  mShaderChanged = true;
+  renderingDataImpl->mTargetSurface                    = NativeImageSourceQueue::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, NativeImageSourceQueue::ColorFormat::BGRA8888);
+  renderingDataImpl->mTexture                          = Texture::New(*renderingDataImpl->mTargetSurface);
 }
 
 // This Method is called inside mRenderingDataMutex

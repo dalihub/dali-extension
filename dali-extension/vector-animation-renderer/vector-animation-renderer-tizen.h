@@ -80,11 +80,6 @@ private:
   void PrepareTarget(std::shared_ptr<RenderingData> renderingData) override;
 
   /**
-   * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
-   */
-  void SetShader(std::shared_ptr<RenderingData> renderingData) override;
-
-  /**
    * @copydoc VectorAnimationRenderer::OnSetSize()
    */
   void OnSetSize(std::shared_ptr<RenderingData> renderingData) override;
