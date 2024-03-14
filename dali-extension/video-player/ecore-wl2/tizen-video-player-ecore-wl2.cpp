@@ -1364,21 +1364,25 @@ void TizenVideoPlayer::CreateConstraint()
       mVideoSizePropertyConstraint.Remove();
     }
 
-    mVideoSizePropertyIndex = mSyncActor.RegisterProperty(VIDEO_PLAYER_SIZE_NAME, Vector3::ZERO);
+    Actor syncActor = mSyncActor.GetHandle();
+    if(syncActor)
+    {
+      mVideoSizePropertyIndex = syncActor.RegisterProperty(VIDEO_PLAYER_SIZE_NAME, Vector3::ZERO);
 
-    int                width, height;
-    Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
-    ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
+      int                width, height;
+      Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
+      ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
-    mVideoSizePropertyConstraint = Constraint::New<Vector3>(mSyncActor,
-                                                            mVideoSizePropertyIndex,
-                                                            VideoPlayerSyncConstraint(mEcoreSubVideoWindow, width, height));
+      mVideoSizePropertyConstraint = Constraint::New<Vector3>(syncActor,
+                                                              mVideoSizePropertyIndex,
+                                                              VideoPlayerSyncConstraint(mEcoreSubVideoWindow, width, height));
 
-    mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
-    mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
-    mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
+      mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
+      mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
+      mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
 
-    mVideoSizePropertyConstraint.Apply();
+      mVideoSizePropertyConstraint.Apply();
+    }
   }
 }
 
