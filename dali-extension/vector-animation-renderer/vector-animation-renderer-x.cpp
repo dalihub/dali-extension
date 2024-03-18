@@ -154,26 +154,6 @@ void VectorAnimationRendererX::PrepareTarget(std::shared_ptr<RenderingData> rend
   renderingDataImpl->mLottieSurface                    = rlottie::Surface(reinterpret_cast<uint32_t*>(renderingDataImpl->mPixelBuffer.GetBuffer()), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(renderingDataImpl->mPixelBuffer.GetStride() * 4));
 }
 
-// This Method is called inside mRenderingDataMutex
-void VectorAnimationRendererX::SetShader(std::shared_ptr<RenderingData> renderingData)
-{
-  if(!renderingData)
-  {
-    DALI_LOG_ERROR("Target Surface is not yet prepared.\n");
-    return;
-  }
-  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
-
-  if(mShaderChanged || !renderingDataImpl->mTexture)
-  {
-    return;
-  }
-
-  // Not implemented
-
-  mShaderChanged = true;
-}
-
 bool VectorAnimationRendererX::IsTargetPrepared()
 {
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;
