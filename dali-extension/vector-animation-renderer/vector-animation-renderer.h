@@ -157,11 +157,6 @@ protected:
   virtual void PrepareTarget(std::shared_ptr<RenderingData> renderingData) = 0;
 
   /**
-   * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
-   */
-  virtual void SetShader(std::shared_ptr<RenderingData> renderingData) = 0;
-
-  /**
    * @brief Apply the changes of Size
    */
   virtual void OnSetSize(std::shared_ptr<RenderingData> renderingData) = 0;
@@ -211,7 +206,6 @@ protected:
   float                               mFrameRate;              ///< The frame rate of the content
   bool                                mLoadFailed;             ///< Whether the file is loaded
   bool                                mResourceReady;          ///< Whether the resource is ready
-  bool                                mShaderChanged;          ///< Whether the shader is changed to support native image
   bool                                mResourceReadyTriggered; ///< Whether the resource ready is triggered
   bool                                mEnableFixedCache;
 };

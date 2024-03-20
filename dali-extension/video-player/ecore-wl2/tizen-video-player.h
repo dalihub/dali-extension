@@ -25,6 +25,7 @@
 #include <dali/public-api/adaptor-framework/native-image-source.h>
 #include <dali/public-api/adaptor-framework/timer.h>
 #include <dali/public-api/animation/constraints.h>
+#include <dali/public-api/object/weak-handle.h>
 #include <player.h>
 #include <string>
 #include <list>
@@ -304,12 +305,12 @@ private:
 
   player_video_codec_type_ex_e mCodecType;
 
-  Ecore_Wl2_Window*     mEcoreWlWindow;       ///< ecore native window handle
-  Ecore_Wl2_Subsurface* mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
-  Actor                 mSyncActor;
-  Constraint            mVideoSizePropertyConstraint;
-  Property::Index       mVideoSizePropertyIndex;
-  Dali::VideoSyncMode   mSyncMode;
+  Ecore_Wl2_Window*             mEcoreWlWindow;       ///< ecore native window handle
+  Ecore_Wl2_Subsurface*         mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
+  Dali::WeakHandle<Dali::Actor> mSyncActor;
+  Constraint                    mVideoSizePropertyConstraint;
+  Property::Index               mVideoSizePropertyIndex;
+  Dali::VideoSyncMode           mSyncMode;
 
   bool mIsInitForSyncMode; ///< the flag for synchronization with video player
 
