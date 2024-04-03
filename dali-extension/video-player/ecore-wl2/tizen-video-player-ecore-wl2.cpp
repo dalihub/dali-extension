@@ -324,7 +324,8 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mSyncActor(actor),
   mVideoSizePropertyIndex(Property::INVALID_INDEX),
   mSyncMode(syncMode),
-  mIsInitForSyncMode(false)
+  mIsInitForSyncMode(false),
+  mIsMovedHandle(false)
 {
 }
 
@@ -1206,7 +1207,8 @@ void TizenVideoPlayer::DestroyPlayer()
   int ret = 0;
 
   int error;
-  if(mPlayerState != PLAYER_STATE_NONE)
+  // If user take the handle, user must be responsible for its destruction.
+  if(mPlayerState != PLAYER_STATE_NONE && !mIsMovedHandle)
   {
     GetPlayerState(&mPlayerState);
 
@@ -1227,17 +1229,17 @@ void TizenVideoPlayer::DestroyPlayer()
     {
       DALI_LOG_ERROR("DestroyPlayer, player_destroy() is failed\n");
     }
-
-    error = sound_manager_destroy_stream_information(mStreamInfo);
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("DestroyPlayer, sound_manager_destroy_stream_information() is failed\n");
-    }
-
-    mPlayerState = PLAYER_STATE_NONE;
-    mPlayer      = NULL;
   }
+
+  error = sound_manager_destroy_stream_information(mStreamInfo);
+  ret   = LogPlayerError(error);
+  if(ret)
+  {
+    DALI_LOG_ERROR("DestroyPlayer, sound_manager_destroy_stream_information() is failed\n");
+  }
+
+  mPlayerState = PLAYER_STATE_NONE;
+  mPlayer      = NULL;
 }
 
 void TizenVideoPlayer::SetCodecType(Dali::VideoPlayerPlugin::CodecType type)
@@ -1339,6 +1341,7 @@ Dali::VideoPlayerPlugin::DisplayMode::Type TizenVideoPlayer::GetDisplayMode() co
 
 Any TizenVideoPlayer::GetMediaPlayer()
 {
+  mIsMovedHandle = true;
   return Any((void*)mPlayer);
 }
 

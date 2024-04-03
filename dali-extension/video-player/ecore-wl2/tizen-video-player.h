@@ -313,6 +313,7 @@ private:
   Dali::VideoSyncMode           mSyncMode;
 
   bool mIsInitForSyncMode; ///< the flag for synchronization with video player
+  bool mIsMovedHandle;     ///< the flag for moved the handle
 
 public:
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
