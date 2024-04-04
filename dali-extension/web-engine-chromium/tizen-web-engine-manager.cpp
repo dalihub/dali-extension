@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,13 @@
 #include <ewk_context_internal.h>
 #include <ewk_main.h>
 
+#include <memory>
 #include <stdexcept>
 
 namespace Dali
 {
 namespace Plugin
 {
-
 WebEngineManager& WebEngineManager::Get()
 {
   static WebEngineManager instance;
@@ -75,6 +75,10 @@ WebEngineManager::~WebEngineManager()
     {
       // Call OnTerminated directly.
       OnTerminated();
+    }
+    catch(std::bad_weak_ptr const& ex)
+    {
+      DALI_LOG_ERROR("WebEngineManager::~WebEngineManager() - std::bad_weak_ptr caught: %s\n", ex.what());
     }
     catch(std::invalid_argument const& ex)
     {
@@ -126,7 +130,7 @@ Evas_Object* WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
 {
   for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
   {
-    if (it->second == plugin)
+    if(it->second == plugin)
     {
       return it->first;
     }
