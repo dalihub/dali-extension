@@ -19,10 +19,11 @@
  */
 
 // EXTERNAL INCLUDES
+#include <dali-toolkit/public-api/controls/control-impl.h>
 #include <dali/devel-api/actors/actor-devel.h>
 #include <dali/public-api/adaptor-framework/window.h>
 #include <dali/public-api/object/property-notification.h>
-#include <dali-toolkit/public-api/controls/control-impl.h>
+#include <dali/public-api/object/weak-handle.h>
 
 // INTERNAL INCLUDES
 #include <dali-extension/devel-api/rive-animation-view/rive-animation-view.h>
@@ -267,6 +268,7 @@ private:
   RiveAnimationView& operator=(const RiveAnimationView&);
 
 private:
+  WeakHandle<Window>                                      mPlacementWindow;
   std::string                                             mUrl{};
   RiveAnimationTask::AnimationData                        mAnimationData{};
   RiveAnimationTaskPtr                                    mRiveAnimationTask{};
