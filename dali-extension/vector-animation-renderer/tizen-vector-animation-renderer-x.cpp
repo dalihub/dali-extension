@@ -268,6 +268,23 @@ bool TizenVectorAnimationRenderer::GetMarkerInfo(const std::string& marker, uint
   return false;
 }
 
+void TizenVectorAnimationRenderer::GetMarkerInfo(Property::Map& map) const
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+
+  if(mVectorRenderer)
+  {
+    auto markerList = mVectorRenderer->markers();
+    for(auto&& iter : markerList)
+    {
+      Property::Array frames;
+      frames.PushBack(std::get<1>(iter));
+      frames.PushBack(std::get<2>(iter));
+      map.Add(std::get<0>(iter), frames);
+    }
+  }
+}
+
 void TizenVectorAnimationRenderer::InvalidateBuffer()
 {
   Dali::Mutex::ScopedLock lock(mMutex);

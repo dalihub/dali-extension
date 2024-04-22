@@ -107,6 +107,11 @@ public:
   bool GetMarkerInfo(const std::string& marker, uint32_t& startFrame, uint32_t& endFrame) const override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::GetMarkerInfo()
+   */
+  void GetMarkerInfo(Property::Map& map) const override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::InvalidateBuffer()
    */
   void InvalidateBuffer() override;
@@ -149,7 +154,7 @@ private:
   void OnLottieRendered();
 
 private:
-  std::string                         mUrl;                    ///< The content file path
+  std::string                                mUrl;               ///< The content file path
   std::vector<std::unique_ptr<CallbackBase>> mPropertyCallbacks; ///< Property callback list
 
   mutable Dali::Mutex                  mMutex;                  ///< Mutex
