@@ -30,7 +30,6 @@
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
 #endif
-#include <player_internal.h>
 #include <Ecore_Wayland.h>
 
 namespace Dali
@@ -255,7 +254,7 @@ private:
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
 
-  player_video_codec_type_ex_e mCodecType;
+  player_codec_type_e mCodecType;
 public:
 
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;

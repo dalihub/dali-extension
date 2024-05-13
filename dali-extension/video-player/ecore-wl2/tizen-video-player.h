@@ -303,7 +303,7 @@ private:
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
 
-  player_video_codec_type_ex_e mCodecType;
+  player_codec_type_e mCodecType;
 
   Ecore_Wl2_Window*             mEcoreWlWindow;       ///< ecore native window handle
   Ecore_Wl2_Subsurface*         mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player

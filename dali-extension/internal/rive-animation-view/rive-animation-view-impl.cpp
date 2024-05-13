@@ -169,6 +169,7 @@ void RiveAnimationView::OnSceneConnection(int depth)
     Window window = DevelWindow::Get(actor);
     if(window)
     {
+      mPlacementWindow = window;
       DevelWindow::VisibilityChangedSignal(window).Connect(this, &RiveAnimationView::OnWindowVisibilityChanged);
     }
   }
@@ -197,10 +198,11 @@ void RiveAnimationView::OnSceneDisconnection()
 
   DevelActor::VisibilityChangedSignal(actor).Disconnect(this, &RiveAnimationView::OnControlVisibilityChanged);
 
-  Window window = DevelWindow::Get(actor);
+  Window window = mPlacementWindow.GetHandle();
   if(window)
   {
     DevelWindow::VisibilityChangedSignal(window).Disconnect(this, &RiveAnimationView::OnWindowVisibilityChanged);
+    mPlacementWindow.Reset();
   }
 
   // Reset the visual size to zero so that when adding the actor back to stage the rasterization is forced
