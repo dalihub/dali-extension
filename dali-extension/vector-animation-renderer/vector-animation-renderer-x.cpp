@@ -71,14 +71,17 @@ bool VectorAnimationRendererX::Render(uint32_t frameNumber)
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    if(mPreparedRenderingData)
+    if(DALI_LIKELY(!mFinalized))
     {
-      mPreviousRenderingData.push_back(mCurrentRenderingData);
-      mCurrentRenderingData = mPreparedRenderingData;
-      mPreparedRenderingData.reset();
-      mResourceReady = false;
+      if(mPreparedRenderingData)
+      {
+        mPreviousRenderingData.push_back(mCurrentRenderingData);
+        mCurrentRenderingData = mPreparedRenderingData;
+        mPreparedRenderingData.reset();
+        mResourceReady = false;
+      }
+      renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
     }
-    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
   }
 
   if(!renderingDataImpl)
@@ -116,7 +119,7 @@ void VectorAnimationRendererX::ResetBuffers()
 {
 }
 
-// This Method is called inside mRenderingDataMutex
+// This Method is called inside mMutex
 void VectorAnimationRendererX::OnFinalize()
 {
 }
@@ -133,7 +136,10 @@ void VectorAnimationRendererX::OnNotify()
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+    if(DALI_LIKELY(!mFinalized))
+    {
+      renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+    }
   }
 
   if(renderingDataImpl && renderingDataImpl->mPixelBuffer && renderingDataImpl->mTexture)
@@ -159,7 +165,10 @@ bool VectorAnimationRendererX::IsTargetPrepared()
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mPreparedRenderingData ? mPreparedRenderingData : mCurrentRenderingData);
+    if(DALI_LIKELY(!mFinalized))
+    {
+      renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mPreparedRenderingData ? mPreparedRenderingData : mCurrentRenderingData);
+    }
   }
   return (renderingDataImpl) ? !!renderingDataImpl->mPixelBuffer : false;
 }
@@ -170,7 +179,10 @@ bool VectorAnimationRendererX::IsRenderReady()
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+    if(DALI_LIKELY(!mFinalized))
+    {
+      renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+    }
   }
   return mResourceReady && ((renderingDataImpl) ? !!renderingDataImpl->mTexture : false);
 }
@@ -181,7 +193,10 @@ Dali::Texture VectorAnimationRendererX::GetTargetTexture()
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+    if(DALI_LIKELY(!mFinalized))
+    {
+      renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
+    }
   }
   return (renderingDataImpl) ? renderingDataImpl->mTexture : Texture();
 }

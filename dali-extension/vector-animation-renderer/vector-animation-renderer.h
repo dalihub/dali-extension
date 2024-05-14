@@ -195,19 +195,21 @@ protected:
   std::shared_ptr<RenderingData>              mCurrentRenderingData;
   std::vector<std::shared_ptr<RenderingData>> mPreviousRenderingData;
 
-  mutable Dali::Mutex                 mMutex;                  ///< Mutex
-  mutable Dali::Mutex                 mRenderingDataMutex;     ///< Mutex
-  Dali::Renderer                      mRenderer;               ///< Renderer
-  std::unique_ptr<rlottie::Animation> mVectorRenderer;         ///< The vector animation renderer
-  UploadCompletedSignalType           mUploadCompletedSignal;  ///< Upload completed signal
-  uint32_t                            mTotalFrameNumber;       ///< The total frame number
-  uint32_t                            mDefaultWidth;           ///< The width of the surface
-  uint32_t                            mDefaultHeight;          ///< The height of the surface
-  float                               mFrameRate;              ///< The frame rate of the content
-  bool                                mLoadFailed;             ///< Whether the file is loaded
-  bool                                mResourceReady;          ///< Whether the resource is ready
-  bool                                mResourceReadyTriggered; ///< Whether the resource ready is triggered
-  bool                                mEnableFixedCache;
+  mutable Dali::Mutex mMutex;              ///< Mutex. We can lock mRenderingDataMutex under this scope.
+  mutable Dali::Mutex mRenderingDataMutex; ///< Mutex. We cannot lock any mutex under this scope.
+
+  Dali::Renderer                      mRenderer;                   ///< Renderer
+  std::unique_ptr<rlottie::Animation> mVectorRenderer;             ///< The vector animation renderer
+  UploadCompletedSignalType           mUploadCompletedSignal;      ///< Upload completed signal
+  uint32_t                            mTotalFrameNumber;           ///< The total frame number
+  uint32_t                            mDefaultWidth;               ///< The width of the surface
+  uint32_t                            mDefaultHeight;              ///< The height of the surface
+  float                               mFrameRate;                  ///< The frame rate of the content
+  bool                                mLoadFailed : 1;             ///< Whether the file is loaded
+  bool                                mResourceReady : 1;          ///< Whether the resource is ready
+  bool                                mResourceReadyTriggered : 1; ///< Whether the resource ready is triggered
+  bool                                mEnableFixedCache : 1;
+  bool                                mFinalized : 1;
 };
 
 } // namespace Plugin
