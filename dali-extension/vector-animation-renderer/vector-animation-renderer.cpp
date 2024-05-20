@@ -58,7 +58,8 @@ VectorAnimationRenderer::VectorAnimationRenderer()
   mLoadFailed(false),
   mResourceReady(false),
   mResourceReadyTriggered(false),
-  mEnableFixedCache(false)
+  mEnableFixedCache(false),
+  mFinalized(false)
 {
   VectorAnimationPluginManager::Get().AddEventHandler(*this);
 }
@@ -84,9 +85,16 @@ void VectorAnimationRenderer::Finalize()
 
   mRenderer.Reset();
 
-  mPreparedRenderingData.reset();
-  mCurrentRenderingData.reset();
-  ClearPreviousRenderingData();
+  {
+    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+
+    mPreparedRenderingData.reset();
+    mCurrentRenderingData.reset();
+    ClearPreviousRenderingData();
+
+    // Change this flag under both mMutex and mRenderingDataMutex
+    mFinalized = true;
+  }
 
   OnFinalize();
 
@@ -194,6 +202,11 @@ void VectorAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    if(DALI_UNLIKELY(mFinalized))
+    {
+      DALI_LOG_DEBUG_INFO("SetSize should be called after finialized.\n");
+      return;
+    }
 
     if(!mPreparedRenderingData && mCurrentRenderingData && (mCurrentRenderingData->mWidth == width && mCurrentRenderingData->mHeight == height))
     {
@@ -219,7 +232,10 @@ void VectorAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
-    mPreparedRenderingData = preparedRenderingData;
+    if(DALI_LIKELY(!mFinalized))
+    {
+      mPreparedRenderingData = preparedRenderingData;
+    }
   }
 
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "width = %d, height = %d [%p]\n", preparedRenderingData->mWidth, preparedRenderingData->mHeight, this);
@@ -306,43 +322,17 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
-  mPropertyCallbacks.push_back(std::unique_ptr<CallbackBase>(callback));
-
-  if(mVectorRenderer)
+  if(DALI_UNLIKELY(!mFinalized))
   {
-    switch(property)
+    mPropertyCallbacks.push_back(std::unique_ptr<CallbackBase>(callback));
+
+    if(mVectorRenderer)
     {
-      case VectorProperty::FILL_COLOR:
+      switch(property)
       {
-        mVectorRenderer->setValue<rlottie::Property::FillColor>(keyPath,
-                                                                [property, callback, id](const rlottie::FrameInfo& info) {
-                                                                  Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                  Vector3         color;
-                                                                  if(value.Get(color))
-                                                                  {
-                                                                    return rlottie::Color(color.r, color.g, color.b);
-                                                                  }
-                                                                  return rlottie::Color(1.0f, 1.0f, 1.0f);
-                                                                });
-        break;
-      }
-      case VectorProperty::FILL_OPACITY:
-      {
-        mVectorRenderer->setValue<rlottie::Property::FillOpacity>(keyPath,
-                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
-                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                    float           opacity;
-                                                                    if(value.Get(opacity))
-                                                                    {
-                                                                      return opacity * 100;
-                                                                    }
-                                                                    return 100.0f;
-                                                                  });
-        break;
-      }
-      case VectorProperty::STROKE_COLOR:
-      {
-        mVectorRenderer->setValue<rlottie::Property::StrokeColor>(keyPath,
+        case VectorProperty::FILL_COLOR:
+        {
+          mVectorRenderer->setValue<rlottie::Property::FillColor>(keyPath,
                                                                   [property, callback, id](const rlottie::FrameInfo& info) {
                                                                     Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                     Vector3         color;
@@ -352,11 +342,11 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
                                                                     }
                                                                     return rlottie::Color(1.0f, 1.0f, 1.0f);
                                                                   });
-        break;
-      }
-      case VectorProperty::STROKE_OPACITY:
-      {
-        mVectorRenderer->setValue<rlottie::Property::StrokeOpacity>(keyPath,
+          break;
+        }
+        case VectorProperty::FILL_OPACITY:
+        {
+          mVectorRenderer->setValue<rlottie::Property::FillOpacity>(keyPath,
                                                                     [property, callback, id](const rlottie::FrameInfo& info) {
                                                                       Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                       float           opacity;
@@ -366,91 +356,120 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
                                                                       }
                                                                       return 100.0f;
                                                                     });
-        break;
-      }
-      case VectorProperty::STROKE_WIDTH:
-      {
-        mVectorRenderer->setValue<rlottie::Property::StrokeWidth>(keyPath,
-                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
-                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                    float           width;
-                                                                    if(value.Get(width))
-                                                                    {
-                                                                      return width;
-                                                                    }
-                                                                    return 1.0f;
-                                                                  });
-        break;
-      }
-      case VectorProperty::TRANSFORM_ANCHOR:
-      {
-        mVectorRenderer->setValue<rlottie::Property::TrAnchor>(keyPath,
-                                                               [property, callback, id](const rlottie::FrameInfo& info) {
-                                                                 Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                 Vector2         point;
-                                                                 if(value.Get(point))
-                                                                 {
-                                                                   return rlottie::Point(point.x, point.y);
-                                                                 }
-                                                                 return rlottie::Point(0.0f, 0.0f);
-                                                               });
-        break;
-      }
-      case VectorProperty::TRANSFORM_POSITION:
-      {
-        mVectorRenderer->setValue<rlottie::Property::TrPosition>(keyPath,
+          break;
+        }
+        case VectorProperty::STROKE_COLOR:
+        {
+          mVectorRenderer->setValue<rlottie::Property::StrokeColor>(keyPath,
+                                                                    [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                      Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                      Vector3         color;
+                                                                      if(value.Get(color))
+                                                                      {
+                                                                        return rlottie::Color(color.r, color.g, color.b);
+                                                                      }
+                                                                      return rlottie::Color(1.0f, 1.0f, 1.0f);
+                                                                    });
+          break;
+        }
+        case VectorProperty::STROKE_OPACITY:
+        {
+          mVectorRenderer->setValue<rlottie::Property::StrokeOpacity>(keyPath,
+                                                                      [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                        Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                        float           opacity;
+                                                                        if(value.Get(opacity))
+                                                                        {
+                                                                          return opacity * 100;
+                                                                        }
+                                                                        return 100.0f;
+                                                                      });
+          break;
+        }
+        case VectorProperty::STROKE_WIDTH:
+        {
+          mVectorRenderer->setValue<rlottie::Property::StrokeWidth>(keyPath,
+                                                                    [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                      Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                      float           width;
+                                                                      if(value.Get(width))
+                                                                      {
+                                                                        return width;
+                                                                      }
+                                                                      return 1.0f;
+                                                                    });
+          break;
+        }
+        case VectorProperty::TRANSFORM_ANCHOR:
+        {
+          mVectorRenderer->setValue<rlottie::Property::TrAnchor>(keyPath,
                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                   Vector2         position;
-                                                                   if(value.Get(position))
+                                                                   Vector2         point;
+                                                                   if(value.Get(point))
                                                                    {
-                                                                     return rlottie::Point(position.x, position.y);
+                                                                     return rlottie::Point(point.x, point.y);
                                                                    }
                                                                    return rlottie::Point(0.0f, 0.0f);
                                                                  });
-        break;
-      }
-      case VectorProperty::TRANSFORM_SCALE:
-      {
-        mVectorRenderer->setValue<rlottie::Property::TrScale>(keyPath,
-                                                              [property, callback, id](const rlottie::FrameInfo& info) {
-                                                                Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                Vector2         scale;
-                                                                if(value.Get(scale))
-                                                                {
-                                                                  return rlottie::Size(scale.x, scale.y);
-                                                                }
-                                                                return rlottie::Size(100.0f, 100.0f);
-                                                              });
-        break;
-      }
-      case VectorProperty::TRANSFORM_ROTATION:
-      {
-        mVectorRenderer->setValue<rlottie::Property::TrRotation>(keyPath,
-                                                                 [property, callback, id](const rlottie::FrameInfo& info) {
-                                                                   Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                   float           rotation;
-                                                                   if(value.Get(rotation))
-                                                                   {
-                                                                     return rotation;
-                                                                   }
-                                                                   return 0.0f;
-                                                                 });
-        break;
-      }
-      case VectorProperty::TRANSFORM_OPACITY:
-      {
-        mVectorRenderer->setValue<rlottie::Property::TrOpacity>(keyPath,
+          break;
+        }
+        case VectorProperty::TRANSFORM_POSITION:
+        {
+          mVectorRenderer->setValue<rlottie::Property::TrPosition>(keyPath,
+                                                                   [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                     Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                     Vector2         position;
+                                                                     if(value.Get(position))
+                                                                     {
+                                                                       return rlottie::Point(position.x, position.y);
+                                                                     }
+                                                                     return rlottie::Point(0.0f, 0.0f);
+                                                                   });
+          break;
+        }
+        case VectorProperty::TRANSFORM_SCALE:
+        {
+          mVectorRenderer->setValue<rlottie::Property::TrScale>(keyPath,
                                                                 [property, callback, id](const rlottie::FrameInfo& info) {
                                                                   Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                  float           opacity;
-                                                                  if(value.Get(opacity))
+                                                                  Vector2         scale;
+                                                                  if(value.Get(scale))
                                                                   {
-                                                                    return opacity * 100;
+                                                                    return rlottie::Size(scale.x, scale.y);
                                                                   }
-                                                                  return 100.0f;
+                                                                  return rlottie::Size(100.0f, 100.0f);
                                                                 });
-        break;
+          break;
+        }
+        case VectorProperty::TRANSFORM_ROTATION:
+        {
+          mVectorRenderer->setValue<rlottie::Property::TrRotation>(keyPath,
+                                                                   [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                     Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                     float           rotation;
+                                                                     if(value.Get(rotation))
+                                                                     {
+                                                                       return rotation;
+                                                                     }
+                                                                     return 0.0f;
+                                                                   });
+          break;
+        }
+        case VectorProperty::TRANSFORM_OPACITY:
+        {
+          mVectorRenderer->setValue<rlottie::Property::TrOpacity>(keyPath,
+                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                    float           opacity;
+                                                                    if(value.Get(opacity))
+                                                                    {
+                                                                      return opacity * 100;
+                                                                    }
+                                                                    return 100.0f;
+                                                                  });
+          break;
+        }
       }
     }
   }
