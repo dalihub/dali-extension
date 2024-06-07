@@ -66,6 +66,7 @@ VectorAnimationRendererX::~VectorAnimationRendererX()
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
 }
 
+// Called by VectorAnimationTaskThread
 bool VectorAnimationRendererX::Render(uint32_t frameNumber)
 {
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;

@@ -96,6 +96,12 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
   }
 
   Dali::Mutex::ScopedLock lock(mMutex);
+  if(DALI_UNLIKELY(mFinalized))
+  {
+    // Fast-out if finalized.
+    return false;
+  }
+
   if(mEnableFixedCache)
   {
     if(mDecodedBuffers.size() < mTotalFrameNumber)
@@ -219,7 +225,9 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
   {
     mPreviousTextures.push_back(mRenderedTexture); // It is used to destroy the object in the main thread.
 
-    mRenderedTexture        = renderingDataImpl->mTexture;
+    mRenderedTexture = std::move(renderingDataImpl->mTexture);
+    renderingDataImpl->mTexture.Reset();
+
     mResourceReady          = true;
     mResourceReadyTriggered = true;
 
