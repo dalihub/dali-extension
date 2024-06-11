@@ -66,6 +66,8 @@ VectorAnimationRenderer::VectorAnimationRenderer()
 
 VectorAnimationRenderer::~VectorAnimationRenderer()
 {
+  // Ensure the rendering data removed after Render finisehd at VectorAnimationTaskThread.
+  mCurrentRenderingData.reset();
 }
 
 // This Method is called inside mRenderingDataMutex
@@ -89,7 +91,6 @@ void VectorAnimationRenderer::Finalize()
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
 
     mPreparedRenderingData.reset();
-    mCurrentRenderingData.reset();
     ClearPreviousRenderingData();
 
     // Change this flag under both mMutex and mRenderingDataMutex
