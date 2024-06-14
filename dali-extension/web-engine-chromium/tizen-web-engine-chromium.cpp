@@ -745,7 +745,7 @@ float TizenWebEngineChromium::GetScaleFactor() const
 
 void TizenWebEngineChromium::ActivateAccessibility(bool activated)
 {
-  ewk_view_atk_deactivation_by_app(mWebView, !activated);
+  ewk_view_atk_deactivation_by_app(mWebView, activated);
 }
 
 Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
