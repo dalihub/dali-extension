@@ -46,7 +46,8 @@ VectorAnimationPluginManager::VectorAnimationPluginManager()
   mTriggerOrderId(0u),
   mMutex(),
   mEventTrigger(),
-  mEventTriggered(false)
+  mEventTriggered(false),
+  mEventHandlerRemovedDuringEventProcessing(false)
 {
 }
 
@@ -55,6 +56,7 @@ VectorAnimationPluginManager::~VectorAnimationPluginManager()
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
 }
 
+// This function is called in the main thread.
 void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& handler)
 {
   if(mEventHandlers.end() == mEventHandlers.find(&handler))
@@ -78,55 +80,72 @@ void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& 
   }
 }
 
+// This function is called in the main thread.
 void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandler& handler)
 {
   auto iter = mEventHandlers.find(&handler);
   if(iter != mEventHandlers.end())
   {
+    bool releaseEventTrigger = false;
+
     mEventHandlers.erase(iter);
-  }
 
-  bool releaseEventTrigger = false;
+    // Mark removed flag now.
+    // Note that it will be removed at the begin of event processing.
+    mEventHandlerRemovedDuringEventProcessing = true;
 
-  if(mEventHandlers.empty())
-  {
-    if(Adaptor::IsAvailable())
+    if(mEventHandlers.empty())
     {
-      Adaptor::Get().UnregisterProcessor(*this);
+      if(Adaptor::IsAvailable())
+      {
+        Adaptor::Get().UnregisterProcessor(*this);
+      }
+
+      releaseEventTrigger = true;
     }
 
-    releaseEventTrigger = true;
-  }
-
-  {
-    Dali::Mutex::ScopedLock lock(mMutex);
-
-    auto triggeredHandler = mTriggeredHandlers.find(&handler);
-    if(triggeredHandler != mTriggeredHandlers.end())
     {
-      mTriggeredHandlers.erase(triggeredHandler);
-    }
+      Dali::Mutex::ScopedLock lock(mMutex);
 
-    if(releaseEventTrigger)
-    {
-      mEventTrigger.reset();
-      mEventTriggered = false;
+      if(releaseEventTrigger)
+      {
+        // There is no valid event handler now. We could remove whole triggered event handlers.
+        mTriggeredHandlers.clear();
+        mEventHandlerRemovedDuringEventProcessing = false;
+
+        mEventTrigger.reset();
+        mEventTriggered = false;
+      }
+      else
+      {
+        auto triggeredHandler = mTriggeredHandlers.find(&handler);
+        if(triggeredHandler != mTriggeredHandlers.end())
+        {
+          mTriggeredHandlers.erase(triggeredHandler);
+        }
+      }
     }
   }
 }
 
+// Called by VectorAnimationTaskThread
 void VectorAnimationPluginManager::TriggerEvent(VectorAnimationEventHandler& handler)
 {
   Dali::Mutex::ScopedLock lock(mMutex);
 
-  if(mTriggeredHandlers.end() == mTriggeredHandlers.find(&handler))
+  // Add triggered handler only if event trigger exist.
+  // If event handler is null, mean there is no valid handler now. So we can ignore this trigger.
+  if(DALI_LIKELY(mEventTrigger))
   {
-    mTriggeredHandlers.insert({&handler, mTriggerOrderId++});
-
-    if(mEventTrigger && !mEventTriggered)
+    if(mTriggeredHandlers.end() == mTriggeredHandlers.find(&handler))
     {
-      mEventTrigger->Trigger();
-      mEventTriggered = true;
+      mTriggeredHandlers.insert({&handler, mTriggerOrderId++});
+
+      if(!mEventTriggered)
+      {
+        mEventTrigger->Trigger();
+        mEventTriggered = true;
+      }
     }
   }
 }
@@ -156,18 +175,26 @@ void VectorAnimationPluginManager::OnEventTriggered()
   }
 
   // Reorder event handler ordered by trigger request.
+  // And also, check validation of event handler.
   for(auto&& iter : movedTriggeredHandlers)
   {
-    handlers[iter.second] = iter.first;
+    if(mEventHandlers.end() != mEventHandlers.find(iter.first))
+    {
+      handlers[iter.second] = iter.first;
+    }
   }
   movedTriggeredHandlers.clear();
+
+  // We check validation before move handlers. Reset removed flag now.
+  mEventHandlerRemovedDuringEventProcessing = false;
 
   for(auto&& iter : handlers)
   {
     auto* handler = iter.second;
 
     // Check if it is valid
-    if(mEventHandlers.end() != mEventHandlers.find(handler))
+    // (If the event handler is removed during event processing, it is not valid. So we should not notify event)
+    if(!mEventHandlerRemovedDuringEventProcessing || mEventHandlers.end() != mEventHandlers.find(handler))
     {
       handler->NotifyEvent();
     }

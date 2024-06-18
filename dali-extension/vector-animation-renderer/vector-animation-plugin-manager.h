@@ -105,12 +105,13 @@ private:
 
 private:
   std::unordered_set<VectorAnimationEventHandler*>           mEventHandlers;
-  std::unordered_map<VectorAnimationEventHandler*, uint32_t> mTriggeredHandlers; ///< first : trigger handler, second : trigger order.
+  std::unordered_map<VectorAnimationEventHandler*, uint32_t> mTriggeredHandlers; ///< first : trigger handler, second : trigger order. Must be locked under mMutex.
   uint32_t                                                   mTriggerOrderId;    ///< Be used when we need to determine the order of trigger handler.
 
   Dali::Mutex                          mMutex;
   std::unique_ptr<EventThreadCallback> mEventTrigger;
   bool                                 mEventTriggered : 1;
+  bool                                 mEventHandlerRemovedDuringEventProcessing : 1;
 };
 
 } // namespace Plugin
