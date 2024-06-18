@@ -47,6 +47,7 @@ VectorAnimationPluginManager::VectorAnimationPluginManager()
   mMutex(),
   mEventTrigger(),
   mEventTriggered(false),
+  mProcessorRegistered(false),
   mEventHandlerRemovedDuringEventProcessing(false)
 {
 }
@@ -54,6 +55,11 @@ VectorAnimationPluginManager::VectorAnimationPluginManager()
 VectorAnimationPluginManager::~VectorAnimationPluginManager()
 {
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
+  if(Adaptor::IsAvailable() && mProcessorRegistered)
+  {
+    Adaptor::Get().UnregisterProcessorOnce(*this);
+    mProcessorRegistered = false;
+  }
 }
 
 // This function is called in the main thread.
@@ -61,9 +67,10 @@ void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& 
 {
   if(mEventHandlers.end() == mEventHandlers.find(&handler))
   {
-    if(mEventHandlers.empty())
+    if(!mProcessorRegistered)
     {
-      Adaptor::Get().RegisterProcessor(*this);
+      mProcessorRegistered = true;
+      Adaptor::Get().RegisterProcessorOnce(*this);
     }
 
     mEventHandlers.insert(&handler);
@@ -96,11 +103,6 @@ void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandle
 
     if(mEventHandlers.empty())
     {
-      if(Adaptor::IsAvailable())
-      {
-        Adaptor::Get().UnregisterProcessor(*this);
-      }
-
       releaseEventTrigger = true;
     }
 
@@ -152,6 +154,7 @@ void VectorAnimationPluginManager::TriggerEvent(VectorAnimationEventHandler& han
 
 void VectorAnimationPluginManager::Process(bool postProcessor)
 {
+  mProcessorRegistered = false;
   OnEventTriggered();
 }
 
