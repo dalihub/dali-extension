@@ -1283,6 +1283,11 @@ bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
   return false;
 }
 
+void TizenWebEngineLWE::ExitFullscreen()
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback)
 {
   // NOT IMPLEMENTED
@@ -1338,6 +1343,11 @@ void TizenWebEngineLWE::RegisterNavigationPolicyDecidedCallback(WebEngineNavigat
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::RegisterNewWindowPolicyDecidedCallback(WebEngineNewWindowPolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback)
 {
   // NOT IMPLEMENTED
@@ -1364,6 +1374,21 @@ void TizenWebEngineLWE::RegisterContextMenuShownCallback(WebEngineContextMenuSho
 }
 
 void TizenWebEngineLWE::RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterFullscreenEnteredCallback(WebEngineFullscreenEnteredCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterFullscreenExitedCallback(WebEngineFullscreenExitedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterTextFoundCallback(WebEngineTextFoundCallback callback)
 {
   // NOT IMPLEMENTED
 }

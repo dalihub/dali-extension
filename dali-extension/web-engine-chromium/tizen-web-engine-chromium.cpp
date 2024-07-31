@@ -179,11 +179,15 @@ void TizenWebEngineChromium::InitWebView()
   evas_object_smart_callback_add(mWebView, "form,repost,warning,show", &TizenWebEngineChromium::OnFormRepostDecided, this);
   evas_object_smart_callback_add(mWebView, "policy,response,decide", &TizenWebEngineChromium::OnResponsePolicyDecided, this);
   evas_object_smart_callback_add(mWebView, "policy,navigation,decide", &TizenWebEngineChromium::OnNavigationPolicyDecided, this);
+  evas_object_smart_callback_add(mWebView, "policy,newwindow,decide", &TizenWebEngineChromium::OnNewWindowPolicyDecided, this);
   evas_object_smart_callback_add(mWebView, "create,window", &TizenWebEngineChromium::OnNewWindowCreated, this);
   evas_object_smart_callback_add(mWebView, "request,certificate,confirm", &TizenWebEngineChromium::OnCertificateConfirmed, this);
   evas_object_smart_callback_add(mWebView, "ssl,certificate,changed", &TizenWebEngineChromium::OnSslCertificateChanged, this);
   evas_object_smart_callback_add(mWebView, "contextmenu,show", &TizenWebEngineChromium::OnContextMenuShown, this);
   evas_object_smart_callback_add(mWebView, "contextmenu,hide", &TizenWebEngineChromium::OnContextMenuHidden, this);
+  evas_object_smart_callback_add(mWebView, "fullscreen,enterfullscreen", &TizenWebEngineChromium::OnFullscreenEntered, this);
+  evas_object_smart_callback_add(mWebView, "fullscreen,exitfullscreen", &TizenWebEngineChromium::OnFullscreenExited, this);
+  evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
 
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
@@ -698,6 +702,11 @@ bool TizenWebEngineChromium::SendWheelEvent(const Dali::WheelEvent& wheel)
   return false;
 }
 
+void TizenWebEngineChromium::ExitFullscreen()
+{
+  ewk_view_fullscreen_exit(mWebView);
+}
+
 void TizenWebEngineChromium::SetFocus(bool focused)
 {
   ecore_evas_focus_set(WebEngineManager::Get().GetWindow(), focused);
@@ -903,6 +912,11 @@ void TizenWebEngineChromium::RegisterNavigationPolicyDecidedCallback(WebEngineNa
   mNavigationPolicyDecidedCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterNewWindowPolicyDecidedCallback(WebEngineNewWindowPolicyDecidedCallback callback)
+{
+  mNewWindowPolicyDecidedCallback = callback;
+}
+
 void TizenWebEngineChromium::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback)
 {
   mNewWindowCreatedCallback = callback;
@@ -939,6 +953,21 @@ void TizenWebEngineChromium::RegisterContextMenuShownCallback(WebEngineContextMe
 void TizenWebEngineChromium::RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback)
 {
   mContextMenuHiddenCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterFullscreenEnteredCallback(WebEngineFullscreenEnteredCallback callback)
+{
+  mFullscreenEnteredCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterFullscreenExitedCallback(WebEngineFullscreenExitedCallback callback)
+{
+  mFullscreenExitedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterTextFoundCallback(WebEngineTextFoundCallback callback)
+{
+  mTextFoundCallback = callback;
 }
 
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
@@ -1096,6 +1125,15 @@ void TizenWebEngineChromium::OnNavigationPolicyDecided(void* data, Evas_Object*,
   ExecuteCallback(pThis->mNavigationPolicyDecidedCallback, std::move(webPolicyDecision));
 }
 
+void TizenWebEngineChromium::OnNewWindowPolicyDecided(void* data, Evas_Object*, void* policy)
+{
+  DALI_LOG_RELEASE_INFO("#NewWindowPolicyDecided.\n");
+  auto                                           pThis          = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Policy_Decision*                           policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
+  std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
+  ExecuteCallback(pThis->mNewWindowPolicyDecidedCallback, std::move(webPolicyDecision));
+}
+
 void TizenWebEngineChromium::OnNewWindowCreated(void* data, Evas_Object*, void* out_view)
 {
   DALI_LOG_RELEASE_INFO("#NewWindowCreated.\n");
@@ -1146,6 +1184,28 @@ void TizenWebEngineChromium::OnContextMenuHidden(void* data, Evas_Object*, void*
   Ewk_Context_Menu*                           menu  = (Ewk_Context_Menu*)eventInfo;
   std::unique_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
   ExecuteCallback(pThis->mContextMenuHiddenCallback, std::move(contextMenu));
+}
+
+void TizenWebEngineChromium::OnFullscreenEntered(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#FullscreenEntered.\n");
+  ExecuteCallback(pThis->mFullscreenEnteredCallback);
+}
+
+void TizenWebEngineChromium::OnFullscreenExited(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#FullscreenExited.\n");
+  ExecuteCallback(pThis->mFullscreenExitedCallback);
+}
+
+void TizenWebEngineChromium::OnTextFound(void* data, Evas_Object*, void* eventInfo)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  uint32_t count = *((uint32_t*)(eventInfo));
+  DALI_LOG_RELEASE_INFO("#TextFound, count:%u.\n", count);
+  ExecuteCallback(pThis->mTextFoundCallback, count);
 }
 
 void TizenWebEngineChromium::OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)

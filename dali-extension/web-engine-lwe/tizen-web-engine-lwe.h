@@ -464,6 +464,11 @@ public:
   bool SendWheelEvent(const Dali::WheelEvent& event) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::ExitFullscreen()
+   */
+  void ExitFullscreen() override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterFrameRenderedCallback()
    */
   void RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback) override;
@@ -519,6 +524,11 @@ public:
   void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNewWindowPolicyDecidedCallback()
+   */
+  void RegisterNewWindowPolicyDecidedCallback(WebEngineNewWindowPolicyDecidedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterNewWindowCreatedCallback()
    */
   void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
@@ -547,6 +557,21 @@ public:
    * @copydoc Dali::WebEnginePlugin::RegisterContextMenuHiddenCallback()
    */
   void RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFullscreenEnteredCallback()
+   */
+  void RegisterFullscreenEnteredCallback(WebEngineFullscreenEnteredCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFullscreenExitedCallback()
+   */
+  void RegisterFullscreenExitedCallback(WebEngineFullscreenExitedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterTextFoundCallback()
+   */
+  void RegisterTextFoundCallback(WebEngineTextFoundCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
