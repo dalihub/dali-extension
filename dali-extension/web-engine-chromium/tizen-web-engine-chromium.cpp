@@ -587,10 +587,7 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
 {
   Ewk_Touch_Event_Type   type  = EWK_TOUCH_START;
   Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
-
-  std::size_t pointCount = touch.GetPointCount() - 1;
-
-  switch(touch.GetState(pointCount))
+  switch(touch.GetState(0))
   {
     case PointState::DOWN:
     {
@@ -624,9 +621,9 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
 
   Eina_List*      pointList = 0;
   Ewk_Touch_Point point;
-  point.id    = pointCount;
-  point.x     = touch.GetScreenPosition(pointCount).x;
-  point.y     = touch.GetScreenPosition(pointCount).y;
+  point.id    = 0;
+  point.x     = touch.GetScreenPosition(0).x;
+  point.y     = touch.GetScreenPosition(0).y;
   point.state = state;
   pointList   = eina_list_append(pointList, &point);
 
