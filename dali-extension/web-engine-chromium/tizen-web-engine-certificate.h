@@ -69,6 +69,16 @@ public:
    */
   bool IsContextSecure() const override;
 
+  /**
+   * @copydoc Dali::WebEngineCertificate::GetPolicyDecisionError()
+   */
+  int GetPolicyDecisionError() const override;
+
+  /**
+   * @copydoc Dali::WebEngineCertificate::SuspendPolicyDecision()
+   */
+  bool SuspendPolicyDecision() const override;
+
 private:
   Ewk_Certificate_Policy_Decision* ewkCertificatePolicyDecision;
   Ewk_Certificate_Info*            ewkCertificateInfo;
