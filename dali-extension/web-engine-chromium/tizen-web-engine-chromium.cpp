@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2023 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -250,12 +250,6 @@ Dali::PixelData TizenWebEngineChromium::GetFavicon() const
 NativeImageSourcePtr TizenWebEngineChromium::GetNativeImageSource()
 {
   return mDaliImageSrc;
-}
-
-void TizenWebEngineChromium::ChangeOrientation(int orientation)
-{
-  DALI_LOG_RELEASE_INFO("#ChangeOrientation : %d\n", orientation);
-  ewk_view_orientation_send(mWebView, orientation);
 }
 
 std::string TizenWebEngineChromium::GetUrl() const
