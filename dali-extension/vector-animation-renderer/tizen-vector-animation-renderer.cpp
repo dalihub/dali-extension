@@ -146,6 +146,8 @@ void TizenVectorAnimationRenderer::SetRenderer(Renderer renderer)
   mRenderer      = renderer;
   mShaderChanged = false;
 
+  bool emitSignal = false;
+
   if(mTargetSurface)
   {
     Dali::Mutex::ScopedLock lock(mMutex);
@@ -156,10 +158,15 @@ void TizenVectorAnimationRenderer::SetRenderer(Renderer renderer)
 
       textureSet.SetTexture(0, mRenderedTexture);
 
-      mUploadCompletedSignal.Emit();
+      emitSignal = true;
     }
 
     SetShader();
+  }
+
+  if(emitSignal)
+  {
+    mUploadCompletedSignal.Emit();
   }
 }
 
@@ -594,25 +601,33 @@ VectorAnimationRendererPlugin::UploadCompletedSignalType& TizenVectorAnimationRe
 
 void TizenVectorAnimationRenderer::NotifyEvent()
 {
-  Dali::Mutex::ScopedLock lock(mMutex);
-
-  if(mResourceReadyTriggered)
+  bool emitSignal = false;
   {
-    DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Set Texture [%p]\n", this);
+    Dali::Mutex::ScopedLock lock(mMutex);
 
-    // Set texture
-    if(mRenderer && mRenderedTexture)
+    if(mResourceReadyTriggered)
     {
-      TextureSet textureSet = mRenderer.GetTextures();
-      textureSet.SetTexture(0, mRenderedTexture);
+      DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "Set Texture [%p]\n", this);
+
+      // Set texture
+      if(mRenderer && mRenderedTexture)
+      {
+        TextureSet textureSet = mRenderer.GetTextures();
+        textureSet.SetTexture(0, mRenderedTexture);
+      }
+
+      mResourceReadyTriggered = false;
+
+      emitSignal = true;
     }
 
-    mResourceReadyTriggered = false;
-
-    mUploadCompletedSignal.Emit();
+    mPreviousTextures.clear();
   }
 
-  mPreviousTextures.clear();
+  if(emitSignal)
+  {
+    mUploadCompletedSignal.Emit();
+  }
 }
 
 void TizenVectorAnimationRenderer::SetShader()
