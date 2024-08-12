@@ -238,6 +238,16 @@ public:
    */
   Any GetVideoPlayerSurface();
 
+  /**
+   * @copydoc Dali::VideoPlayerPlugin::SceneConnection()
+   */
+  void SceneConnection();
+
+  /**
+   * @copydoc Dali::VideoPlayerPlugin::SceneDisconnection()
+   */
+  void SceneDisconnection();
+
 private:
   /**
    * @brief Updates video frame image by timer if rendering targe is native image source
@@ -265,26 +275,24 @@ private:
   void InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow);
 
   /**
-   * @brief Initializes player for video rendering with synchronization mode.
-   *
-   * @param[in] ecoreWlWindow The window for synchronization mode.
-   */
-  void InitializeEnableSyncMode(Ecore_Wl2_Window* ecoreWlWindow);
-
-  /**
    * @brief Destroys player handle
    */
   void DestroyPlayer();
 
   /**
-   * @brief Create Constraint for synchronization
+   * @brief Initializes Video Shell for synchronization
    */
-  void CreateConstraint();
+  void InitializeVideoShell(Ecore_Wl2_Window* ecoreWlWindow);
 
   /**
-   * @brief Destroy Constraint for synchronization
+   * @brief Create Video Shell Constraint for synchronization
    */
-  void DestroyConstraint();
+  void CreateVideoShellConstraint();
+
+  /**
+   * @brief Destroy Video Shell Constraint for synchronization
+   */
+  void DestroyVideoShellConstraint();
 
 private:
   std::string                mUrl;                  ///< The video file path
@@ -312,8 +320,13 @@ private:
   Property::Index               mVideoSizePropertyIndex;
   Dali::VideoSyncMode           mSyncMode;
 
-  bool mIsInitForSyncMode; ///< the flag for synchronization with video player
   bool mIsMovedHandle;     ///< the flag for moved the handle
+  bool mIsSceneConnected;
+
+
+  Ecore_Wl2_VideoShell_Surface*        mEcoreVideoShellSurface;
+  Constraint                    mVideoShellSizePropertyConstraint;
+  Property::Index               mVideoShellSizePropertyIndex;
 
 public:
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
