@@ -22,6 +22,9 @@
 #include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/debug.h>
+#include <dali/devel-api/common/stage-devel.h>
+#include <dali/devel-api/adaptor-framework/window-devel.h>
+#include <wayland-egl-tizen.h>
 #include <system_info.h>
 
 // INTERNAL INCLUDES
@@ -257,14 +260,39 @@ int LogPlayerError(int error)
 
 const char* const VIDEO_PLAYER_SIZE_NAME("videoPlayerSize");
 
-struct VideoPlayerSyncConstraint
+struct BufferCommitData
+{
+  Ecore_Wl2_VideoShell_Surface_Wrapper*   ecoreVideoShellSurfaceWrapper;
+  int32_t                                 x;
+  int32_t                                 y;
+  int32_t                                 width;
+  int32_t                                 height;
+};
+
+static void eglWindowBufferPreCommit(void *data)
+{
+   struct BufferCommitData *bufferCommitData = (struct BufferCommitData*)data;
+   if(!bufferCommitData)
+   {
+     DALI_LOG_ERROR("user data is nullptrs\n");
+     return;
+   }
+   DALI_LOG_RELEASE_INFO("eglWindowBufferPreCommit: wrapper: %p\n", bufferCommitData);
+   Ecore_Wl2_VideoShell_Surface_wrapper_update_geometry(bufferCommitData->ecoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
+   Ecore_Wl2_VideoShell_Surface_wrapper_commit(bufferCommitData->ecoreVideoShellSurfaceWrapper);
+}
+
+struct VideoShellSyncConstraint
 {
 public:
-  VideoPlayerSyncConstraint(Ecore_Wl2_Subsurface* ecoreSubVideoWindow, int screenWidth, int screenHeight)
+  VideoShellSyncConstraint(Ecore_Wl2_VideoShell_Surface_Wrapper* ecoreVidoeShellSurfaceWrapper, wl_egl_window* eglWindowBuffer, int screenWidth, int screenHeight)
   {
-    mEcoreSubVideoWindow = ecoreSubVideoWindow;
+    mEglWindowBuffer = eglWindowBuffer;
+    mEcoreVidoeShellSurfaceWrapper = ecoreVidoeShellSurfaceWrapper;
+
     mHalfScreenWidth     = static_cast<float>(screenWidth) / 2;
     mHalfScreenHeight    = static_cast<float>(screenHeight) / 2;
+    DALI_LOG_RELEASE_INFO("create videoShell constraint: mEcoreVidoeShellSurfaceWrapper %p, mEglWindowBuffer: %p\n", mEcoreVidoeShellSurfaceWrapper, mEglWindowBuffer);
   }
 
   void operator()(Vector3& current, const PropertyInputContainer& inputs)
@@ -276,23 +304,39 @@ public:
     Vector3 actorSize = size * worldScale;
     Vector2 screenPosition(mHalfScreenWidth + worldPosition.x, mHalfScreenHeight + worldPosition.y);
 
+    //1. Update VideoView area
     DisplayArea area;
     area.x      = screenPosition.x - actorSize.x / 2;
     area.y      = screenPosition.y - actorSize.y / 2;
     area.width  = actorSize.x;
     area.height = actorSize.y;
 
-    if(mEcoreSubVideoWindow)
+    struct BufferCommitData *bufferCommitData = (struct BufferCommitData *)calloc(1, sizeof(struct BufferCommitData));
+    if (!bufferCommitData)
     {
-      ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, area.x, area.y, area.width, area.height);
+      DALI_LOG_ERROR("Fail to calloc for BufferCommitData!!");
+      return;
     }
+
+    bufferCommitData->ecoreVideoShellSurfaceWrapper = mEcoreVidoeShellSurfaceWrapper;
+    bufferCommitData->x = area.x;
+    bufferCommitData->y = area.x;
+    bufferCommitData->width = area.width;
+    bufferCommitData->height = area.height;
+
+    DALI_LOG_DEBUG_INFO ("Setup the eglWindow PreCommit Callback with wrapper : %p, (%d,%d)(%d x %d)\n", bufferCommitData->ecoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
+
+    // callback option 0 : Once, 1 : continuos
+    wl_egl_window_tizen_set_pre_commit_callback(mEglWindowBuffer, eglWindowBufferPreCommit, bufferCommitData, ONCE);
   }
 
 private:
-  Ecore_Wl2_Subsurface* mEcoreSubVideoWindow;
-  float                 mHalfScreenWidth;
-  float                 mHalfScreenHeight;
+  wl_egl_window*                           mEglWindowBuffer;
+  Ecore_Wl2_VideoShell_Surface_Wrapper*    mEcoreVidoeShellSurfaceWrapper;
+  float                                    mHalfScreenWidth;
+  float                                    mHalfScreenHeight;
 };
+
 
 /**
  * @brief Whether set play positoin accurately or not.
@@ -324,18 +368,30 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mSyncActor(actor),
   mVideoSizePropertyIndex(Property::INVALID_INDEX),
   mSyncMode(syncMode),
-  mIsInitForSyncMode(false),
-  mIsMovedHandle(false)
+  mIsMovedHandle(false),
+  mIsSceneConnected(false),
+  mEcoreVideoShellSurface(nullptr),
+  mVideoShellSizePropertyIndex(Property::INVALID_INDEX)
 {
 }
 
 TizenVideoPlayer::~TizenVideoPlayer()
 {
-  DestroyConstraint();
+  if(mSyncMode == Dali::VideoSyncMode::ENABLED)
+  {
+    DestroyVideoShellConstraint();
+  }
+
   if(mEcoreSubVideoWindow)
   {
     ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
     mEcoreSubVideoWindow = nullptr;
+  }
+
+  if(mEcoreVideoShellSurface)
+  {
+    Ecore_Wl2_VideoShell_Surface_del(mEcoreVideoShellSurface);
+    mEcoreVideoShellSurface = nullptr;
   }
 
   DestroyPlayer();
@@ -396,21 +452,6 @@ void TizenVideoPlayer::SetUrl(const std::string& url)
         Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
         ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
-        if(mSyncMode == Dali::VideoSyncMode::ENABLED)
-        {
-          if(mIsInitForSyncMode)
-          {
-            InitializeEnableSyncMode(mEcoreWlWindow);
-          }
-          else
-          {
-            if(!ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, 0, 0, width, height))
-            {
-              DALI_LOG_ERROR("SetUrl, ecore_wl2_subsurface_video_surface_destination_set() is failed\n");
-            }
-          }
-        }
-        else
         {
           error = player_set_ecore_wl_display(mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow, 0, 0, width, height);
           ret   = LogPlayerError(error);
@@ -462,7 +503,7 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
   {
     if(mSyncMode == Dali::VideoSyncMode::ENABLED)
     {
-      DestroyConstraint();
+      DestroyVideoShellConstraint();
     }
     mTargetType = TizenVideoPlayer::NATIVE_IMAGE;
 
@@ -474,12 +515,13 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
   {
     mTargetType = TizenVideoPlayer::WINDOW_SURFACE;
 
-    InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window*>(target));
-
     if(mSyncMode == Dali::VideoSyncMode::ENABLED)
     {
-      CreateConstraint();
+      InitializeVideoShell(Dali::AnyCast<Ecore_Wl2_Window*>(target));
     }
+
+    DALI_LOG_RELEASE_INFO("target is underlay mode\n");
+    InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window*>(target));
   }
   else
   {
@@ -828,112 +870,40 @@ void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr na
   }
 }
 
-void TizenVideoPlayer::InitializeEnableSyncMode(Ecore_Wl2_Window* ecoreWlWindow)
+void TizenVideoPlayer::InitializeVideoShell(Ecore_Wl2_Window* ecoreWlWindow)
 {
-  int error;
-  int ret = 0;
-
   if(mEcoreWlWindow != ecoreWlWindow)
   {
     mEcoreWlWindow = ecoreWlWindow;
     // check previous video subsurface and destroy
-    if(mEcoreSubVideoWindow)
+    if(mEcoreVideoShellSurface)
     {
-      ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
+      Ecore_Wl2_VideoShell_Surface_del(mEcoreVideoShellSurface);
     }
 
     // Crate ecore_wl2 sursurface
-    mEcoreSubVideoWindow = ecore_wl2_subsurface_new(mEcoreWlWindow);
-    if(!mEcoreSubVideoWindow)
+    mEcoreVideoShellSurface = Ecore_Wl2_VideoShell_Surface_new(mEcoreWlWindow);
+    if(!mEcoreVideoShellSurface)
     {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, ecore_wl2_subsurface_new() is failed\n");
+      DALI_LOG_ERROR("InitializeVideoShell, ecore_wl2_subsurface_new() is failed\n");
       return;
     }
 
-    // ecore_wl2_subsurface_video_surface_prepare
-    if(!ecore_wl2_subsurface_video_surface_prepare(mEcoreSubVideoWindow))
-    {
-      ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
-      DALI_LOG_ERROR("InitializeEnableSyncMode, : ecore_wl2_subsurface_video_surface_prepare() is failed\n");
-      return;
-    }
+    Ecore_Wl2_VideoShell_Surface_place_below(mEcoreVideoShellSurface, nullptr);
+    Ecore_Wl2_VideoShell_Surface_map(mEcoreVideoShellSurface);
 
-    DALI_LOG_RELEASE_INFO("InitializeEnableSyncMode, desync VideoPlayer\n");
-    ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_FALSE);
-  }
+    const char* videoShellHandle = Ecore_Wl2_VideoShell_Surface_handle_get(mEcoreVideoShellSurface);
 
-  if(mPlayerState == PLAYER_STATE_NONE)
-  {
-    error = player_create(&mPlayer);
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, player_create() is failed\n");
-    }
-  }
-
-  GetPlayerState(&mPlayerState);
-  if(mPlayerState == PLAYER_STATE_IDLE)
-  {
-    error = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_completed_cb() is failed\n");
-    }
-
-    error = sound_manager_create_stream_information(mStreamType, NULL, NULL, &mStreamInfo);
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, sound_manager_create_stream_information() is failed\n");
-    }
-
-    error = player_set_sound_stream_info(mPlayer, mStreamInfo);
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_sound_stream_info() is failed\n");
-    }
-
-    error = player_set_video_codec_type(mPlayer, mCodecType);
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_video_codec_type() is failed\n");
-    }
-
-    int                width, height;
-    Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
-    ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
-    ecore_wl2_window_alpha_set(mEcoreWlWindow, false);
-
-    if(!ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, 0, 0, width, height))
-    {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, ecore_wl2_subsurface_video_surface_destination_set() is failed\n");
-    }
-    error = player_set_display(mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY, mEcoreWlWindow);
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("InitializeEnableSyncMode, player_set_display() is failed\n");
-    }
-
-    mIsInitForSyncMode = true;
+    DALI_LOG_RELEASE_INFO("VideoShell(%p) handle: %s\n", mEcoreVideoShellSurface, videoShellHandle);
   }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TizenVideoPlayer::InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow)
 {
   int error;
   int ret = 0;
-
-  if(mSyncMode == Dali::VideoSyncMode::ENABLED)
-  {
-    DALI_LOG_RELEASE_INFO("InitializeUnderlayMode, \n");
-    InitializeEnableSyncMode(ecoreWlWindow);
-    return;
-  }
 
   mEcoreWlWindow = ecoreWlWindow;
 
@@ -1086,6 +1056,7 @@ void TizenVideoPlayer::PushPacket(media_packet_h packet)
 void TizenVideoPlayer::SetDisplayArea(DisplayArea area)
 {
   int ret = 0;
+  DALI_LOG_RELEASE_INFO("Set Display Area (%f , %f) (%f x %f)\n", area.x, area.y, area.width, area.height);
   GetPlayerState(&mPlayerState);
 
   if(mNativeImageSourcePtr)
@@ -1101,21 +1072,12 @@ void TizenVideoPlayer::SetDisplayArea(DisplayArea area)
   {
     area.x = (area.x < 0) ? 0 : area.x;
     area.y = (area.y < 0) ? 0 : area.y;
-    if(mSyncMode == Dali::VideoSyncMode::ENABLED)
+
+    int error = player_set_display_roi_area(mPlayer, area.x, area.y, area.width, area.height);
+    ret       = LogPlayerError(error);
+    if(ret)
     {
-      if(!ecore_wl2_subsurface_video_surface_destination_set(mEcoreSubVideoWindow, area.x, area.y, area.width, area.height))
-      {
-        DALI_LOG_ERROR("SetDisplayArea, ecore_wl2_subsurface_video_surface_destination_set() is failed\n");
-      }
-    }
-    else
-    {
-      int error = player_set_display_roi_area(mPlayer, area.x, area.y, area.width, area.height);
-      ret       = LogPlayerError(error);
-      if(ret)
-      {
-        DALI_LOG_ERROR("SetDisplayArea, player_set_display_roi_area() is failed\n");
-      }
+      DALI_LOG_ERROR("SetDisplayArea, player_set_display_roi_area() is failed\n");
     }
   }
 }
@@ -1348,81 +1310,130 @@ Any TizenVideoPlayer::GetMediaPlayer()
 void TizenVideoPlayer::StartSynchronization()
 {
   DALI_LOG_RELEASE_INFO("sync VideoPlayer\n");
-  ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_TRUE);
+  //ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_TRUE);
 }
 
 void TizenVideoPlayer::FinishSynchronization()
 {
   // Finish
   DALI_LOG_RELEASE_INFO("desync VideoPlayer\n");
-  ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_FALSE);
+  //ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_FALSE);
 }
 
-void TizenVideoPlayer::CreateConstraint()
+void TizenVideoPlayer::CreateVideoShellConstraint()
 {
-  if(mVideoSizePropertyIndex == Property::INVALID_INDEX)
+  DALI_LOG_RELEASE_INFO("Create Video Shell Constraint\n");
+  if(mVideoShellSizePropertyIndex == Property::INVALID_INDEX)
   {
-    if(mVideoSizePropertyConstraint)
+    if(mVideoShellSizePropertyConstraint)
     {
-      mVideoSizePropertyConstraint.Remove();
+      mVideoShellSizePropertyConstraint.Remove();
     }
 
     Actor syncActor = mSyncActor.GetHandle();
     if(syncActor)
     {
-      mVideoSizePropertyIndex = syncActor.RegisterProperty(VIDEO_PLAYER_SIZE_NAME, Vector3::ZERO);
+      mVideoShellSizePropertyIndex = syncActor.RegisterProperty(VIDEO_PLAYER_SIZE_NAME, Vector3::ZERO);
 
       int                width, height;
       Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
       ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
-      mVideoSizePropertyConstraint = Constraint::New<Vector3>(syncActor,
-                                                              mVideoSizePropertyIndex,
-                                                              VideoPlayerSyncConstraint(mEcoreSubVideoWindow, width, height));
+      Window window = DevelWindow::Get(syncActor);
+      wl_egl_window* windowBuffer = Dali::AnyCast<wl_egl_window*>(DevelWindow::GetNativeBuffer(window));
+      Ecore_Wl2_VideoShell_Surface_Wrapper *ecoreVidoeShellSurfaceWrapper = Ecore_Wl2_VideoShell_Surface_wrapper_new(mEcoreVideoShellSurface);
 
-      mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
-      mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
-      mVideoSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
+      DALI_LOG_RELEASE_INFO("Get EGL Window Surface: %p\n", windowBuffer);
+      const char* videoShellHandle = Ecore_Wl2_VideoShell_Surface_handle_get(mEcoreVideoShellSurface);
+      DALI_LOG_RELEASE_INFO("VideoShell(%p) handle: %s\n", mEcoreVideoShellSurface, videoShellHandle);
 
-      mVideoSizePropertyConstraint.Apply();
+      mVideoShellSizePropertyConstraint = Constraint::New<Vector3>(syncActor,
+                                                              mVideoShellSizePropertyIndex,
+                                                              VideoShellSyncConstraint(ecoreVidoeShellSurfaceWrapper, windowBuffer, width, height));
+
+      mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
+      mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
+      mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
     }
   }
 }
 
-void TizenVideoPlayer::DestroyConstraint()
+void TizenVideoPlayer::DestroyVideoShellConstraint()
 {
-  if(mVideoSizePropertyIndex != Property::INVALID_INDEX)
+  DALI_LOG_RELEASE_INFO("Destroy VideoShell Constraint: %d\n", mVideoShellSizePropertyIndex);
+  if(mVideoShellSizePropertyIndex != Property::INVALID_INDEX)
   {
-    mVideoSizePropertyConstraint.Remove();
-    mVideoSizePropertyIndex = Property::INVALID_INDEX;
+    mVideoShellSizePropertyConstraint.Remove();
+    mVideoShellSizePropertyIndex = Property::INVALID_INDEX;
   }
 }
 
 void TizenVideoPlayer::RaiseAbove(Any videoSurface)
 {
-  Ecore_Wl2_Subsurface* surface = AnyCast<Ecore_Wl2_Subsurface*>(videoSurface);
-  ecore_wl2_subsurface_place_surface_above(mEcoreSubVideoWindow, surface);
+  // TODO: SR Video shell's designed is completed,
+  // it will be re-designed and implemented.
+  // Until it is completed, the below code will be commented.
+
+  //  Ecore_Wl2_Subsurface* surface = AnyCast<Ecore_Wl2_Subsurface*>(videoSurface);
+  //  ecore_wl2_subsurface_place_surface_above(mEcoreSubVideoWindow, surface);
 }
 
 void TizenVideoPlayer::LowerBelow(Any videoSurface)
 {
-  Ecore_Wl2_Subsurface* surface = AnyCast<Ecore_Wl2_Subsurface*>(videoSurface);
-  ecore_wl2_subsurface_place_surface_below(mEcoreSubVideoWindow, surface);
+  // TODO: SR Video shell's designed is completed,
+  // it will be re-designed and implemented.
+  // Until it is completed, the below code will be commented.
+
+  //  Ecore_Wl2_Subsurface* surface = AnyCast<Ecore_Wl2_Subsurface*>(videoSurface);
+  //  ecore_wl2_subsurface_place_surface_below(mEcoreSubVideoWindow, surface);
 }
 
 void TizenVideoPlayer::RaiseToTop()
 {
-  ecore_wl2_subsurface_place_surface_above(mEcoreSubVideoWindow, NULL);
+  // TODO: SR Video shell's designed is completed,
+  // it will be re-designed and implemented.
+  // Until it is completed, the below code will be commented.
+
+  //  ecore_wl2_subsurface_place_surface_above(mEcoreSubVideoWindow, NULL);
 }
 
 void TizenVideoPlayer::LowerToBottom()
 {
-  ecore_wl2_subsurface_place_surface_below(mEcoreSubVideoWindow, NULL);
+  // TODO: SR Video shell's designed is completed,
+  // it will be re-designed and implemented.
+  // Until it is completed, the below code will be commented.
+
+  //  ecore_wl2_subsurface_place_surface_below(mEcoreSubVideoWindow, NULL);
 }
 
 Any TizenVideoPlayer::GetVideoPlayerSurface()
 {
   return mEcoreSubVideoWindow;
+}
+
+void TizenVideoPlayer::SceneConnection()
+{
+  DALI_LOG_RELEASE_INFO("Scene is connected\n");
+
+  if(mSyncMode == Dali::VideoSyncMode::ENABLED && mVideoShellSizePropertyIndex == Property::INVALID_INDEX)
+  {
+    DALI_LOG_RELEASE_INFO("mVideoShellSizePropertyConstraint(%d).ApplyPost()\n", mVideoShellSizePropertyIndex);
+    CreateVideoShellConstraint();
+    mVideoShellSizePropertyConstraint.ApplyPost();
+  }
+  mIsSceneConnected = true;
+}
+
+void TizenVideoPlayer::SceneDisconnection()
+{
+  DALI_LOG_RELEASE_INFO("Scene is disconnected\n");
+
+  if(mSyncMode == Dali::VideoSyncMode::ENABLED && mVideoShellSizePropertyIndex != Property::INVALID_INDEX)
+  {
+    DALI_LOG_RELEASE_INFO("mVideoShellSizePropertyConstraint(%d).Remove()\n", mVideoShellSizePropertyIndex);
+    DestroyVideoShellConstraint();
+  }
+  mIsSceneConnected = false;
 }
 
 } // namespace Plugin

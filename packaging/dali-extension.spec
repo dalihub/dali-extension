@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.3.35
+Version:    2.3.36
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -93,6 +93,7 @@ Summary:    Plugin to play a video file for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(capi-media-player)
 BuildRequires: pkgconfig(capi-system-info)
+BuildRequires: pkgconfig(wayland-egl)
 # dali-adaptor uses ecore mainloop
 %if 0%{?tizen_version_major} >= 5
 BuildRequires:  pkgconfig(ecore-wl2)
