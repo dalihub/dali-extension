@@ -606,7 +606,7 @@ private:
   static Eina_Bool OnGeolocationPermission(Evas_Object*, Ewk_Geolocation_Permission_Request* request, void* data);
 
   void UpdateImage(tbm_surface_h buffer);
-  void InitWebView(bool incognito);
+  void InitWebView();
   bool FeedMouseEvent(const TouchEvent& touch);
   bool FeedTouchEvent(const TouchEvent& touch);
 
