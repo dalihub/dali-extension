@@ -609,50 +609,55 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
   Ewk_Touch_Event_Type   type  = EWK_TOUCH_START;
   Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
 
-  std::size_t pointCount = touch.GetPointCount() - 1;
-
-  switch(touch.GetState(pointCount))
+  bool fed = false;
+  for(std::size_t i = 0; i < touch.GetPointCount(); i++)
   {
-    case PointState::DOWN:
+    switch(touch.GetState(i))
     {
-      type  = EWK_TOUCH_START;
-      state = EVAS_TOUCH_POINT_DOWN;
-      break;
+      case PointState::DOWN:
+      {
+        type  = EWK_TOUCH_START;
+        state = EVAS_TOUCH_POINT_DOWN;
+        break;
+      }
+      case PointState::UP:
+      {
+        type  = EWK_TOUCH_END;
+        state = EVAS_TOUCH_POINT_UP;
+        break;
+      }
+      case PointState::MOTION:
+      {
+        type  = EWK_TOUCH_MOVE;
+        state = EVAS_TOUCH_POINT_MOVE;
+        break;
+      }
+      case PointState::INTERRUPTED:
+      {
+        type  = EWK_TOUCH_CANCEL;
+        state = EVAS_TOUCH_POINT_CANCEL;
+        break;
+      }
+      default:
+      {
+        break;
+      }
     }
-    case PointState::UP:
-    {
-      type  = EWK_TOUCH_END;
-      state = EVAS_TOUCH_POINT_UP;
-      break;
-    }
-    case PointState::MOTION:
-    {
-      type  = EWK_TOUCH_MOVE;
-      state = EVAS_TOUCH_POINT_MOVE;
-      break;
-    }
-    case PointState::INTERRUPTED:
-    {
-      type  = EWK_TOUCH_CANCEL;
-      state = EVAS_TOUCH_POINT_CANCEL;
-      break;
-    }
-    default:
+
+    Eina_List*      pointList = 0;
+    Ewk_Touch_Point point;
+    point.id    = i;
+    point.x     = touch.GetScreenPosition(i).x;
+    point.y     = touch.GetScreenPosition(i).y;
+    point.state = state;
+    pointList   = eina_list_append(pointList, &point);
+    fed = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
+    eina_list_free(pointList);
+    if(!fed)
     {
       break;
     }
   }
-
-  Eina_List*      pointList = 0;
-  Ewk_Touch_Point point;
-  point.id    = pointCount;
-  point.x     = touch.GetScreenPosition(pointCount).x;
-  point.y     = touch.GetScreenPosition(pointCount).y;
-  point.state = state;
-  pointList   = eina_list_append(pointList, &point);
-
-  bool fed = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
-  eina_list_free(pointList);
   return fed;
 }
 
