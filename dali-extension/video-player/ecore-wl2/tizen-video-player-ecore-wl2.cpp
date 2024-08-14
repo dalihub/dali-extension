@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@
 #include <tizen-video-player.h>
 
 // EXTERNAL INCLUDES
+#include <dali/devel-api/adaptor-framework/environment-variable.h>
+#include <dali/devel-api/adaptor-framework/window-devel.h>
+#include <dali/devel-api/common/stage-devel.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/debug.h>
-#include <dali/devel-api/common/stage-devel.h>
-#include <dali/devel-api/adaptor-framework/window-devel.h>
-#include <wayland-egl-tizen.h>
 #include <system_info.h>
+#include <wayland-egl-tizen.h>
 
 // INTERNAL INCLUDES
 
@@ -49,6 +50,8 @@ namespace Plugin
 {
 namespace
 {
+const char* TIZEN_GLIB_CONTEXT_ENV = "TIZEN_GLIB_CONTEXT";
+
 const int TIMER_INTERVAL(20);
 
 static void MediaPacketVideoDecodedCb(media_packet_h packet, void* user_data)
@@ -70,7 +73,7 @@ static GMainContext* GetTizenGlibContext()
 
   if(!context)
   {
-    const char* env = getenv("TIZEN_GLIB_CONTEXT");
+    const char* env = Dali::EnvironmentVariable::GetEnvironmentVariable(TIZEN_GLIB_CONTEXT_ENV);
     if(env)
     {
       context = (GMainContext*)strtoul(env, nullptr, 10);
@@ -104,8 +107,7 @@ static void EmitPlaybackFinishedSignal(void* user_data)
       GSource* source = g_idle_source_new();
       g_source_set_callback(
         source,
-        [](gpointer userData) -> gboolean
-        {
+        [](gpointer userData) -> gboolean {
           auto* player = static_cast<TizenVideoPlayer*>(userData);
           player->mFinishedSignal.Emit();
           player->Stop();
@@ -262,24 +264,24 @@ const char* const VIDEO_PLAYER_SIZE_NAME("videoPlayerSize");
 
 struct BufferCommitData
 {
-  Ecore_Wl2_VideoShell_Surface_Wrapper*   ecoreVideoShellSurfaceWrapper;
-  int32_t                                 x;
-  int32_t                                 y;
-  int32_t                                 width;
-  int32_t                                 height;
+  Ecore_Wl2_VideoShell_Surface_Wrapper* ecoreVideoShellSurfaceWrapper;
+  int32_t                               x;
+  int32_t                               y;
+  int32_t                               width;
+  int32_t                               height;
 };
 
-static void eglWindowBufferPreCommit(void *data)
+static void eglWindowBufferPreCommit(void* data)
 {
-   struct BufferCommitData *bufferCommitData = (struct BufferCommitData*)data;
-   if(!bufferCommitData)
-   {
-     DALI_LOG_ERROR("user data is nullptrs\n");
-     return;
-   }
-   DALI_LOG_RELEASE_INFO("eglWindowBufferPreCommit: wrapper: %p\n", bufferCommitData);
-   Ecore_Wl2_VideoShell_Surface_wrapper_update_geometry(bufferCommitData->ecoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
-   Ecore_Wl2_VideoShell_Surface_wrapper_commit(bufferCommitData->ecoreVideoShellSurfaceWrapper);
+  struct BufferCommitData* bufferCommitData = (struct BufferCommitData*)data;
+  if(!bufferCommitData)
+  {
+    DALI_LOG_ERROR("user data is nullptrs\n");
+    return;
+  }
+  DALI_LOG_RELEASE_INFO("eglWindowBufferPreCommit: wrapper: %p\n", bufferCommitData);
+  Ecore_Wl2_VideoShell_Surface_wrapper_update_geometry(bufferCommitData->ecoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
+  Ecore_Wl2_VideoShell_Surface_wrapper_commit(bufferCommitData->ecoreVideoShellSurfaceWrapper);
 }
 
 struct VideoShellSyncConstraint
@@ -287,11 +289,11 @@ struct VideoShellSyncConstraint
 public:
   VideoShellSyncConstraint(Ecore_Wl2_VideoShell_Surface_Wrapper* ecoreVidoeShellSurfaceWrapper, wl_egl_window* eglWindowBuffer, int screenWidth, int screenHeight)
   {
-    mEglWindowBuffer = eglWindowBuffer;
+    mEglWindowBuffer               = eglWindowBuffer;
     mEcoreVidoeShellSurfaceWrapper = ecoreVidoeShellSurfaceWrapper;
 
-    mHalfScreenWidth     = static_cast<float>(screenWidth) / 2;
-    mHalfScreenHeight    = static_cast<float>(screenHeight) / 2;
+    mHalfScreenWidth  = static_cast<float>(screenWidth) / 2;
+    mHalfScreenHeight = static_cast<float>(screenHeight) / 2;
     DALI_LOG_RELEASE_INFO("create videoShell constraint: mEcoreVidoeShellSurfaceWrapper %p, mEglWindowBuffer: %p\n", mEcoreVidoeShellSurfaceWrapper, mEglWindowBuffer);
   }
 
@@ -311,32 +313,31 @@ public:
     area.width  = actorSize.x;
     area.height = actorSize.y;
 
-    struct BufferCommitData *bufferCommitData = (struct BufferCommitData *)calloc(1, sizeof(struct BufferCommitData));
-    if (!bufferCommitData)
+    struct BufferCommitData* bufferCommitData = (struct BufferCommitData*)calloc(1, sizeof(struct BufferCommitData));
+    if(!bufferCommitData)
     {
       DALI_LOG_ERROR("Fail to calloc for BufferCommitData!!");
       return;
     }
 
     bufferCommitData->ecoreVideoShellSurfaceWrapper = mEcoreVidoeShellSurfaceWrapper;
-    bufferCommitData->x = area.x;
-    bufferCommitData->y = area.x;
-    bufferCommitData->width = area.width;
-    bufferCommitData->height = area.height;
+    bufferCommitData->x                             = area.x;
+    bufferCommitData->y                             = area.x;
+    bufferCommitData->width                         = area.width;
+    bufferCommitData->height                        = area.height;
 
-    DALI_LOG_DEBUG_INFO ("Setup the eglWindow PreCommit Callback with wrapper : %p, (%d,%d)(%d x %d)\n", bufferCommitData->ecoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
+    DALI_LOG_DEBUG_INFO("Setup the eglWindow PreCommit Callback with wrapper : %p, (%d,%d)(%d x %d)\n", bufferCommitData->ecoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
 
     // callback option 0 : Once, 1 : continuos
     wl_egl_window_tizen_set_pre_commit_callback(mEglWindowBuffer, eglWindowBufferPreCommit, bufferCommitData, ONCE);
   }
 
 private:
-  wl_egl_window*                           mEglWindowBuffer;
-  Ecore_Wl2_VideoShell_Surface_Wrapper*    mEcoreVidoeShellSurfaceWrapper;
-  float                                    mHalfScreenWidth;
-  float                                    mHalfScreenHeight;
+  wl_egl_window*                        mEglWindowBuffer;
+  Ecore_Wl2_VideoShell_Surface_Wrapper* mEcoreVidoeShellSurfaceWrapper;
+  float                                 mHalfScreenWidth;
+  float                                 mHalfScreenHeight;
 };
-
 
 /**
  * @brief Whether set play positoin accurately or not.
@@ -1001,7 +1002,7 @@ bool TizenVideoPlayer::Update()
 
   if(!mPacketList.empty())
   {
-    mPacket = static_cast< media_packet_h >( mPacketList.front() );
+    mPacket = static_cast<media_packet_h>(mPacketList.front());
     mPacketList.pop_front();
   }
 
@@ -1037,11 +1038,11 @@ void TizenVideoPlayer::DestroyPackets()
   }
 
   std::list<media_packet_h>::iterator iter = mPacketList.begin();
-  for (; iter != mPacketList.end(); ++iter)
+  for(; iter != mPacketList.end(); ++iter)
   {
     mPacket = *iter;
-    error = media_packet_destroy( mPacket );
-    DALI_LOG_ERROR( "Media packet destroy error: %d\n", error );
+    error   = media_packet_destroy(mPacket);
+    DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
     mPacket = NULL;
   }
   mPacketList.clear();
@@ -1250,7 +1251,7 @@ Dali::VideoPlayerPlugin::CodecType TizenVideoPlayer::GetCodecType() const
   if(mPlayerState != PLAYER_STATE_NONE)
   {
     player_codec_type_e codecType = PLAYER_CODEC_TYPE_HW;
-    int                          error     = player_get_video_codec_type(mPlayer, &codecType);
+    int                 error     = player_get_video_codec_type(mPlayer, &codecType);
     if(error != PLAYER_ERROR_NONE)
     {
       ret = LogPlayerError(error);
@@ -1339,17 +1340,17 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
       Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
       ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
-      Window window = DevelWindow::Get(syncActor);
-      wl_egl_window* windowBuffer = Dali::AnyCast<wl_egl_window*>(DevelWindow::GetNativeBuffer(window));
-      Ecore_Wl2_VideoShell_Surface_Wrapper *ecoreVidoeShellSurfaceWrapper = Ecore_Wl2_VideoShell_Surface_wrapper_new(mEcoreVideoShellSurface);
+      Window                                window                        = DevelWindow::Get(syncActor);
+      wl_egl_window*                        windowBuffer                  = Dali::AnyCast<wl_egl_window*>(DevelWindow::GetNativeBuffer(window));
+      Ecore_Wl2_VideoShell_Surface_Wrapper* ecoreVidoeShellSurfaceWrapper = Ecore_Wl2_VideoShell_Surface_wrapper_new(mEcoreVideoShellSurface);
 
       DALI_LOG_RELEASE_INFO("Get EGL Window Surface: %p\n", windowBuffer);
       const char* videoShellHandle = Ecore_Wl2_VideoShell_Surface_handle_get(mEcoreVideoShellSurface);
       DALI_LOG_RELEASE_INFO("VideoShell(%p) handle: %s\n", mEcoreVideoShellSurface, videoShellHandle);
 
       mVideoShellSizePropertyConstraint = Constraint::New<Vector3>(syncActor,
-                                                              mVideoShellSizePropertyIndex,
-                                                              VideoShellSyncConstraint(ecoreVidoeShellSurfaceWrapper, windowBuffer, width, height));
+                                                                   mVideoShellSizePropertyIndex,
+                                                                   VideoShellSyncConstraint(ecoreVidoeShellSurfaceWrapper, windowBuffer, width, height));
 
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
