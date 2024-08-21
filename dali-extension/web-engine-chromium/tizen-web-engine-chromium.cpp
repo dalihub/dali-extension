@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::
 
   mWidth  = width;
   mHeight = height;
-  InitWebView();
+  InitWebView(false);
   WebEngineManager::Get().Add(mWebView, this);
 }
 
@@ -142,19 +142,40 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t ar
     return;
   }
 
+  bool incognito = false;
+  for(uint32_t idx = 0; idx < argc; ++idx)
+  {
+    if(strstr(argv[idx], "--incognito"))
+    {
+      incognito = true;
+      break;
+    }
+  }
+
   mWidth  = width;
   mHeight = height;
-  InitWebView();
+  InitWebView(incognito);
   WebEngineManager::Get().Add(mWebView, this);
 }
 
-void TizenWebEngineChromium::InitWebView()
+void TizenWebEngineChromium::InitWebView(bool incognito)
 {
-  Ecore_Wl2_Window* win     = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
-  Ewk_Context*      context = ewk_context_default_get();
+  Ewk_Context* context = nullptr;
+  if(incognito)
+  {
+    mWebView = ewk_view_add_in_incognito_mode(ecore_evas_get(WebEngineManager::Get().GetWindow()));
+    context  = ewk_view_context_get(mWebView);
+  }
+  else
+  {
+    context  = ewk_context_default_get();
+    mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
+  }
+  WebEngineManager::Get().SetContext(context);
   ewk_context_max_refresh_rate_set(context, 60);
-  mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
   ewk_view_offscreen_rendering_enabled_set(mWebView, true);
+
+  Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
   ewk_view_ime_window_set(mWebView, win);
 
   Ewk_Settings* settings = ewk_view_settings_get(mWebView);
@@ -179,11 +200,15 @@ void TizenWebEngineChromium::InitWebView()
   evas_object_smart_callback_add(mWebView, "form,repost,warning,show", &TizenWebEngineChromium::OnFormRepostDecided, this);
   evas_object_smart_callback_add(mWebView, "policy,response,decide", &TizenWebEngineChromium::OnResponsePolicyDecided, this);
   evas_object_smart_callback_add(mWebView, "policy,navigation,decide", &TizenWebEngineChromium::OnNavigationPolicyDecided, this);
+  evas_object_smart_callback_add(mWebView, "policy,newwindow,decide", &TizenWebEngineChromium::OnNewWindowPolicyDecided, this);
   evas_object_smart_callback_add(mWebView, "create,window", &TizenWebEngineChromium::OnNewWindowCreated, this);
   evas_object_smart_callback_add(mWebView, "request,certificate,confirm", &TizenWebEngineChromium::OnCertificateConfirmed, this);
   evas_object_smart_callback_add(mWebView, "ssl,certificate,changed", &TizenWebEngineChromium::OnSslCertificateChanged, this);
   evas_object_smart_callback_add(mWebView, "contextmenu,show", &TizenWebEngineChromium::OnContextMenuShown, this);
   evas_object_smart_callback_add(mWebView, "contextmenu,hide", &TizenWebEngineChromium::OnContextMenuHidden, this);
+  evas_object_smart_callback_add(mWebView, "fullscreen,enterfullscreen", &TizenWebEngineChromium::OnFullscreenEntered, this);
+  evas_object_smart_callback_add(mWebView, "fullscreen,exitfullscreen", &TizenWebEngineChromium::OnFullscreenExited, this);
+  evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
 
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
@@ -225,6 +250,12 @@ Dali::PixelData TizenWebEngineChromium::GetFavicon() const
 NativeImageSourcePtr TizenWebEngineChromium::GetNativeImageSource()
 {
   return mDaliImageSrc;
+}
+
+void TizenWebEngineChromium::ChangeOrientation(int orientation)
+{
+  DALI_LOG_RELEASE_INFO("#ChangeOrientation : %d\n", orientation);
+  ewk_view_orientation_send(mWebView, orientation);
 }
 
 std::string TizenWebEngineChromium::GetUrl() const
@@ -375,6 +406,12 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& expo
   mJavaScriptInjectedCallbacks.erase(exposedObjectName);
   mJavaScriptInjectedCallbacks.insert(std::pair<std::string, JavaScriptMessageHandlerCallback>(exposedObjectName, handler));
   ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptInjected, exposedObjectName.c_str());
+}
+
+void TizenWebEngineChromium::AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, JavaScriptEntireMessageHandlerCallback handler)
+{
+  mJavaScriptEntireMessageReceivedCallback = handler;
+  ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptEntireMessageReceived, exposedObjectName.c_str());
 }
 
 void TizenWebEngineChromium::RegisterJavaScriptAlertCallback(JavaScriptAlertCallback callback)
@@ -583,48 +620,56 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
 {
   Ewk_Touch_Event_Type   type  = EWK_TOUCH_START;
   Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
-  switch(touch.GetState(0))
+
+  bool fed = false;
+  for(std::size_t i = 0; i < touch.GetPointCount(); i++)
   {
-    case PointState::DOWN:
+    switch(touch.GetState(i))
     {
-      type  = EWK_TOUCH_START;
-      state = EVAS_TOUCH_POINT_DOWN;
-      break;
+      case PointState::DOWN:
+      {
+        type  = EWK_TOUCH_START;
+        state = EVAS_TOUCH_POINT_DOWN;
+        break;
+      }
+      case PointState::UP:
+      {
+        type  = EWK_TOUCH_END;
+        state = EVAS_TOUCH_POINT_UP;
+        break;
+      }
+      case PointState::MOTION:
+      {
+        type  = EWK_TOUCH_MOVE;
+        state = EVAS_TOUCH_POINT_MOVE;
+        break;
+      }
+      case PointState::INTERRUPTED:
+      {
+        type  = EWK_TOUCH_CANCEL;
+        state = EVAS_TOUCH_POINT_CANCEL;
+        break;
+      }
+      default:
+      {
+        break;
+      }
     }
-    case PointState::UP:
-    {
-      type  = EWK_TOUCH_END;
-      state = EVAS_TOUCH_POINT_UP;
-      break;
-    }
-    case PointState::MOTION:
-    {
-      type  = EWK_TOUCH_MOVE;
-      state = EVAS_TOUCH_POINT_MOVE;
-      break;
-    }
-    case PointState::INTERRUPTED:
-    {
-      type  = EWK_TOUCH_CANCEL;
-      state = EVAS_TOUCH_POINT_CANCEL;
-      break;
-    }
-    default:
+
+    Eina_List*      pointList = 0;
+    Ewk_Touch_Point point;
+    point.id    = i;
+    point.x     = touch.GetScreenPosition(i).x;
+    point.y     = touch.GetScreenPosition(i).y;
+    point.state = state;
+    pointList   = eina_list_append(pointList, &point);
+    fed = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
+    eina_list_free(pointList);
+    if(!fed)
     {
       break;
     }
   }
-
-  Eina_List*      pointList = 0;
-  Ewk_Touch_Point point;
-  point.id    = 0;
-  point.x     = touch.GetScreenPosition(0).x;
-  point.y     = touch.GetScreenPosition(0).y;
-  point.state = state;
-  pointList   = eina_list_append(pointList, &point);
-
-  bool fed = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
-  eina_list_free(pointList);
   return fed;
 }
 
@@ -690,6 +735,11 @@ bool TizenWebEngineChromium::SendWheelEvent(const Dali::WheelEvent& wheel)
   float     y         = wheel.GetPoint().y;
   ewk_view_feed_mouse_wheel(mWebView, direction, step, x, y);
   return false;
+}
+
+void TizenWebEngineChromium::ExitFullscreen()
+{
+  ewk_view_fullscreen_exit(mWebView);
 }
 
 void TizenWebEngineChromium::SetFocus(bool focused)
@@ -897,6 +947,11 @@ void TizenWebEngineChromium::RegisterNavigationPolicyDecidedCallback(WebEngineNa
   mNavigationPolicyDecidedCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterNewWindowPolicyDecidedCallback(WebEngineNewWindowPolicyDecidedCallback callback)
+{
+  mNewWindowPolicyDecidedCallback = callback;
+}
+
 void TizenWebEngineChromium::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback)
 {
   mNewWindowCreatedCallback = callback;
@@ -933,6 +988,21 @@ void TizenWebEngineChromium::RegisterContextMenuShownCallback(WebEngineContextMe
 void TizenWebEngineChromium::RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback)
 {
   mContextMenuHiddenCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterFullscreenEnteredCallback(WebEngineFullscreenEnteredCallback callback)
+{
+  mFullscreenEnteredCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterFullscreenExitedCallback(WebEngineFullscreenExitedCallback callback)
+{
+  mFullscreenExitedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterTextFoundCallback(WebEngineTextFoundCallback callback)
+{
+  mTextFoundCallback = callback;
 }
 
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
@@ -1090,6 +1160,15 @@ void TizenWebEngineChromium::OnNavigationPolicyDecided(void* data, Evas_Object*,
   ExecuteCallback(pThis->mNavigationPolicyDecidedCallback, std::move(webPolicyDecision));
 }
 
+void TizenWebEngineChromium::OnNewWindowPolicyDecided(void* data, Evas_Object*, void* policy)
+{
+  DALI_LOG_RELEASE_INFO("#NewWindowPolicyDecided.\n");
+  auto                                           pThis          = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_Policy_Decision*                           policyDecision = static_cast<Ewk_Policy_Decision*>(policy);
+  std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
+  ExecuteCallback(pThis->mNewWindowPolicyDecidedCallback, std::move(webPolicyDecision));
+}
+
 void TizenWebEngineChromium::OnNewWindowCreated(void* data, Evas_Object*, void* out_view)
 {
   DALI_LOG_RELEASE_INFO("#NewWindowCreated.\n");
@@ -1142,6 +1221,28 @@ void TizenWebEngineChromium::OnContextMenuHidden(void* data, Evas_Object*, void*
   ExecuteCallback(pThis->mContextMenuHiddenCallback, std::move(contextMenu));
 }
 
+void TizenWebEngineChromium::OnFullscreenEntered(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#FullscreenEntered.\n");
+  ExecuteCallback(pThis->mFullscreenEnteredCallback);
+}
+
+void TizenWebEngineChromium::OnFullscreenExited(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#FullscreenExited.\n");
+  ExecuteCallback(pThis->mFullscreenExitedCallback);
+}
+
+void TizenWebEngineChromium::OnTextFound(void* data, Evas_Object*, void* eventInfo)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  uint32_t count = *((uint32_t*)(eventInfo));
+  DALI_LOG_RELEASE_INFO("#TextFound, count:%u.\n", count);
+  ExecuteCallback(pThis->mTextFoundCallback, count);
+}
+
 void TizenWebEngineChromium::OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)
 {
   DALI_LOG_RELEASE_INFO("#AuthenticationChallenged.\n");
@@ -1180,6 +1281,22 @@ void TizenWebEngineChromium::OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Mes
     {
       ExecuteCallback(targetCallback->second, resultText);
     }
+  }
+}
+
+void TizenWebEngineChromium::OnJavaScriptEntireMessageReceived(Evas_Object* o, Ewk_Script_Message message)
+{
+  auto plugin = WebEngineManager::Get().Find(o);
+  if(plugin)
+  {
+    auto        pThis       = static_cast<TizenWebEngineChromium*>(plugin);
+    std::string messageName = static_cast<const char*>(message.name);
+    std::string messageBody;
+    if(message.body != nullptr)
+    {
+      messageBody = static_cast<char*>(message.body);
+    }
+    ExecuteCallback(pThis->mJavaScriptEntireMessageReceivedCallback, messageName, messageBody);
   }
 }
 

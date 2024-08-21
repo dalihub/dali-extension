@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -750,6 +750,11 @@ Dali::NativeImageSourcePtr TizenWebEngineLWE::GetNativeImageSource()
   return mNativeImageSourcePtr;
 }
 
+void TizenWebEngineLWE::ChangeOrientation(int orientation)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::LoadUrl(const std::string& url)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
@@ -925,6 +930,11 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
     handler(data);
     return "";
   });
+}
+
+void TizenWebEngineLWE::AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, Dali::WebEnginePlugin::JavaScriptEntireMessageHandlerCallback handler)
+{
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback)
@@ -1278,6 +1288,11 @@ bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
   return false;
 }
 
+void TizenWebEngineLWE::ExitFullscreen()
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback)
 {
   // NOT IMPLEMENTED
@@ -1333,6 +1348,11 @@ void TizenWebEngineLWE::RegisterNavigationPolicyDecidedCallback(WebEngineNavigat
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::RegisterNewWindowPolicyDecidedCallback(WebEngineNewWindowPolicyDecidedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback)
 {
   // NOT IMPLEMENTED
@@ -1359,6 +1379,21 @@ void TizenWebEngineLWE::RegisterContextMenuShownCallback(WebEngineContextMenuSho
 }
 
 void TizenWebEngineLWE::RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterFullscreenEnteredCallback(WebEngineFullscreenEnteredCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterFullscreenExitedCallback(WebEngineFullscreenExitedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterTextFoundCallback(WebEngineTextFoundCallback callback)
 {
   // NOT IMPLEMENTED
 }
