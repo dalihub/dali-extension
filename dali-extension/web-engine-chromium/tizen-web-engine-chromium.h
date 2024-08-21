@@ -2,7 +2,7 @@
 #define DALI_TIZEN_WEB_ENGINE_CHROMIUM_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
    */
   NativeImageSourcePtr GetNativeImageSource() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::ChangeOrientation()
+   */
+  void ChangeOrientation(int orientation) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetTitle()
@@ -236,6 +241,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::AddJavaScriptMessageHandler()
    */
   void AddJavaScriptMessageHandler(const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::AddJavaScriptEntireMessageHandler()
+   */
+  void AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, JavaScriptEntireMessageHandlerCallback handler) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptAlertCallback()
@@ -448,6 +458,11 @@ public:
   bool SendWheelEvent(const Dali::WheelEvent& event) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::ExitFullscreen()
+   */
+  void ExitFullscreen() override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterFrameRenderedCallback()
    */
   void RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback) override;
@@ -503,6 +518,11 @@ public:
   void RegisterNavigationPolicyDecidedCallback(WebEngineNavigationPolicyDecidedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterNewWindowPolicyDecidedCallback()
+   */
+  void RegisterNewWindowPolicyDecidedCallback(WebEngineNewWindowPolicyDecidedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterNewWindowCreatedCallback()
    */
   void RegisterNewWindowCreatedCallback(WebEngineNewWindowCreatedCallback callback) override;
@@ -538,6 +558,21 @@ public:
   void RegisterContextMenuHiddenCallback(WebEngineContextMenuHiddenCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFullscreenEnteredCallback()
+   */
+  void RegisterFullscreenEnteredCallback(WebEngineFullscreenEnteredCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFullscreenExitedCallback()
+   */
+  void RegisterFullscreenExitedCallback(WebEngineFullscreenExitedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterTextFoundCallback()
+   */
+  void RegisterTextFoundCallback(WebEngineTextFoundCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::GetPlainTextAsynchronously()
    */
   void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
@@ -545,28 +580,33 @@ public:
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
-  static void      OnFrameRendered(void* data, Evas_Object*, void* buffer);
-  static void      OnLoadStarted(void* data, Evas_Object*, void*);
-  static void      OnLoadInProgress(void* data, Evas_Object*, void*);
-  static void      OnLoadFinished(void* data, Evas_Object*, void*);
-  static void      OnLoadError(void* data, Evas_Object*, void* rawError);
-  static void      OnUrlChanged(void* data, Evas_Object*, void* newUrl);
-  static void      OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo);
-  static void      OnEdgeLeft(void* data, Evas_Object*, void*);
-  static void      OnEdgeRight(void* data, Evas_Object*, void*);
-  static void      OnEdgeTop(void* data, Evas_Object*, void*);
-  static void      OnEdgeBottom(void* data, Evas_Object*, void*);
-  static void      OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo);
-  static void      OnResponsePolicyDecided(void* data, Evas_Object*, void* policy);
-  static void      OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
-  static void      OnNewWindowCreated(void* data, Evas_Object*, void* out_view);
-  static void      OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo);
-  static void      OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo);
-  static void      OnContextMenuShown(void* data, Evas_Object*, void* eventInfo);
-  static void      OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo);
-  static void      OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data);
-  static void      OnJavaScriptEvaluated(Evas_Object* o, const char* result, void* data);
-  static void      OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
+  static void OnFrameRendered(void* data, Evas_Object*, void* buffer);
+  static void OnLoadStarted(void* data, Evas_Object*, void*);
+  static void OnLoadInProgress(void* data, Evas_Object*, void*);
+  static void OnLoadFinished(void* data, Evas_Object*, void*);
+  static void OnLoadError(void* data, Evas_Object*, void* rawError);
+  static void OnUrlChanged(void* data, Evas_Object*, void* newUrl);
+  static void OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo);
+  static void OnEdgeLeft(void* data, Evas_Object*, void*);
+  static void OnEdgeRight(void* data, Evas_Object*, void*);
+  static void OnEdgeTop(void* data, Evas_Object*, void*);
+  static void OnEdgeBottom(void* data, Evas_Object*, void*);
+  static void OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo);
+  static void OnResponsePolicyDecided(void* data, Evas_Object*, void* policy);
+  static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
+  static void OnNewWindowPolicyDecided(void* data, Evas_Object*, void* policy);
+  static void OnNewWindowCreated(void* data, Evas_Object*, void* out_view);
+  static void OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo);
+  static void OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo);
+  static void OnContextMenuShown(void* data, Evas_Object*, void* eventInfo);
+  static void OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo);
+  static void OnFullscreenEntered(void* data, Evas_Object*, void* eventInfo);
+  static void OnFullscreenExited(void* data, Evas_Object*, void* eventInfo);
+  static void OnTextFound(void* data, Evas_Object*, void* eventInfo);
+  static void OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data);
+  static void OnJavaScriptEvaluated(Evas_Object* o, const char* result, void* data);
+  static void OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
+  static void OnJavaScriptEntireMessageReceived(Evas_Object* o, Ewk_Script_Message message);
   static Eina_Bool OnJavaScriptAlert(Evas_Object* o, const char* alert_text, void*);
   static Eina_Bool OnJavaScriptConfirm(Evas_Object* o, const char* message, void*);
   static Eina_Bool OnJavaScriptPrompt(Evas_Object* o, const char* message, const char* default_value, void*);
@@ -577,7 +617,7 @@ private:
   static Eina_Bool OnGeolocationPermission(Evas_Object*, Ewk_Geolocation_Permission_Request* request, void* data);
 
   void UpdateImage(tbm_surface_h buffer);
-  void InitWebView();
+  void InitWebView(bool incognito);
   bool FeedMouseEvent(const TouchEvent& touch);
   bool FeedTouchEvent(const TouchEvent& touch);
 
@@ -606,6 +646,7 @@ private:
   WebEngineConsoleMessageReceivedCallback  mConsoleMessageReceivedCallback;
   WebEngineResponsePolicyDecidedCallback   mResponsePolicyDecidedCallback;
   WebEngineNavigationPolicyDecidedCallback mNavigationPolicyDecidedCallback;
+  WebEngineNewWindowPolicyDecidedCallback  mNewWindowPolicyDecidedCallback;
   WebEngineNewWindowCreatedCallback        mNewWindowCreatedCallback;
   WebEngineFrameRenderedCallback           mFrameRenderedCallback;
   WebEngineCertificateCallback             mCertificateConfirmedCallback;
@@ -613,6 +654,9 @@ private:
   WebEngineHttpAuthHandlerCallback         mHttpAuthHandlerCallback;
   WebEngineContextMenuShownCallback        mContextMenuShownCallback;
   WebEngineContextMenuHiddenCallback       mContextMenuHiddenCallback;
+  WebEngineFullscreenEnteredCallback       mFullscreenEnteredCallback;
+  WebEngineFullscreenExitedCallback        mFullscreenExitedCallback;
+  WebEngineTextFoundCallback               mTextFoundCallback;
   WebEngineHitTestCreatedCallback          mHitTestCreatedCallback;
   JavaScriptAlertCallback                  mJavaScriptAlertCallback;
   JavaScriptConfirmCallback                mJavaScriptConfirmCallback;
@@ -622,6 +666,7 @@ private:
   GeolocationPermissionCallback            mGeolocationPermissionCallback;
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
   JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
+  JavaScriptEntireMessageHandlerCallback   mJavaScriptEntireMessageReceivedCallback;
 };
 } // namespace Plugin
 } // namespace Dali
