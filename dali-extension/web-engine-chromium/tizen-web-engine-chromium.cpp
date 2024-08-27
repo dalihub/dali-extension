@@ -126,7 +126,7 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::
 
   mWidth  = width;
   mHeight = height;
-  InitWebView(false);
+  InitWebView();
   WebEngineManager::Get().Add(mWebView, this);
 }
 
@@ -142,40 +142,19 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t ar
     return;
   }
 
-  bool incognito = false;
-  for(uint32_t idx = 0; idx < argc; ++idx)
-  {
-    if(strstr(argv[idx], "--incognito"))
-    {
-      incognito = true;
-      break;
-    }
-  }
-
   mWidth  = width;
   mHeight = height;
-  InitWebView(incognito);
+  InitWebView();
   WebEngineManager::Get().Add(mWebView, this);
 }
 
-void TizenWebEngineChromium::InitWebView(bool incognito)
+void TizenWebEngineChromium::InitWebView()
 {
-  Ewk_Context* context = nullptr;
-  if(incognito)
-  {
-    mWebView = ewk_view_add_in_incognito_mode(ecore_evas_get(WebEngineManager::Get().GetWindow()));
-    context  = ewk_view_context_get(mWebView);
-  }
-  else
-  {
-    context  = ewk_context_default_get();
-    mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
-  }
-  WebEngineManager::Get().SetContext(context);
+  Ecore_Wl2_Window* win     = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
+  Ewk_Context*      context = ewk_context_default_get();
   ewk_context_max_refresh_rate_set(context, 60);
+  mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
   ewk_view_offscreen_rendering_enabled_set(mWebView, true);
-
-  Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
   ewk_view_ime_window_set(mWebView, win);
 
   Ewk_Settings* settings = ewk_view_settings_get(mWebView);
