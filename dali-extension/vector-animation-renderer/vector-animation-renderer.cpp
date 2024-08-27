@@ -471,6 +471,34 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
                                                                   });
           break;
         }
+        case VectorProperty::TRIM_START:
+        {
+          mVectorRenderer->setValue<rlottie::Property::TrimStart>(keyPath,
+                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                    float           start;
+                                                                    if(value.Get(start))
+                                                                    {
+                                                                      return start;
+                                                                    }
+                                                                    return 0.0f;
+                                                                  });
+          break;
+        }
+        case VectorProperty::TRIM_END:
+        {
+          mVectorRenderer->setValue<rlottie::Property::TrimEnd>(keyPath,
+                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                    Vector2         position;
+                                                                    if(value.Get(position))
+                                                                    {
+                                                                      return rlottie::Point(position.x, position.y);
+                                                                    }
+                                                                    return rlottie::Point(0.0f, 100.0f);
+                                                                  });
+          break;
+        }
       }
     }
   }
