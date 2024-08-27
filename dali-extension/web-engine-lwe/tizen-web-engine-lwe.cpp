@@ -932,11 +932,6 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
   });
 }
 
-void TizenWebEngineLWE::AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, Dali::WebEnginePlugin::JavaScriptEntireMessageHandlerCallback handler)
-{
-  // NOT IMPLEMENTED
-}
-
 void TizenWebEngineLWE::RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback)
 {
   // NOT IMPLEMENTED

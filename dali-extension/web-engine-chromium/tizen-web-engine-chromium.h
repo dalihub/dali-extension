@@ -243,11 +243,6 @@ public:
   void AddJavaScriptMessageHandler(const std::string& exposedObjectName, JavaScriptMessageHandlerCallback handler) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::AddJavaScriptEntireMessageHandler()
-   */
-  void AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, JavaScriptEntireMessageHandlerCallback handler) override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptAlertCallback()
    */
   void RegisterJavaScriptAlertCallback(JavaScriptAlertCallback callback) override;
@@ -606,7 +601,6 @@ private:
   static void OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data);
   static void OnJavaScriptEvaluated(Evas_Object* o, const char* result, void* data);
   static void OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
-  static void OnJavaScriptEntireMessageReceived(Evas_Object* o, Ewk_Script_Message message);
   static Eina_Bool OnJavaScriptAlert(Evas_Object* o, const char* alert_text, void*);
   static Eina_Bool OnJavaScriptConfirm(Evas_Object* o, const char* message, void*);
   static Eina_Bool OnJavaScriptPrompt(Evas_Object* o, const char* message, const char* default_value, void*);
@@ -666,7 +660,6 @@ private:
   GeolocationPermissionCallback            mGeolocationPermissionCallback;
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
   JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
-  JavaScriptEntireMessageHandlerCallback   mJavaScriptEntireMessageReceivedCallback;
 };
 } // namespace Plugin
 } // namespace Dali

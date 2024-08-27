@@ -249,11 +249,6 @@ public:
   void AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string&)> handler) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::AddJavaScriptEntireMessageHandler()
-   */
-  void AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, Dali::WebEnginePlugin::JavaScriptEntireMessageHandlerCallback handler) override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::RegisterJavaScriptAlertCallback()
    */
   void RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback) override;
