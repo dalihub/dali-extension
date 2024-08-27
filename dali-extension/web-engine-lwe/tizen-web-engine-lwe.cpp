@@ -31,11 +31,14 @@
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/events/key-event.h>
 #include <dali/public-api/events/touch-event.h>
+#include <dali/public-api/images/pixel-data.h>
 
+#include <pthread.h>
 #include <unistd.h>
-#include <vconf/vconf.h>
 
-using namespace LWE;
+#define DB_NAME_LOCAL_STORAGE "LWE_localStorage.db"
+#define DB_NAME_COOKIES "LWE_Cookies.db"
+#define DB_NAME_CACHE "LWE_Cache.db"
 
 // The plugin factories
 extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin(void)
@@ -271,210 +274,174 @@ LWE::KeyValue KeyStringToKeyValue(const char* DALIKeyString, bool isShiftPressed
   return keyValue;
 }
 
-template<typename Callback, typename... Args>
-void ExecuteCallback(Callback callback, Args... args)
+} // unnamed namespace
+
+class Locker
 {
-  if(callback)
+public:
+  Locker(pthread_mutex_t& lock)
+  : m_lock(lock)
   {
-    callback(args...);
+    pthread_mutex_lock(&m_lock);
   }
-}
 
-template<typename Callback, typename Arg>
-void ExecuteCallback(Callback callback, std::unique_ptr<Arg> arg)
-{
-  if(callback)
+  ~Locker()
   {
-    callback(std::move(arg));
+    pthread_mutex_unlock(&m_lock);
   }
-}
 
-template<typename Callback, typename Arg>
-void ExecuteCallback(Callback callback, Arg*& arg)
-{
-  if(callback)
-  {
-    callback(arg);
-  }
-}
-
-template<typename Ret, typename Callback, typename... Args>
-Ret ExecuteCallbackReturn(Callback callback, Args... args)
-{
-  Ret returnVal = Ret();
-  if(callback)
-  {
-    returnVal = callback(args...);
-  }
-  return returnVal;
-}
-
-template<typename Ret, typename Callback, typename Arg>
-Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
-{
-  Ret returnVal = Ret();
-  if(callback)
-  {
-    returnVal = callback(std::move(arg));
-  }
-  return returnVal;
-}
-
-} // Anonymous namespace
-
-static constexpr int gTbmSurfaceQueueLength = 3;
-static PFNEGLCREATESYNCKHRPROC gEglCreateSyncKHR;
-static PFNEGLDESTROYSYNCKHRPROC gEglDestroySyncKHR;
-static PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR;
+protected:
+  pthread_mutex_t m_lock;
+};
 
 TizenWebEngineLWE::TizenWebEngineLWE()
 : mUrl(""),
+  mOutputWidth(0),
+  mOutputHeight(0),
+  mOutputStride(0),
+  mOutputBuffer(NULL),
   mIsMouseLbuttonDown(false),
   mCanGoBack(false),
   mCanGoForward(false),
-  mWebContainer(NULL),
-  mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
-  mNativeDisplay(NULL),
-  mEglDisplay(EGL_NO_DISPLAY),
-  mEglConfig(NULL),
-  mEglSurface(EGL_NO_SURFACE),
-  mEglContext(EGL_NO_CONTEXT),
-  mEglSync(nullptr),
-  mTbmQueue(nullptr),
-  mLastDrawnTbmSurface(nullptr),
-  mIdleTbmSurface(nullptr),
-  mLWERenderingRequested(false),
-  mInImageUpdateState(false),
-  mInIdleState(false),
-  mFirstRenderEnded(false),
-  mFrameRenderedCallback(nullptr),
-  mLoadStartedCallback(nullptr),
-  mLoadFinishedCallback(nullptr)
+  mWebContainer(NULL)
+#ifdef DALI_USE_TBMSURFACE
+  ,
+  mTbmSurface(NULL),
+  mNativeImageSourcePtr(NULL)
+#else
+  ,
+  mBufferImage(NULL)
+#endif
+  ,
+  mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::UpdateBuffer))
 {
+  pthread_mutex_init(&mOutputBufferMutex, NULL);
 }
 
 TizenWebEngineLWE::~TizenWebEngineLWE()
 {
+  pthread_mutex_destroy(&mOutputBufferMutex);
 }
 
-static std::string Langset()
+void TizenWebEngineLWE::UpdateBuffer()
 {
-    char* langset = vconf_get_str(VCONFKEY_LANGSET);
-    if (!langset)
-    {
-        DALI_LOG_ERROR("TizenWebEngineLWE: system settings fail to get value: langset");
-        return std::string();
-    }
+  Locker l(mOutputBufferMutex);
 
-    std::string ls = langset;
-    free(langset);
-
-    return ls;
-}
-
-static std::string Timezone()
-{
-    char* tz = vconf_get_str(VCONFKEY_SETAPPL_TIMEZONE_ID);
-    if (!tz)
-    {
-        DALI_LOG_ERROR("TizenWebEngineLWE: system settings fail to get value: VCONFKEY_SETAPPL_TIMEZONE_ID");
-        return std::string();
-    }
-
-    std::string s = tz;
-    free(tz);
-
-    return s;
-}
-
-void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
-{
-    Create(width, height, Langset(), Timezone());
+#ifdef DALI_USE_TBMSURFACE
+  Dali::Stage::GetCurrent().KeepRendering(0.0f);
+#else
+  if(mBufferImage)
+  {
+    mBufferImage.Update();
+  }
+#endif
 }
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
 {
+  mOutputWidth  = width;
+  mOutputHeight = height;
+  mOutputStride = width * sizeof(uint32_t);
+  mOutputBuffer = (uint8_t*)malloc(width * height * sizeof(uint32_t));
+
+  mOnRenderedHandler = [this](LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult) {
+    size_t w = mOutputWidth;
+    size_t h = mOutputHeight;
+    if(renderResult.updatedWidth != w || renderResult.updatedHeight != h)
+    {
+      return;
+    }
+    Locker   l(mOutputBufferMutex);
+    uint8_t* dstBuffer;
+    size_t   dstStride;
+
+#ifdef DALI_USE_TBMSURFACE
+    tbm_surface_info_s tbmSurfaceInfo;
+    if(tbm_surface_map(mTbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &tbmSurfaceInfo) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Fail to map tbm_surface\n");
+    }
+
+    DALI_ASSERT_ALWAYS(tbmSurfaceInfo.format == TBM_FORMAT_ARGB8888 && "Unsupported TizenWebEngineLWE tbm format");
+    dstBuffer = tbmSurfaceInfo.planes[0].ptr;
+    dstStride = tbmSurfaceInfo.planes[0].stride;
+#else
+    dstBuffer = mBufferImage.GetBuffer();
+    dstStride = mBufferImage.GetBufferStride();
+#endif
+
+    uint32_t srcStride = static_cast<uint32_t>(renderResult.updatedWidth * sizeof(uint32_t));
+    uint8_t* srcBuffer = static_cast<uint8_t*>(renderResult.updatedBufferAddress);
+
+    if(dstStride == srcStride)
+    {
+      memcpy(dstBuffer, srcBuffer, tbmSurfaceInfo.planes[0].size);
+    }
+    else
+    {
+      for(auto y = renderResult.updatedY; y < (renderResult.updatedHeight + renderResult.updatedY); y++)
+      {
+        auto start = renderResult.updatedX;
+        memcpy(dstBuffer + (y * dstStride) + (start * 4), srcBuffer + (y * srcStride) + (start * 4), srcStride);
+      }
+    }
+
+#ifdef DALI_USE_TBMSURFACE
+    if(tbm_surface_unmap(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Fail to unmap tbm_surface\n");
+    }
+#endif
+    mUpdateBufferTrigger.Trigger();
+  };
+
   mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {
   };
 
-  mOnPageStartedHandler = [this](LWE::WebContainer* container, const std::string& url) {
-    DALI_LOG_RELEASE_INFO("#LoadStarted : %s\n", url.c_str());
-    ExecuteCallback(mLoadStartedCallback, url);
+  mOnPageStartedHandler = [](LWE::WebContainer* container, const std::string& url) {
   };
 
-  mOnPageFinishedHandler = [this](LWE::WebContainer* container, const std::string& url) {
-    DALI_LOG_RELEASE_INFO("#LoadFinished : %s\n", url.c_str());
-    ExecuteCallback(mLoadFinishedCallback, url);
+  mOnPageFinishedHandler = [](LWE::WebContainer* container, const std::string& url) {
   };
 
   mOnLoadResourceHandler = [](LWE::WebContainer* container, const std::string& url) {
   };
 
-  mFirstRenderSignal.Connect( this, &TizenWebEngineLWE::OnFirstRender );
+#ifdef DALI_USE_TBMSURFACE
+  mTbmSurface           = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+  mNativeImageSourcePtr = Dali::NativeImageSource::New(mTbmSurface);
+#else
+  mBufferImage = Dali::BufferImage::New(width, height, Dali::Pixel::BGRA8888);
+#endif
 
-  InitRenderingContext();
-
-  if (!LWE::LWE::IsInitialized())
+  if(!LWE::LWE::IsInitialized())
   {
-    LWE::LWE::SetVersionPreference(true);
     std::string dataPath = DevelApplication::GetDataPath();
-    LWE::LWE::Initialize((dataPath + "/StarFishStorage").c_str());
-
-    gEglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)eglGetProcAddress("eglCreateSyncKHR");
-    gEglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)eglGetProcAddress("eglDestroySyncKHR");
-    gEglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)eglGetProcAddress("eglClientWaitSyncKHR");
+    LWE::LWE::Initialize((dataPath + DB_NAME_LOCAL_STORAGE).c_str(),
+                         (dataPath + DB_NAME_COOKIES).c_str(),
+                         (dataPath + DB_NAME_CACHE).c_str());
   }
+  mWebContainer = LWE::WebContainer::Create(mOutputWidth, mOutputHeight, 1.0, "", locale.data(), timezoneId.data());
 
-  LWE::WebContainer::WebContainerArguments args{
-    .width = static_cast<unsigned>(width),
-    .height = static_cast<unsigned>(height),
-    .devicePixelRatio = 1.0,
-    .defaultFontName = "serif",
-    .locale = locale.data(),
-    .timezoneID = timezoneId.data(),
-  };
+  mWebContainer->RegisterPreRenderingHandler(
+    [this]() -> LWE::WebContainer::RenderInfo {
+      if(mOutputBuffer == NULL)
+      {
+        mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
+        mOutputStride = mOutputWidth * sizeof(uint32_t);
+      }
 
-  LWE::WebContainer::RendererGLConfiguration config;
-  config.onMakeCurrent = [&](LWE::WebContainer*) {
-    if (!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
-    {
-      DALI_LOG_ERROR("TizenWebEngineLWE: eglMakeCurrent error %d", (int)eglGetError());
-    }
-  };
-  config.onSwapBuffers = [this](LWE::WebContainer*, bool mayNeedsSync) {
-    if (!eglSwapBuffers(mEglDisplay, mEglSurface))
-    {
-      DALI_LOG_ERROR("TizenWebEngineLWE: eglSwapBuffers error %d", (int)eglGetError());
-    }
-    mEglSync = gEglCreateSyncKHR(mEglDisplay, EGL_SYNC_FENCE_KHR, NULL);
-    eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    mLWERenderingRequested = false;
-    TryUpdateImage(mayNeedsSync);
-  };
+      ::LWE::WebContainer::RenderInfo result;
+      result.updatedBufferAddress = mOutputBuffer;
+      result.bufferStride         = mOutputStride;
 
-  config.onCreateSharedContext = [this](LWE::WebContainer*) -> uintptr_t {
-        EGLint attributes[] = { EGL_CONTEXT_MAJOR_VERSION, 3, EGL_NONE };
-        EGLContext sharedContext = eglCreateContext(mEglDisplay, mEglConfig, mEglContext, attributes);
-      return reinterpret_cast<uintptr_t>(sharedContext);
-  };
-  config.onDestroyContext = [this](LWE::WebContainer*, uintptr_t context) -> bool {
-      return eglDestroyContext(mEglDisplay, reinterpret_cast<EGLContext>(context));
-  };
-  config.onClearCurrentContext = [this](LWE::WebContainer*) -> bool {
-      return eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  };
-  config.onMakeCurrentWithContext = [this](LWE::WebContainer*, uintptr_t context) -> bool {
-    return eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, reinterpret_cast<EGLContext>(context));
-  };
-  config.onGetProcAddress = [this](LWE::WebContainer*, const char* name) -> void* {
-    return reinterpret_cast<void*>(eglGetProcAddress(name));
-  };
-  config.onIsSupportedExtension = [this](LWE::WebContainer*, const char* name) -> bool {
-      return strstr(eglQueryString(eglGetCurrentDisplay(), EGL_EXTENSIONS), name) != nullptr;
-  };
+      return result;
+    });
 
-  mWebContainer = LWE::WebContainer::CreateGL(args, config);
-
+  mWebContainer->RegisterOnRenderedHandler(
+    [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult) {
+      mOnRenderedHandler(container, renderResult);
+    });
   mWebContainer->RegisterOnReceivedErrorHandler(
     [this](LWE::WebContainer* container, LWE::ResourceError error) {
       mCanGoBack    = container->CanGoBack();
@@ -502,365 +469,29 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
       mCanGoForward = container->CanGoForward();
       mOnLoadResourceHandler(container, url);
     });
-
-  mWebContainer->RegisterSetNeedsRenderingCallback(
-    [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction) {
-    if (!mLWERenderingFunction)
-    {
-      mLWERenderingFunction = doRenderingFunction;
-    }
-
-    if (!mLWERenderingRequested.exchange(true))
-    {
-      PrepareLWERendering();
-    }
-  });
-
-  mWebContainer->RegisterOnIdleHandler(
-    [this](LWE::WebContainer*) {
-      OnIdle();
-  });
-
-  auto settings = mWebContainer->GetSettings();
-  settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
-  mWebContainer->SetSettings(settings);
-
-  mWebContainer->LoadURL("about:blank");
 }
 
-void TizenWebEngineLWE::TryRendering()
+void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
-  if (mTbmQueue)
-  {
-    if ((size_t)tbm_surface_queue_get_width(mTbmQueue) != mWebContainer->Width() ||
-        (size_t)tbm_surface_queue_get_height(mTbmQueue) != mWebContainer->Height())
-    {
-      DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: resize rendering surface");
-      DestroyRenderingSurface();
-      InitRenderingSurface();
-    }
-  }
-
-  OnActive();
-
-  // Some devices needs short delay.
-  unsigned waitCount = 0;
-  constexpr unsigned maxWaitCount = 10; // 1ms
-  while (!tbm_surface_queue_can_dequeue(mTbmQueue, 0) && waitCount < maxWaitCount)
-  {
-    usleep(100); // sleep 0.1ms
-    waitCount++;
-  }
-
-  if (tbm_surface_queue_can_dequeue(mTbmQueue, 0))
-  {
-    mLWERenderingFunction();
-  }
-  else
-  {
-    mWebContainer->AddIdleCallback([](void* data) {
-      TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->TryRendering();
-    }, this);
-  }
-}
-
-void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
-{
-  mInImageUpdateState = true;
-  if (!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: eglMakeCurrent error %d", (int)eglGetError());
-  }
-
-  if (mEglSync)
-  {
-    auto checkState = gEglClientWaitSyncKHR(mEglDisplay, mEglSync, 0, needsSync ? EGL_FOREVER_KHR : 1000*1000);
-    if(checkState == EGL_TIMEOUT_EXPIRED_KHR)
-    {
-      eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-      // Still busy
-      mWebContainer->AddIdleCallback([](void* data) {
-          TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-        lv->TryUpdateImage(false);
-      }, this);
-      return;
-    }
-    gEglDestroySyncKHR(mEglDisplay, mEglSync);
-    mEglSync = nullptr;
-  }
-
-  eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
-  // Some devices needs short delay.
-  unsigned waitCount = 0;
-  constexpr unsigned maxWaitCount = 10; // 1ms
-  while (!tbm_surface_queue_can_dequeue(mTbmQueue, 0) && waitCount < maxWaitCount)
-  {
-    usleep(100); // sleep 0.1ms
-    waitCount++;
-  }
-
-  if (tbm_surface_queue_can_acquire(mTbmQueue, 0))
-  {
-    if (!mFirstRenderEnded)
-    {
-      mFirstRenderEnded = true;
-      mFirstRenderSignal.Emit();
-    }
-
-    if (mLastDrawnTbmSurface)
-    {
-      tbm_surface_queue_release(mTbmQueue, mLastDrawnTbmSurface);
-      mLastDrawnTbmSurface = nullptr;
-    }
-
-    tbm_surface_queue_acquire(mTbmQueue, &mLastDrawnTbmSurface);
-    UpdateImage(mLastDrawnTbmSurface);
-    mInImageUpdateState = false;
-  }
-  else
-  {
-    DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: tbm_surface_queue_can_acquire == false, retry!");
-    mWebContainer->AddIdleCallback([](void* data) {
-        TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->TryUpdateImage(false);
-    }, this);
-  }
-}
-
-void TizenWebEngineLWE::PrepareLWERendering()
-{
-  if (mInImageUpdateState) {
-    mWebContainer->AddIdleCallback([](void* data) {
-      TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->PrepareLWERendering();
-    }, this);
-    return;
-  }
-  mWebContainer->AddIdleCallback([](void* data) {
-      TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->TryRendering();
-    }, this);
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::Destroy()
 {
-  DestroyRenderingContext();
-
   if(!mWebContainer)
   {
     return;
   }
 
+#ifdef DALI_USE_TBMSURFACE
+  if(mTbmSurface != NULL && tbm_surface_destroy(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
+  {
+    DALI_LOG_ERROR("Failed to destroy tbm_surface\n");
+  }
+#endif
+
   DestroyInstance();
   mWebContainer = NULL;
-}
-
-void TizenWebEngineLWE::InitRenderingContext()
-{
-  if(mNativeDisplay != NULL)
-  {
-    return;
-  }
-
-  mNativeDisplay = reinterpret_cast< EGLNativeDisplayType >( tbm_dummy_display_create() );
-  if( NULL == mNativeDisplay )
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: mNativeDisplay NULL");
-    exit(-1);
-  }
-  mEglDisplay = eglGetDisplay(mNativeDisplay);
-  if( mEglDisplay == EGL_NO_DISPLAY && eglGetError() != EGL_SUCCESS)
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: mEglDisplay NULL");
-    exit(-1);
-  }
-
-  EGLBoolean ret = EGL_FALSE;
-  ret = eglInitialize(mEglDisplay, NULL, NULL);
-  if( ret != EGL_TRUE && eglGetError() != EGL_SUCCESS)
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: eglInitialize Failed");
-    exit(-1);
-  }
-
-  EGLint numConfigs;
-  ret = eglGetConfigs(mEglDisplay, NULL, 0, &numConfigs);
-  if( ret != EGL_TRUE && eglGetError() != EGL_SUCCESS)
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: eglGetConfigs Failed");
-    exit(-1);
-  }
-
-  const EGLint EglConfAttribs[] =
-  {
-    EGL_RENDERABLE_TYPE , EGL_OPENGL_ES2_BIT,
-    EGL_SURFACE_TYPE    , EGL_WINDOW_BIT,
-    EGL_RED_SIZE        , 8,
-    EGL_GREEN_SIZE      , 8,
-    EGL_BLUE_SIZE       , 8,
-    EGL_ALPHA_SIZE      , 8,
-    EGL_DEPTH_SIZE      , 0,
-    EGL_STENCIL_SIZE    , 8,
-    EGL_SAMPLE_BUFFERS  , 1, // MSAA x4
-    EGL_SAMPLES         , 4, // MSAA x4
-    EGL_NONE
-  };
-
-  ret = eglChooseConfig(mEglDisplay, EglConfAttribs, &mEglConfig, 1, &numConfigs);
-  if( ret != EGL_TRUE && numConfigs == 0 )
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: eglChooseConfig Failed");
-    exit(-1);
-  }
-
-  const EGLint EglContextAttribs[] =
-  {
-    EGL_CONTEXT_CLIENT_VERSION , 3,
-    EGL_NONE
-  };
-  mEglContext = eglCreateContext(mEglDisplay, mEglConfig, EGL_NO_CONTEXT, EglContextAttribs);
-  if(mEglContext == EGL_NO_CONTEXT)
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: eglCreateContext Failed");
-    exit(-1);
-  }
-
-  OnActive();
-}
-
-void TizenWebEngineLWE::DestroyRenderingContext()
-{
-  DestroyRenderingSurface();
-
-  if(mEglContext != EGL_NO_CONTEXT)
-  {
-    eglDestroyContext(mEglDisplay, mEglContext);
-    mEglContext = EGL_NO_CONTEXT;
-  }
-
-  if(mEglDisplay != EGL_NO_DISPLAY)
-  {
-    eglTerminate(mEglDisplay);
-    mEglDisplay = EGL_NO_DISPLAY;
-  }
-
-  if(mNativeDisplay != NULL)
-  {
-    tbm_dummy_display_destroy( reinterpret_cast< tbm_dummy_display* >( mNativeDisplay ) );
-    mNativeDisplay = NULL;
-  }
-}
-
-void TizenWebEngineLWE::InitRenderingSurface()
-{
-  if(mEglSurface != EGL_NO_SURFACE)
-  {
-    return;
-  }
-
-  mTbmQueue = tbm_surface_queue_create(gTbmSurfaceQueueLength, mWebContainer->Width(), mWebContainer->Height(),
-    TBM_FORMAT_BGRA8888, TBM_BO_DEFAULT);
-
-  mEglSurface = eglCreateWindowSurface(mEglDisplay, mEglConfig, mTbmQueue, NULL);
-  if(mEglSurface == EGL_NO_SURFACE)
-  {
-    DALI_LOG_ERROR("TizenWebEngineLWE: eglCreateWindowSurface Failed %d", eglGetError());
-    exit(-1);
-  }
-}
-
-void TizenWebEngineLWE::DestroyRenderingSurface()
-{
-  eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
-  if (mLastDrawnTbmSurface)
-  {
-    tbm_surface_internal_ref(mLastDrawnTbmSurface);
-    if (mIdleTbmSurface) {
-      tbm_surface_internal_unref(mIdleTbmSurface);
-    }
-    mIdleTbmSurface = mLastDrawnTbmSurface;
-    mLastDrawnTbmSurface = nullptr;
-  }
-
-  if(mEglSurface != EGL_NO_SURFACE)
-  {
-    eglDestroySurface(mEglDisplay, mEglSurface);
-    mEglSurface = EGL_NO_SURFACE;
-  }
-
-  if (mTbmQueue)
-  {
-    tbm_surface_queue_destroy(mTbmQueue);
-    mTbmQueue = nullptr;
-  }
-}
-
-
-void TizenWebEngineLWE::OnIdle()
-{
-  if (mInIdleState)
-  {
-    return;
-  }
-
-  mInIdleState = true;
-
-  if (mLastDrawnTbmSurface)
-  {
-    tbm_surface_internal_ref(mLastDrawnTbmSurface);
-    if (mIdleTbmSurface) {
-      tbm_surface_internal_unref(mIdleTbmSurface);
-    }
-    mIdleTbmSurface = mLastDrawnTbmSurface;
-    mLastDrawnTbmSurface = nullptr;
-  }
-
-  DestroyRenderingSurface();
-}
-
-void TizenWebEngineLWE::OnActive()
-{
-  if (!mInIdleState)
-  {
-      return;
-  }
-  mInIdleState = false;
-  mFirstRenderEnded = false;
-
-  InitRenderingSurface();
-}
-
-void TizenWebEngineLWE::OnFirstRender()
-{
-  if (mIdleTbmSurface)
-  {
-    tbm_surface_internal_unref(mIdleTbmSurface);
-    mIdleTbmSurface = nullptr;
-  }
-}
-
-void TizenWebEngineLWE::UpdateImage(tbm_surface_h image)
-{
-  DALI_ASSERT_ALWAYS(mWebContainer);
-  if((int)mWebContainer->Width() == tbm_surface_get_width(image) ||
-     (int)mWebContainer->Height() == tbm_surface_get_height(image))
-  {
-    Any source(image);
-    mDaliImageSrc->SetSource(source);
-    Dali::Stage::GetCurrent().KeepRendering(0.0f);
-
-    if (mFrameRenderedCallback)
-    {
-      ExecuteCallback(mFrameRenderedCallback);
-    }
-  }
-  else
-  {
-    DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: Image size not matched with WebContainer size\n");
-  }
 }
 
 // NOT IMPLEMENTED
@@ -1116,7 +747,7 @@ void TizenWebEngineLWE::DestroyInstance()
 
 Dali::NativeImageSourcePtr TizenWebEngineLWE::GetNativeImageSource()
 {
-  return mDaliImageSrc;
+  return mNativeImageSourcePtr;
 }
 
 void TizenWebEngineLWE::ChangeOrientation(int orientation)
@@ -1132,8 +763,9 @@ void TizenWebEngineLWE::LoadUrl(const std::string& url)
 
 std::string TizenWebEngineLWE::GetTitle() const
 {
-  DALI_ASSERT_ALWAYS(mWebContainer);
-  return mWebContainer->GetTitle();
+  // NOT IMPLEMENTED
+  static const std::string kEmpty;
+  return kEmpty;
 }
 
 Dali::PixelData TizenWebEngineLWE::GetFavicon() const
@@ -1174,10 +806,8 @@ void TizenWebEngineLWE::Reload()
 
 bool TizenWebEngineLWE::ReloadWithoutCache()
 {
-  DALI_ASSERT_ALWAYS(mWebContainer);
-  mWebContainer->ClearCache();
-  mWebContainer->Reload();
-  return true;
+  // NOT IMPLEMENTED
+  return false;
 }
 
 void TizenWebEngineLWE::StopLoading()
@@ -1290,21 +920,12 @@ bool TizenWebEngineLWE::CanGoForward()
 
 void TizenWebEngineLWE::EvaluateJavaScript(const std::string& script, std::function<void(const std::string&)> resultHandler)
 {
-  DALI_ASSERT_ALWAYS(mWebContainer);
-  // LWE don't support empty std::function
-  if (!resultHandler) {
-      resultHandler = [](const std::string&) {};
-  }
-  mWebContainer->EvaluateJavaScript(script, resultHandler);
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedObjectName, std::function<void(const std::string&)> handler)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
-  // LWE don't support empty std::function
-  if (!handler) {
-      handler = [](const std::string&) {};
-  }
   mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler](const std::string& data) -> std::string {
     handler(data);
     return "";
@@ -1395,9 +1016,32 @@ void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
 
-  if(mWebContainer->Width() != width || mWebContainer->Height() != height)
+  if(mOutputWidth != (size_t)width || mOutputHeight != (size_t)height)
   {
-    mWebContainer->ResizeTo(width, height);
+    mOutputWidth  = width;
+    mOutputHeight = height;
+    mOutputStride = width * sizeof(uint32_t);
+
+#ifdef DALI_USE_TBMSURFACE
+    tbm_surface_h prevTbmSurface = mTbmSurface;
+    mTbmSurface                  = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+    Dali::Any source(mTbmSurface);
+    mNativeImageSourcePtr->SetSource(source);
+    if(prevTbmSurface != NULL && tbm_surface_destroy(prevTbmSurface) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Failed to destroy tbm_surface\n");
+    }
+#endif
+
+    auto oldOutputBuffer = mOutputBuffer;
+    mOutputBuffer        = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
+    mOutputStride        = mOutputWidth * sizeof(uint32_t);
+    mWebContainer->ResizeTo(mOutputWidth, mOutputHeight);
+
+    if(oldOutputBuffer)
+    {
+      free(oldOutputBuffer);
+    }
   }
 }
 
@@ -1529,21 +1173,12 @@ bool TizenWebEngineLWE::SendKeyEvent(const Dali::KeyEvent& event)
 
 void TizenWebEngineLWE::SetFocus(bool focused)
 {
-  DALI_ASSERT_ALWAYS(mWebContainer);
-  if (focused)
-  {
-    mWebContainer->Focus();
-  }
-  else
-  {
-    mWebContainer->Blur();
-  }
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
 {
-  mDaliImageSrc = NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT);
-  SetSize(displayArea.width, displayArea.height);
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::SetPageZoomFactor(float zoomFactor)
@@ -1598,16 +1233,8 @@ Accessibility::Address TizenWebEngineLWE::GetAccessibilityAddress()
 
 bool TizenWebEngineLWE::SetVisibility(bool visible)
 {
-  DALI_ASSERT_ALWAYS(mWebContainer);
-  if (visible)
-  {
-    mWebContainer->Resume();
-  }
-  else
-  {
-    mWebContainer->Pause();
-  }
-  return true;
+  // NOT IMPLEMENTED
+  return false;
 }
 
 bool TizenWebEngineLWE::HighlightText(const std::string& text, Dali::WebEnginePlugin::FindOption options, uint32_t maxMatchCount)
@@ -1668,12 +1295,12 @@ void TizenWebEngineLWE::ExitFullscreen()
 
 void TizenWebEngineLWE::RegisterFrameRenderedCallback(WebEngineFrameRenderedCallback callback)
 {
-  mFrameRenderedCallback = callback;
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::RegisterPageLoadStartedCallback(WebEnginePageLoadCallback callback)
 {
-  mLoadStartedCallback = callback;
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::RegisterPageLoadInProgressCallback(WebEnginePageLoadCallback callback)
@@ -1683,7 +1310,7 @@ void TizenWebEngineLWE::RegisterPageLoadInProgressCallback(WebEnginePageLoadCall
 
 void TizenWebEngineLWE::RegisterPageLoadFinishedCallback(WebEnginePageLoadCallback callback)
 {
-  mLoadFinishedCallback = callback;
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback)
