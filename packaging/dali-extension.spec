@@ -184,8 +184,10 @@ Plugin to load color theme
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
-BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(lightweight-web-engine)
+BuildRequires: pkgconfig(libtbm)
+BuildRequires: pkgconfig(egl)
+BuildRequires: pkgconfig(vconf)
 %endif
 
 %description web-engine-lwe-plugin
