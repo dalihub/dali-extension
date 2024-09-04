@@ -22,7 +22,7 @@ fi
 
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(WAYLAND, libtbm)
-PKG_CHECK_MODULES([WEB_ENGINE_LWE], [lightweight-web-engine])
+PKG_CHECK_MODULES([WEB_ENGINE_LWE], [lightweight-web-engine-dali-plugin])
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

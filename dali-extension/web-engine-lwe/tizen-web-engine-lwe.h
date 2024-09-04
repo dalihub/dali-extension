@@ -19,25 +19,32 @@
  */
 
 // EXTERNAL INCLUDES
+#include <LWEWebView.h>
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
+#include <dali/devel-api/threading/mutex.h>
+#include <dali/public-api/adaptor-framework/native-image-source.h>
 #include <dali/public-api/adaptor-framework/timer.h>
+#include <string.h>
+#include <list>
+#include <vector>
 
+#ifndef DALI_USE_TBMSURFACE
+#define DALI_USE_TBMSURFACE
+#endif
+
+#ifdef DALI_USE_TBMSURFACE
 #include <tbm_surface.h>
-#include <tbm_surface_internal.h>
-#include <tbm_surface_queue.h>
-#include <tbm_dummy_display.h>
-
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
-#include <LWEWebView.h>
+#else
+#include <dali/public-api/images/buffer-image.h>
+#endif
 
 namespace Dali
 {
+class PixelData;
+
 namespace Plugin
 {
-
 /**
  * @brief Implementation of the Tizen WebEngineLWE class which has Tizen
  * platform dependency.
@@ -577,6 +584,8 @@ public:
   void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
 
 private:
+  void UpdateBuffer();
+
   void DestroyInstance();
 
   void DispatchMouseDownEvent(float x, float y);
@@ -591,65 +600,32 @@ private:
 
   void DispatchKeyUpEvent(LWE::KeyValue keyCode);
 
-  void InitRenderingContext();
-
-  void DestroyRenderingContext();
-
-  void InitRenderingSurface();
-
-  void DestroyRenderingSurface();
-
-  void TryRendering();
-
-  void TryUpdateImage(bool needsSync);
-
-  void PrepareLWERendering();
-
-  void InitGL();
-
-  void OnIdle();
-
-  void OnActive();
-
-  void OnFirstRender();
-
-  void UpdateImage(tbm_surface_h image);
-
 private:
   std::string        mUrl;
+  size_t             mOutputWidth;
+  size_t             mOutputHeight;
+  size_t             mOutputStride;
+  uint8_t*           mOutputBuffer;
   bool               mIsMouseLbuttonDown;
   bool               mCanGoBack;
   bool               mCanGoForward;
+  pthread_mutex_t    mOutputBufferMutex;
+  LWE::WebContainer* mWebContainer;
+#ifdef DALI_USE_TBMSURFACE
+  tbm_surface_h              mTbmSurface;
+  Dali::NativeImageSourcePtr mNativeImageSourcePtr;
+#else
+  Dali::BufferImage mBufferImage;
+#endif
+
+  std::function<void(LWE::WebContainer*, const LWE::WebContainer::RenderResult&)> mOnRenderedHandler;
 
   std::function<void(LWE::WebContainer*, LWE::ResourceError)> mOnReceivedError;
   std::function<void(LWE::WebContainer*, const std::string&)> mOnPageFinishedHandler;
   std::function<void(LWE::WebContainer*, const std::string&)> mOnPageStartedHandler;
   std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
-  LWE::WebContainer*             mWebContainer;
-  Dali::NativeImageSourcePtr     mDaliImageSrc;
-
-  EGLNativeDisplayType           mNativeDisplay;
-  EGLDisplay                     mEglDisplay;
-  EGLConfig                      mEglConfig;
-  EGLSurface                     mEglSurface;
-  EGLContext                     mEglContext;
-  EGLSyncKHR                     mEglSync;
-
-  tbm_surface_queue_h            mTbmQueue;
-  tbm_surface_h                  mLastDrawnTbmSurface;
-  tbm_surface_h                  mIdleTbmSurface;
-
-  std::function<void ()>         mLWERenderingFunction;
-  std::atomic_bool               mLWERenderingRequested;
-  std::atomic_bool               mInImageUpdateState;
-  std::atomic_bool               mInIdleState;
-  std::atomic_bool               mFirstRenderEnded;
-  Dali::Signal<void ()>          mFirstRenderSignal;
-
-  WebEngineFrameRenderedCallback mFrameRenderedCallback;
-  WebEnginePageLoadCallback      mLoadStartedCallback;
-  WebEnginePageLoadCallback      mLoadFinishedCallback;
+  EventThreadCallback mUpdateBufferTrigger;
 };
 
 } // namespace Plugin
