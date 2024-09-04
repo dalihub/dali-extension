@@ -408,12 +408,6 @@ void TizenWebEngineChromium::AddJavaScriptMessageHandler(const std::string& expo
   ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptInjected, exposedObjectName.c_str());
 }
 
-void TizenWebEngineChromium::AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, JavaScriptEntireMessageHandlerCallback handler)
-{
-  mJavaScriptEntireMessageReceivedCallback = handler;
-  ewk_view_javascript_message_handler_add(mWebView, &TizenWebEngineChromium::OnJavaScriptEntireMessageReceived, exposedObjectName.c_str());
-}
-
 void TizenWebEngineChromium::RegisterJavaScriptAlertCallback(JavaScriptAlertCallback callback)
 {
   mJavaScriptAlertCallback = callback;
@@ -1281,22 +1275,6 @@ void TizenWebEngineChromium::OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Mes
     {
       ExecuteCallback(targetCallback->second, resultText);
     }
-  }
-}
-
-void TizenWebEngineChromium::OnJavaScriptEntireMessageReceived(Evas_Object* o, Ewk_Script_Message message)
-{
-  auto plugin = WebEngineManager::Get().Find(o);
-  if(plugin)
-  {
-    auto        pThis       = static_cast<TizenWebEngineChromium*>(plugin);
-    std::string messageName = static_cast<const char*>(message.name);
-    std::string messageBody;
-    if(message.body != nullptr)
-    {
-      messageBody = static_cast<char*>(message.body);
-    }
-    ExecuteCallback(pThis->mJavaScriptEntireMessageReceivedCallback, messageName, messageBody);
   }
 }
 
