@@ -578,6 +578,21 @@ public:
    */
   void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterWebAuthDisplayQRCallback()
+   */
+  void RegisterWebAuthDisplayQRCallback(WebEngineWebAuthDisplayQRCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterWebAuthResponseCallback()
+   */
+  void RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::WebAuthenticationCancel()
+   */
+  void WebAuthenticationCancel() override;
+
 private:
   void UpdateBuffer();
 
