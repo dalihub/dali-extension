@@ -16,7 +16,6 @@
  */
 
 #include "tizen-web-engine-certificate.h"
-#include <dali/integration-api/debug.h>
 
 namespace Dali
 {
@@ -65,16 +64,6 @@ std::string TizenWebEngineCertificate::GetPem() const
 bool TizenWebEngineCertificate::IsContextSecure() const
 {
   return ewkCertificateInfo ? ewk_certificate_info_is_context_secure(ewkCertificateInfo) : false;
-}
-
-int TizenWebEngineCertificate::GetPolicyDecisionError() const
-{
-  return ewkCertificatePolicyDecision ? ewk_certificate_policy_decision_error_get(ewkCertificatePolicyDecision) : -1;
-}
-
-bool TizenWebEngineCertificate::SuspendPolicyDecision() const
-{
-  return ewkCertificatePolicyDecision ? ewk_certificate_policy_decision_suspend(ewkCertificatePolicyDecision) : false;
 }
 
 } // namespace Plugin
