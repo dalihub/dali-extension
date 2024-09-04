@@ -389,7 +389,18 @@ static std::string Timezone()
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
-    Create(width, height, Langset(), Timezone());
+  for (uint32_t idx = 0; idx < argc; ++idx)
+  {
+    if (strstr(argv[idx], "--prefer-updated-version"))
+    {
+      LWE::LWE::SetVersionPreference(true);
+    }
+    else if(strstr(argv[idx], "--prefer-platform-version"))
+    {
+      LWE::LWE::SetVersionPreference(false);
+    }
+  }
+  Create(width, height, Langset(), Timezone());
 }
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
@@ -416,7 +427,6 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
   if (!LWE::LWE::IsInitialized())
   {
-    LWE::LWE::SetVersionPreference(true);
     std::string dataPath = DevelApplication::GetDataPath();
     LWE::LWE::Initialize((dataPath + "/StarFishStorage").c_str());
 
