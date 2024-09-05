@@ -577,6 +577,26 @@ public:
    */
   void GetPlainTextAsynchronously(PlainTextReceivedCallback callback) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterWebAuthDisplayQRCallback()
+   */
+  void RegisterWebAuthDisplayQRCallback(WebEngineWebAuthDisplayQRCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterWebAuthResponseCallback()
+   */
+  void RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::WebAuthenticationCancel()
+   */
+  void WebAuthenticationCancel() override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterUserMediaPermissionRequestCallback()
+   */
+  void RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback) override;
+
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
@@ -615,6 +635,9 @@ private:
   static void      OnVideoPlaying(Evas_Object*, Eina_Bool isPlaying, void* data);
   static void      OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data);
   static Eina_Bool OnGeolocationPermission(Evas_Object*, Ewk_Geolocation_Permission_Request* request, void* data);
+  static Eina_Bool OnUserMediaPermissonRequest(Evas_Object*, Ewk_User_Media_Permission_Request* request, void* data);
+  static void OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents);
+  static void OnWebAuthResponse(void* data, Evas_Object*, void*);
 
   void UpdateImage(tbm_surface_h buffer);
   void InitWebView(bool incognito);
@@ -667,6 +690,9 @@ private:
   PlainTextReceivedCallback                mPlainTextReceivedCallback;
   JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
   JavaScriptEntireMessageHandlerCallback   mJavaScriptEntireMessageReceivedCallback;
+  WebEngineWebAuthDisplayQRCallback        mWebAuthDisplayQRCallback;
+  WebEngineWebAuthResponseCallback         mWebAuthResponseCallback;
+  WebEngineUserMediaPermissionRequestCallback mUserMediaPermissionRequestCallback;
 };
 } // namespace Plugin
 } // namespace Dali
