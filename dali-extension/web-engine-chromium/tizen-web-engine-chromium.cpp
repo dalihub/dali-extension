@@ -210,8 +210,6 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "fullscreen,enterfullscreen", &TizenWebEngineChromium::OnFullscreenEntered, this);
   evas_object_smart_callback_add(mWebView, "fullscreen,exitfullscreen", &TizenWebEngineChromium::OnFullscreenExited, this);
   evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
-  evas_object_smart_callback_add(mWebView, "webauth,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
-  evas_object_smart_callback_add(mWebView, "webauth,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
 
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
@@ -862,21 +860,6 @@ void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallbac
   ewk_view_plain_text_get(mWebView, &TizenWebEngineChromium::OnPlainTextReceived, this);
 }
 
-void TizenWebEngineChromium::WebAuthenticationCancel()
-{
-  ewk_view_webauthn_cancel(mWebView);
-}
-
-void TizenWebEngineChromium::RegisterWebAuthDisplayQRCallback(WebEngineWebAuthDisplayQRCallback callback)
-{
-  mWebAuthDisplayQRCallback = callback;
-}
-
-void TizenWebEngineChromium::RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback)
-{
-  mWebAuthResponseCallback = callback;
-}
-
 void TizenWebEngineChromium::RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback)
 {
   mGeolocationPermissionCallback = callback;
@@ -1354,25 +1337,6 @@ Eina_Bool TizenWebEngineChromium::OnGeolocationPermission(Evas_Object*, Ewk_Geol
   std::string                host           = ewk_security_origin_host_get(securityOrigin);
   std::string                protocol       = ewk_security_origin_protocol_get(securityOrigin);
   return ExecuteCallbackReturn<bool>(pThis->mGeolocationPermissionCallback, host, protocol);
-}
-
-void TizenWebEngineChromium::OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents)
-{
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  std::string result;
-  if(contents != nullptr)
-  {
-    result = static_cast<char*>(contents);
-    DALI_LOG_RELEASE_INFO("#WebAuthDisplayQR : %s\n", result.c_str());
-  }
-  ExecuteCallback(pThis->mWebAuthDisplayQRCallback, result);
-}
-
-void TizenWebEngineChromium::OnWebAuthResponse(void* data, Evas_Object*, void*)
-{
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  DALI_LOG_RELEASE_INFO("#WebAuthResponse \n");
-  ExecuteCallback(pThis->mWebAuthResponseCallback);
 }
 
 } // namespace Plugin
