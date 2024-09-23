@@ -332,6 +332,7 @@ TizenWebEngineLWE::TizenWebEngineLWE()
   mIsMouseLbuttonDown(false),
   mCanGoBack(false),
   mCanGoForward(false),
+  mInDestroyingLWEInstance(false),
   mWebContainer(NULL),
   mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
   mNativeDisplay(NULL),
@@ -355,6 +356,7 @@ TizenWebEngineLWE::TizenWebEngineLWE()
 
 TizenWebEngineLWE::~TizenWebEngineLWE()
 {
+  Destroy();
 }
 
 static std::string Langset()
@@ -540,6 +542,10 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
 void TizenWebEngineLWE::TryRendering()
 {
+  if (mInDestroyingLWEInstance) {
+    return;
+  }
+
   if (mTbmQueue)
   {
     if ((size_t)tbm_surface_queue_get_width(mTbmQueue) != mWebContainer->Width() ||
@@ -577,6 +583,10 @@ void TizenWebEngineLWE::TryRendering()
 
 void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
 {
+  if (mInDestroyingLWEInstance) {
+    return;
+  }
+
   mInImageUpdateState = true;
   if (!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
   {
@@ -657,14 +667,7 @@ void TizenWebEngineLWE::PrepareLWERendering()
 void TizenWebEngineLWE::Destroy()
 {
   DestroyRenderingContext();
-
-  if(!mWebContainer)
-  {
-    return;
-  }
-
   DestroyInstance();
-  mWebContainer = NULL;
 }
 
 void TizenWebEngineLWE::InitRenderingContext()
@@ -1120,8 +1123,14 @@ Dali::WebEngineBackForwardList& TizenWebEngineLWE::GetBackForwardList() const
 
 void TizenWebEngineLWE::DestroyInstance()
 {
-  DALI_ASSERT_ALWAYS(mWebContainer);
+  if(!mWebContainer)
+  {
+    return;
+  }
+  mInDestroyingLWEInstance = true;
   mWebContainer->Destroy();
+  mInDestroyingLWEInstance = false;
+  mWebContainer = NULL;
 }
 
 Dali::NativeImageSourcePtr TizenWebEngineLWE::GetNativeImageSource()
