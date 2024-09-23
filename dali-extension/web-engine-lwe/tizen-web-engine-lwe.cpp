@@ -322,9 +322,9 @@ Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
 
 } // Anonymous namespace
 
-static constexpr int gTbmSurfaceQueueLength = 3;
-static PFNEGLCREATESYNCKHRPROC gEglCreateSyncKHR;
-static PFNEGLDESTROYSYNCKHRPROC gEglDestroySyncKHR;
+static constexpr int               gTbmSurfaceQueueLength = 3;
+static PFNEGLCREATESYNCKHRPROC     gEglCreateSyncKHR;
+static PFNEGLDESTROYSYNCKHRPROC    gEglDestroySyncKHR;
 static PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR;
 
 TizenWebEngineLWE::TizenWebEngineLWE()
@@ -359,45 +359,48 @@ TizenWebEngineLWE::~TizenWebEngineLWE()
 
 static std::string Langset()
 {
-    char* langset = vconf_get_str(VCONFKEY_LANGSET);
-    if (!langset)
-    {
-        DALI_LOG_ERROR("TizenWebEngineLWE: system settings fail to get value: langset");
-        return std::string();
-    }
+  char* langset = vconf_get_str(VCONFKEY_LANGSET);
+  if(!langset)
+  {
+    DALI_LOG_ERROR("TizenWebEngineLWE: system settings fail to get value: langset");
+    return std::string();
+  }
 
-    std::string ls = langset;
-    free(langset);
+  std::string ls = langset;
+  free(langset);
 
-    return ls;
+  return ls;
 }
 
 static std::string Timezone()
 {
-    char* tz = vconf_get_str(VCONFKEY_SETAPPL_TIMEZONE_ID);
-    if (!tz)
-    {
-        DALI_LOG_ERROR("TizenWebEngineLWE: system settings fail to get value: VCONFKEY_SETAPPL_TIMEZONE_ID");
-        return std::string();
-    }
+  char* tz = vconf_get_str(VCONFKEY_SETAPPL_TIMEZONE_ID);
+  if(!tz)
+  {
+    DALI_LOG_ERROR("TizenWebEngineLWE: system settings fail to get value: VCONFKEY_SETAPPL_TIMEZONE_ID");
+    return std::string();
+  }
 
-    std::string s = tz;
-    free(tz);
+  std::string s = tz;
+  free(tz);
 
-    return s;
+  return s;
 }
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
-  for (uint32_t idx = 0; idx < argc; ++idx)
+  for(uint32_t idx = 0; idx < argc; ++idx)
   {
-    if (strstr(argv[idx], "--prefer-updated-version"))
+    if(argv[idx])
     {
-      LWE::LWE::SetVersionPreference(true);
-    }
-    else if(strstr(argv[idx], "--prefer-platform-version"))
-    {
-      LWE::LWE::SetVersionPreference(false);
+      if(strstr(argv[idx], "--prefer-updated-version"))
+      {
+        LWE::LWE::SetVersionPreference(true);
+      }
+      else if(strstr(argv[idx], "--prefer-platform-version"))
+      {
+        LWE::LWE::SetVersionPreference(false);
+      }
     }
   }
   Create(width, height, Langset(), Timezone());
@@ -421,38 +424,38 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   mOnLoadResourceHandler = [](LWE::WebContainer* container, const std::string& url) {
   };
 
-  mFirstRenderSignal.Connect( this, &TizenWebEngineLWE::OnFirstRender );
+  mFirstRenderSignal.Connect(this, &TizenWebEngineLWE::OnFirstRender);
 
   InitRenderingContext();
 
-  if (!LWE::LWE::IsInitialized())
+  if(!LWE::LWE::IsInitialized())
   {
     std::string dataPath = DevelApplication::GetDataPath();
     LWE::LWE::Initialize((dataPath + "/StarFishStorage").c_str());
 
-    gEglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)eglGetProcAddress("eglCreateSyncKHR");
-    gEglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)eglGetProcAddress("eglDestroySyncKHR");
+    gEglCreateSyncKHR     = (PFNEGLCREATESYNCKHRPROC)eglGetProcAddress("eglCreateSyncKHR");
+    gEglDestroySyncKHR    = (PFNEGLDESTROYSYNCKHRPROC)eglGetProcAddress("eglDestroySyncKHR");
     gEglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)eglGetProcAddress("eglClientWaitSyncKHR");
   }
 
   LWE::WebContainer::WebContainerArguments args{
-    .width = static_cast<unsigned>(width),
-    .height = static_cast<unsigned>(height),
+    .width            = static_cast<unsigned>(width),
+    .height           = static_cast<unsigned>(height),
     .devicePixelRatio = 1.0,
-    .defaultFontName = "serif",
-    .locale = locale.data(),
-    .timezoneID = timezoneId.data(),
+    .defaultFontName  = "serif",
+    .locale           = locale.data(),
+    .timezoneID       = timezoneId.data(),
   };
 
   LWE::WebContainer::RendererGLConfiguration config;
   config.onMakeCurrent = [&](LWE::WebContainer*) {
-    if (!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
+    if(!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
     {
       DALI_LOG_ERROR("TizenWebEngineLWE: eglMakeCurrent error %d", (int)eglGetError());
     }
   };
   config.onSwapBuffers = [this](LWE::WebContainer*, bool mayNeedsSync) {
-    if (!eglSwapBuffers(mEglDisplay, mEglSurface))
+    if(!eglSwapBuffers(mEglDisplay, mEglSurface))
     {
       DALI_LOG_ERROR("TizenWebEngineLWE: eglSwapBuffers error %d", (int)eglGetError());
     }
@@ -463,15 +466,15 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   };
 
   config.onCreateSharedContext = [this](LWE::WebContainer*) -> uintptr_t {
-        EGLint attributes[] = { EGL_CONTEXT_MAJOR_VERSION, 3, EGL_NONE };
-        EGLContext sharedContext = eglCreateContext(mEglDisplay, mEglConfig, mEglContext, attributes);
-      return reinterpret_cast<uintptr_t>(sharedContext);
+    EGLint     attributes[]  = {EGL_CONTEXT_MAJOR_VERSION, 3, EGL_NONE};
+    EGLContext sharedContext = eglCreateContext(mEglDisplay, mEglConfig, mEglContext, attributes);
+    return reinterpret_cast<uintptr_t>(sharedContext);
   };
   config.onDestroyContext = [this](LWE::WebContainer*, uintptr_t context) -> bool {
-      return eglDestroyContext(mEglDisplay, reinterpret_cast<EGLContext>(context));
+    return eglDestroyContext(mEglDisplay, reinterpret_cast<EGLContext>(context));
   };
   config.onClearCurrentContext = [this](LWE::WebContainer*) -> bool {
-      return eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    return eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   };
   config.onMakeCurrentWithContext = [this](LWE::WebContainer*, uintptr_t context) -> bool {
     return eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, reinterpret_cast<EGLContext>(context));
@@ -480,7 +483,8 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     return reinterpret_cast<void*>(eglGetProcAddress(name));
   };
   config.onIsSupportedExtension = [this](LWE::WebContainer*, const char* name) -> bool {
-      return strstr(eglQueryString(eglGetCurrentDisplay(), EGL_EXTENSIONS), name) != nullptr;
+    const char* extensions = eglQueryString(eglGetCurrentDisplay(), EGL_EXTENSIONS);
+    return (extensions != nullptr) ? (strstr(extensions, name) != nullptr) : false;
   };
 
   mWebContainer = LWE::WebContainer::CreateGL(args, config);
@@ -515,21 +519,21 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
   mWebContainer->RegisterSetNeedsRenderingCallback(
     [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction) {
-    if (!mLWERenderingFunction)
-    {
-      mLWERenderingFunction = doRenderingFunction;
-    }
+      if(!mLWERenderingFunction)
+      {
+        mLWERenderingFunction = doRenderingFunction;
+      }
 
-    if (!mLWERenderingRequested.exchange(true))
-    {
-      PrepareLWERendering();
-    }
-  });
+      if(!mLWERenderingRequested.exchange(true))
+      {
+        PrepareLWERendering();
+      }
+    });
 
   mWebContainer->RegisterOnIdleHandler(
     [this](LWE::WebContainer*) {
       OnIdle();
-  });
+    });
 
   auto settings = mWebContainer->GetSettings();
   settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
@@ -540,10 +544,10 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
 void TizenWebEngineLWE::TryRendering()
 {
-  if (mTbmQueue)
+  if(mTbmQueue)
   {
-    if ((size_t)tbm_surface_queue_get_width(mTbmQueue) != mWebContainer->Width() ||
-        (size_t)tbm_surface_queue_get_height(mTbmQueue) != mWebContainer->Height())
+    if((size_t)tbm_surface_queue_get_width(mTbmQueue) != mWebContainer->Width() ||
+       (size_t)tbm_surface_queue_get_height(mTbmQueue) != mWebContainer->Height())
     {
       DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: resize rendering surface");
       DestroyRenderingSurface();
@@ -554,15 +558,15 @@ void TizenWebEngineLWE::TryRendering()
   OnActive();
 
   // Some devices needs short delay.
-  unsigned waitCount = 0;
+  unsigned           waitCount    = 0;
   constexpr unsigned maxWaitCount = 10; // 1ms
-  while (!tbm_surface_queue_can_dequeue(mTbmQueue, 0) && waitCount < maxWaitCount)
+  while(!tbm_surface_queue_can_dequeue(mTbmQueue, 0) && waitCount < maxWaitCount)
   {
     usleep(100); // sleep 0.1ms
     waitCount++;
   }
 
-  if (tbm_surface_queue_can_dequeue(mTbmQueue, 0))
+  if(tbm_surface_queue_can_dequeue(mTbmQueue, 0))
   {
     mLWERenderingFunction();
   }
@@ -571,29 +575,31 @@ void TizenWebEngineLWE::TryRendering()
     mWebContainer->AddIdleCallback([](void* data) {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
       lv->TryRendering();
-    }, this);
+    },
+                                   this);
   }
 }
 
 void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
 {
   mInImageUpdateState = true;
-  if (!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
+  if(!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
   {
     DALI_LOG_ERROR("TizenWebEngineLWE: eglMakeCurrent error %d", (int)eglGetError());
   }
 
-  if (mEglSync)
+  if(mEglSync)
   {
-    auto checkState = gEglClientWaitSyncKHR(mEglDisplay, mEglSync, 0, needsSync ? EGL_FOREVER_KHR : 1000*1000);
+    auto checkState = gEglClientWaitSyncKHR(mEglDisplay, mEglSync, 0, needsSync ? EGL_FOREVER_KHR : 1000 * 1000);
     if(checkState == EGL_TIMEOUT_EXPIRED_KHR)
     {
       eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
       // Still busy
       mWebContainer->AddIdleCallback([](void* data) {
-          TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
+        TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
         lv->TryUpdateImage(false);
-      }, this);
+      },
+                                     this);
       return;
     }
     gEglDestroySyncKHR(mEglDisplay, mEglSync);
@@ -603,23 +609,23 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
   eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
   // Some devices needs short delay.
-  unsigned waitCount = 0;
+  unsigned           waitCount    = 0;
   constexpr unsigned maxWaitCount = 10; // 1ms
-  while (!tbm_surface_queue_can_dequeue(mTbmQueue, 0) && waitCount < maxWaitCount)
+  while(!tbm_surface_queue_can_dequeue(mTbmQueue, 0) && waitCount < maxWaitCount)
   {
     usleep(100); // sleep 0.1ms
     waitCount++;
   }
 
-  if (tbm_surface_queue_can_acquire(mTbmQueue, 0))
+  if(tbm_surface_queue_can_acquire(mTbmQueue, 0))
   {
-    if (!mFirstRenderEnded)
+    if(!mFirstRenderEnded)
     {
       mFirstRenderEnded = true;
       mFirstRenderSignal.Emit();
     }
 
-    if (mLastDrawnTbmSurface)
+    if(mLastDrawnTbmSurface)
     {
       tbm_surface_queue_release(mTbmQueue, mLastDrawnTbmSurface);
       mLastDrawnTbmSurface = nullptr;
@@ -633,25 +639,29 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
   {
     DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: tbm_surface_queue_can_acquire == false, retry!");
     mWebContainer->AddIdleCallback([](void* data) {
-        TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
+      TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
       lv->TryUpdateImage(false);
-    }, this);
+    },
+                                   this);
   }
 }
 
 void TizenWebEngineLWE::PrepareLWERendering()
 {
-  if (mInImageUpdateState) {
+  if(mInImageUpdateState)
+  {
     mWebContainer->AddIdleCallback([](void* data) {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
       lv->PrepareLWERendering();
-    }, this);
+    },
+                                   this);
     return;
   }
   mWebContainer->AddIdleCallback([](void* data) {
-      TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->TryRendering();
-    }, this);
+    TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
+    lv->TryRendering();
+  },
+                                 this);
 }
 
 void TizenWebEngineLWE::Destroy()
@@ -674,22 +684,22 @@ void TizenWebEngineLWE::InitRenderingContext()
     return;
   }
 
-  mNativeDisplay = reinterpret_cast< EGLNativeDisplayType >( tbm_dummy_display_create() );
-  if( NULL == mNativeDisplay )
+  mNativeDisplay = reinterpret_cast<EGLNativeDisplayType>(tbm_dummy_display_create());
+  if(NULL == mNativeDisplay)
   {
     DALI_LOG_ERROR("TizenWebEngineLWE: mNativeDisplay NULL");
     exit(-1);
   }
   mEglDisplay = eglGetDisplay(mNativeDisplay);
-  if( mEglDisplay == EGL_NO_DISPLAY && eglGetError() != EGL_SUCCESS)
+  if(mEglDisplay == EGL_NO_DISPLAY && eglGetError() != EGL_SUCCESS)
   {
     DALI_LOG_ERROR("TizenWebEngineLWE: mEglDisplay NULL");
     exit(-1);
   }
 
   EGLBoolean ret = EGL_FALSE;
-  ret = eglInitialize(mEglDisplay, NULL, NULL);
-  if( ret != EGL_TRUE && eglGetError() != EGL_SUCCESS)
+  ret            = eglInitialize(mEglDisplay, NULL, NULL);
+  if(ret != EGL_TRUE && eglGetError() != EGL_SUCCESS)
   {
     DALI_LOG_ERROR("TizenWebEngineLWE: eglInitialize Failed");
     exit(-1);
@@ -697,39 +707,29 @@ void TizenWebEngineLWE::InitRenderingContext()
 
   EGLint numConfigs;
   ret = eglGetConfigs(mEglDisplay, NULL, 0, &numConfigs);
-  if( ret != EGL_TRUE && eglGetError() != EGL_SUCCESS)
+  if(ret != EGL_TRUE && eglGetError() != EGL_SUCCESS)
   {
     DALI_LOG_ERROR("TizenWebEngineLWE: eglGetConfigs Failed");
     exit(-1);
   }
 
   const EGLint EglConfAttribs[] =
-  {
-    EGL_RENDERABLE_TYPE , EGL_OPENGL_ES2_BIT,
-    EGL_SURFACE_TYPE    , EGL_WINDOW_BIT,
-    EGL_RED_SIZE        , 8,
-    EGL_GREEN_SIZE      , 8,
-    EGL_BLUE_SIZE       , 8,
-    EGL_ALPHA_SIZE      , 8,
-    EGL_DEPTH_SIZE      , 0,
-    EGL_STENCIL_SIZE    , 8,
-    EGL_SAMPLE_BUFFERS  , 1, // MSAA x4
-    EGL_SAMPLES         , 4, // MSAA x4
-    EGL_NONE
-  };
+    {
+      EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8, EGL_DEPTH_SIZE, 0, EGL_STENCIL_SIZE, 8, EGL_SAMPLE_BUFFERS, 1, // MSAA x4
+      EGL_SAMPLES,
+      4, // MSAA x4
+      EGL_NONE};
 
   ret = eglChooseConfig(mEglDisplay, EglConfAttribs, &mEglConfig, 1, &numConfigs);
-  if( ret != EGL_TRUE && numConfigs == 0 )
+  if(ret != EGL_TRUE && numConfigs == 0)
   {
     DALI_LOG_ERROR("TizenWebEngineLWE: eglChooseConfig Failed");
     exit(-1);
   }
 
   const EGLint EglContextAttribs[] =
-  {
-    EGL_CONTEXT_CLIENT_VERSION , 3,
-    EGL_NONE
-  };
+    {
+      EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
   mEglContext = eglCreateContext(mEglDisplay, mEglConfig, EGL_NO_CONTEXT, EglContextAttribs);
   if(mEglContext == EGL_NO_CONTEXT)
   {
@@ -758,7 +758,7 @@ void TizenWebEngineLWE::DestroyRenderingContext()
 
   if(mNativeDisplay != NULL)
   {
-    tbm_dummy_display_destroy( reinterpret_cast< tbm_dummy_display* >( mNativeDisplay ) );
+    tbm_dummy_display_destroy(reinterpret_cast<tbm_dummy_display*>(mNativeDisplay));
     mNativeDisplay = NULL;
   }
 }
@@ -770,8 +770,7 @@ void TizenWebEngineLWE::InitRenderingSurface()
     return;
   }
 
-  mTbmQueue = tbm_surface_queue_create(gTbmSurfaceQueueLength, mWebContainer->Width(), mWebContainer->Height(),
-    TBM_FORMAT_BGRA8888, TBM_BO_DEFAULT);
+  mTbmQueue = tbm_surface_queue_create(gTbmSurfaceQueueLength, mWebContainer->Width(), mWebContainer->Height(), TBM_FORMAT_BGRA8888, TBM_BO_DEFAULT);
 
   mEglSurface = eglCreateWindowSurface(mEglDisplay, mEglConfig, mTbmQueue, NULL);
   if(mEglSurface == EGL_NO_SURFACE)
@@ -785,13 +784,14 @@ void TizenWebEngineLWE::DestroyRenderingSurface()
 {
   eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
-  if (mLastDrawnTbmSurface)
+  if(mLastDrawnTbmSurface)
   {
     tbm_surface_internal_ref(mLastDrawnTbmSurface);
-    if (mIdleTbmSurface) {
+    if(mIdleTbmSurface)
+    {
       tbm_surface_internal_unref(mIdleTbmSurface);
     }
-    mIdleTbmSurface = mLastDrawnTbmSurface;
+    mIdleTbmSurface      = mLastDrawnTbmSurface;
     mLastDrawnTbmSurface = nullptr;
   }
 
@@ -801,30 +801,30 @@ void TizenWebEngineLWE::DestroyRenderingSurface()
     mEglSurface = EGL_NO_SURFACE;
   }
 
-  if (mTbmQueue)
+  if(mTbmQueue)
   {
     tbm_surface_queue_destroy(mTbmQueue);
     mTbmQueue = nullptr;
   }
 }
 
-
 void TizenWebEngineLWE::OnIdle()
 {
-  if (mInIdleState)
+  if(mInIdleState)
   {
     return;
   }
 
   mInIdleState = true;
 
-  if (mLastDrawnTbmSurface)
+  if(mLastDrawnTbmSurface)
   {
     tbm_surface_internal_ref(mLastDrawnTbmSurface);
-    if (mIdleTbmSurface) {
+    if(mIdleTbmSurface)
+    {
       tbm_surface_internal_unref(mIdleTbmSurface);
     }
-    mIdleTbmSurface = mLastDrawnTbmSurface;
+    mIdleTbmSurface      = mLastDrawnTbmSurface;
     mLastDrawnTbmSurface = nullptr;
   }
 
@@ -833,11 +833,11 @@ void TizenWebEngineLWE::OnIdle()
 
 void TizenWebEngineLWE::OnActive()
 {
-  if (!mInIdleState)
+  if(!mInIdleState)
   {
-      return;
+    return;
   }
-  mInIdleState = false;
+  mInIdleState      = false;
   mFirstRenderEnded = false;
 
   InitRenderingSurface();
@@ -845,7 +845,7 @@ void TizenWebEngineLWE::OnActive()
 
 void TizenWebEngineLWE::OnFirstRender()
 {
-  if (mIdleTbmSurface)
+  if(mIdleTbmSurface)
   {
     tbm_surface_internal_unref(mIdleTbmSurface);
     mIdleTbmSurface = nullptr;
@@ -862,7 +862,7 @@ void TizenWebEngineLWE::UpdateImage(tbm_surface_h image)
     mDaliImageSrc->SetSource(source);
     Dali::Stage::GetCurrent().KeepRendering(0.0f);
 
-    if (mFrameRenderedCallback)
+    if(mFrameRenderedCallback)
     {
       ExecuteCallback(mFrameRenderedCallback);
     }
@@ -1302,8 +1302,9 @@ void TizenWebEngineLWE::EvaluateJavaScript(const std::string& script, std::funct
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   // LWE don't support empty std::function
-  if (!resultHandler) {
-      resultHandler = [](const std::string&) {};
+  if(!resultHandler)
+  {
+    resultHandler = [](const std::string&) {};
   }
   mWebContainer->EvaluateJavaScript(script, resultHandler);
 }
@@ -1312,8 +1313,9 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   // LWE don't support empty std::function
-  if (!handler) {
-      handler = [](const std::string&) {};
+  if(!handler)
+  {
+    handler = [](const std::string&) {};
   }
   mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler](const std::string& data) -> std::string {
     handler(data);
@@ -1540,7 +1542,7 @@ bool TizenWebEngineLWE::SendKeyEvent(const Dali::KeyEvent& event)
 void TizenWebEngineLWE::SetFocus(bool focused)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
-  if (focused)
+  if(focused)
   {
     mWebContainer->Focus();
   }
@@ -1609,7 +1611,7 @@ Accessibility::Address TizenWebEngineLWE::GetAccessibilityAddress()
 bool TizenWebEngineLWE::SetVisibility(bool visible)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
-  if (visible)
+  if(visible)
   {
     mWebContainer->Resume();
   }
