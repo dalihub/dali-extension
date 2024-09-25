@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.3.40
+Version:    2.3.42
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -56,6 +56,13 @@ BuildRequires:  pkgconfig(evas)
 
 %if 0%{?tizen_65_or_greater}
 BuildRequires:  pkgconfig(rive_tizen)
+%endif
+
+# For ASAN test
+%if "%{vd_asan}" == "1" || "%{asan}" == "1"
+BuildRequires: asan-force-options
+BuildRequires: asan-build-env
+BuildRequires: libasan
 %endif
 
 %description
@@ -177,8 +184,10 @@ Plugin to load color theme
 Summary:    Plugin to support WebView for Dali
 Group:      System/Libraries
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
-BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(lightweight-web-engine)
+BuildRequires: pkgconfig(libtbm)
+BuildRequires: pkgconfig(egl)
+BuildRequires: pkgconfig(vconf)
 %endif
 
 %description web-engine-lwe-plugin
@@ -236,6 +245,12 @@ configure_flags="--enable-ecore-wl2"
 %if "%{?profile}" == "tv"
 CFLAGS+=" -DOS_TIZEN_TV"
 CXXFLAGS+=" -DOS_TIZEN_TV"
+%endif
+
+%if "%{vd_asan}" == "1" || "%{asan}" == "1"
+CFLAGS+=" -fsanitize=address"
+CXXFLAGS+=" -fsanitize=address"
+LDFLAGS+=" -fsanitize=address"
 %endif
 
 libtoolize --force
