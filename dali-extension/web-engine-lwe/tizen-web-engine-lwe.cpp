@@ -1788,5 +1788,25 @@ void TizenWebEngineLWE::GetPlainTextAsynchronously(PlainTextReceivedCallback cal
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::RegisterWebAuthDisplayQRCallback(WebEngineWebAuthDisplayQRCallback callback)
+{
+  // NOT IMPLEMENTED  
+}
+
+void TizenWebEngineLWE::RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::WebAuthenticationCancel()
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali
