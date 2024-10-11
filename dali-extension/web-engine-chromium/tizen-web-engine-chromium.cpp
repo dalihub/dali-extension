@@ -29,7 +29,6 @@
 #include "tizen-web-engine-manager.h"
 #include "tizen-web-engine-policy-decision.h"
 #include "tizen-web-engine-settings.h"
-#include "tizen-web-engine-user-media-permission-request.h"
 
 #include <Ecore_Evas.h>
 #include <Ecore_Wl2.h>
@@ -67,15 +66,6 @@ void ExecuteCallback(Callback callback, std::unique_ptr<Arg> arg)
   if(callback)
   {
     callback(std::move(arg));
-  }
-}
-
-template<typename Callback, typename Arg, typename... Args>
-void ExecuteCallback(Callback callback, std::unique_ptr<Arg> arg, Args... args)
-{
-  if(callback)
-  {
-    callback(std::move(arg), args...);
   }
 }
 
@@ -219,8 +209,6 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "fullscreen,enterfullscreen", &TizenWebEngineChromium::OnFullscreenEntered, this);
   evas_object_smart_callback_add(mWebView, "fullscreen,exitfullscreen", &TizenWebEngineChromium::OnFullscreenExited, this);
   evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
-  evas_object_smart_callback_add(mWebView, "webauth,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
-  evas_object_smart_callback_add(mWebView, "webauth,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
 
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
@@ -882,24 +870,11 @@ void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallbac
   ewk_view_plain_text_get(mWebView, &TizenWebEngineChromium::OnPlainTextReceived, this);
 }
 
-void TizenWebEngineChromium::WebAuthenticationCancel()
-{
-  ewk_view_webauthn_cancel(mWebView);
-}
-
 void TizenWebEngineChromium::RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback)
 {
   mGeolocationPermissionCallback = callback;
   ewk_view_geolocation_permission_callback_set(mWebView, &TizenWebEngineChromium::OnGeolocationPermission, this);
 }
-
-void TizenWebEngineChromium::RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback)
-{
-  mUserMediaPermissionRequestCallback = callback;
-  ewk_view_user_media_permission_callback_set(mWebView, &TizenWebEngineChromium::OnUserMediaPermissonRequest, this);
-}
-
-
 
 void TizenWebEngineChromium::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
 {
@@ -1028,16 +1003,6 @@ void TizenWebEngineChromium::RegisterFullscreenExitedCallback(WebEngineFullscree
 void TizenWebEngineChromium::RegisterTextFoundCallback(WebEngineTextFoundCallback callback)
 {
   mTextFoundCallback = callback;
-}
-
-void TizenWebEngineChromium::RegisterWebAuthDisplayQRCallback(WebEngineWebAuthDisplayQRCallback callback)
-{
-  mWebAuthDisplayQRCallback = callback;
-}
-
-void TizenWebEngineChromium::RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback)
-{
-  mWebAuthResponseCallback = callback;
 }
 
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
@@ -1278,25 +1243,6 @@ void TizenWebEngineChromium::OnTextFound(void* data, Evas_Object*, void* eventIn
   ExecuteCallback(pThis->mTextFoundCallback, count);
 }
 
-void TizenWebEngineChromium::OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents)
-{
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  std::string result;
-  if(contents != nullptr)
-  {
-    result = static_cast<char*>(contents);
-    DALI_LOG_RELEASE_INFO("#WebAuthDisplayQR : %s\n", result.c_str());
-  }
-  ExecuteCallback(pThis->mWebAuthDisplayQRCallback, result);
-}
-
-void TizenWebEngineChromium::OnWebAuthResponse(void* data, Evas_Object*, void*)
-{
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  DALI_LOG_RELEASE_INFO("#WebAuthResponse \n");
-  ExecuteCallback(pThis->mWebAuthResponseCallback);
-}
-
 void TizenWebEngineChromium::OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)
 {
   DALI_LOG_RELEASE_INFO("#AuthenticationChallenged.\n");
@@ -1433,19 +1379,6 @@ Eina_Bool TizenWebEngineChromium::OnGeolocationPermission(Evas_Object*, Ewk_Geol
   std::string                protocol       = ewk_security_origin_protocol_get(securityOrigin);
   return ExecuteCallbackReturn<bool>(pThis->mGeolocationPermissionCallback, host, protocol);
 }
-
-Eina_Bool TizenWebEngineChromium::OnUserMediaPermissonRequest(Evas_Object*, Ewk_User_Media_Permission_Request* request, void* data)
-{
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  std::unique_ptr<Dali::WebEngineUserMediaPermissionRequest> webUserMediaPermissionRequest(new TizenWebEngineUserMediaPermissionRequest(request));
-  DALI_LOG_RELEASE_INFO("#UserMediaPermissonRequest: pThis:%p, permission:%p\n", pThis, request);
-  std::string msg = ewk_user_media_permission_request_message_get(request);
-
-  ExecuteCallback(pThis->mUserMediaPermissionRequestCallback, std::move(webUserMediaPermissionRequest), msg);
-  return msg.empty()? false: true;
-}
-
-
 
 } // namespace Plugin
 } // namespace Dali
