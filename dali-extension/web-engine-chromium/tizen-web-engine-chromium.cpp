@@ -32,8 +32,8 @@
 #include "tizen-web-engine-user-media-permission-request.h"
 
 #include <Ecore_Evas.h>
-#include <Ecore_Wl2.h>
 #include <Ecore_Input_Evas.h>
+#include <Ecore_Wl2.h>
 
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
@@ -88,6 +88,15 @@ void ExecuteCallback(Callback callback, Arg*& arg)
   }
 }
 
+template<typename Callback, typename Arg, typename... Args>
+void ExecuteCallback2(Callback callback, Arg*& arg, Args... args)
+{
+  if(callback)
+  {
+    callback(arg, args...);
+  }
+}
+
 template<typename Ret, typename Callback, typename... Args>
 Ret ExecuteCallbackReturn(Callback callback, Args... args)
 {
@@ -116,7 +125,8 @@ TizenWebEngineChromium::TizenWebEngineChromium()
 : mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
   mWebView(nullptr),
   mWidth(0),
-  mHeight(0)
+  mHeight(0),
+  mWebUserMediaPermissionRequest(nullptr)
 {
 }
 
@@ -675,7 +685,7 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
     point.y     = touch.GetScreenPosition(i).y;
     point.state = state;
     pointList   = eina_list_append(pointList, &point);
-    fed = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
+    fed         = ewk_view_feed_touch_event(mWebView, type, pointList, 0);
     eina_list_free(pointList);
     if(!fed)
     {
@@ -699,15 +709,15 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
     memset(&downEvent, 0, sizeof(Evas_Event_Key_Down));
 
     downEvent.timestamp = keyEvent.GetTime();
-    downEvent.keyname = const_cast<char *>(keyEvent.GetKeyName().c_str());
-    downEvent.key = keyEvent.GetLogicalKey().c_str();
-    downEvent.string = keyEvent.GetKeyString().c_str();
-    downEvent.keycode = keyEvent.GetKeyCode();
-    Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
+    downEvent.keyname   = const_cast<char*>(keyEvent.GetKeyName().c_str());
+    downEvent.key       = keyEvent.GetLogicalKey().c_str();
+    downEvent.string    = keyEvent.GetKeyString().c_str();
+    downEvent.keycode   = keyEvent.GetKeyCode();
+    Evas* evas          = ecore_evas_get(WebEngineManager::Get().GetWindow());
     ecore_event_evas_modifier_lock_update(evas, (unsigned int)keyEvent.GetKeyModifier());
     downEvent.modifiers = const_cast<Evas_Modifier*>(evas_key_modifier_get(evas));
-    downEvent.locks = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
-    downEvent.dev = evas_device_get(evas, keyEvent.GetDeviceName().c_str());
+    downEvent.locks     = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
+    downEvent.dev       = evas_device_get(evas, keyEvent.GetDeviceName().c_str());
 
     evasKeyEvent = static_cast<void*>(&downEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, true);
@@ -718,15 +728,15 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
     memset(&upEvent, 0, sizeof(Evas_Event_Key_Up));
 
     upEvent.timestamp = keyEvent.GetTime();
-    upEvent.keyname = const_cast<char *>(keyEvent.GetKeyName().c_str());
-    upEvent.key = keyEvent.GetLogicalKey().c_str();
-    upEvent.string = keyEvent.GetKeyString().c_str();
-    upEvent.keycode = keyEvent.GetKeyCode();
-    Evas* evas = ecore_evas_get(WebEngineManager::Get().GetWindow());
+    upEvent.keyname   = const_cast<char*>(keyEvent.GetKeyName().c_str());
+    upEvent.key       = keyEvent.GetLogicalKey().c_str();
+    upEvent.string    = keyEvent.GetKeyString().c_str();
+    upEvent.keycode   = keyEvent.GetKeyCode();
+    Evas* evas        = ecore_evas_get(WebEngineManager::Get().GetWindow());
     ecore_event_evas_modifier_lock_update(evas, (unsigned int)keyEvent.GetKeyModifier());
     upEvent.modifiers = const_cast<Evas_Modifier*>(evas_key_modifier_get(evas));
-    upEvent.locks = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
-    upEvent.dev = evas_device_get(evas, keyEvent.GetDeviceName().c_str());
+    upEvent.locks     = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
+    upEvent.dev       = evas_device_get(evas, keyEvent.GetDeviceName().c_str());
 
     evasKeyEvent = static_cast<void*>(&upEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, false);
@@ -768,7 +778,7 @@ bool TizenWebEngineChromium::SetImePositionAndAlignment(Dali::Vector2 position, 
 void TizenWebEngineChromium::SetCursorThemeName(const std::string themeName)
 {
   Ecore_Wl2_Display* display = ecore_wl2_connected_display_get(nullptr);
-  Ecore_Wl2_Input* input = ecore_wl2_input_default_input_get(display);
+  Ecore_Wl2_Input*   input   = ecore_wl2_input_default_input_get(display);
   ecore_wl2_input_cursor_theme_name_set(input, themeName.c_str());
 }
 
@@ -1282,7 +1292,7 @@ void TizenWebEngineChromium::OnFullscreenExited(void* data, Evas_Object*, void*)
 
 void TizenWebEngineChromium::OnTextFound(void* data, Evas_Object*, void* eventInfo)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto     pThis = static_cast<TizenWebEngineChromium*>(data);
   uint32_t count = *((uint32_t*)(eventInfo));
   DALI_LOG_RELEASE_INFO("#TextFound, count:%u.\n", count);
   ExecuteCallback(pThis->mTextFoundCallback, count);
@@ -1290,7 +1300,7 @@ void TizenWebEngineChromium::OnTextFound(void* data, Evas_Object*, void* eventIn
 
 void TizenWebEngineChromium::OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto        pThis = static_cast<TizenWebEngineChromium*>(data);
   std::string result;
   if(contents != nullptr)
   {
@@ -1338,10 +1348,10 @@ void TizenWebEngineChromium::OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Mes
       resultText = static_cast<char*>(message.body);
     }
 
-    std::string key = static_cast<const char*>(message.name);
-    auto targetCallback = pThis->mJavaScriptInjectedCallbacks.find(key);
+    std::string key            = static_cast<const char*>(message.name);
+    auto        targetCallback = pThis->mJavaScriptInjectedCallbacks.find(key);
 
-    if (targetCallback != pThis->mJavaScriptInjectedCallbacks.end())
+    if(targetCallback != pThis->mJavaScriptInjectedCallbacks.end())
     {
       ExecuteCallback(targetCallback->second, resultText);
     }
@@ -1446,16 +1456,15 @@ Eina_Bool TizenWebEngineChromium::OnGeolocationPermission(Evas_Object*, Ewk_Geol
 
 Eina_Bool TizenWebEngineChromium::OnUserMediaPermissonRequest(Evas_Object*, Ewk_User_Media_Permission_Request* request, void* data)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  std::unique_ptr<Dali::WebEngineUserMediaPermissionRequest> webUserMediaPermissionRequest(new TizenWebEngineUserMediaPermissionRequest(request));
-  DALI_LOG_RELEASE_INFO("#UserMediaPermissonRequest: pThis:%p, permission:%p\n", pThis, request);
+  auto pThis                            = static_cast<TizenWebEngineChromium*>(data);
+  pThis->mWebUserMediaPermissionRequest = new TizenWebEngineUserMediaPermissionRequest(request);
+
+  DALI_LOG_RELEASE_INFO("#UserMediaPermissonRequest: pThis:%p, request:%p\n", pThis, request);
+
   std::string msg = ewk_user_media_permission_request_message_get(request);
-
-  ExecuteCallback(pThis->mUserMediaPermissionRequestCallback, std::move(webUserMediaPermissionRequest), msg);
-  return msg.empty()? false: true;
+  ExecuteCallback2(pThis->mUserMediaPermissionRequestCallback, pThis->mWebUserMediaPermissionRequest, msg);
+  return msg.empty() ? false : true;
 }
-
-
 
 } // namespace Plugin
 } // namespace Dali
