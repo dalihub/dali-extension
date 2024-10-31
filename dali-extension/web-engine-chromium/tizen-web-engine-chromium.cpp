@@ -88,15 +88,6 @@ void ExecuteCallback(Callback callback, Arg*& arg)
   }
 }
 
-template<typename Callback, typename Arg, typename... Args>
-void ExecuteCallback2(Callback callback, Arg*& arg, Args... args)
-{
-  if(callback)
-  {
-    callback(arg, args...);
-  }
-}
-
 template<typename Ret, typename Callback, typename... Args>
 Ret ExecuteCallbackReturn(Callback callback, Args... args)
 {
@@ -1446,14 +1437,14 @@ Eina_Bool TizenWebEngineChromium::OnGeolocationPermission(Evas_Object*, Ewk_Geol
 Eina_Bool TizenWebEngineChromium::OnUserMediaPermissonRequest(Evas_Object*, Ewk_User_Media_Permission_Request* request, void* data)
 {
   auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  pThis->mWebUserMediaPermissionRequest = new TizenWebEngineUserMediaPermissionRequest(request);
-
-  DALI_LOG_RELEASE_INFO("#UserMediaPermissonRequest: pThis:%p, request:%p\n", pThis, request);
-
+  std::unique_ptr<Dali::WebEngineUserMediaPermissionRequest> webUserMediaPermissionRequest(new TizenWebEngineUserMediaPermissionRequest(request));
+  DALI_LOG_RELEASE_INFO("#UserMediaPermissonRequest: pThis:%p, permission:%p\n", pThis, request);
   std::string msg = ewk_user_media_permission_request_message_get(request);
-  ExecuteCallback2(pThis->mUserMediaPermissionRequestCallback, pThis->mWebUserMediaPermissionRequest, msg);
+
+  ExecuteCallback(pThis->mUserMediaPermissionRequestCallback, std::move(webUserMediaPermissionRequest), msg);
   return msg.empty()? false: true;
 }
+
 
 
 } // namespace Plugin
