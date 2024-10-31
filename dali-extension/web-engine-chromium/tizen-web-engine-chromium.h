@@ -657,6 +657,7 @@ private:
   std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
   std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
   std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptInjectedCallbacks;
+  Dali::WebEngineUserMediaPermissionRequest* mWebUserMediaPermissionRequest;
 
   // callback.
   WebEnginePageLoadCallback                mLoadStartedCallback;
