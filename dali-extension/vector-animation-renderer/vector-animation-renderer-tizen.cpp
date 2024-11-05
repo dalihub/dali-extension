@@ -225,7 +225,12 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
   {
     mPreviousTextures.push_back(mRenderedTexture); // It is used to destroy the object in the main thread.
 
-    mRenderedTexture = std::move(renderingDataImpl->mTexture);
+    if(renderingDataImpl->mTexture)
+    {
+      // Only move the ownership of the texture to the renderer when it is valid.
+      mRenderedTexture = std::move(renderingDataImpl->mTexture);
+    }
+
     renderingDataImpl->mTexture.Reset();
 
     mResourceReady          = true;
