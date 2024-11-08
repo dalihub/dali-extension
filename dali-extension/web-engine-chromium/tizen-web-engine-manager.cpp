@@ -53,7 +53,7 @@ WebEngineManager::WebEngineManager()
 
   elm_init(0, 0);
   ewk_init();
-  mWindow = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  mWindow = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
 
   Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
 
