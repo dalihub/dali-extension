@@ -82,7 +82,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
       if(mPreparedRenderingData)
       {
         mPreviousRenderingData.push_back(mCurrentRenderingData);
-        mCurrentRenderingData = mPreparedRenderingData;
+        mCurrentRenderingData = std::move(mPreparedRenderingData);
         mPreparedRenderingData.reset();
         mResourceReady = false;
       }
@@ -223,14 +223,15 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
   if(!mResourceReady)
   {
-    mPreviousTextures.push_back(mRenderedTexture); // It is used to destroy the object in the main thread.
-
-    if(renderingDataImpl->mTexture)
+    // Only move the ownership of the texture to the renderer when it is valid.
+    if(renderingDataImpl->mTexture && mRenderedTexture != renderingDataImpl->mTexture)
     {
-      // Only move the ownership of the texture to the renderer when it is valid.
+      mPreviousTextures.push_back(mRenderedTexture); // It is used to destroy the object in the main thread.
+
       mRenderedTexture = std::move(renderingDataImpl->mTexture);
     }
 
+    // Don't need to keep reference of texture.
     renderingDataImpl->mTexture.Reset();
 
     mResourceReady          = true;
