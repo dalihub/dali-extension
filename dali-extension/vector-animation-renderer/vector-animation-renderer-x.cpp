@@ -77,7 +77,7 @@ bool VectorAnimationRendererX::Render(uint32_t frameNumber)
       if(mPreparedRenderingData)
       {
         mPreviousRenderingData.push_back(mCurrentRenderingData);
-        mCurrentRenderingData = mPreparedRenderingData;
+        mCurrentRenderingData = std::move(mPreparedRenderingData);
         mPreparedRenderingData.reset();
         mResourceReady = false;
       }
@@ -91,6 +91,12 @@ bool VectorAnimationRendererX::Render(uint32_t frameNumber)
   }
 
   Dali::Mutex::ScopedLock lock(mMutex);
+  if(DALI_UNLIKELY(mFinalized))
+  {
+    // Fast-out if finalized.
+    return false;
+  }
+
   if(!mVectorRenderer || !renderingDataImpl->mPixelBuffer)
   {
     return false;
