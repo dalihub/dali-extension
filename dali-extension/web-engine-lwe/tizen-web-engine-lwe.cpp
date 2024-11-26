@@ -1061,6 +1061,13 @@ public:
   {
     return false;
   }
+  void SetImeStyle(int style) override
+  {
+  }
+  int GetImeStyle() const override
+  {
+    return 0;
+  }
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
@@ -1583,6 +1590,17 @@ void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
 {
   mDaliImageSrc = NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT);
   SetSize(displayArea.width, displayArea.height);
+}
+
+bool TizenWebEngineLWE::SetImePositionAndAlignment(Dali::Vector2 position, int alignment)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::SetCursorThemeName(const std::string themeName)
+{
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::SetPageZoomFactor(float zoomFactor)
