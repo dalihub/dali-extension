@@ -125,7 +125,8 @@ TizenWebEngineChromium::TizenWebEngineChromium()
 : mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
   mWebView(nullptr),
   mWidth(0),
-  mHeight(0)
+  mHeight(0),
+  mWebUserMediaPermissionRequest(nullptr)
 {
 }
 
