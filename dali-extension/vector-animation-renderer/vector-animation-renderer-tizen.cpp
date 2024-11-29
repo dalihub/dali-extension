@@ -75,6 +75,8 @@ VectorAnimationRendererTizen::~VectorAnimationRendererTizen()
 bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 {
   std::shared_ptr<RenderingDataImpl> renderingDataImpl;
+
+  bool resourceChanged = false;
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
     if(DALI_LIKELY(!mFinalized))
@@ -84,7 +86,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
         mPreviousRenderingData.push_back(mCurrentRenderingData);
         mCurrentRenderingData = std::move(mPreparedRenderingData);
         mPreparedRenderingData.reset();
-        mResourceReady = false;
+        resourceChanged = true;
       }
       renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(mCurrentRenderingData);
     }
@@ -102,9 +104,14 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
     return false;
   }
 
+  if(resourceChanged)
+  {
+    mResourceReady = false;
+  }
+
   if(mEnableFixedCache)
   {
-    if(mDecodedBuffers.size() < mTotalFrameNumber)
+    if(resourceChanged || mDecodedBuffers.size() < mTotalFrameNumber)
     {
       mDecodedBuffers.clear();
       mDecodedBuffers.resize(mTotalFrameNumber, std::make_pair<std::vector<uint8_t>, bool>(std::vector<uint8_t>(), false));
@@ -189,7 +196,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
   if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()) && mDecodedBuffers[frameNumber].second)
   {
-    const int bufferSize = renderingDataImpl->mWidth * renderingDataImpl->mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
+    const size_t bufferSize = mDecodedBuffers[frameNumber].first.size();
     memcpy(buffer, &mDecodedBuffers[frameNumber].first[0], bufferSize);
   }
   else
@@ -210,7 +217,7 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
 
     if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()))
     {
-      const uint32_t       bufferSize = renderingDataImpl->mWidth * renderingDataImpl->mHeight * Dali::Pixel::GetBytesPerPixel(Dali::Pixel::RGBA8888);
+      const size_t         bufferSize = renderingDataImpl->mHeight * static_cast<size_t>(info.planes[0].stride);
       std::vector<uint8_t> rasterizeBuffer(buffer, buffer + bufferSize);
       mDecodedBuffers[frameNumber].first  = std::move(rasterizeBuffer);
       mDecodedBuffers[frameNumber].second = true;
