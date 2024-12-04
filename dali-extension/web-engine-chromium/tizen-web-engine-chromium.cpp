@@ -746,6 +746,20 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
 
 bool TizenWebEngineChromium::SendHoverEvent(const Dali::HoverEvent& event)
 {
+  switch(event.GetState(0))
+  {
+    case PointState::MOTION:
+    {
+      float x = event.GetScreenPosition(0).x;
+      float y = event.GetScreenPosition(0).y;
+      ewk_view_feed_mouse_move(mWebView, x, y);
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
   return false;
 }
 
