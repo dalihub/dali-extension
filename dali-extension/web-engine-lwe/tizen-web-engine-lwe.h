@@ -640,7 +640,6 @@ private:
   bool               mIsMouseLbuttonDown;
   bool               mCanGoBack;
   bool               mCanGoForward;
-  bool               mInDestroyingLWEInstance;
 
   std::function<void(LWE::WebContainer*, LWE::ResourceError)> mOnReceivedError;
   std::function<void(LWE::WebContainer*, const std::string&)> mOnPageFinishedHandler;
