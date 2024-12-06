@@ -473,6 +473,7 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         }
         case VectorProperty::TRIM_START:
         {
+#ifdef OVER_TIZEN_VERSION_9
           mVectorRenderer->setValue<rlottie::Property::TrimStart>(keyPath,
                                                                   [property, callback, id](const rlottie::FrameInfo& info) {
                                                                     Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
@@ -483,20 +484,23 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
                                                                     }
                                                                     return 0.0f;
                                                                   });
+#endif
           break;
         }
         case VectorProperty::TRIM_END:
         {
+#ifdef OVER_TIZEN_VERSION_9
           mVectorRenderer->setValue<rlottie::Property::TrimEnd>(keyPath,
-                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
-                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
-                                                                    Vector2         position;
-                                                                    if(value.Get(position))
-                                                                    {
-                                                                      return rlottie::Point(position.x, position.y);
-                                                                    }
-                                                                    return rlottie::Point(0.0f, 100.0f);
-                                                                  });
+                                                                [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                  Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
+                                                                  Vector2         position;
+                                                                  if(value.Get(position))
+                                                                  {
+                                                                    return rlottie::Point(position.x, position.y);
+                                                                  }
+                                                                  return rlottie::Point(0.0f, 100.0f);
+                                                                });
+#endif
           break;
         }
       }

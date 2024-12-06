@@ -51,6 +51,33 @@ extern "C" DALI_EXPORT_API void DestroyWebEnginePlugin(Dali::WebEnginePlugin* pl
   }
 }
 
+namespace
+{
+#ifndef OVER_TIZEN_VERSION_9
+#define DB_NAME_LOCAL_STORAGE "LWE_localStorage.db"
+#define DB_NAME_COOKIES "LWE_Cookies.db"
+#define DB_NAME_CACHE "LWE_Cache.db"
+
+class Locker
+{
+public:
+  Locker(pthread_mutex_t& lock)
+  : m_lock(lock)
+  {
+    pthread_mutex_lock(&m_lock);
+  }
+
+  ~Locker()
+  {
+    pthread_mutex_unlock(&m_lock);
+  }
+
+protected:
+  pthread_mutex_t m_lock;
+};
+#endif
+} // namespace
+
 namespace Dali
 {
 namespace Plugin
@@ -332,6 +359,14 @@ TizenWebEngineLWE::TizenWebEngineLWE()
   mIsMouseLbuttonDown(false),
   mCanGoBack(false),
   mCanGoForward(false),
+#ifndef OVER_TIZEN_VERSION_9
+  mOutputWidth(0),
+  mOutputHeight(0),
+  mOutputStride(0),
+  mOutputBuffer(nullptr),
+  mTbmSurface(nullptr),
+  mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::LegacyUpdateBuffer)),
+#endif
   mWebContainer(NULL),
   mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
   mNativeDisplay(NULL),
@@ -351,10 +386,16 @@ TizenWebEngineLWE::TizenWebEngineLWE()
   mLoadStartedCallback(nullptr),
   mLoadFinishedCallback(nullptr)
 {
+#ifndef OVER_TIZEN_VERSION_9
+  pthread_mutex_init(&mOutputBufferMutex, NULL);
+#endif
 }
 
 TizenWebEngineLWE::~TizenWebEngineLWE()
 {
+#ifndef OVER_TIZEN_VERSION_9
+  pthread_mutex_destroy(&mOutputBufferMutex);
+#endif
 }
 
 static std::string Langset()
@@ -389,6 +430,7 @@ static std::string Timezone()
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
+#ifdef OVER_TIZEN_VERSION_9
   for(uint32_t idx = 0; idx < argc; ++idx)
   {
     if(argv[idx])
@@ -403,11 +445,62 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, uint32_t argc, c
       }
     }
   }
+#endif
   Create(width, height, Langset(), Timezone());
 }
 
 void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
 {
+#ifndef OVER_TIZEN_VERSION_9
+  mOutputWidth  = width;
+  mOutputHeight = height;
+  mOutputStride = width * sizeof(uint32_t);
+  mOutputBuffer = (uint8_t*)malloc(width * height * sizeof(uint32_t));
+
+  mOnRenderedHandler = [this](LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult) {
+    size_t w = mOutputWidth;
+    size_t h = mOutputHeight;
+    if(renderResult.updatedWidth != w || renderResult.updatedHeight != h)
+    {
+      return;
+    }
+    Locker   l(mOutputBufferMutex);
+    uint8_t* dstBuffer;
+    size_t   dstStride;
+
+    tbm_surface_info_s tbmSurfaceInfo;
+    if(tbm_surface_map(mTbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &tbmSurfaceInfo) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Fail to map tbm_surface\n");
+    }
+
+    DALI_ASSERT_ALWAYS(tbmSurfaceInfo.format == TBM_FORMAT_ARGB8888 && "Unsupported TizenWebEngineLWE tbm format");
+    dstBuffer = tbmSurfaceInfo.planes[0].ptr;
+    dstStride = tbmSurfaceInfo.planes[0].stride;
+
+    uint32_t srcStride = static_cast<uint32_t>(renderResult.updatedWidth * sizeof(uint32_t));
+    uint8_t* srcBuffer = static_cast<uint8_t*>(renderResult.updatedBufferAddress);
+
+    if(dstStride == srcStride)
+    {
+      memcpy(dstBuffer, srcBuffer, tbmSurfaceInfo.planes[0].size);
+    }
+    else
+    {
+      for(auto y = renderResult.updatedY; y < (renderResult.updatedHeight + renderResult.updatedY); y++)
+      {
+        auto start = renderResult.updatedX;
+        memcpy(dstBuffer + (y * dstStride) + (start * 4), srcBuffer + (y * srcStride) + (start * 4), srcStride);
+      }
+    }
+
+    if(tbm_surface_unmap(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Fail to unmap tbm_surface\n");
+    }
+    mUpdateBufferTrigger.Trigger();
+  };
+#endif
   mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {
   };
 
@@ -431,13 +524,20 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   if(!LWE::LWE::IsInitialized())
   {
     std::string dataPath = DevelApplication::GetDataPath();
+#ifdef OVER_TIZEN_VERSION_9
     LWE::LWE::Initialize((dataPath + "/StarFishStorage").c_str());
+#else
+    LWE::LWE::Initialize((dataPath + DB_NAME_LOCAL_STORAGE).c_str(),
+                         (dataPath + DB_NAME_COOKIES).c_str(),
+                         (dataPath + DB_NAME_CACHE).c_str());
+#endif
 
     gEglCreateSyncKHR     = (PFNEGLCREATESYNCKHRPROC)eglGetProcAddress("eglCreateSyncKHR");
     gEglDestroySyncKHR    = (PFNEGLDESTROYSYNCKHRPROC)eglGetProcAddress("eglDestroySyncKHR");
     gEglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)eglGetProcAddress("eglClientWaitSyncKHR");
   }
 
+#ifdef OVER_TIZEN_VERSION_9
   LWE::WebContainer::WebContainerArguments args{
     .width            = static_cast<unsigned>(width),
     .height           = static_cast<unsigned>(height),
@@ -489,6 +589,53 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
   mWebContainer = LWE::WebContainer::CreateGL(args, config);
 
+  mWebContainer->RegisterSetNeedsRenderingCallback(
+    [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction) {
+      if(!mLWERenderingFunction)
+      {
+        mLWERenderingFunction = doRenderingFunction;
+      }
+
+      if(!mLWERenderingRequested.exchange(true))
+      {
+        PrepareLWERendering();
+      }
+    });
+
+  mWebContainer->RegisterOnIdleHandler(
+    [this](LWE::WebContainer*) {
+      OnIdle();
+    });
+
+  auto settings = mWebContainer->GetSettings();
+  settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
+  mWebContainer->SetSettings(settings);
+
+  mWebContainer->LoadURL("about:blank");
+#else
+  mWebContainer = LWE::WebContainer::Create(mOutputWidth, mOutputHeight, 1.0, "", locale.data(), timezoneId.data());
+
+  mWebContainer->RegisterPreRenderingHandler(
+    [this]() -> LWE::WebContainer::RenderInfo {
+      if(mOutputBuffer == NULL)
+      {
+        mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
+        mOutputStride = mOutputWidth * sizeof(uint32_t);
+      }
+
+      ::LWE::WebContainer::RenderInfo result;
+      result.updatedBufferAddress = mOutputBuffer;
+      result.bufferStride = mOutputStride;
+
+      return result;
+    });
+
+  mWebContainer->RegisterOnRenderedHandler(
+    [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult) {
+      mOnRenderedHandler(container, renderResult);
+    });
+#endif
+
   mWebContainer->RegisterOnReceivedErrorHandler(
     [this](LWE::WebContainer* container, LWE::ResourceError error) {
       mCanGoBack    = container->CanGoBack();
@@ -516,30 +663,6 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
       mCanGoForward = container->CanGoForward();
       mOnLoadResourceHandler(container, url);
     });
-
-  mWebContainer->RegisterSetNeedsRenderingCallback(
-    [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction) {
-      if(!mLWERenderingFunction)
-      {
-        mLWERenderingFunction = doRenderingFunction;
-      }
-
-      if(!mLWERenderingRequested.exchange(true))
-      {
-        PrepareLWERendering();
-      }
-    });
-
-  mWebContainer->RegisterOnIdleHandler(
-    [this](LWE::WebContainer*) {
-      OnIdle();
-    });
-
-  auto settings = mWebContainer->GetSettings();
-  settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
-  mWebContainer->SetSettings(settings);
-
-  mWebContainer->LoadURL("about:blank");
 }
 
 void TizenWebEngineLWE::TryRendering()
@@ -672,6 +795,13 @@ void TizenWebEngineLWE::Destroy()
   {
     return;
   }
+
+#ifndef OVER_TIZEN_VERSION_9
+  if(mTbmSurface != NULL && tbm_surface_destroy(mTbmSurface) != TBM_SURFACE_ERROR_NONE)
+  {
+    DALI_LOG_ERROR("Failed to destroy tbm_surface\n");
+  }
+#endif
 
   DestroyInstance();
   mWebContainer = NULL;
@@ -852,15 +982,29 @@ void TizenWebEngineLWE::OnFirstRender()
   }
 }
 
+#ifndef OVER_TIZEN_VERSION_9
+void TizenWebEngineLWE::LegacyUpdateBuffer()
+{
+  UpdateImage(mTbmSurface);
+}
+#endif
+
 void TizenWebEngineLWE::UpdateImage(tbm_surface_h image)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
   if((int)mWebContainer->Width() == tbm_surface_get_width(image) ||
      (int)mWebContainer->Height() == tbm_surface_get_height(image))
   {
-    Any source(image);
-    mDaliImageSrc->SetSource(source);
-    Dali::Stage::GetCurrent().KeepRendering(0.0f);
+#ifndef OVER_TIZEN_VERSION_9
+    {
+      Locker l(mOutputBufferMutex);
+#endif
+      Any source(image);
+      mDaliImageSrc->SetSource(source);
+      Dali::Stage::GetCurrent().KeepRendering(0.0f);
+#ifndef OVER_TIZEN_VERSION_9
+    }
+#endif
 
     if(mFrameRenderedCallback)
     {
@@ -1411,6 +1555,34 @@ void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
   {
     mWebContainer->ResizeTo(width, height);
   }
+
+#ifndef OVER_TIZEN_VERSION_9
+  if(mOutputWidth != (size_t)width || mOutputHeight != (size_t)height)
+  {
+    mOutputWidth  = width;
+    mOutputHeight = height;
+    mOutputStride = width * sizeof(uint32_t);
+
+    tbm_surface_h prevTbmSurface = mTbmSurface;
+    mTbmSurface                  = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+    Dali::Any source(mTbmSurface);
+    mDaliImageSrc->SetSource(source);
+    if(prevTbmSurface != NULL && tbm_surface_destroy(prevTbmSurface) != TBM_SURFACE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Failed to destroy tbm_surface\n");
+    }
+
+    auto oldOutputBuffer = mOutputBuffer;
+    mOutputBuffer        = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
+    mOutputStride        = mOutputWidth * sizeof(uint32_t);
+    mWebContainer->ResizeTo(mOutputWidth, mOutputHeight);
+
+    if(oldOutputBuffer)
+    {
+      free(oldOutputBuffer);
+    }
+  }
+#endif
 }
 
 void TizenWebEngineLWE::SetDocumentBackgroundColor(Dali::Vector4 color)
@@ -1790,7 +1962,7 @@ void TizenWebEngineLWE::GetPlainTextAsynchronously(PlainTextReceivedCallback cal
 
 void TizenWebEngineLWE::RegisterWebAuthDisplayQRCallback(WebEngineWebAuthDisplayQRCallback callback)
 {
-  // NOT IMPLEMENTED  
+  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback)

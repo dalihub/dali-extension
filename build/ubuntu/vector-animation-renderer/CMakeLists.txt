@@ -63,6 +63,9 @@ IF( ENABLE_TRACE )
   ADD_DEFINITIONS("-DTRACE_ENABLED")
 ENDIF()
 
+# Hijack the information of tizen version here
+ADD_DEFINITIONS("-DOVER_TIZEN_VERSION_9")
+
 INCLUDE(CheckCXXCompilerFlag)
 
 ADD_COMPILE_OPTIONS( -Werror -Wall -Wextra -Wno-unused-parameter -Wfloat-equal )

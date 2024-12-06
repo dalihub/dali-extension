@@ -28,6 +28,12 @@ AC_ARG_WITH([tizen_65_or_greater],
             [with_tizen_65_or_greater=yes],
             [with_tizen_65_or_greater=no])
 
+AC_ARG_WITH([tizen_90_or_greater],
+            [AC_HELP_STRING([--with-tizen-90-or-greater],
+                            [Use this conditional when Tizen version is 9.0 or greater])],
+            [with_tizen_90_or_greater=yes],
+            [with_tizen_90_or_greater=no])
+
 AC_ARG_ENABLE([debug],
               [AC_HELP_STRING([--enable-debug],
                               [Turns on debugging])],

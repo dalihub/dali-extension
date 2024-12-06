@@ -30,6 +30,10 @@ Source0:    %{name}-%{version}.tar.gz
 %define tizen_65_or_greater 1
 %endif
 
+%if 0%{?tizen_version_major} >= 9
+%define tizen_90_or_greater 1
+%endif
+
 %if %{undefined NO_WEB_FRAMEWORK}
 %define enable_web_engine_plugin 1
 %endif
@@ -100,12 +104,15 @@ Summary:    Plugin to play a video file for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(capi-media-player)
 BuildRequires: pkgconfig(capi-system-info)
-BuildRequires: pkgconfig(wayland-egl)
 # dali-adaptor uses ecore mainloop
-%if 0%{?tizen_version_major} >= 5
+%if 0%{?tizen_50_or_greater}
 BuildRequires:  pkgconfig(ecore-wl2)
 %else
 BuildRequires:  pkgconfig(ecore-wayland)
+%endif
+
+%if 0%{?tizen_90_or_greater}
+BuildRequires: pkgconfig(wayland-egl)
 %endif
 
 %description video-player-plugin
@@ -236,7 +243,7 @@ PREFIX+="/usr"
 CXXFLAGS+=" -Wall -g -Os -fPIC -fvisibility-inlines-hidden -fdata-sections -ffunction-sections -DGL_GLEXT_PROTOTYPES"
 LDFLAGS+=" -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic-functions "
 
-%if 0%{?tizen_version_major} >= 5
+%if 0%{?tizen_50_or_greater}
 CFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 CXXFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 configure_flags="--enable-ecore-wl2"
@@ -269,6 +276,9 @@ autoreconf --install
 %endif
 %if 0%{?tizen_65_or_greater}
            --with-tizen-65-or-greater \
+%endif
+%if 0%{?tizen_90_or_greater}
+           --with-tizen-90-or-greater \
 %endif
 %if 0%{?enable_web_engine_plugin} == 1
            --enable-web-engine-plugin \
