@@ -846,6 +846,11 @@ void TizenWebEngineChromium::ActivateAccessibility(bool activated)
   ewk_view_atk_deactivation_by_app(mWebView, activated);
 }
 
+void TizenWebEngineChromium::FeedMouseWheel(bool yDirection, int step, int x, int y)
+{
+  ewk_view_feed_mouse_wheel(mWebView, (Eina_Bool)yDirection, step, x, y);
+}
+
 Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
 {
   static const char plugIdKey[] = "__PlugID";

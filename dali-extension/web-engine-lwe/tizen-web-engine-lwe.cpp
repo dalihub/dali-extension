@@ -1853,5 +1853,10 @@ void TizenWebEngineLWE::RegisterUserMediaPermissionRequestCallback(WebEngineUser
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::FeedMouseWheel(bool yDirection, int step, int x, int y)
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali

@@ -607,6 +607,11 @@ public:
    */
   void RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::FeedMouseWheel()
+   */
+  void FeedMouseWheel(bool yDirection, int step, int x, int y) override;
+
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
