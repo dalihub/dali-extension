@@ -110,7 +110,6 @@ private:
 
   Dali::Mutex                          mMutex;
   std::unique_ptr<EventThreadCallback> mEventTrigger;
-  bool                                 mEventTriggered : 1;
   bool                                 mProcessorRegistered : 1;
   bool                                 mEventHandlerRemovedDuringEventProcessing : 1;
 };
