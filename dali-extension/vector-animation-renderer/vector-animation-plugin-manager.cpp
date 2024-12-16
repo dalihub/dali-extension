@@ -46,7 +46,6 @@ VectorAnimationPluginManager::VectorAnimationPluginManager()
   mTriggerOrderId(0u),
   mMutex(),
   mEventTrigger(),
-  mEventTriggered(false),
   mProcessorRegistered(false),
   mEventHandlerRemovedDuringEventProcessing(false)
 {
@@ -80,8 +79,7 @@ void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& 
 
       if(!mEventTrigger)
       {
-        mEventTrigger   = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
-        mEventTriggered = false;
+        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
       }
     }
   }
@@ -116,7 +114,6 @@ void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandle
         mEventHandlerRemovedDuringEventProcessing = false;
 
         mEventTrigger.reset();
-        mEventTriggered = false;
       }
       else
       {
@@ -143,11 +140,9 @@ void VectorAnimationPluginManager::TriggerEvent(VectorAnimationEventHandler& han
     {
       mTriggeredHandlers.insert({&handler, mTriggerOrderId++});
 
-      if(!mEventTriggered)
-      {
-        mEventTrigger->Trigger();
-        mEventTriggered = true;
-      }
+      // Note : Always trigger event since eventfd might not emit triggered callback sometimes.
+      // Let we keep this logic until fd relative bug fixed. 2024-12-16 eunkiki.hong
+      mEventTrigger->Trigger();
     }
   }
 }
@@ -174,7 +169,6 @@ void VectorAnimationPluginManager::OnEventTriggered()
     mTriggeredHandlers.rehash(0u);
 
     mTriggerOrderId = 0u;
-    mEventTriggered = false;
   }
 
   // Reorder event handler ordered by trigger request.
