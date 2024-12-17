@@ -26,7 +26,10 @@
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/debug.h>
 #include <system_info.h>
+
+#ifdef OVER_TIZEN_VERSION_9
 #include <wayland-egl-tizen.h>
+#endif
 
 // INTERNAL INCLUDES
 
@@ -262,6 +265,7 @@ int LogPlayerError(int error)
 
 const char* const VIDEO_PLAYER_SIZE_NAME("videoPlayerSize");
 
+#ifdef OVER_TIZEN_VERSION_9
 struct BufferCommitData
 {
   Ecore_Wl2_VideoShell_Surface_Wrapper* ecoreVideoShellSurfaceWrapper;
@@ -338,6 +342,7 @@ private:
   float                                 mHalfScreenWidth;
   float                                 mHalfScreenHeight;
 };
+#endif
 
 /**
  * @brief Whether set play positoin accurately or not.
@@ -371,7 +376,9 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mSyncMode(syncMode),
   mIsMovedHandle(false),
   mIsSceneConnected(false),
+#ifdef OVER_TIZEN_VERSION_9
   mEcoreVideoShellSurface(nullptr),
+#endif
   mVideoShellSizePropertyIndex(Property::INVALID_INDEX)
 {
 }
@@ -389,11 +396,13 @@ TizenVideoPlayer::~TizenVideoPlayer()
     mEcoreSubVideoWindow = nullptr;
   }
 
+#ifdef OVER_TIZEN_VERSION_9
   if(mEcoreVideoShellSurface)
   {
     Ecore_Wl2_VideoShell_Surface_del(mEcoreVideoShellSurface);
     mEcoreVideoShellSurface = nullptr;
   }
+#endif
 
   DestroyPlayer();
 }
@@ -873,6 +882,7 @@ void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr na
 
 void TizenVideoPlayer::InitializeVideoShell(Ecore_Wl2_Window* ecoreWlWindow)
 {
+#ifdef OVER_TIZEN_VERSION_9
   if(mEcoreWlWindow != ecoreWlWindow)
   {
     mEcoreWlWindow = ecoreWlWindow;
@@ -897,6 +907,9 @@ void TizenVideoPlayer::InitializeVideoShell(Ecore_Wl2_Window* ecoreWlWindow)
 
     DALI_LOG_RELEASE_INFO("VideoShell(%p) handle: %s\n", mEcoreVideoShellSurface, videoShellHandle);
   }
+#else
+  DALI_LOG_ERROR("InitializeVideoShell, ecore_wl2_subsurface_new() NOT SUPPORT THIS TIZEN VERSION!\n");
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1323,6 +1336,7 @@ void TizenVideoPlayer::FinishSynchronization()
 
 void TizenVideoPlayer::CreateVideoShellConstraint()
 {
+#ifdef OVER_TIZEN_VERSION_9
   DALI_LOG_RELEASE_INFO("Create Video Shell Constraint\n");
   if(mVideoShellSizePropertyIndex == Property::INVALID_INDEX)
   {
@@ -1357,16 +1371,23 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
     }
   }
+#else
+  DALI_LOG_ERROR("Video Shell Constraint NOT SUPPORT THIS TIZEN VERSION!\n");
+#endif
 }
 
 void TizenVideoPlayer::DestroyVideoShellConstraint()
 {
+#ifdef OVER_TIZEN_VERSION_9
   DALI_LOG_RELEASE_INFO("Destroy VideoShell Constraint: %d\n", mVideoShellSizePropertyIndex);
   if(mVideoShellSizePropertyIndex != Property::INVALID_INDEX)
   {
     mVideoShellSizePropertyConstraint.Remove();
     mVideoShellSizePropertyIndex = Property::INVALID_INDEX;
   }
+#else
+  DALI_LOG_ERROR("Video Shell Constraint NOT SUPPORT THIS TIZEN VERSION!\n");
+#endif
 }
 
 void TizenVideoPlayer::RaiseAbove(Any videoSurface)
@@ -1418,9 +1439,16 @@ void TizenVideoPlayer::SceneConnection()
 
   if(mSyncMode == Dali::VideoSyncMode::ENABLED && mVideoShellSizePropertyIndex == Property::INVALID_INDEX)
   {
-    DALI_LOG_RELEASE_INFO("mVideoShellSizePropertyConstraint(%d).ApplyPost()\n", mVideoShellSizePropertyIndex);
     CreateVideoShellConstraint();
-    mVideoShellSizePropertyConstraint.ApplyPost();
+    if(mVideoShellSizePropertyConstraint)
+    {
+      DALI_LOG_RELEASE_INFO("mVideoShellSizePropertyConstraint(%d).ApplyPost()\n", mVideoShellSizePropertyIndex);
+      mVideoShellSizePropertyConstraint.ApplyPost();
+    }
+    else
+    {
+      DALI_LOG_ERROR("mVideoShellSizePropertyConstraint() creation failed!\n");
+    }
   }
   mIsSceneConnected = true;
 }

@@ -27,8 +27,8 @@
 #include <dali/public-api/animation/constraints.h>
 #include <dali/public-api/object/weak-handle.h>
 #include <player.h>
-#include <string>
 #include <list>
+#include <string>
 
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
@@ -305,8 +305,8 @@ private:
   Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
   RenderingTargetType        mTargetType;           ///< Current rendering target type
 
-  Dali::Mutex                mPacketMutex;
-  std::list<media_packet_h>  mPacketList;           ///< Container for media packet handle from Tizen player callback
+  Dali::Mutex               mPacketMutex;
+  std::list<media_packet_h> mPacketList; ///< Container for media packet handle from Tizen player callback
 
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
@@ -320,13 +320,14 @@ private:
   Property::Index               mVideoSizePropertyIndex;
   Dali::VideoSyncMode           mSyncMode;
 
-  bool mIsMovedHandle;     ///< the flag for moved the handle
+  bool mIsMovedHandle; ///< the flag for moved the handle
   bool mIsSceneConnected;
 
-
-  Ecore_Wl2_VideoShell_Surface*        mEcoreVideoShellSurface;
-  Constraint                    mVideoShellSizePropertyConstraint;
-  Property::Index               mVideoShellSizePropertyIndex;
+#ifdef OVER_TIZEN_VERSION_9
+  Ecore_Wl2_VideoShell_Surface* mEcoreVideoShellSurface;
+#endif
+  Constraint      mVideoShellSizePropertyConstraint;
+  Property::Index mVideoShellSizePropertyIndex;
 
 public:
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
