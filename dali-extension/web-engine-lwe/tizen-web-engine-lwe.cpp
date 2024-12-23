@@ -1068,6 +1068,10 @@ public:
   {
     return 0;
   }
+  void SetDefaultAudioInputDevice(const std::string& deviceId) const override
+  {
+    // NOT IMPLEMENTED    
+  }
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
@@ -1849,6 +1853,16 @@ void TizenWebEngineLWE::WebAuthenticationCancel()
 }
 
 void TizenWebEngineLWE::RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback)
 {
   // NOT IMPLEMENTED
 }

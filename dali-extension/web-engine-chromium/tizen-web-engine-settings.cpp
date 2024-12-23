@@ -280,5 +280,10 @@ int TizenWebEngineSettings::GetImeStyle() const
   return (int)ewk_settings_ime_style_get(ewkSettings);
 }
 
+void TizenWebEngineSettings::SetDefaultAudioInputDevice(const std::string& deviceId) const
+{
+  ewk_settings_default_audio_input_device_set(ewkSettings, deviceId.c_str());
+}
+
 } // namespace Plugin
 } // namespace Dali

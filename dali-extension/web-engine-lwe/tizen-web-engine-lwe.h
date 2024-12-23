@@ -607,6 +607,16 @@ public:
   void RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterDeviceConnectionChangedCallback()
+   */
+  void RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterDeviceListGetCallback()
+   */
+  void RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::FeedMouseWheel()
    */
   void FeedMouseWheel(bool yDirection, int step, int x, int y) override;

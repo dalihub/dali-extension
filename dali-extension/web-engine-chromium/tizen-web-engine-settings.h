@@ -430,6 +430,13 @@ public:
    */
   int GetImeStyle() const override;
 
+  /**
+   * @brief Sets default audio input device
+   *
+   * @param[in] deviceId default device ID
+   */
+  void SetDefaultAudioInputDevice(const std::string& deviceId) const override;
+
 private:
   Ewk_Settings* ewkSettings;
 };

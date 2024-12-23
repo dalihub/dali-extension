@@ -30,6 +30,7 @@
 #include "tizen-web-engine-policy-decision.h"
 #include "tizen-web-engine-settings.h"
 #include "tizen-web-engine-user-media-permission-request.h"
+#include "tizen-web-engine-device-list-get.h"
 
 #include <Ecore_Evas.h>
 #include <Ecore_Input_Evas.h>
@@ -231,6 +232,9 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
   evas_object_smart_callback_add(mWebView, "webauth,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
   evas_object_smart_callback_add(mWebView, "webauth,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
+  
+  ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
+  evas_object_smart_callback_add(mWebView, "device,connection,changed", &TizenWebEngineChromium::OnDeviceConnectionChanged, this);
 
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
@@ -1079,6 +1083,19 @@ void TizenWebEngineChromium::RegisterWebAuthResponseCallback(WebEngineWebAuthRes
   mWebAuthResponseCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback)
+{
+  mDeviceConnectionChangedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback)
+{
+  mDeviceListGetCallback = callback;
+  ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
+}
+
+
+
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
 {
   // color-space is argb8888.
@@ -1178,6 +1195,24 @@ void TizenWebEngineChromium::OnConsoleMessageReceived(void* data, Evas_Object*, 
   DALI_LOG_RELEASE_INFO("#ConsoleMessageReceived : %s\n", webConsoleMessage->GetSource().c_str());
   ExecuteCallback(pThis->mConsoleMessageReceivedCallback, std::move(webConsoleMessage));
 }
+
+void TizenWebEngineChromium::OnDeviceConnectionChanged(void* data, Evas_Object* obj, void* info)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  int* device_type = (int*)info;
+
+  DALI_LOG_RELEASE_INFO("#DeviceConnectionChanged : device_type=%d\n", *device_type);
+  ExecuteCallback(pThis->mDeviceConnectionChangedCallback, *device_type);
+}
+
+void TizenWebEngineChromium::OnDeviceListGet(EwkMediaDeviceInfo* device_list, int size, void* user_data)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(user_data);
+
+  pThis->mDeviceListGet = new TizenWebEngineDeviceListGet(device_list, size);
+  ExecuteCallback(pThis->mDeviceListGetCallback, pThis->mDeviceListGet, (int32_t)size);
+}
+
 
 void TizenWebEngineChromium::OnEdgeLeft(void* data, Evas_Object*, void*)
 {
