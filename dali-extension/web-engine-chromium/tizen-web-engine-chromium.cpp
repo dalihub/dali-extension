@@ -127,7 +127,8 @@ TizenWebEngineChromium::TizenWebEngineChromium()
   mWebView(nullptr),
   mWidth(0),
   mHeight(0),
-  mWebUserMediaPermissionRequest(nullptr)
+  mWebUserMediaPermissionRequest(nullptr),
+  mDeviceListGet(nullptr)
 {
 }
 
