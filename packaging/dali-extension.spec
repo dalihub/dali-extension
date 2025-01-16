@@ -220,6 +220,19 @@ Requires: dali2-extension-rive-animation-view = %{version}-%{release}
 Header & package configuration of rive-animation-view
 
 ##############################
+# Dali ICU Plugin
+##############################
+
+%package icu-plugin
+Summary:    Plugin to use an International Components for Unicode for Dali
+Group:      System/Libraries
+BuildRequires: pkgconfig(icu-i18n)
+BuildRequires: pkgconfig(icu-uc)
+
+%description icu-plugin
+ICU plugin to use an International Components for Unicode for Dali
+
+##############################
 # Preparation
 ##############################
 %prep
@@ -335,6 +348,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%post icu-plugin
+/sbin/ldconfig
+exit 0
+
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %post web-engine-chromium-plugin
 pushd %{_libdir}
@@ -396,6 +413,10 @@ exit 0
 exit 0
 
 %postun camera-player-plugin
+/sbin/ldconfig
+exit 0
+
+%postun icu-plugin
 /sbin/ldconfig
 exit 0
 
@@ -468,6 +489,14 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-camera-player-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%files icu-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-icu-plugin.so*
 %license LICENSE
 %endif
 
