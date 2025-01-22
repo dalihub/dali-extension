@@ -1,9 +1,8 @@
 #ifndef __DALI_TIZEN_VIDEO_CONSTRAINT_HELPER_H__
 #define __DALI_TIZEN_VIDEO_CONSTRAINT_HELPER_H__
 
-
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,29 +20,25 @@
 
 // INTERNAL INCLUDES
 
-
 // EXTERNAL INCLUDES
-#include <dali/public-api/object/ref-object.h>
 #include <dali/devel-api/threading/mutex.h>
-#include <tbm_surface.h>
-#include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/adaptor-framework/native-image-source.h>
+#include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/math/vector2.h>
 #include <dali/public-api/math/vector4.h>
-
+#include <dali/public-api/object/ref-object.h>
+#include <tbm_surface.h>
 
 namespace Dali
 {
 namespace Plugin
 {
-
 class VideoConstraintHelper;
 typedef Dali::IntrusivePtr<VideoConstraintHelper> VideoConstraintHelperPtr;
 
-class VideoConstraintHelper: public Dali::RefObject
+class VideoConstraintHelper : public Dali::RefObject
 {
 public:
-
   /**
    * @brief Creates a new instance of VideoConstraintHelper
    * @param[in] nativeImageSourcePtr Native image source pointer
@@ -108,14 +103,17 @@ private:
 
 private:
   Dali::NativeImageSourcePtr mNativeImageSourcePtr;
-  Dali::Mutex mConstraintMutex;
+
+  Dali::Mutex   mConstraintMutex;
   tbm_surface_h mSurface;
+
   int mOrientation;
   int mWidth;
   int mHeight;
-  bool mIsSetInfo : 1;
-  bool mIsAutoRotationEnabled : 1;
-  bool mIsLetterBoxEnabled : 1;
+
+  bool mIsSetInfo;
+  bool mIsAutoRotationEnabled;
+  bool mIsLetterBoxEnabled;
 };
 
 } // namespace Plugin

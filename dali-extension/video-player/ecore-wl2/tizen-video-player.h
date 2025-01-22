@@ -272,7 +272,6 @@ public:
   void SceneDisconnection();
 
 private:
-
   /**
    * @brief Update video frame image to native image source
    */
@@ -332,7 +331,6 @@ private:
   std::string                mUrl;                  ///< The video file path
   player_h                   mPlayer;               ///< Tizen player handle
   player_state_e             mPlayerState;          ///< Tizen player state
-  tbm_surface_h              mTbmSurface;           ///< tbm surface handle
   media_packet_h             mPacket;               ///< Media packet handle with tbm surface of current video frame image
   Dali::NativeImageSourcePtr mNativeImageSourcePtr; ///< native image source for video rendering
   Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
@@ -363,8 +361,8 @@ private:
 #ifdef OVER_TIZEN_VERSION_9
   Ecore_Wl2_VideoShell_Surface* mEcoreVideoShellSurface;
 #endif
-  Constraint      mVideoShellSizePropertyConstraint;
-  Property::Index mVideoShellSizePropertyIndex;
+  Constraint                                mVideoShellSizePropertyConstraint;
+  Property::Index                           mVideoShellSizePropertyIndex;
   Dali::IntrusivePtr<VideoConstraintHelper> mVideoConstraintHelper;
 
 public:
