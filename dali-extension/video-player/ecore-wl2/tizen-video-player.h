@@ -355,6 +355,8 @@ private:
   Property::Index               mVideoRatioPropertyIndex;
   Dali::VideoSyncMode           mSyncMode;
 
+  int32_t mVideoConstraintHelperId; ///< unique id for Rotation and Ratio constraint helper
+
   bool mIsMovedHandle; ///< the flag for moved the handle
   bool mIsSceneConnected;
 
