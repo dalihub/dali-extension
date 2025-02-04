@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@
 // CLASS HEADER
 #include "tizen-video-constraint-helper.h"
 
-// EXTERNAL INCLUDES
-#include <tbm_surface_internal.h>
-
 namespace Dali
 {
 namespace Plugin
 {
+
 VideoConstraintHelperPtr VideoConstraintHelper::New(Dali::NativeImageSourcePtr nativeImageSourcePtr)
 {
   VideoConstraintHelperPtr ptr = new VideoConstraintHelper(nativeImageSourcePtr);
@@ -41,6 +39,7 @@ VideoConstraintHelper::VideoConstraintHelper(Dali::NativeImageSourcePtr nativeIm
   mIsAutoRotationEnabled(false),
   mIsLetterBoxEnabled(false)
 {
+
 }
 
 VideoConstraintHelper::~VideoConstraintHelper()
@@ -51,23 +50,12 @@ void VideoConstraintHelper::SetInfo(tbm_surface_h surface, int orientation, int 
 {
   Dali::Mutex::ScopedLock lock(mConstraintMutex);
   mIsSetInfo = true;
-  if(mSurface != NULL)
-  {
-    tbm_surface_internal_unref(mSurface);
-  }
-
   mSurface = surface;
-
-  if(mSurface != NULL)
-  {
-    tbm_surface_internal_ref(mSurface);
-  }
-
   // Orientation should be set to zero when auto rotation is disabled.
   mOrientation = mIsAutoRotationEnabled ? orientation : 0;
-  if(mIsLetterBoxEnabled)
+  if (mIsLetterBoxEnabled)
   {
-    mWidth  = width;
+    mWidth = width;
     mHeight = height;
   }
 }
@@ -79,11 +67,6 @@ void VideoConstraintHelper::UpdateVideo()
     if(mIsSetInfo && mNativeImageSourcePtr)
     {
       mNativeImageSourcePtr->SetSource(mSurface);
-      if(mSurface != NULL)
-      {
-        tbm_surface_internal_unref(mSurface);
-      }
-      mSurface   = NULL;
       mIsSetInfo = false;
     }
   }
@@ -92,28 +75,18 @@ void VideoConstraintHelper::UpdateVideo()
 Dali::Vector4 VideoConstraintHelper::GetOrientationMatrix()
 {
   Dali::Mutex::ScopedLock lock(mConstraintMutex);
-  switch(mOrientation)
+  switch (mOrientation)
   {
     case 0:
-    {
       return Dali::Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-    }
     case 90:
-    {
       return Dali::Vector4(0.0f, -1.0f, 1.0f, 0.0f);
-    }
     case 180:
-    {
       return Dali::Vector4(-1.0f, 0.0f, 0.0f, -1.0f);
-    }
     case 270:
-    {
       return Dali::Vector4(0.0f, 1.0f, -1.0f, 0.0f);
-    }
     default:
-    {
       return Dali::Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-    }
   }
 }
 
@@ -134,7 +107,7 @@ void VideoConstraintHelper::SetAutoRotationEnabled(bool enable)
 {
   Dali::Mutex::ScopedLock lock(mConstraintMutex);
   mIsAutoRotationEnabled = enable;
-  if(!mIsAutoRotationEnabled)
+  if (!mIsAutoRotationEnabled)
   {
     mOrientation = 0;
   }
@@ -149,9 +122,9 @@ void VideoConstraintHelper::SetLetterBoxEnabled(bool enable)
 {
   Dali::Mutex::ScopedLock lock(mConstraintMutex);
   mIsLetterBoxEnabled = enable;
-  if(!mIsLetterBoxEnabled)
+  if (!mIsLetterBoxEnabled)
   {
-    mWidth  = 0;
+    mWidth = 0;
     mHeight = 0;
   }
 }
@@ -161,5 +134,5 @@ bool VideoConstraintHelper::IsLetterBoxEnabled() const
   return mIsLetterBoxEnabled;
 }
 
-} // namespace Plugin
-} // namespace Dali
+}
+}
