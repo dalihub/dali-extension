@@ -679,6 +679,32 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
       mCanGoForward = container->CanGoForward();
       mOnLoadResourceHandler(container, url);
     });
+
+  mWebContainer->RegisterSetNeedsRenderingCallback(
+    [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction)
+    {
+      if(!mLWERenderingFunction)
+      {
+        mLWERenderingFunction = doRenderingFunction;
+      }
+
+      if(!mLWERenderingRequested.exchange(true))
+      {
+        PrepareLWERendering();
+      }
+    });
+
+  mWebContainer->RegisterOnIdleHandler(
+    [this](LWE::WebContainer*)
+    {
+      OnIdle();
+    });
+
+  auto settings = mWebContainer->GetSettings();
+  settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
+  mWebContainer->SetSettings(settings);
+
+  mWebContainer->LoadURL("about:blank");
 }
 
 void TizenWebEngineLWE::TryRendering()
@@ -1208,13 +1234,6 @@ public:
   bool IsExtraFeatureEnabled(const std::string& feature) const override
   {
     return false;
-  }
-  void SetImeStyle(int style) override
-  {
-  }
-  int GetImeStyle() const override
-  {
-    return 0;
   }
 };
 
@@ -1766,17 +1785,6 @@ void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
 {
   mDaliImageSrc = NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT);
   SetSize(displayArea.width, displayArea.height);
-}
-
-bool TizenWebEngineLWE::SetImePositionAndAlignment(Dali::Vector2 position, int alignment)
-{
-  // NOT IMPLEMENTED
-  return false;
-}
-
-void TizenWebEngineLWE::SetCursorThemeName(const std::string themeName)
-{
-  // NOT IMPLEMENTED
 }
 
 void TizenWebEngineLWE::SetPageZoomFactor(float zoomFactor)
