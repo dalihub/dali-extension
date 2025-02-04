@@ -27,9 +27,6 @@
 #include <dali/integration-api/debug.h>
 #include <system_info.h>
 
-#include <mutex>
-#include <unordered_map>
-
 #ifdef OVER_TIZEN_VERSION_9
 #include <wayland-egl-tizen.h>
 #endif
@@ -345,65 +342,46 @@ private:
 };
 #endif
 
-// Global map to store and get constraint helper from multiple thread safely.
-static std::mutex gHelperMutex;
-static int32_t    gHelperId = 0;
-
-static std::unordered_map<int32_t, IntrusivePtr<VideoConstraintHelper>> gHelperMap;
-
-void AddConstraintHelper(int32_t helperId, IntrusivePtr<VideoConstraintHelper> helper)
+struct VideoPlayerRotationConstraint
 {
-  std::scoped_lock lock(gHelperMutex);
-  DALI_LOG_DEBUG_INFO("Add helper for id[%d], helper[%p]\n", helperId, helper.Get());
-  gHelperMap.insert({helperId, helper});
-}
-void RemoveConstraintHelper(int32_t helperId)
-{
-  std::scoped_lock lock(gHelperMutex);
-  DALI_LOG_DEBUG_INFO("Remove helper for id[%d]\n", helperId);
-  gHelperMap.erase(helperId);
-}
-
-void VideoPlayerRotationConstraint(Dali::Vector4& current, const Dali::PropertyInputContainer& inputs)
-{
-  IntrusivePtr<VideoConstraintHelper> mVideoHandler;
+public:
+  VideoPlayerRotationConstraint(Dali::IntrusivePtr<VideoConstraintHelper> handler)
+  : mVideoHandler(handler)
   {
-    std::scoped_lock lock(gHelperMutex);
+  }
 
-    int32_t helperId = inputs[0]->GetInteger();
-
-    auto iter = gHelperMap.find(helperId);
-    if(iter != gHelperMap.end())
+  void operator()(Dali::Vector4& current, const Dali::PropertyInputContainer& /* unused */)
+  {
+    if(DALI_LIKELY(mVideoHandler))
     {
-      mVideoHandler = iter->second;
+      current = mVideoHandler->GetOrientationMatrix();
+      mVideoHandler->UpdateVideo();
     }
   }
-  if(DALI_LIKELY(mVideoHandler))
-  {
-    current = mVideoHandler->GetOrientationMatrix();
-    mVideoHandler->UpdateVideo();
-  }
-}
 
-void VideoPlayerRatioConstraint(Dali::Vector2& current, const Dali::PropertyInputContainer& inputs)
+private:
+  Dali::IntrusivePtr<VideoConstraintHelper> mVideoHandler;
+};
+
+struct VideoPlayerRatioConstraint
 {
-  IntrusivePtr<VideoConstraintHelper> mVideoHandler;
+public:
+  VideoPlayerRatioConstraint(Dali::IntrusivePtr<VideoConstraintHelper> handler)
+  : mVideoHandler(handler)
   {
-    std::scoped_lock lock(gHelperMutex);
+  }
 
-    int32_t helperId = inputs[0]->GetInteger();
-
-    auto iter = gHelperMap.find(helperId);
-    if(iter != gHelperMap.end())
+  void operator()(Dali::Vector2& current, const Dali::PropertyInputContainer& /* unused */)
+  {
+    if(DALI_LIKELY(mVideoHandler))
     {
-      mVideoHandler = iter->second;
+      current = mVideoHandler->RetriveSize();
     }
   }
-  if(DALI_LIKELY(mVideoHandler))
-  {
-    current = mVideoHandler->RetriveSize();
-  }
-}
+
+private:
+  Dali::IntrusivePtr<VideoConstraintHelper> mVideoHandler;
+};
 
 /**
  * @brief Whether set play positoin accurately or not.
@@ -1075,7 +1053,6 @@ void TizenVideoPlayer::Update()
   }
   tbm_surface_h tbmSurface = NULL;
   error                    = media_packet_get_tbm_surface(mPacket, &tbmSurface);
-
   if(error != MEDIA_PACKET_ERROR_NONE)
   {
     media_packet_destroy(mPacket);
@@ -1289,16 +1266,6 @@ void TizenVideoPlayer::DestroyPlayer()
 
     if(mPlayerState != PLAYER_STATE_IDLE)
     {
-      if(mNativeImageSourcePtr)
-      {
-        error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
-        ret   = LogPlayerError(error);
-        if(ret)
-        {
-          DALI_LOG_ERROR("DestroyPlayer, player_unset_media_packet_video_frame_decoded_cb() is failed\n");
-        }
-      }
-
       Stop();
       error = player_unprepare(mPlayer);
       ret   = LogPlayerError(error);
@@ -1586,24 +1553,11 @@ void TizenVideoPlayer::CreateVideoConstraint(Dali::NativeImageSourcePtr nativeIm
     mVideoRotationPropertyIndex = syncActor.RegisterProperty("uRotationMatrix", Property::Value(Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
     mVideoRatioPropertyIndex    = syncActor.RegisterProperty("uSizeRatio", Property::Value(Vector2(0.0f, 0.0f)));
 
-    if(mVideoConstraintHelper)
-    {
-      RemoveConstraintHelper(mVideoConstraintHelperId);
-    }
-
-    mVideoConstraintHelperId = gHelperId++;
-    auto idIndex             = syncActor.RegisterProperty("helperId", Property::Value(mVideoConstraintHelperId));
-
-    mVideoConstraintHelper = VideoConstraintHelper::New(nativeImageSourcePtr);
-
-    AddConstraintHelper(mVideoConstraintHelperId, mVideoConstraintHelper);
-
-    mVideoRotationConstraint = Constraint::New<Vector4>(syncActor, mVideoRotationPropertyIndex, VideoPlayerRotationConstraint);
-    mVideoRotationConstraint.AddSource(LocalSource(idIndex));
+    mVideoConstraintHelper   = VideoConstraintHelper::New(nativeImageSourcePtr);
+    mVideoRotationConstraint = Constraint::New<Vector4>(syncActor, mVideoRotationPropertyIndex, VideoPlayerRotationConstraint(mVideoConstraintHelper));
     mVideoRotationConstraint.Apply();
 
-    mVideoLetterBoxConstraint = Constraint::New<Vector2>(syncActor, mVideoRatioPropertyIndex, VideoPlayerRatioConstraint);
-    mVideoLetterBoxConstraint.AddSource(LocalSource(idIndex));
+    mVideoLetterBoxConstraint = Constraint::New<Vector2>(syncActor, mVideoRatioPropertyIndex, VideoPlayerRatioConstraint(mVideoConstraintHelper));
     mVideoLetterBoxConstraint.Apply();
   }
 }
@@ -1620,12 +1574,6 @@ void TizenVideoPlayer::DestroyVideoConstraint()
   {
     mVideoLetterBoxConstraint.Remove();
     mVideoRatioPropertyIndex = Property::INVALID_INDEX;
-  }
-
-  if(mVideoConstraintHelper)
-  {
-    RemoveConstraintHelper(mVideoConstraintHelperId);
-    mVideoConstraintHelper.Reset();
   }
 }
 
