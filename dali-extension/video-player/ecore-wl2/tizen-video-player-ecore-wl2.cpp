@@ -435,6 +435,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mVideoRotationPropertyIndex(Property::INVALID_INDEX),
   mVideoRatioPropertyIndex(Property::INVALID_INDEX),
   mSyncMode(syncMode),
+  mVideoConstraintHelperId(0),
   mIsMovedHandle(false),
   mIsSceneConnected(false),
 #ifdef OVER_TIZEN_VERSION_9
