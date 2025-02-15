@@ -1872,5 +1872,10 @@ void TizenWebEngineLWE::FeedMouseWheel(bool yDirection, int step, int x, int y)
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::SetVideoHole(bool enabled, bool isWaylandWindow)
+{
+  // NOT IMPLEMENTED
+}
+
 } // namespace Plugin
 } // namespace Dali

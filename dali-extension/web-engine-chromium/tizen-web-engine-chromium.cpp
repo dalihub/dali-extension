@@ -856,6 +856,12 @@ void TizenWebEngineChromium::FeedMouseWheel(bool yDirection, int step, int x, in
   ewk_view_feed_mouse_wheel(mWebView, (Eina_Bool)yDirection, step, x, y);
 }
 
+void TizenWebEngineChromium::SetVideoHole(bool enabled, bool isWaylandWindow)
+{
+  Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
+  ewk_view_set_support_video_hole(mWebView, win, enabled, isWaylandWindow? EINA_TRUE: EINA_FALSE);
+}
+
 Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
 {
   static const char plugIdKey[] = "__PlugID";

@@ -621,6 +621,11 @@ public:
    */
   void FeedMouseWheel(bool yDirection, int step, int x, int y) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetVideoHole()
+   */
+  void SetVideoHole(bool enabled, bool isWaylandWindow) override;
+
 private:
   void DestroyInstance();
 

@@ -617,11 +617,15 @@ public:
    */
   void RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback) override;
 
-
   /**
    * @copydoc Dali::WebEnginePlugin::FeedMouseWheel()
    */
   void FeedMouseWheel(bool yDirection, int step, int x, int y) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetVideoHole()
+   */
+  void SetVideoHole(bool enabled, bool isWaylandWindow) override;
 
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
