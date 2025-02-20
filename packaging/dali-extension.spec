@@ -105,11 +105,7 @@ Group:      System/Libraries
 BuildRequires: pkgconfig(capi-media-player)
 BuildRequires: pkgconfig(capi-system-info)
 # dali-adaptor uses ecore mainloop
-%if 0%{?tizen_50_or_greater}
 BuildRequires:  pkgconfig(ecore-wl2)
-%else
-BuildRequires:  pkgconfig(ecore-wayland)
-%endif
 
 %if 0%{?tizen_90_or_greater}
 BuildRequires: pkgconfig(wayland-egl)

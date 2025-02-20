@@ -33,13 +33,7 @@ AC_ARG_ENABLE([ecore-wl2],
               [enable_ecore_wl2=yes],
               [enable_ecore_wl2=no])
 
-AM_CONDITIONAL([ECOREWL2], [test x$enable_ecore_wl2 = xyes])
-
-if test x$enable_ecore_wl2 = xyes; then
-  PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
-else
-  PKG_CHECK_MODULES(ECORE_WAYLAND, ecore-wayland)
-fi
+PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
