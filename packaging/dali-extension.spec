@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.4.6
+Version:    2.4.7
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -105,11 +105,7 @@ Group:      System/Libraries
 BuildRequires: pkgconfig(capi-media-player)
 BuildRequires: pkgconfig(capi-system-info)
 # dali-adaptor uses ecore mainloop
-%if 0%{?tizen_50_or_greater}
 BuildRequires:  pkgconfig(ecore-wl2)
-%else
-BuildRequires:  pkgconfig(ecore-wayland)
-%endif
 
 %if 0%{?tizen_90_or_greater}
 BuildRequires: pkgconfig(wayland-egl)

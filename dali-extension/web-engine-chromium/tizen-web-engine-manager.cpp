@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,10 @@ WebEngineManager::~WebEngineManager()
     catch(std::bad_weak_ptr const& ex)
     {
       DALI_LOG_ERROR("WebEngineManager::~WebEngineManager() - std::bad_weak_ptr caught: %s\n", ex.what());
+    }
+    catch(std::system_error const& ex)
+    {
+      DALI_LOG_ERROR("WebEngineManager::~WebEngineManager() - std::system_error caught: %s\n", ex.what());
     }
     catch(std::invalid_argument const& ex)
     {
