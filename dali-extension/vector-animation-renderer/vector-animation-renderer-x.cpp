@@ -171,7 +171,7 @@ void VectorAnimationRendererX::PrepareTarget(std::shared_ptr<RenderingData> rend
   std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
   renderingDataImpl->mTexture                          = Texture::New(Dali::TextureType::TEXTURE_2D, Dali::Pixel::BGRA8888, renderingDataImpl->mWidth, renderingDataImpl->mHeight);
   renderingDataImpl->mPixelBuffer                      = Dali::Devel::PixelBuffer::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, Dali::Pixel::BGRA8888);
-  renderingDataImpl->mLottieSurface                    = rlottie::Surface(reinterpret_cast<uint32_t*>(renderingDataImpl->mPixelBuffer.GetBuffer()), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(renderingDataImpl->mPixelBuffer.GetStride() * 4));
+  renderingDataImpl->mLottieSurface                    = rlottie::Surface(reinterpret_cast<uint32_t*>(renderingDataImpl->mPixelBuffer.GetBuffer()), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(renderingDataImpl->mPixelBuffer.GetStrideBytes()));
 }
 
 bool VectorAnimationRendererX::IsTargetPrepared()
