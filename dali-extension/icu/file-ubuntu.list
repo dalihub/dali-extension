@@ -1,0 +1,5 @@
+SET( root_dir ${ROOT_SRC_DIR}/dali-extension/icu )
+
+SET( SOURCES ${SOURCES}
+  ${root_dir}/icu.cpp
+)

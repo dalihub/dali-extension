@@ -1,0 +1,2 @@
+icu_plugin_src_files = \
+   $(extension_src_dir)/icu/icu.cpp

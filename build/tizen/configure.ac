@@ -86,6 +86,7 @@ fi
 
 if test "x$with_tizen_65_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(camera-player)
+  AC_CONFIG_SUBDIRS(icu)
   AC_CONFIG_SUBDIRS(rive-animation-view)
 fi
 
