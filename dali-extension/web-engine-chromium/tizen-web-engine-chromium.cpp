@@ -770,18 +770,6 @@ void TizenWebEngineChromium::SetFocus(bool focused)
   ewk_view_focus_set(mWebView, focused);
 }
 
-bool TizenWebEngineChromium::SetImePositionAndAlignment(Dali::Vector2 position, int alignment)
-{
-  return ewk_view_ime_position_align_set(mWebView, position.x, position.y, (Ewk_Ime_Position_Align)alignment);
-}
-
-void TizenWebEngineChromium::SetCursorThemeName(const std::string themeName)
-{
-  Ecore_Wl2_Display* display = ecore_wl2_connected_display_get(nullptr);
-  Ecore_Wl2_Input* input = ecore_wl2_input_default_input_get(display);
-  ecore_wl2_input_cursor_theme_name_set(input, themeName.c_str());
-}
-
 void TizenWebEngineChromium::EnableMouseEvents(bool enabled)
 {
   ewk_view_mouse_events_enabled_set(mWebView, enabled);
