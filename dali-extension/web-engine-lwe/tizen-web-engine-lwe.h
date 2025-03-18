@@ -351,6 +351,16 @@ public:
   void SetFocus(bool focused) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SetImePositionAndAlignment()
+   */
+  bool SetImePositionAndAlignment(Dali::Vector2 position, int alignment) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetCursorThemeName()
+   */
+  void SetCursorThemeName(const std::string themeName) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::EnableMouseEvents()
    */
   void EnableMouseEvents(bool enabled) override;
