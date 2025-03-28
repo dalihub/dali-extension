@@ -499,6 +499,11 @@ public:
   void RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterOverScrolledCallback()
+   */
+  void RegisterOverScrolledCallback(WebEngineOverScrolledCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::RegisterUrlChangedCallback()
    */
   void RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback) override;
