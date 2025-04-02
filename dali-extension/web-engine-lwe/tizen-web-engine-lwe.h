@@ -644,7 +644,6 @@ private:
   bool mIsMouseLbuttonDown;
   bool mCanGoBack;
   bool mCanGoForward;
-  bool mInDestroyingLWEInstance;
 
 #ifndef OVER_TIZEN_VERSION_9
   size_t   mOutputWidth;
