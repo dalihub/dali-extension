@@ -679,6 +679,32 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
       mCanGoForward = container->CanGoForward();
       mOnLoadResourceHandler(container, url);
     });
+
+  mWebContainer->RegisterSetNeedsRenderingCallback(
+    [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction)
+    {
+      if(!mLWERenderingFunction)
+      {
+        mLWERenderingFunction = doRenderingFunction;
+      }
+
+      if(!mLWERenderingRequested.exchange(true))
+      {
+        PrepareLWERendering();
+      }
+    });
+
+  mWebContainer->RegisterOnIdleHandler(
+    [this](LWE::WebContainer*)
+    {
+      OnIdle();
+    });
+
+  auto settings = mWebContainer->GetSettings();
+  settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
+  mWebContainer->SetSettings(settings);
+
+  mWebContainer->LoadURL("about:blank");
 }
 
 void TizenWebEngineLWE::TryRendering()
