@@ -367,6 +367,7 @@ TizenWebEngineLWE::TizenWebEngineLWE()
   mTbmSurface(nullptr),
   mUpdateBufferTrigger(MakeCallback(this, &TizenWebEngineLWE::LegacyUpdateBuffer)),
 #endif
+  mInDestroyingLWEInstance(false),
   mWebContainer(NULL),
   mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
   mNativeDisplay(NULL),
@@ -396,6 +397,7 @@ TizenWebEngineLWE::~TizenWebEngineLWE()
 #ifndef OVER_TIZEN_VERSION_9
   pthread_mutex_destroy(&mOutputBufferMutex);
 #endif
+  Destroy();
 }
 
 static std::string Langset()
@@ -504,12 +506,14 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {
   };
 
-  mOnPageStartedHandler = [this](LWE::WebContainer* container, const std::string& url) {
+  mOnPageStartedHandler = [this](LWE::WebContainer* container, const std::string& url)
+  {
     DALI_LOG_RELEASE_INFO("#LoadStarted : %s\n", url.c_str());
     ExecuteCallback(mLoadStartedCallback, url);
   };
 
-  mOnPageFinishedHandler = [this](LWE::WebContainer* container, const std::string& url) {
+  mOnPageFinishedHandler = [this](LWE::WebContainer* container, const std::string& url)
+  {
     DALI_LOG_RELEASE_INFO("#LoadFinished : %s\n", url.c_str());
     ExecuteCallback(mLoadFinishedCallback, url);
   };
@@ -548,13 +552,15 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   };
 
   LWE::WebContainer::RendererGLConfiguration config;
-  config.onMakeCurrent = [&](LWE::WebContainer*) {
+  config.onMakeCurrent = [&](LWE::WebContainer*)
+  {
     if(!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
     {
       DALI_LOG_ERROR("TizenWebEngineLWE: eglMakeCurrent error %d", (int)eglGetError());
     }
   };
-  config.onSwapBuffers = [this](LWE::WebContainer*, bool mayNeedsSync) {
+  config.onSwapBuffers = [this](LWE::WebContainer*, bool mayNeedsSync)
+  {
     if(!eglSwapBuffers(mEglDisplay, mEglSurface))
     {
       DALI_LOG_ERROR("TizenWebEngineLWE: eglSwapBuffers error %d", (int)eglGetError());
@@ -565,24 +571,30 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     TryUpdateImage(mayNeedsSync);
   };
 
-  config.onCreateSharedContext = [this](LWE::WebContainer*) -> uintptr_t {
+  config.onCreateSharedContext = [this](LWE::WebContainer*) -> uintptr_t
+  {
     EGLint     attributes[]  = {EGL_CONTEXT_MAJOR_VERSION, 3, EGL_NONE};
     EGLContext sharedContext = eglCreateContext(mEglDisplay, mEglConfig, mEglContext, attributes);
     return reinterpret_cast<uintptr_t>(sharedContext);
   };
-  config.onDestroyContext = [this](LWE::WebContainer*, uintptr_t context) -> bool {
+  config.onDestroyContext = [this](LWE::WebContainer*, uintptr_t context) -> bool
+  {
     return eglDestroyContext(mEglDisplay, reinterpret_cast<EGLContext>(context));
   };
-  config.onClearCurrentContext = [this](LWE::WebContainer*) -> bool {
+  config.onClearCurrentContext = [this](LWE::WebContainer*) -> bool
+  {
     return eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   };
-  config.onMakeCurrentWithContext = [this](LWE::WebContainer*, uintptr_t context) -> bool {
+  config.onMakeCurrentWithContext = [this](LWE::WebContainer*, uintptr_t context) -> bool
+  {
     return eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, reinterpret_cast<EGLContext>(context));
   };
-  config.onGetProcAddress = [this](LWE::WebContainer*, const char* name) -> void* {
+  config.onGetProcAddress = [this](LWE::WebContainer*, const char* name) -> void*
+  {
     return reinterpret_cast<void*>(eglGetProcAddress(name));
   };
-  config.onIsSupportedExtension = [this](LWE::WebContainer*, const char* name) -> bool {
+  config.onIsSupportedExtension = [this](LWE::WebContainer*, const char* name) -> bool
+  {
     const char* extensions = eglQueryString(eglGetCurrentDisplay(), EGL_EXTENSIONS);
     return (extensions != nullptr) ? (strstr(extensions, name) != nullptr) : false;
   };
@@ -637,27 +649,31 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 #endif
 
   mWebContainer->RegisterOnReceivedErrorHandler(
-    [this](LWE::WebContainer* container, LWE::ResourceError error) {
+    [this](LWE::WebContainer* container, LWE::ResourceError error)
+    {
       mCanGoBack    = container->CanGoBack();
       mCanGoForward = container->CanGoForward();
       mOnReceivedError(container, error);
     });
   mWebContainer->RegisterOnPageStartedHandler(
-    [this](LWE::WebContainer* container, const std::string& url) {
+    [this](LWE::WebContainer* container, const std::string& url)
+    {
       mUrl          = url;
       mCanGoBack    = container->CanGoBack();
       mCanGoForward = container->CanGoForward();
       mOnPageStartedHandler(container, url);
     });
   mWebContainer->RegisterOnPageLoadedHandler(
-    [this](LWE::WebContainer* container, const std::string& url) {
+    [this](LWE::WebContainer* container, const std::string& url)
+    {
       mUrl          = url;
       mCanGoBack    = container->CanGoBack();
       mCanGoForward = container->CanGoForward();
       mOnPageFinishedHandler(container, url);
     });
   mWebContainer->RegisterOnLoadResourceHandler(
-    [this](LWE::WebContainer* container, const std::string& url) {
+    [this](LWE::WebContainer* container, const std::string& url)
+    {
       mUrl          = url;
       mCanGoBack    = container->CanGoBack();
       mCanGoForward = container->CanGoForward();
@@ -667,6 +683,11 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
 void TizenWebEngineLWE::TryRendering()
 {
+  if(mInDestroyingLWEInstance)
+  {
+    return;
+  }
+
   if(mTbmQueue)
   {
     if((size_t)tbm_surface_queue_get_width(mTbmQueue) != mWebContainer->Width() ||
@@ -695,16 +716,21 @@ void TizenWebEngineLWE::TryRendering()
   }
   else
   {
-    mWebContainer->AddIdleCallback([](void* data) {
+    mWebContainer->AddIdleCallback([](void* data)
+                                   {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->TryRendering();
-    },
+      lv->TryRendering(); },
                                    this);
   }
 }
 
 void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
 {
+  if(mInDestroyingLWEInstance)
+  {
+    return;
+  }
+
   mInImageUpdateState = true;
   if(!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
   {
@@ -718,10 +744,10 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
     {
       eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
       // Still busy
-      mWebContainer->AddIdleCallback([](void* data) {
+      mWebContainer->AddIdleCallback([](void* data)
+                                     {
         TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-        lv->TryUpdateImage(false);
-      },
+        lv->TryUpdateImage(false); },
                                      this);
       return;
     }
@@ -761,10 +787,10 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
   else
   {
     DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: tbm_surface_queue_can_acquire == false, retry!");
-    mWebContainer->AddIdleCallback([](void* data) {
+    mWebContainer->AddIdleCallback([](void* data)
+                                   {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->TryUpdateImage(false);
-    },
+      lv->TryUpdateImage(false); },
                                    this);
   }
 }
@@ -773,17 +799,17 @@ void TizenWebEngineLWE::PrepareLWERendering()
 {
   if(mInImageUpdateState)
   {
-    mWebContainer->AddIdleCallback([](void* data) {
+    mWebContainer->AddIdleCallback([](void* data)
+                                   {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-      lv->PrepareLWERendering();
-    },
+      lv->PrepareLWERendering(); },
                                    this);
     return;
   }
-  mWebContainer->AddIdleCallback([](void* data) {
+  mWebContainer->AddIdleCallback([](void* data)
+                                 {
     TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
-    lv->TryRendering();
-  },
+    lv->TryRendering(); },
                                  this);
 }
 
@@ -804,7 +830,6 @@ void TizenWebEngineLWE::Destroy()
 #endif
 
   DestroyInstance();
-  mWebContainer = NULL;
 }
 
 void TizenWebEngineLWE::InitRenderingContext()
@@ -1184,6 +1209,17 @@ public:
   {
     return false;
   }
+  void SetImeStyle(int style) override
+  {
+  }
+  int GetImeStyle() const override
+  {
+    return 0;
+  }
+  void SetDefaultAudioInputDevice(const std::string& deviceId) const override
+  {
+    // NOT IMPLEMENTED
+  }
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
@@ -1264,8 +1300,14 @@ Dali::WebEngineBackForwardList& TizenWebEngineLWE::GetBackForwardList() const
 
 void TizenWebEngineLWE::DestroyInstance()
 {
-  DALI_ASSERT_ALWAYS(mWebContainer);
+  if(!mWebContainer)
+  {
+    return;
+  }
+  mInDestroyingLWEInstance = true;
   mWebContainer->Destroy();
+  mInDestroyingLWEInstance = false;
+  mWebContainer            = NULL;
 }
 
 Dali::NativeImageSourcePtr TizenWebEngineLWE::GetNativeImageSource()
@@ -1461,10 +1503,10 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
   {
     handler = [](const std::string&) {};
   }
-  mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler](const std::string& data) -> std::string {
+  mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler](const std::string& data) -> std::string
+                                        {
     handler(data);
-    return "";
-  });
+    return ""; });
 }
 
 void TizenWebEngineLWE::AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, Dali::WebEnginePlugin::JavaScriptEntireMessageHandlerCallback handler)
@@ -1730,6 +1772,17 @@ void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
   SetSize(displayArea.width, displayArea.height);
 }
 
+bool TizenWebEngineLWE::SetImePositionAndAlignment(Dali::Vector2 position, int alignment)
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
+void TizenWebEngineLWE::SetCursorThemeName(const std::string themeName)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::SetPageZoomFactor(float zoomFactor)
 {
   // NOT IMPLEMENTED
@@ -1976,6 +2029,26 @@ void TizenWebEngineLWE::WebAuthenticationCancel()
 }
 
 void TizenWebEngineLWE::RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::FeedMouseWheel(bool yDirection, int step, int x, int y)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::SetVideoHole(bool enabled, bool isWaylandWindow)
 {
   // NOT IMPLEMENTED
 }
