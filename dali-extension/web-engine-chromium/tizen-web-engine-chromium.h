@@ -489,11 +489,6 @@ public:
   void RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::RegisterOverScrolledCallback()
-   */
-  void RegisterOverScrolledCallback(WebEngineOverScrolledCallback callback) override;
-
-  /**
    * @copydoc Dali::WebEnginePlugin::RegisterUrlChangedCallback()
    */
   void RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback) override;
@@ -607,10 +602,6 @@ private:
   static void OnEdgeRight(void* data, Evas_Object*, void*);
   static void OnEdgeTop(void* data, Evas_Object*, void*);
   static void OnEdgeBottom(void* data, Evas_Object*, void*);
-  static void OnOverScrolledLeft(void* data, Evas_Object*, void*);
-  static void OnOverScrolledRight(void* data, Evas_Object*, void*);
-  static void OnOverScrolledTop(void* data, Evas_Object*, void*);
-  static void OnOverScrolledBottom(void* data, Evas_Object*, void*);
   static void OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo);
   static void OnResponsePolicyDecided(void* data, Evas_Object*, void* policy);
   static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
@@ -658,7 +649,6 @@ private:
   WebEnginePageLoadErrorCallback           mLoadErrorCallback;
   WebEngineUrlChangedCallback              mUrlChangedCallback;
   WebEngineScrollEdgeReachedCallback       mScrollEdgeReachedCallback;
-  WebEngineOverScrolledCallback            mOverScrolledCallback;
   WebEngineFormRepostDecidedCallback       mFormRepostDecidedCallback;
   WebEngineConsoleMessageReceivedCallback  mConsoleMessageReceivedCallback;
   WebEngineResponsePolicyDecidedCallback   mResponsePolicyDecidedCallback;

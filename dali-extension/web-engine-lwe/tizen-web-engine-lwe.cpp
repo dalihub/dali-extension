@@ -1318,11 +1318,6 @@ void TizenWebEngineLWE::RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeRea
   // NOT IMPLEMENTED
 }
 
-void TizenWebEngineLWE::RegisterOverScrolledCallback(WebEngineOverScrolledCallback callback)
-{
-  // NOT IMPLEMENTED
-}
-
 void TizenWebEngineLWE::RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback)
 {
   // NOT IMPLEMENTED

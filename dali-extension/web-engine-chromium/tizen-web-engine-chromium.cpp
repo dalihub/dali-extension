@@ -198,10 +198,6 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "edge,right", &TizenWebEngineChromium::OnEdgeRight, this);
   evas_object_smart_callback_add(mWebView, "edge,top", &TizenWebEngineChromium::OnEdgeTop, this);
   evas_object_smart_callback_add(mWebView, "edge,bottom", &TizenWebEngineChromium::OnEdgeBottom, this);
-  evas_object_smart_callback_add(mWebView, "overscrolled,left", &TizenWebEngineChromium::OnOverScrolledLeft, this);
-  evas_object_smart_callback_add(mWebView, "overscrolled,right", &TizenWebEngineChromium::OnOverScrolledRight, this);
-  evas_object_smart_callback_add(mWebView, "overscrolled,top", &TizenWebEngineChromium::OnOverScrolledTop, this);
-  evas_object_smart_callback_add(mWebView, "overscrolled,bottom", &TizenWebEngineChromium::OnOverScrolledBottom, this);
   evas_object_smart_callback_add(mWebView, "form,repost,warning,show", &TizenWebEngineChromium::OnFormRepostDecided, this);
   evas_object_smart_callback_add(mWebView, "policy,response,decide", &TizenWebEngineChromium::OnResponsePolicyDecided, this);
   evas_object_smart_callback_add(mWebView, "policy,navigation,decide", &TizenWebEngineChromium::OnNavigationPolicyDecided, this);
@@ -930,11 +926,6 @@ void TizenWebEngineChromium::RegisterScrollEdgeReachedCallback(WebEngineScrollEd
   mScrollEdgeReachedCallback = callback;
 }
 
-void TizenWebEngineChromium::RegisterOverScrolledCallback(WebEngineOverScrolledCallback callback)
-{
-  mOverScrolledCallback = callback;
-}
-
 void TizenWebEngineChromium::RegisterUrlChangedCallback(WebEngineUrlChangedCallback callback)
 {
   mUrlChangedCallback = callback;
@@ -1132,34 +1123,6 @@ void TizenWebEngineChromium::OnEdgeBottom(void* data, Evas_Object*, void*)
   DALI_LOG_RELEASE_INFO("#ScrollEdgeReached : BOTTOM\n");
   auto pThis = static_cast<TizenWebEngineChromium*>(data);
   ExecuteCallback(pThis->mScrollEdgeReachedCallback, Dali::WebEnginePlugin::ScrollEdge::BOTTOM);
-}
-
-void TizenWebEngineChromium::OnOverScrolledLeft(void* data, Evas_Object*, void*)
-{
-  DALI_LOG_RELEASE_INFO("#OverScrolled : LEFT\n");
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  ExecuteCallback(pThis->mOverScrolledCallback, Dali::WebEnginePlugin::OverScrolled::LEFT);
-}
-
-void TizenWebEngineChromium::OnOverScrolledRight(void* data, Evas_Object*, void*)
-{
-  DALI_LOG_RELEASE_INFO("#OverScrolled : RIGHT\n");
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  ExecuteCallback(pThis->mOverScrolledCallback, Dali::WebEnginePlugin::OverScrolled::RIGHT);
-}
-
-void TizenWebEngineChromium::OnOverScrolledTop(void* data, Evas_Object*, void*)
-{
-  DALI_LOG_RELEASE_INFO("#OverScrolled : TOP\n");
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  ExecuteCallback(pThis->mOverScrolledCallback, Dali::WebEnginePlugin::OverScrolled::TOP);
-}
-
-void TizenWebEngineChromium::OnOverScrolledBottom(void* data, Evas_Object*, void*)
-{
-  DALI_LOG_RELEASE_INFO("#OverScrolled : BOTTOM\n");
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
-  ExecuteCallback(pThis->mOverScrolledCallback, Dali::WebEnginePlugin::OverScrolled::BOTTOM);
 }
 
 void TizenWebEngineChromium::OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo)
