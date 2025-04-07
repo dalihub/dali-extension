@@ -911,28 +911,5 @@ Any TizenVideoPlayer::GetMediaPlayer()
 }
 
 
-void TizenVideoPlayer::SetAutoRotationEnabled(bool enable)
-{
-  DALI_LOG_ERROR("SetAutoRotation is not supported.\n");
-}
-
-bool TizenVideoPlayer::IsAutoRotationEnabled() const
-{
-  DALI_LOG_ERROR("IsAutoRotationEnabled is not supported.\n");
-  return false;
-}
-
-void TizenVideoPlayer::SetLetterBoxEnabled(bool enable)
-{
-  DALI_LOG_ERROR("SetLetterBox is not supported.\n");
-}
-
-bool TizenVideoPlayer::IsLetterBoxEnabled() const
-{
-  DALI_LOG_ERROR("IsLetterBoxEnabled is not supported.\n");
-  return false;
-}
-
-
 } // namespace Plugin
 } // namespace Dali;

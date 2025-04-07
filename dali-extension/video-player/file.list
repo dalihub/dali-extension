@@ -1,6 +1,5 @@
 video_player_ecore_wl2_plugin_src_files = \
-   $(extension_src_dir)/video-player/ecore-wl2/tizen-video-player-ecore-wl2.cpp \
-   $(extension_src_dir)/video-player/ecore-wl2/tizen-video-constraint-helper.cpp
+   $(extension_src_dir)/video-player/ecore-wl2/tizen-video-player-ecore-wl2.cpp
 
 video_player_ecore_wl_plugin_src_files = \
    $(extension_src_dir)/video-player/ecore-wl/tizen-video-player-ecore-wl.cpp

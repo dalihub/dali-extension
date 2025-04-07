@@ -18,9 +18,6 @@
  *
  */
 
-// INTERNAL INCLUDES
-#include "tizen-video-constraint-helper.h"
-
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/video-player-plugin.h>
 #include <dali/devel-api/adaptor-framework/video-sync-mode.h>
@@ -162,26 +159,6 @@ public:
   virtual Dali::VideoPlayerPlugin::VideoPlayerSignalType& FinishedSignal();
 
   /**
-   * @copydoc Dali::VideoPlayerPlugin::SetAutoRotationEnabled()
-   */
-  virtual void SetAutoRotationEnabled(bool enable);
-
-  /**
-   * @copydoc Dali::VideoPlayerPlugin::IsAutoRotationEnabled() const
-   */
-  virtual bool IsAutoRotationEnabled() const;
-
-  /**
-   * @copydoc Dali::VideoPlayerPlugin::SetLetterBoxEnabled()
-   */
-  virtual void SetLetterBoxEnabled(bool enable);
-
-  /**
-   * @copydoc Dali::VideoPlayerPlugin::IsLetterBoxEnabled() const
-   */
-  virtual bool IsLetterBoxEnabled() const;
-
-  /**
    * @brief Push media packet with video frame image
    */
   void PushPacket(media_packet_h packet);
@@ -263,9 +240,9 @@ public:
 
 private:
   /**
-   * @brief Update video frame image to native image source
+   * @brief Updates video frame image by timer if rendering targe is native image source
    */
-  void Update();
+  bool Update();
 
   /**
    * @brief Gets current player state
@@ -309,22 +286,14 @@ private:
    */
   void DestroyConstraint();
 
-  /**
-   * @brief Create Constraint for oriention and ratio of video
-   */
-  void CreateVideoConstraint(Dali::NativeImageSourcePtr nativeImageSourcePtr);
-
-  /**
-   * @brief Destroy Constraint for oriention and ratio of video
-   */
-  void DestroyVideoConstraint();
-
 private:
   std::string                mUrl;                  ///< The video file path
   player_h                   mPlayer;               ///< Tizen player handle
   player_state_e             mPlayerState;          ///< Tizen player state
+  tbm_surface_h              mTbmSurface;           ///< tbm surface handle
   media_packet_h             mPacket;               ///< Media packet handle with tbm surface of current video frame image
   Dali::NativeImageSourcePtr mNativeImageSourcePtr; ///< native image source for video rendering
+  Dali::Timer                mTimer;                ///< Timer for texture streaming rendering
   Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
   RenderingTargetType        mTargetType;           ///< Current rendering target type
 
@@ -340,19 +309,11 @@ private:
   Ecore_Wl2_Subsurface*         mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
   Dali::WeakHandle<Dali::Actor> mSyncActor;
   Constraint                    mVideoSizePropertyConstraint;
-  Constraint                    mVideoRotationConstraint;
-  Constraint                    mVideoLetterBoxConstraint;
   Property::Index               mVideoSizePropertyIndex;
-  Property::Index               mVideoRotationPropertyIndex;
-  Property::Index               mVideoRatioPropertyIndex;
   Dali::VideoSyncMode           mSyncMode;
-
-  int32_t mVideoConstraintHelperId; ///< unique id for Rotation and Ratio constraint helper
 
   bool mIsInitForSyncMode; ///< the flag for synchronization with video player
   bool mIsMovedHandle;     ///< the flag for moved the handle
-
-  Dali::IntrusivePtr<VideoConstraintHelper> mVideoConstraintHelper;
 
 public:
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
