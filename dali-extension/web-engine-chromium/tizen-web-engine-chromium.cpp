@@ -30,6 +30,7 @@
 #include "tizen-web-engine-policy-decision.h"
 #include "tizen-web-engine-settings.h"
 #include "tizen-web-engine-user-media-permission-request.h"
+#include "tizen-web-engine-device-list-get.h"
 
 #include <Ecore_Evas.h>
 #include <Ecore_Input_Evas.h>
@@ -88,6 +89,15 @@ void ExecuteCallback(Callback callback, Arg*& arg)
   }
 }
 
+template<typename Callback, typename Arg, typename... Args>
+void ExecuteCallback2(Callback callback, Arg*& arg, Args... args)
+{
+  if(callback)
+  {
+    callback(arg, args...);
+  }
+}
+
 template<typename Ret, typename Callback, typename... Args>
 Ret ExecuteCallbackReturn(Callback callback, Args... args)
 {
@@ -116,7 +126,9 @@ TizenWebEngineChromium::TizenWebEngineChromium()
 : mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
   mWebView(nullptr),
   mWidth(0),
-  mHeight(0)
+  mHeight(0),
+  mWebUserMediaPermissionRequest(nullptr),
+  mDeviceListGet(nullptr)
 {
 }
 
@@ -221,6 +233,9 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
   evas_object_smart_callback_add(mWebView, "webauth,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
   evas_object_smart_callback_add(mWebView, "webauth,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
+  
+  ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
+  evas_object_smart_callback_add(mWebView, "device,connection,changed", &TizenWebEngineChromium::OnDeviceConnectionChanged, this);
 
   evas_object_resize(mWebView, mWidth, mHeight);
   evas_object_show(mWebView);
@@ -736,6 +751,20 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
 
 bool TizenWebEngineChromium::SendHoverEvent(const Dali::HoverEvent& event)
 {
+  switch(event.GetState(0))
+  {
+    case PointState::MOTION:
+    {
+      float x = event.GetScreenPosition(0).x;
+      float y = event.GetScreenPosition(0).y;
+      ewk_view_feed_mouse_move(mWebView, x, y);
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
   return false;
 }
 
@@ -758,6 +787,18 @@ void TizenWebEngineChromium::SetFocus(bool focused)
 {
   ecore_evas_focus_set(WebEngineManager::Get().GetWindow(), focused);
   ewk_view_focus_set(mWebView, focused);
+}
+
+bool TizenWebEngineChromium::SetImePositionAndAlignment(Dali::Vector2 position, int alignment)
+{
+  return ewk_view_ime_position_align_set(mWebView, position.x, position.y, (Ewk_Ime_Position_Align)alignment);
+}
+
+void TizenWebEngineChromium::SetCursorThemeName(const std::string themeName)
+{
+  Ecore_Wl2_Display* display = ecore_wl2_connected_display_get(nullptr);
+  Ecore_Wl2_Input* input = ecore_wl2_input_default_input_get(display);
+  ecore_wl2_input_cursor_theme_name_set(input, themeName.c_str());
 }
 
 void TizenWebEngineChromium::EnableMouseEvents(bool enabled)
@@ -808,6 +849,17 @@ float TizenWebEngineChromium::GetScaleFactor() const
 void TizenWebEngineChromium::ActivateAccessibility(bool activated)
 {
   ewk_view_atk_deactivation_by_app(mWebView, activated);
+}
+
+void TizenWebEngineChromium::FeedMouseWheel(bool yDirection, int step, int x, int y)
+{
+  ewk_view_feed_mouse_wheel(mWebView, (Eina_Bool)yDirection, step, x, y);
+}
+
+void TizenWebEngineChromium::SetVideoHole(bool enabled, bool isWaylandWindow)
+{
+  Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
+  ewk_view_set_support_video_hole(mWebView, win, enabled, isWaylandWindow? EINA_TRUE: EINA_FALSE);
 }
 
 Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
@@ -1040,6 +1092,19 @@ void TizenWebEngineChromium::RegisterWebAuthResponseCallback(WebEngineWebAuthRes
   mWebAuthResponseCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback)
+{
+  mDeviceConnectionChangedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback)
+{
+  mDeviceListGetCallback = callback;
+  ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
+}
+
+
+
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
 {
   // color-space is argb8888.
@@ -1139,6 +1204,24 @@ void TizenWebEngineChromium::OnConsoleMessageReceived(void* data, Evas_Object*, 
   DALI_LOG_RELEASE_INFO("#ConsoleMessageReceived : %s\n", webConsoleMessage->GetSource().c_str());
   ExecuteCallback(pThis->mConsoleMessageReceivedCallback, std::move(webConsoleMessage));
 }
+
+void TizenWebEngineChromium::OnDeviceConnectionChanged(void* data, Evas_Object* obj, void* info)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  int* device_type = (int*)info;
+
+  DALI_LOG_RELEASE_INFO("#DeviceConnectionChanged : device_type=%d\n", *device_type);
+  ExecuteCallback(pThis->mDeviceConnectionChangedCallback, *device_type);
+}
+
+void TizenWebEngineChromium::OnDeviceListGet(EwkMediaDeviceInfo* device_list, int size, void* user_data)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(user_data);
+
+  pThis->mDeviceListGet = new TizenWebEngineDeviceListGet(device_list, size);
+  ExecuteCallback(pThis->mDeviceListGetCallback, pThis->mDeviceListGet, (int32_t)size);
+}
+
 
 void TizenWebEngineChromium::OnEdgeLeft(void* data, Evas_Object*, void*)
 {
@@ -1436,12 +1519,13 @@ Eina_Bool TizenWebEngineChromium::OnGeolocationPermission(Evas_Object*, Ewk_Geol
 
 Eina_Bool TizenWebEngineChromium::OnUserMediaPermissonRequest(Evas_Object*, Ewk_User_Media_Permission_Request* request, void* data)
 {
-  auto                                                       pThis = static_cast<TizenWebEngineChromium*>(data);
-  std::unique_ptr<Dali::WebEngineUserMediaPermissionRequest> webUserMediaPermissionRequest(new TizenWebEngineUserMediaPermissionRequest(request));
-  DALI_LOG_RELEASE_INFO("#UserMediaPermissonRequest: pThis:%p, permission:%p\n", pThis, request);
-  std::string msg = ewk_user_media_permission_request_message_get(request);
+  auto pThis                            = static_cast<TizenWebEngineChromium*>(data);
+  pThis->mWebUserMediaPermissionRequest = new TizenWebEngineUserMediaPermissionRequest(request);
 
-  ExecuteCallback(pThis->mUserMediaPermissionRequestCallback, std::move(webUserMediaPermissionRequest), msg);
+  DALI_LOG_RELEASE_INFO("#UserMediaPermissonRequest: pThis:%p, request:%p\n", pThis, request);
+
+  std::string msg = ewk_user_media_permission_request_message_get(request);
+  ExecuteCallback2(pThis->mUserMediaPermissionRequestCallback, pThis->mWebUserMediaPermissionRequest, msg);
   return msg.empty() ? false : true;
 }
 

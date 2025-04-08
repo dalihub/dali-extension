@@ -353,6 +353,16 @@ public:
   void SetFocus(bool focused) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SetImePositionAndAlignment()
+   */
+  bool SetImePositionAndAlignment(Dali::Vector2 position, int alignment) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetCursorThemeName()
+   */
+  void SetCursorThemeName(const std::string themeName) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::EnableMouseEvents()
    */
   void EnableMouseEvents(bool enabled) override;
@@ -597,6 +607,26 @@ public:
    */
   void RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterDeviceConnectionChangedCallback()
+   */
+  void RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterDeviceListGetCallback()
+   */
+  void RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::FeedMouseWheel()
+   */
+  void FeedMouseWheel(bool yDirection, int step, int x, int y) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetVideoHole()
+   */
+  void SetVideoHole(bool enabled, bool isWaylandWindow) override;
+
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
@@ -607,6 +637,8 @@ private:
   static void OnLoadError(void* data, Evas_Object*, void* rawError);
   static void OnUrlChanged(void* data, Evas_Object*, void* newUrl);
   static void OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo);
+  static void OnDeviceConnectionChanged(void* data, Evas_Object* obj, void* info);
+  static void OnDeviceListGet(EwkMediaDeviceInfo* device_list, int size, void* user_data);
   static void OnEdgeLeft(void* data, Evas_Object*, void*);
   static void OnEdgeRight(void* data, Evas_Object*, void*);
   static void OnEdgeTop(void* data, Evas_Object*, void*);
@@ -657,6 +689,8 @@ private:
   std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
   std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
   std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptInjectedCallbacks;
+  Dali::WebEngineUserMediaPermissionRequest* mWebUserMediaPermissionRequest;
+  Dali::WebEngineDeviceListGet* mDeviceListGet;
 
   // callback.
   WebEnginePageLoadCallback                mLoadStartedCallback;
@@ -693,6 +727,8 @@ private:
   WebEngineWebAuthDisplayQRCallback        mWebAuthDisplayQRCallback;
   WebEngineWebAuthResponseCallback         mWebAuthResponseCallback;
   WebEngineUserMediaPermissionRequestCallback mUserMediaPermissionRequestCallback;
+  WebEngineDeviceConnectionChangedCallback mDeviceConnectionChangedCallback;
+  WebEngineDeviceListGetCallback mDeviceListGetCallback;
 };
 } // namespace Plugin
 } // namespace Dali

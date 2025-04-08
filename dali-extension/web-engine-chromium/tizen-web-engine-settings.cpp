@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2024 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -268,6 +268,21 @@ void TizenWebEngineSettings::SetExtraFeature(const std::string& feature, bool en
 bool TizenWebEngineSettings::IsExtraFeatureEnabled(const std::string& feature) const
 {
   return ewk_settings_extra_feature_get(ewkSettings, feature.c_str());
+}
+
+void TizenWebEngineSettings::SetImeStyle(int style)
+{
+  ewk_settings_ime_style_set(ewkSettings, (Ewk_Ime_Style)style);
+}
+
+int TizenWebEngineSettings::GetImeStyle() const
+{
+  return (int)ewk_settings_ime_style_get(ewkSettings);
+}
+
+void TizenWebEngineSettings::SetDefaultAudioInputDevice(const std::string& deviceId) const
+{
+  ewk_settings_default_audio_input_device_set(ewkSettings, deviceId.c_str());
 }
 
 } // namespace Plugin
