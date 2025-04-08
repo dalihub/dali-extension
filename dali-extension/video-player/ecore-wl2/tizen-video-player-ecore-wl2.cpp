@@ -24,7 +24,9 @@
 #include <dali/devel-api/common/stage-devel.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/threading/mutex.h>
+#include <dali/integration-api/constraint-integ.h>
 #include <dali/integration-api/debug.h>
+#include <dali/public-api/animation/constraint-tag-ranges.h>
 #include <system_info.h>
 
 #include <mutex>
@@ -57,6 +59,8 @@ namespace Plugin
 namespace
 {
 const char* TIZEN_GLIB_CONTEXT_ENV = "TIZEN_GLIB_CONTEXT";
+
+static constexpr uint32_t VIDEO_PLAYER_CONSTRAINT_TAG = Dali::ConstraintTagRanges::CORE_CONSTRAINT_TAG_MAX + 1u + (Dali::ConstraintTagRanges::INTERNAL_TAG_MAX_COUNT_PER_DERIVATION)*4 + 123u;
 
 static void MediaPacketVideoDecodedCb(media_packet_h packet, void* user_data)
 {
@@ -1483,6 +1487,7 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
+      Dali::Integration::ConstraintSetInternalTag(mVideoShellSizePropertyConstraint, VIDEO_PLAYER_CONSTRAINT_TAG);
     }
   }
 #else
@@ -1601,10 +1606,12 @@ void TizenVideoPlayer::CreateVideoConstraint(Dali::NativeImageSourcePtr nativeIm
 
     mVideoRotationConstraint = Constraint::New<Vector4>(syncActor, mVideoRotationPropertyIndex, VideoPlayerRotationConstraint);
     mVideoRotationConstraint.AddSource(LocalSource(idIndex));
+    Dali::Integration::ConstraintSetInternalTag(mVideoRotationConstraint, VIDEO_PLAYER_CONSTRAINT_TAG);
     mVideoRotationConstraint.Apply();
 
     mVideoLetterBoxConstraint = Constraint::New<Vector2>(syncActor, mVideoRatioPropertyIndex, VideoPlayerRatioConstraint);
     mVideoLetterBoxConstraint.AddSource(LocalSource(idIndex));
+    Dali::Integration::ConstraintSetInternalTag(mVideoLetterBoxConstraint, VIDEO_PLAYER_CONSTRAINT_TAG);
     mVideoLetterBoxConstraint.Apply();
   }
 }
