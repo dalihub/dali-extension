@@ -351,6 +351,16 @@ public:
   void SetFocus(bool focused) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::SetImePositionAndAlignment()
+   */
+  bool SetImePositionAndAlignment(Dali::Vector2 position, int alignment) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetCursorThemeName()
+   */
+  void SetCursorThemeName(const std::string themeName) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::EnableMouseEvents()
    */
   void EnableMouseEvents(bool enabled) override;
@@ -595,6 +605,26 @@ public:
    */
   void RegisterUserMediaPermissionRequestCallback(WebEngineUserMediaPermissionRequestCallback callback) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterDeviceConnectionChangedCallback()
+   */
+  void RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterDeviceListGetCallback()
+   */
+  void RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::FeedMouseWheel()
+   */
+  void FeedMouseWheel(bool yDirection, int step, int x, int y) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::SetVideoHole()
+   */
+  void SetVideoHole(bool enabled, bool isWaylandWindow) override;
+
 private:
 #ifndef OVER_TIZEN_VERSION_9
   void LegacyUpdateBuffer();
@@ -644,6 +674,7 @@ private:
   bool mIsMouseLbuttonDown;
   bool mCanGoBack;
   bool mCanGoForward;
+  bool mInDestroyingLWEInstance;
 
 #ifndef OVER_TIZEN_VERSION_9
   size_t   mOutputWidth;
