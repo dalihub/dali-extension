@@ -323,6 +323,9 @@ install -m 0644 scripts/dali.sh %{buildroot}%{_sysconfdir}/profile.d
 install -m 0644 scripts/other/dali.sh %{buildroot}%{_sysconfdir}/profile.d
 %endif
 
+# install dali-shader-conf.sh
+install -m 0644 scripts/dali-shader-conf.sh %{buildroot}%{_sysconfdir}/profile.d
+
 cd build/tizen
 %make_install DALI_DATA_RW_DIR="%{dali_data_rw_dir}" DALI_DATA_RO_DIR="%{dali_data_ro_dir}"
 
@@ -464,6 +467,7 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_sysconfdir}/profile.d/dali.sh
+%{_sysconfdir}/profile.d/dali-shader-conf.sh
 %{_libdir}/libdali2-extension.so*
 %license LICENSE
 
