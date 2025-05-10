@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,9 +164,7 @@ void VectorAnimationPluginManager::OnEventTriggered()
     Dali::Mutex::ScopedLock lock(mMutex);
 
     // Copy the list to the local variable and clear
-    movedTriggeredHandlers = std::move(mTriggeredHandlers);
-    mTriggeredHandlers.clear();
-    mTriggeredHandlers.rehash(0u);
+    movedTriggeredHandlers.swap(mTriggeredHandlers);
 
     mTriggerOrderId = 0u;
   }
@@ -180,7 +178,6 @@ void VectorAnimationPluginManager::OnEventTriggered()
       handlers[iter.second] = iter.first;
     }
   }
-  movedTriggeredHandlers.clear();
 
   // We check validation before move handlers. Reset removed flag now.
   mEventHandlerRemovedDuringEventProcessing = false;
