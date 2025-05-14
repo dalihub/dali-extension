@@ -30,8 +30,6 @@ function get_dali_shader_cache_version(){
 
 get_dali_shader_version _current_dali_shader_version
 get_dali_shader_cache_version _current_dali_shader_cache_version
-echo "dali version: ${_current_dali_shader_version}"
-echo "cache version: ${_current_dali_shader_cache_version}"
 
 rm -rf ${DALI_SHADER_CACHE_VERSION_PATH}/shader/*.tmp  #delete tmp file every booting
 
@@ -39,10 +37,10 @@ if [ -e ${DALI_SHADER_CACHE_VERSION_FILE} ]
 then
     if [ ${_current_dali_shader_version} != ${_current_dali_shader_cache_version} ]
     then
+        echo "dali version: ${_current_dali_shader_version}"
+        echo "cache version: ${_current_dali_shader_cache_version}"
         rm -rf ${DALI_SHADER_CACHE_VERSION_PATH}shader/
         cp -R ${DALI_SHADER_VERSION_FILE} ${DALI_SHADER_CACHE_VERSION_FILE} # version sync
         echo "remove shader cache"
-    else
-        echo "no need to remove shader cache"
     fi
 fi
