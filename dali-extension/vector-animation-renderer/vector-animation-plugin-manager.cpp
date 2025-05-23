@@ -80,6 +80,7 @@ void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& 
       if(!mEventTrigger)
       {
         mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
+        DALI_LOG_DEBUG_INFO("VectorAnimationPluginManager Trigger Id(%d)\n", mEventTrigger->GetId());
       }
     }
   }
