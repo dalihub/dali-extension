@@ -929,7 +929,7 @@ void TizenWebEngineLWE::InitRenderingSurface()
     return;
   }
 
-  mTbmQueue = tbm_surface_queue_create(gTbmSurfaceQueueLength, std::max(mWebContainer->Width(), 1u), std::max(mWebContainer->Height(), 1u), TBM_FORMAT_BGRA8888, TBM_BO_DEFAULT);
+  mTbmQueue = tbm_surface_queue_create(gTbmSurfaceQueueLength, std::max(mWebContainer->Width(), static_cast<size_t>(1u)), std::max(mWebContainer->Height(), static_cast<size_t>(1u)), TBM_FORMAT_BGRA8888, TBM_BO_DEFAULT);
 
   mEglSurface = eglCreateWindowSurface(mEglDisplay, mEglConfig, mTbmQueue, NULL);
   if(mEglSurface == EGL_NO_SURFACE)
