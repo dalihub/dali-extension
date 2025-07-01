@@ -97,6 +97,7 @@ void Scene::Initialize()
   TriggerEventFactory triggerEventFactory;
 
   mRenderNotification = std::unique_ptr< TriggerEventInterface >( triggerEventFactory.CreateTriggerEvent( MakeCallback( this, &Scene::OnPostRender ), TriggerEventInterface::KEEP_ALIVE_AFTER_TRIGGER ) );
+  DALI_LOG_DEBUG_INFO("mRenderNotification Trigger Id(%u)\n", mRenderNotification->GetId());
 
   NativeRenderSurface* surface = GetNativeRenderSurface();
 

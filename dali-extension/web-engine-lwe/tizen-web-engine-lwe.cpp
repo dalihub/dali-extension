@@ -1220,6 +1220,10 @@ public:
   {
     // NOT IMPLEMENTED
   }
+  void EnableDragAndDrop(bool enable) override
+  {
+    // NOT IMPLEMENTED
+  }
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const

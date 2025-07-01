@@ -437,6 +437,14 @@ public:
    */
   void SetDefaultAudioInputDevice(const std::string& deviceId) const override;
 
+  /**
+   * @brief Enables Drag&Drop or not
+   *
+   * @param[in] enable if true, to enable Drag&Drop
+   *       otherwise to disable
+   */
+  void EnableDragAndDrop(bool enable) override;
+
 private:
   Ewk_Settings* ewkSettings;
 };

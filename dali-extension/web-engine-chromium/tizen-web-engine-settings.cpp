@@ -285,5 +285,10 @@ void TizenWebEngineSettings::SetDefaultAudioInputDevice(const std::string& devic
   ewk_settings_default_audio_input_device_set(ewkSettings, deviceId.c_str());
 }
 
+void TizenWebEngineSettings::EnableDragAndDrop(bool enable)
+{
+  ewk_settings_drag_drop_enabled_set(ewkSettings, enable);
+}
+
 } // namespace Plugin
 } // namespace Dali
