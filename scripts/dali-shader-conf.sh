@@ -31,7 +31,8 @@ function get_dali_shader_cache_version(){
 get_dali_shader_version _current_dali_shader_version
 get_dali_shader_cache_version _current_dali_shader_cache_version
 
-rm -rf ${DALI_SHADER_CACHE_VERSION_PATH}/shader/*.tmp  #delete tmp file every booting
+rm -rf ${DALI_SHADER_CACHE_VERSION_PATH}/shader/internal/*.tmp  #delete tmp file every booting
+rm -rf ${DALI_SHADER_CACHE_VERSION_PATH}/shader/custom/*.tmp  #delete tmp file every booting
 
 if [ -e ${DALI_SHADER_CACHE_VERSION_FILE} ]
 then
