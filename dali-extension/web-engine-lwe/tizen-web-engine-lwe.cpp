@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -459,7 +459,8 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   mOutputStride = width * sizeof(uint32_t);
   mOutputBuffer = (uint8_t*)malloc(width * height * sizeof(uint32_t));
 
-  mOnRenderedHandler = [this](LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult) {
+  mOnRenderedHandler = [this](LWE::WebContainer* c, const LWE::WebContainer::RenderResult& renderResult)
+  {
     size_t w = mOutputWidth;
     size_t h = mOutputHeight;
     if(renderResult.updatedWidth != w || renderResult.updatedHeight != h)
@@ -602,7 +603,8 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   mWebContainer = LWE::WebContainer::CreateGL(args, config);
 
   mWebContainer->RegisterSetNeedsRenderingCallback(
-    [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction) {
+    [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction)
+    {
       if(!mLWERenderingFunction)
       {
         mLWERenderingFunction = doRenderingFunction;
@@ -615,7 +617,8 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     });
 
   mWebContainer->RegisterOnIdleHandler(
-    [this](LWE::WebContainer*) {
+    [this](LWE::WebContainer*)
+    {
       OnIdle();
     });
 
@@ -628,7 +631,8 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   mWebContainer = LWE::WebContainer::Create(mOutputWidth, mOutputHeight, 1.0, "", locale.data(), timezoneId.data());
 
   mWebContainer->RegisterPreRenderingHandler(
-    [this]() -> LWE::WebContainer::RenderInfo {
+    [this]() -> LWE::WebContainer::RenderInfo
+    {
       if(mOutputBuffer == NULL)
       {
         mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
@@ -637,13 +641,14 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
       ::LWE::WebContainer::RenderInfo result;
       result.updatedBufferAddress = mOutputBuffer;
-      result.bufferStride = mOutputStride;
+      result.bufferStride         = mOutputStride;
 
       return result;
     });
 
   mWebContainer->RegisterOnRenderedHandler(
-    [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult) {
+    [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult)
+    {
       mOnRenderedHandler(container, renderResult);
     });
 #endif
@@ -697,6 +702,10 @@ void TizenWebEngineLWE::TryRendering()
       DestroyRenderingSurface();
       InitRenderingSurface();
     }
+  }
+  else
+  {
+    InitRenderingSurface();
   }
 
   OnActive();
@@ -925,7 +934,7 @@ void TizenWebEngineLWE::InitRenderingSurface()
     return;
   }
 
-  mTbmQueue = tbm_surface_queue_create(gTbmSurfaceQueueLength, mWebContainer->Width(), mWebContainer->Height(), TBM_FORMAT_BGRA8888, TBM_BO_DEFAULT);
+  mTbmQueue = tbm_surface_queue_create(gTbmSurfaceQueueLength, std::max(mWebContainer->Width(), static_cast<size_t>(1u)), std::max(mWebContainer->Height(), static_cast<size_t>(1u)), TBM_FORMAT_BGRA8888, TBM_BO_DEFAULT);
 
   mEglSurface = eglCreateWindowSurface(mEglDisplay, mEglConfig, mTbmQueue, NULL);
   if(mEglSurface == EGL_NO_SURFACE)
