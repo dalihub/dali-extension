@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -540,7 +540,7 @@ void RiveAnimationRenderer::SetShader()
   }
 
   // Get custom fragment shader prefix
-  mTargetSurface->ApplyNativeFragmentShader(fragmentShader);
+  mTargetSurface->ApplyNativeFragmentShader(fragmentShader, 1);
 
   // Set the modified shader again
   Shader newShader = Shader::New(vertexShader, fragmentShader);
