@@ -24,13 +24,8 @@
 #include <dali/devel-api/common/stage-devel.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/threading/mutex.h>
-#include <dali/integration-api/constraint-integ.h>
 #include <dali/integration-api/debug.h>
-#include <dali/public-api/animation/constraint-tag-ranges.h>
 #include <system_info.h>
-
-#include <mutex>
-#include <unordered_map>
 
 #ifdef OVER_TIZEN_VERSION_9
 #include <wayland-egl-tizen.h>
@@ -60,7 +55,7 @@ namespace
 {
 const char* TIZEN_GLIB_CONTEXT_ENV = "TIZEN_GLIB_CONTEXT";
 
-static constexpr uint32_t VIDEO_PLAYER_CONSTRAINT_TAG = Dali::ConstraintTagRanges::CORE_CONSTRAINT_TAG_MAX + 1u + (Dali::ConstraintTagRanges::INTERNAL_TAG_MAX_COUNT_PER_DERIVATION)*4 + 123u;
+const int TIMER_INTERVAL(20);
 
 static void MediaPacketVideoDecodedCb(media_packet_h packet, void* user_data)
 {
@@ -349,66 +344,6 @@ private:
 };
 #endif
 
-// Global map to store and get constraint helper from multiple thread safely.
-static std::mutex gHelperMutex;
-static int32_t    gHelperId = 0;
-
-static std::unordered_map<int32_t, IntrusivePtr<VideoConstraintHelper>> gHelperMap;
-
-void AddConstraintHelper(int32_t helperId, IntrusivePtr<VideoConstraintHelper> helper)
-{
-  std::scoped_lock lock(gHelperMutex);
-  DALI_LOG_DEBUG_INFO("Add helper for id[%d], helper[%p]\n", helperId, helper.Get());
-  gHelperMap.insert({helperId, helper});
-}
-void RemoveConstraintHelper(int32_t helperId)
-{
-  std::scoped_lock lock(gHelperMutex);
-  DALI_LOG_DEBUG_INFO("Remove helper for id[%d]\n", helperId);
-  gHelperMap.erase(helperId);
-}
-
-void VideoPlayerRotationConstraint(Dali::Vector4& current, const Dali::PropertyInputContainer& inputs)
-{
-  IntrusivePtr<VideoConstraintHelper> mVideoHandler;
-  {
-    std::scoped_lock lock(gHelperMutex);
-
-    int32_t helperId = inputs[0]->GetInteger();
-
-    auto iter = gHelperMap.find(helperId);
-    if(iter != gHelperMap.end())
-    {
-      mVideoHandler = iter->second;
-    }
-  }
-  if(DALI_LIKELY(mVideoHandler))
-  {
-    current = mVideoHandler->GetOrientationMatrix();
-    mVideoHandler->UpdateVideo();
-  }
-}
-
-void VideoPlayerRatioConstraint(Dali::Vector2& current, const Dali::PropertyInputContainer& inputs)
-{
-  IntrusivePtr<VideoConstraintHelper> mVideoHandler;
-  {
-    std::scoped_lock lock(gHelperMutex);
-
-    int32_t helperId = inputs[0]->GetInteger();
-
-    auto iter = gHelperMap.find(helperId);
-    if(iter != gHelperMap.end())
-    {
-      mVideoHandler = iter->second;
-    }
-  }
-  if(DALI_LIKELY(mVideoHandler))
-  {
-    current = mVideoHandler->RetriveSize();
-  }
-}
-
 /**
  * @brief Whether set play positoin accurately or not.
  *  If true, we set play position to the nearest frame position. but this might be considerably slow, accurately.
@@ -425,6 +360,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mPlayerState(PLAYER_STATE_NONE),
   mPacket(NULL),
   mNativeImageSourcePtr(NULL),
+  mTimer(),
   mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
   mTargetType(NATIVE_IMAGE),
   mPacketMutex(),
@@ -436,10 +372,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mEcoreSubVideoWindow(nullptr),
   mSyncActor(actor),
   mVideoSizePropertyIndex(Property::INVALID_INDEX),
-  mVideoRotationPropertyIndex(Property::INVALID_INDEX),
-  mVideoRatioPropertyIndex(Property::INVALID_INDEX),
   mSyncMode(syncMode),
-  mVideoConstraintHelperId(0),
   mIsMovedHandle(false),
   mIsSceneConnected(false),
 #ifdef OVER_TIZEN_VERSION_9
@@ -456,7 +389,6 @@ TizenVideoPlayer::~TizenVideoPlayer()
     DestroyVideoShellConstraint();
   }
 
-  DestroyVideoConstraint();
   if(mEcoreSubVideoWindow)
   {
     ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
@@ -582,15 +514,12 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
     {
       DestroyVideoShellConstraint();
     }
-
     mTargetType = TizenVideoPlayer::NATIVE_IMAGE;
 
     Dali::NativeImageSourcePtr nativeImageSourcePtr = AnyCast<Dali::NativeImageSourcePtr>(target);
 
     DALI_LOG_RELEASE_INFO("target is not underlay mode\n");
     InitializeTextureStreamMode(nativeImageSourcePtr);
-
-    CreateVideoConstraint(nativeImageSourcePtr);
   }
   else if(target.GetType() == typeid(Ecore_Wl2_Window*))
   {
@@ -603,8 +532,6 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
 
     DALI_LOG_RELEASE_INFO("target is underlay mode\n");
     InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window*>(target));
-
-    DestroyVideoConstraint();
   }
   else
   {
@@ -651,6 +578,11 @@ void TizenVideoPlayer::Play()
 
   if(mPlayerState == PLAYER_STATE_READY || mPlayerState == PLAYER_STATE_PAUSED)
   {
+    if(mNativeImageSourcePtr && mTimer)
+    {
+      mTimer.Start();
+    }
+
     int error = player_start(mPlayer);
     int ret   = LogPlayerError(error);
     if(ret)
@@ -673,7 +605,11 @@ void TizenVideoPlayer::Pause()
       DALI_LOG_ERROR("Pause, player_pause() is failed\n");
     }
 
-    DestroyPackets();
+    if(mNativeImageSourcePtr && mTimer)
+    {
+      mTimer.Stop();
+      DestroyPackets();
+    }
   }
 }
 
@@ -690,7 +626,11 @@ void TizenVideoPlayer::Stop()
       DALI_LOG_ERROR("Stop, player_stop() is failed\n");
     }
 
-    DestroyPackets();
+    if(mNativeImageSourcePtr && mTimer)
+    {
+      mTimer.Stop();
+      DestroyPackets();
+    }
   }
 }
 
@@ -934,6 +874,9 @@ void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr na
     {
       DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_display_visible() is failed\n");
     }
+
+    mTimer = Dali::Timer::New(TIMER_INTERVAL);
+    mTimer.TickSignal().Connect(this, &TizenVideoPlayer::Update);
   }
 }
 
@@ -1054,8 +997,10 @@ void TizenVideoPlayer::InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow)
   }
 }
 
-void TizenVideoPlayer::Update()
+bool TizenVideoPlayer::Update()
 {
+  Dali::Mutex::ScopedLock lock(mPacketMutex);
+
   int error;
 
   if(mPacket != NULL)
@@ -1076,70 +1021,24 @@ void TizenVideoPlayer::Update()
 
   if(mPacket == NULL)
   {
-    return;
+    return true;
   }
+
   tbm_surface_h tbmSurface = NULL;
   error                    = media_packet_get_tbm_surface(mPacket, &tbmSurface);
-
   if(error != MEDIA_PACKET_ERROR_NONE)
   {
     media_packet_destroy(mPacket);
     mPacket = NULL;
     DALI_LOG_ERROR(" error: %d\n", error);
-    return;
+    return true;
   }
 
-  media_packet_rotate_method_e orginalOrientation;
-  media_packet_get_rotate_method(mPacket, &orginalOrientation);
-  int orientation = 0;
+  Any source(tbmSurface);
+  mNativeImageSourcePtr->SetSource(source);
+  Dali::Stage::GetCurrent().KeepRendering(0.0f);
 
-  switch(orginalOrientation)
-  {
-    case MEDIA_PACKET_ROTATE_IDENTITY: //0
-    {
-      orientation = 0;
-      break;
-    }
-    case MEDIA_PACKET_ROTATE_90: //1
-    {
-      orientation = 270;
-      break;
-    }
-    case MEDIA_PACKET_ROTATE_180: //2
-    {
-      orientation = 180;
-      break;
-    }
-    case MEDIA_PACKET_ROTATE_270: //3
-    {
-      orientation = 90;
-      break;
-    }
-    default:
-    {
-      DALI_LOG_ERROR("wrong angle type : %d", orginalOrientation);
-      break;
-    }
-  }
-
-  media_format_h format;
-  int            width, height;
-  if(media_packet_get_format(mPacket, &format) != MEDIA_PACKET_ERROR_NONE)
-  {
-    DALI_LOG_ERROR("failed to media_packet_get_format\n");
-    return;
-  }
-
-  if(media_format_get_video_info(format, NULL, &width, &height, NULL, NULL) != MEDIA_FORMAT_ERROR_NONE)
-  {
-    DALI_LOG_ERROR("failed to media_format_get_video_info\n");
-    media_format_unref(format);
-    return;
-  }
-
-  media_format_unref(format);
-
-  mVideoConstraintHelper->SetInfo(tbmSurface, orientation, width, height);
+  return true;
 }
 
 void TizenVideoPlayer::DestroyPackets()
@@ -1167,8 +1066,6 @@ void TizenVideoPlayer::PushPacket(media_packet_h packet)
 {
   Dali::Mutex::ScopedLock lock(mPacketMutex);
   mPacketList.push_back(packet);
-
-  Update();
 }
 
 void TizenVideoPlayer::SetDisplayArea(DisplayArea area)
@@ -1487,7 +1384,6 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_POSITION));
-      Dali::Integration::ConstraintSetInternalTag(mVideoShellSizePropertyConstraint, VIDEO_PLAYER_CONSTRAINT_TAG);
     }
   }
 #else
@@ -1584,58 +1480,6 @@ void TizenVideoPlayer::SceneDisconnection()
   mIsSceneConnected = false;
 }
 
-void TizenVideoPlayer::CreateVideoConstraint(Dali::NativeImageSourcePtr nativeImageSourcePtr)
-{
-  Actor syncActor = mSyncActor.GetHandle();
-  if(syncActor)
-  {
-    mVideoRotationPropertyIndex = syncActor.RegisterProperty("uRotationMatrix", Property::Value(Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
-    mVideoRatioPropertyIndex    = syncActor.RegisterProperty("uSizeRatio", Property::Value(Vector2(0.0f, 0.0f)));
-
-    if(mVideoConstraintHelper)
-    {
-      RemoveConstraintHelper(mVideoConstraintHelperId);
-    }
-
-    mVideoConstraintHelperId = gHelperId++;
-    auto idIndex             = syncActor.RegisterProperty("helperId", Property::Value(mVideoConstraintHelperId));
-
-    mVideoConstraintHelper = VideoConstraintHelper::New(nativeImageSourcePtr);
-
-    AddConstraintHelper(mVideoConstraintHelperId, mVideoConstraintHelper);
-
-    mVideoRotationConstraint = Constraint::New<Vector4>(syncActor, mVideoRotationPropertyIndex, VideoPlayerRotationConstraint);
-    mVideoRotationConstraint.AddSource(LocalSource(idIndex));
-    Dali::Integration::ConstraintSetInternalTag(mVideoRotationConstraint, VIDEO_PLAYER_CONSTRAINT_TAG);
-    mVideoRotationConstraint.Apply();
-
-    mVideoLetterBoxConstraint = Constraint::New<Vector2>(syncActor, mVideoRatioPropertyIndex, VideoPlayerRatioConstraint);
-    mVideoLetterBoxConstraint.AddSource(LocalSource(idIndex));
-    Dali::Integration::ConstraintSetInternalTag(mVideoLetterBoxConstraint, VIDEO_PLAYER_CONSTRAINT_TAG);
-    mVideoLetterBoxConstraint.Apply();
-  }
-}
-
-void TizenVideoPlayer::DestroyVideoConstraint()
-{
-  if(mVideoRotationPropertyIndex != Property::INVALID_INDEX)
-  {
-    mVideoRotationConstraint.Remove();
-    mVideoRotationPropertyIndex = Property::INVALID_INDEX;
-  }
-
-  if(mVideoRatioPropertyIndex != Property::INVALID_INDEX)
-  {
-    mVideoLetterBoxConstraint.Remove();
-    mVideoRatioPropertyIndex = Property::INVALID_INDEX;
-  }
-
-  if(mVideoConstraintHelper)
-  {
-    RemoveConstraintHelper(mVideoConstraintHelperId);
-    mVideoConstraintHelper.Reset();
-  }
-}
 
 void TizenVideoPlayer::SetAutoRotationEnabled(bool enable)
 {
@@ -1645,10 +1489,7 @@ void TizenVideoPlayer::SetAutoRotationEnabled(bool enable)
     return;
   }
 
-  if(mVideoConstraintHelper)
-  {
-    mVideoConstraintHelper->SetAutoRotationEnabled(enable);
-  }
+  DALI_LOG_RELEASE_INFO("SetAutoRotationEnabled not yet supported.\n");
 }
 
 bool TizenVideoPlayer::IsAutoRotationEnabled() const
@@ -1659,10 +1500,7 @@ bool TizenVideoPlayer::IsAutoRotationEnabled() const
     return false;
   }
 
-  if(mVideoConstraintHelper)
-  {
-    return mVideoConstraintHelper->IsAutoRotationEnabled();
-  }
+  DALI_LOG_RELEASE_INFO("IsAutoRotationEnabled not yet supported.\n");
   return false;
 }
 
@@ -1674,10 +1512,7 @@ void TizenVideoPlayer::SetLetterBoxEnabled(bool enable)
     return;
   }
 
-  if(mVideoConstraintHelper)
-  {
-    mVideoConstraintHelper->SetLetterBoxEnabled(enable);
-  }
+  DALI_LOG_RELEASE_INFO("SetLetterBoxEnabled not yet supported.\n");
 }
 
 bool TizenVideoPlayer::IsLetterBoxEnabled() const
@@ -1688,10 +1523,7 @@ bool TizenVideoPlayer::IsLetterBoxEnabled() const
     return false;
   }
 
-  if(mVideoConstraintHelper)
-  {
-    return mVideoConstraintHelper->IsLetterBoxEnabled();
-  }
+  DALI_LOG_RELEASE_INFO("IsLetterBoxEnabled not yet supported.\n");
   return false;
 }
 
