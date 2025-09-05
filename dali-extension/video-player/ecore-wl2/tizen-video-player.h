@@ -18,9 +18,6 @@
  *
  */
 
-// INTERNAL INCLUDES
-#include "tizen-video-constraint-helper.h"
-
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/video-player-plugin.h>
 #include <dali/devel-api/adaptor-framework/video-sync-mode.h>
@@ -273,9 +270,9 @@ public:
 
 private:
   /**
-   * @brief Update video frame image to native image source
+   * @brief Updates video frame image by timer if rendering targe is native image source
    */
-  void Update();
+  bool Update();
 
   /**
    * @brief Gets current player state
@@ -317,22 +314,13 @@ private:
    */
   void DestroyVideoShellConstraint();
 
-  /**
-   * @brief Create Constraint for oriention and ratio of video
-   */
-  void CreateVideoConstraint(Dali::NativeImageSourcePtr nativeImageSourcePtr);
-
-  /**
-   * @brief Destroy Constraint for oriention and ratio of video
-   */
-  void DestroyVideoConstraint();
-
 private:
   std::string                mUrl;                  ///< The video file path
   player_h                   mPlayer;               ///< Tizen player handle
   player_state_e             mPlayerState;          ///< Tizen player state
   media_packet_h             mPacket;               ///< Media packet handle with tbm surface of current video frame image
   Dali::NativeImageSourcePtr mNativeImageSourcePtr; ///< native image source for video rendering
+  Dali::Timer                mTimer;                ///< Timer for texture streaming rendering
   Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
   RenderingTargetType        mTargetType;           ///< Current rendering target type
 
@@ -348,14 +336,8 @@ private:
   Ecore_Wl2_Subsurface*         mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
   Dali::WeakHandle<Dali::Actor> mSyncActor;
   Constraint                    mVideoSizePropertyConstraint;
-  Constraint                    mVideoRotationConstraint;
-  Constraint                    mVideoLetterBoxConstraint;
   Property::Index               mVideoSizePropertyIndex;
-  Property::Index               mVideoRotationPropertyIndex;
-  Property::Index               mVideoRatioPropertyIndex;
   Dali::VideoSyncMode           mSyncMode;
-
-  int32_t mVideoConstraintHelperId; ///< unique id for Rotation and Ratio constraint helper
 
   bool mIsMovedHandle; ///< the flag for moved the handle
   bool mIsSceneConnected;
@@ -363,9 +345,8 @@ private:
 #ifdef OVER_TIZEN_VERSION_9
   Ecore_Wl2_VideoShell_Surface* mEcoreVideoShellSurface;
 #endif
-  Constraint                                mVideoShellSizePropertyConstraint;
-  Property::Index                           mVideoShellSizePropertyIndex;
-  Dali::IntrusivePtr<VideoConstraintHelper> mVideoConstraintHelper;
+  Constraint      mVideoShellSizePropertyConstraint;
+  Property::Index mVideoShellSizePropertyIndex;
 
 public:
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
