@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_RENDERER_TIZEN_H
 
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
-#include <tbm_surface.h>
-#include <tbm_surface_queue.h>
 
 // INTERNAL INCLUDES
 #include <dali-extension/vector-animation-renderer/vector-animation-renderer.h>
@@ -60,11 +58,6 @@ public:
 
 private:
   /**
-   * @brief Reset buffer list.
-   */
-  void ResetBuffers() override;
-
-  /**
    * @copydoc VectorAnimationRenderer::Finalize()
    */
   void OnFinalize() override;
@@ -78,11 +71,6 @@ private:
    * @copydoc VectorAnimationRenderer::PrepareTarget()
    */
   void PrepareTarget(std::shared_ptr<RenderingData> renderingData) override;
-
-  /**
-   * @copydoc VectorAnimationRenderer::OnSetSize()
-   */
-  void OnSetSize(std::shared_ptr<RenderingData> renderingData) override;
 
   /**
    * @copydoc VectorAnimationRenderer::IsTargetPrepared()
@@ -105,10 +93,6 @@ private:
   std::shared_ptr<RenderingData> CreateRenderingData() override;
 
 private:
-  using SurfacePair = std::pair<tbm_surface_h, rlottie::Surface>;
-
-  std::vector<SurfacePair> mBuffers; ///< EGL Image vector
-
   Dali::Texture              mRenderedTexture;  ///< Rendered Texture
   std::vector<Dali::Texture> mPreviousTextures; ///< Previous rendered texture
 };

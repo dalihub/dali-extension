@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,10 +60,6 @@ VectorAnimationRendererX::VectorAnimationRendererX()
 
 VectorAnimationRendererX::~VectorAnimationRendererX()
 {
-  Dali::Mutex::ScopedLock lock(mMutex);
-
-  ResetBuffers();
-  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
 }
 
 // Called by VectorAnimationTaskThread
@@ -125,11 +121,6 @@ bool VectorAnimationRendererX::Render(uint32_t frameNumber)
 }
 
 void VectorAnimationRendererX::RenderStopped()
-{
-}
-
-// This Method is called inside mMutex
-void VectorAnimationRendererX::ResetBuffers()
 {
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,8 +229,6 @@ void VectorAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 
   PrepareTarget(preparedRenderingData);
 
-  OnSetSize(preparedRenderingData);
-
   {
     Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
     if(DALI_LIKELY(!mFinalized))
@@ -334,7 +332,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::FILL_COLOR:
         {
           mVectorRenderer->setValue<rlottie::Property::FillColor>(keyPath,
-                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                  [property, callback, id](const rlottie::FrameInfo& info)
+                                                                  {
                                                                     Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                     Vector3         color;
                                                                     if(value.Get(color))
@@ -348,7 +347,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::FILL_OPACITY:
         {
           mVectorRenderer->setValue<rlottie::Property::FillOpacity>(keyPath,
-                                                                    [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                    [property, callback, id](const rlottie::FrameInfo& info)
+                                                                    {
                                                                       Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                       float           opacity;
                                                                       if(value.Get(opacity))
@@ -362,7 +362,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::STROKE_COLOR:
         {
           mVectorRenderer->setValue<rlottie::Property::StrokeColor>(keyPath,
-                                                                    [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                    [property, callback, id](const rlottie::FrameInfo& info)
+                                                                    {
                                                                       Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                       Vector3         color;
                                                                       if(value.Get(color))
@@ -376,7 +377,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::STROKE_OPACITY:
         {
           mVectorRenderer->setValue<rlottie::Property::StrokeOpacity>(keyPath,
-                                                                      [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                      [property, callback, id](const rlottie::FrameInfo& info)
+                                                                      {
                                                                         Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                         float           opacity;
                                                                         if(value.Get(opacity))
@@ -390,7 +392,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::STROKE_WIDTH:
         {
           mVectorRenderer->setValue<rlottie::Property::StrokeWidth>(keyPath,
-                                                                    [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                    [property, callback, id](const rlottie::FrameInfo& info)
+                                                                    {
                                                                       Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                       float           width;
                                                                       if(value.Get(width))
@@ -404,7 +407,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::TRANSFORM_ANCHOR:
         {
           mVectorRenderer->setValue<rlottie::Property::TrAnchor>(keyPath,
-                                                                 [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                 [property, callback, id](const rlottie::FrameInfo& info)
+                                                                 {
                                                                    Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                    Vector2         point;
                                                                    if(value.Get(point))
@@ -418,7 +422,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::TRANSFORM_POSITION:
         {
           mVectorRenderer->setValue<rlottie::Property::TrPosition>(keyPath,
-                                                                   [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                   [property, callback, id](const rlottie::FrameInfo& info)
+                                                                   {
                                                                      Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                      Vector2         position;
                                                                      if(value.Get(position))
@@ -432,7 +437,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::TRANSFORM_SCALE:
         {
           mVectorRenderer->setValue<rlottie::Property::TrScale>(keyPath,
-                                                                [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                [property, callback, id](const rlottie::FrameInfo& info)
+                                                                {
                                                                   Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                   Vector2         scale;
                                                                   if(value.Get(scale))
@@ -446,7 +452,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::TRANSFORM_ROTATION:
         {
           mVectorRenderer->setValue<rlottie::Property::TrRotation>(keyPath,
-                                                                   [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                   [property, callback, id](const rlottie::FrameInfo& info)
+                                                                   {
                                                                      Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                      float           rotation;
                                                                      if(value.Get(rotation))
@@ -460,7 +467,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         case VectorProperty::TRANSFORM_OPACITY:
         {
           mVectorRenderer->setValue<rlottie::Property::TrOpacity>(keyPath,
-                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                  [property, callback, id](const rlottie::FrameInfo& info)
+                                                                  {
                                                                     Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                     float           opacity;
                                                                     if(value.Get(opacity))
@@ -475,7 +483,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         {
 #ifdef OVER_TIZEN_VERSION_9
           mVectorRenderer->setValue<rlottie::Property::TrimStart>(keyPath,
-                                                                  [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                  [property, callback, id](const rlottie::FrameInfo& info)
+                                                                  {
                                                                     Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                     float           start;
                                                                     if(value.Get(start))
@@ -491,7 +500,8 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
         {
 #ifdef OVER_TIZEN_VERSION_9
           mVectorRenderer->setValue<rlottie::Property::TrimEnd>(keyPath,
-                                                                [property, callback, id](const rlottie::FrameInfo& info) {
+                                                                [property, callback, id](const rlottie::FrameInfo& info)
+                                                                {
                                                                   Property::Value value = CallbackBase::ExecuteReturn<Property::Value>(*callback, id, property, info.curFrame());
                                                                   Vector2         position;
                                                                   if(value.Get(position))
