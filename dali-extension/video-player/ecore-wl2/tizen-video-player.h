@@ -330,7 +330,7 @@ private:
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
 
-  player_codec_type_e mCodecType;
+  Dali::VideoPlayerPlugin::CodecType mCodecType;
 
   Ecore_Wl2_Window*             mEcoreWlWindow;       ///< ecore native window handle
   Ecore_Wl2_Subsurface*         mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
