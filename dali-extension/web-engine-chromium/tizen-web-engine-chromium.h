@@ -2,7 +2,7 @@
 #define DALI_TIZEN_WEB_ENGINE_CHROMIUM_H
 
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -635,39 +635,39 @@ public:
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
-  static void OnFrameRendered(void* data, Evas_Object*, void* buffer);
-  static void OnLoadStarted(void* data, Evas_Object*, void*);
-  static void OnLoadInProgress(void* data, Evas_Object*, void*);
-  static void OnLoadFinished(void* data, Evas_Object*, void*);
-  static void OnLoadError(void* data, Evas_Object*, void* rawError);
-  static void OnUrlChanged(void* data, Evas_Object*, void* newUrl);
-  static void OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo);
-  static void OnDeviceConnectionChanged(void* data, Evas_Object* obj, void* info);
-  static void OnDeviceListGet(EwkMediaDeviceInfo* device_list, int size, void* user_data);
-  static void OnEdgeLeft(void* data, Evas_Object*, void*);
-  static void OnEdgeRight(void* data, Evas_Object*, void*);
-  static void OnEdgeTop(void* data, Evas_Object*, void*);
-  static void OnEdgeBottom(void* data, Evas_Object*, void*);
-  static void OnOverScrolledLeft(void* data, Evas_Object*, void*);
-  static void OnOverScrolledRight(void* data, Evas_Object*, void*);
-  static void OnOverScrolledTop(void* data, Evas_Object*, void*);
-  static void OnOverScrolledBottom(void* data, Evas_Object*, void*);
-  static void OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo);
-  static void OnResponsePolicyDecided(void* data, Evas_Object*, void* policy);
-  static void OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
-  static void OnNewWindowPolicyDecided(void* data, Evas_Object*, void* policy);
-  static void OnNewWindowCreated(void* data, Evas_Object*, void* out_view);
-  static void OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo);
-  static void OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo);
-  static void OnContextMenuShown(void* data, Evas_Object*, void* eventInfo);
-  static void OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo);
-  static void OnFullscreenEntered(void* data, Evas_Object*, void* eventInfo);
-  static void OnFullscreenExited(void* data, Evas_Object*, void* eventInfo);
-  static void OnTextFound(void* data, Evas_Object*, void* eventInfo);
-  static void OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data);
-  static void OnJavaScriptEvaluated(Evas_Object* o, const char* result, void* data);
-  static void OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
-  static void OnJavaScriptEntireMessageReceived(Evas_Object* o, Ewk_Script_Message message);
+  static void      OnFrameRendered(void* data, Evas_Object*, void* buffer);
+  static void      OnLoadStarted(void* data, Evas_Object*, void*);
+  static void      OnLoadInProgress(void* data, Evas_Object*, void*);
+  static void      OnLoadFinished(void* data, Evas_Object*, void*);
+  static void      OnLoadError(void* data, Evas_Object*, void* rawError);
+  static void      OnUrlChanged(void* data, Evas_Object*, void* newUrl);
+  static void      OnConsoleMessageReceived(void* data, Evas_Object*, void* eventInfo);
+  static void      OnDeviceConnectionChanged(void* data, Evas_Object* obj, void* info);
+  static void      OnDeviceListGet(EwkMediaDeviceInfo* device_list, int size, void* user_data);
+  static void      OnEdgeLeft(void* data, Evas_Object*, void*);
+  static void      OnEdgeRight(void* data, Evas_Object*, void*);
+  static void      OnEdgeTop(void* data, Evas_Object*, void*);
+  static void      OnEdgeBottom(void* data, Evas_Object*, void*);
+  static void      OnOverScrolledLeft(void* data, Evas_Object*, void*);
+  static void      OnOverScrolledRight(void* data, Evas_Object*, void*);
+  static void      OnOverScrolledTop(void* data, Evas_Object*, void*);
+  static void      OnOverScrolledBottom(void* data, Evas_Object*, void*);
+  static void      OnFormRepostDecided(void* data, Evas_Object*, void* eventInfo);
+  static void      OnResponsePolicyDecided(void* data, Evas_Object*, void* policy);
+  static void      OnNavigationPolicyDecided(void* data, Evas_Object*, void* policy);
+  static void      OnNewWindowPolicyDecided(void* data, Evas_Object*, void* policy);
+  static void      OnNewWindowCreated(void* data, Evas_Object*, void* out_view);
+  static void      OnCertificateConfirmed(void* data, Evas_Object*, void* eventInfo);
+  static void      OnSslCertificateChanged(void* data, Evas_Object*, void* eventInfo);
+  static void      OnContextMenuShown(void* data, Evas_Object*, void* eventInfo);
+  static void      OnContextMenuHidden(void* data, Evas_Object*, void* eventInfo);
+  static void      OnFullscreenEntered(void* data, Evas_Object*, void* eventInfo);
+  static void      OnFullscreenExited(void* data, Evas_Object*, void* eventInfo);
+  static void      OnTextFound(void* data, Evas_Object*, void* eventInfo);
+  static void      OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data);
+  static void      OnJavaScriptEvaluated(Evas_Object* o, const char* result, void* data);
+  static void      OnJavaScriptInjected(Evas_Object* o, Ewk_Script_Message message);
+  static void      OnJavaScriptEntireMessageReceived(Evas_Object* o, Ewk_Script_Message message);
   static Eina_Bool OnJavaScriptAlert(Evas_Object* o, const char* alert_text, void*);
   static Eina_Bool OnJavaScriptConfirm(Evas_Object* o, const char* message, void*);
   static Eina_Bool OnJavaScriptPrompt(Evas_Object* o, const char* message, const char* default_value, void*);
@@ -677,8 +677,8 @@ private:
   static void      OnPlainTextReceived(Evas_Object* o, const char* plainText, void* data);
   static Eina_Bool OnGeolocationPermission(Evas_Object*, Ewk_Geolocation_Permission_Request* request, void* data);
   static Eina_Bool OnUserMediaPermissonRequest(Evas_Object*, Ewk_User_Media_Permission_Request* request, void* data);
-  static void OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents);
-  static void OnWebAuthResponse(void* data, Evas_Object*, void*);
+  static void      OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents);
+  static void      OnWebAuthResponse(void* data, Evas_Object*, void*);
 
   void UpdateImage(tbm_surface_h buffer);
   void InitWebView(bool incognito);
@@ -691,54 +691,54 @@ private:
   void ResetDaliImageSource();
 
   // ewk web view.
-  Dali::NativeImageSourcePtr                mDaliImageSrc;
-  Evas_Object*                              mWebView;
-  uint32_t                                  mWidth;
-  uint32_t                                  mHeight;
-  std::unique_ptr<WebEngineBackForwardList> mWebEngineBackForwardList;
-  std::unique_ptr<WebEngineSettings>        mWebEngineSettings;
+  Dali::NativeImageSourcePtr                                        mDaliImageSrc;
+  Evas_Object*                                                      mWebView;
+  uint32_t                                                          mWidth;
+  uint32_t                                                          mHeight;
+  std::unique_ptr<WebEngineBackForwardList>                         mWebEngineBackForwardList;
+  std::unique_ptr<WebEngineSettings>                                mWebEngineSettings;
   std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptInjectedCallbacks;
-  Dali::WebEngineUserMediaPermissionRequest* mWebUserMediaPermissionRequest;
-  Dali::WebEngineDeviceListGet* mDeviceListGet;
+  Dali::WebEngineUserMediaPermissionRequest*                        mWebUserMediaPermissionRequest;
+  Dali::WebEngineDeviceListGet*                                     mDeviceListGet;
 
   // callback.
-  WebEnginePageLoadCallback                mLoadStartedCallback;
-  WebEnginePageLoadCallback                mLoadInProgressCallback;
-  WebEnginePageLoadCallback                mLoadFinishedCallback;
-  WebEnginePageLoadErrorCallback           mLoadErrorCallback;
-  WebEngineUrlChangedCallback              mUrlChangedCallback;
-  WebEngineScrollEdgeReachedCallback       mScrollEdgeReachedCallback;
-  WebEngineOverScrolledCallback            mOverScrolledCallback;
-  WebEngineFormRepostDecidedCallback       mFormRepostDecidedCallback;
-  WebEngineConsoleMessageReceivedCallback  mConsoleMessageReceivedCallback;
-  WebEngineResponsePolicyDecidedCallback   mResponsePolicyDecidedCallback;
-  WebEngineNavigationPolicyDecidedCallback mNavigationPolicyDecidedCallback;
-  WebEngineNewWindowPolicyDecidedCallback  mNewWindowPolicyDecidedCallback;
-  WebEngineNewWindowCreatedCallback        mNewWindowCreatedCallback;
-  WebEngineFrameRenderedCallback           mFrameRenderedCallback;
-  WebEngineCertificateCallback             mCertificateConfirmedCallback;
-  WebEngineCertificateCallback             mSslCertificateChangedCallback;
-  WebEngineHttpAuthHandlerCallback         mHttpAuthHandlerCallback;
-  WebEngineContextMenuShownCallback        mContextMenuShownCallback;
-  WebEngineContextMenuHiddenCallback       mContextMenuHiddenCallback;
-  WebEngineFullscreenEnteredCallback       mFullscreenEnteredCallback;
-  WebEngineFullscreenExitedCallback        mFullscreenExitedCallback;
-  WebEngineTextFoundCallback               mTextFoundCallback;
-  WebEngineHitTestCreatedCallback          mHitTestCreatedCallback;
-  JavaScriptAlertCallback                  mJavaScriptAlertCallback;
-  JavaScriptConfirmCallback                mJavaScriptConfirmCallback;
-  JavaScriptPromptCallback                 mJavaScriptPromptCallback;
-  ScreenshotCapturedCallback               mScreenshotCapturedCallback;
-  VideoPlayingCallback                     mVideoPlayingCallback;
-  GeolocationPermissionCallback            mGeolocationPermissionCallback;
-  PlainTextReceivedCallback                mPlainTextReceivedCallback;
-  JavaScriptMessageHandlerCallback         mJavaScriptEvaluatedCallback;
-  JavaScriptEntireMessageHandlerCallback   mJavaScriptEntireMessageReceivedCallback;
-  WebEngineWebAuthDisplayQRCallback        mWebAuthDisplayQRCallback;
-  WebEngineWebAuthResponseCallback         mWebAuthResponseCallback;
+  WebEnginePageLoadCallback                   mLoadStartedCallback;
+  WebEnginePageLoadCallback                   mLoadInProgressCallback;
+  WebEnginePageLoadCallback                   mLoadFinishedCallback;
+  WebEnginePageLoadErrorCallback              mLoadErrorCallback;
+  WebEngineUrlChangedCallback                 mUrlChangedCallback;
+  WebEngineScrollEdgeReachedCallback          mScrollEdgeReachedCallback;
+  WebEngineOverScrolledCallback               mOverScrolledCallback;
+  WebEngineFormRepostDecidedCallback          mFormRepostDecidedCallback;
+  WebEngineConsoleMessageReceivedCallback     mConsoleMessageReceivedCallback;
+  WebEngineResponsePolicyDecidedCallback      mResponsePolicyDecidedCallback;
+  WebEngineNavigationPolicyDecidedCallback    mNavigationPolicyDecidedCallback;
+  WebEngineNewWindowPolicyDecidedCallback     mNewWindowPolicyDecidedCallback;
+  WebEngineNewWindowCreatedCallback           mNewWindowCreatedCallback;
+  WebEngineFrameRenderedCallback              mFrameRenderedCallback;
+  WebEngineCertificateCallback                mCertificateConfirmedCallback;
+  WebEngineCertificateCallback                mSslCertificateChangedCallback;
+  WebEngineHttpAuthHandlerCallback            mHttpAuthHandlerCallback;
+  WebEngineContextMenuShownCallback           mContextMenuShownCallback;
+  WebEngineContextMenuHiddenCallback          mContextMenuHiddenCallback;
+  WebEngineFullscreenEnteredCallback          mFullscreenEnteredCallback;
+  WebEngineFullscreenExitedCallback           mFullscreenExitedCallback;
+  WebEngineTextFoundCallback                  mTextFoundCallback;
+  WebEngineHitTestCreatedCallback             mHitTestCreatedCallback;
+  JavaScriptAlertCallback                     mJavaScriptAlertCallback;
+  JavaScriptConfirmCallback                   mJavaScriptConfirmCallback;
+  JavaScriptPromptCallback                    mJavaScriptPromptCallback;
+  ScreenshotCapturedCallback                  mScreenshotCapturedCallback;
+  VideoPlayingCallback                        mVideoPlayingCallback;
+  GeolocationPermissionCallback               mGeolocationPermissionCallback;
+  PlainTextReceivedCallback                   mPlainTextReceivedCallback;
+  JavaScriptMessageHandlerCallback            mJavaScriptEvaluatedCallback;
+  JavaScriptEntireMessageHandlerCallback      mJavaScriptEntireMessageReceivedCallback;
+  WebEngineWebAuthDisplayQRCallback           mWebAuthDisplayQRCallback;
+  WebEngineWebAuthResponseCallback            mWebAuthResponseCallback;
   WebEngineUserMediaPermissionRequestCallback mUserMediaPermissionRequestCallback;
-  WebEngineDeviceConnectionChangedCallback mDeviceConnectionChangedCallback;
-  WebEngineDeviceListGetCallback mDeviceListGetCallback;
+  WebEngineDeviceConnectionChangedCallback    mDeviceConnectionChangedCallback;
+  WebEngineDeviceListGetCallback              mDeviceListGetCallback;
 };
 } // namespace Plugin
 } // namespace Dali

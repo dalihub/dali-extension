@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ namespace Plugin
 {
 
 TizenWebEngineCertificate::TizenWebEngineCertificate(Ewk_Certificate_Policy_Decision* decision)
-  : ewkCertificatePolicyDecision(decision)
-  , ewkCertificateInfo(0)
+: ewkCertificatePolicyDecision(decision),
+  ewkCertificateInfo(0)
 {
 }
 
 TizenWebEngineCertificate::TizenWebEngineCertificate(Ewk_Certificate_Info* info)
-  : ewkCertificatePolicyDecision(0)
-  , ewkCertificateInfo(info)
+: ewkCertificatePolicyDecision(0),
+  ewkCertificateInfo(info)
 {
 }
 
@@ -41,7 +41,7 @@ TizenWebEngineCertificate::~TizenWebEngineCertificate()
 
 void TizenWebEngineCertificate::Allow(bool allowed)
 {
-  if (ewkCertificatePolicyDecision)
+  if(ewkCertificatePolicyDecision)
   {
     ewk_certificate_policy_decision_allowed_set(ewkCertificatePolicyDecision, allowed);
   }
@@ -55,7 +55,7 @@ bool TizenWebEngineCertificate::IsFromMainFrame() const
 std::string TizenWebEngineCertificate::GetPem() const
 {
   const char* pem = nullptr;
-  if (ewkCertificateInfo)
+  if(ewkCertificateInfo)
   {
     pem = ewk_certificate_info_pem_get(ewkCertificateInfo);
   }

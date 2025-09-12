@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,15 @@
 // CLASS HEADER
 #include <integration-api/key-extension.h>
 
-
 // The plugin factories
-extern "C" DALI_EXPORT_API Dali::KeyExtensionPlugin* CreateKeyExtensionPlugin( void )
+extern "C" DALI_EXPORT_API Dali::KeyExtensionPlugin* CreateKeyExtensionPlugin(void)
 {
   return new Dali::Plugin::KeyExtension;
 }
 
-extern "C" DALI_EXPORT_API void DestroyKeyExtensionPlugin( Dali::KeyExtensionPlugin* plugin )
+extern "C" DALI_EXPORT_API void DestroyKeyExtensionPlugin(Dali::KeyExtensionPlugin* plugin)
 {
-  if( plugin != NULL )
+  if(plugin != NULL)
   {
     delete plugin;
   }
@@ -36,18 +35,18 @@ extern "C" DALI_EXPORT_API void DestroyKeyExtensionPlugin( Dali::KeyExtensionPlu
 namespace Dali
 {
 
-KeyExtensionPlugin::KeyLookup mKeyLookupTable[]=
-{
-  // more than one key name can be assigned to a single key code
+KeyExtensionPlugin::KeyLookup mKeyLookupTable[] =
+  {
+    // more than one key name can be assigned to a single key code
 };
 
-bool IsExtensionKey( const Dali::KeyEvent& keyEvent, Dali::EXTENSION_KEY daliKey)
+bool IsExtensionKey(const Dali::KeyEvent& keyEvent, Dali::EXTENSION_KEY daliKey)
 {
   int key = -200000;
 
-  for( size_t i = 0 ; i < sizeof(mKeyLookupTable) / sizeof(KeyExtensionPlugin::KeyLookup) ; i++ )
+  for(size_t i = 0; i < sizeof(mKeyLookupTable) / sizeof(KeyExtensionPlugin::KeyLookup); i++)
   {
-    if( !keyEvent.GetKeyName().compare( mKeyLookupTable[i].keyName ) )
+    if(!keyEvent.GetKeyName().compare(mKeyLookupTable[i].keyName))
     {
       key = mKeyLookupTable[i].daliKeyCode;
       break;
@@ -78,5 +77,5 @@ std::size_t KeyExtension::GetKeyLookupTableCount()
   return sizeof(mKeyLookupTable) / sizeof(KeyExtensionPlugin::KeyLookup);
 }
 
-}
-}
+} //namespace Plugin
+} //namespace Dali

@@ -19,8 +19,8 @@
  */
 
 // EXTERNAL INCLUDES
-#include <memory>
 #include <Ecore_IMF_Evas.h>
+#include <memory>
 
 #include <dali/integration-api/adaptor-framework/scene-holder-impl.h>
 #include <dali/public-api/common/intrusive-ptr.h>
@@ -48,7 +48,6 @@ class EvasPlugin : public BaseObject,
                    public ConnectionTracker
 {
 public:
-
   typedef Dali::Extension::EvasPlugin::EvasPluginSignalType EvasPluginSignalType;
 
   /**
@@ -58,10 +57,9 @@ public:
    * @param[in] height The height of Dali view port
    * @param[in] isTranslucent Whether the evas object is translucent or not
    */
-  static IntrusivePtr<EvasPlugin> New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
+  static IntrusivePtr<EvasPlugin> New(Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent);
 
 public:
-
   /**
    * @copydoc Dali::Extension::EvasPlugin::Start()
    */
@@ -118,7 +116,7 @@ public:
    */
   EvasPluginSignalType& PauseSignal()
   {
-   return mPauseSignal;
+    return mPauseSignal;
   }
 
   /**
@@ -197,7 +195,7 @@ private:
    * @param[in] height The height of Dali view port
    * @param[in] isTranslucent Whether the evas object is translucent or not
    */
-  EvasPlugin( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
+  EvasPlugin(Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent);
 
   /**
    * Destructor
@@ -205,52 +203,51 @@ private:
   virtual ~EvasPlugin();
 
   // Undefined
-  EvasPlugin( const EvasPlugin& );
-  EvasPlugin& operator=( EvasPlugin& );
+  EvasPlugin(const EvasPlugin&);
+  EvasPlugin& operator=(EvasPlugin&);
 
   /**
    * This callback is for supporting legacy API EvasPlugin::ResizeSignal
    */
-  void OnDefaultSceneResized( Extension::Scene defaultScene, uint16_t width, uint16_t height );
+  void OnDefaultSceneResized(Extension::Scene defaultScene, uint16_t width, uint16_t height);
 
   /**
    * This callback is for supporting legacy API EvasPlugin::FocusedSignal, EvasPlugin::UnFocusedSignal
    */
-  void OnDefaultSceneFocusChanged( Extension::Scene defaultScene, bool focused );
+  void OnDefaultSceneFocusChanged(Extension::Scene defaultScene, bool focused);
 
 private:
+  Adaptor*         mAdaptor;
+  Extension::Scene mDefaultScene;
 
-  Adaptor*                                  mAdaptor;
-  Extension::Scene                          mDefaultScene;
+  EvasPluginSignalType mPreInitSignal;
+  EvasPluginSignalType mInitSignal;
+  EvasPluginSignalType mTerminateSignal;
+  EvasPluginSignalType mPauseSignal;
+  EvasPluginSignalType mResumeSignal;
+  EvasPluginSignalType mResizeSignal;    // Connect to DefaultScene.ResizedSignal
+  EvasPluginSignalType mFocusedSignal;   // Connect to DefaultScene.FocusChangedSignal
+  EvasPluginSignalType mUnFocusedSignal; // Connect to DefaultScene.FocusChangedSignal
 
-  EvasPluginSignalType                      mPreInitSignal;
-  EvasPluginSignalType                      mInitSignal;
-  EvasPluginSignalType                      mTerminateSignal;
-  EvasPluginSignalType                      mPauseSignal;
-  EvasPluginSignalType                      mResumeSignal;
-  EvasPluginSignalType                      mResizeSignal;    // Connect to DefaultScene.ResizedSignal
-  EvasPluginSignalType                      mFocusedSignal;   // Connect to DefaultScene.FocusChangedSignal
-  EvasPluginSignalType                      mUnFocusedSignal; // Connect to DefaultScene.FocusChangedSignal
-
-  State                                     mState;
+  State mState;
 };
 
-inline EvasPlugin& GetImplementation( Extension::EvasPlugin& evasPlugin )
+inline EvasPlugin& GetImplementation(Extension::EvasPlugin& evasPlugin)
 {
-  DALI_ASSERT_ALWAYS( evasPlugin && "EvasPlugin handle is empty" );
+  DALI_ASSERT_ALWAYS(evasPlugin && "EvasPlugin handle is empty");
 
   BaseObject& handle = evasPlugin.GetBaseObject();
 
-  return static_cast<EvasPlugin&>( handle );
+  return static_cast<EvasPlugin&>(handle);
 }
 
-inline const EvasPlugin& GetImplementation( const Extension::EvasPlugin& evasPlugin )
+inline const EvasPlugin& GetImplementation(const Extension::EvasPlugin& evasPlugin)
 {
-  DALI_ASSERT_ALWAYS( evasPlugin && "EvasPlugin handle is empty" );
+  DALI_ASSERT_ALWAYS(evasPlugin && "EvasPlugin handle is empty");
 
   const BaseObject& handle = evasPlugin.GetBaseObject();
 
-  return static_cast<const EvasPlugin&>( handle );
+  return static_cast<const EvasPlugin&>(handle);
 }
 
 } // namespace Internal

@@ -110,12 +110,13 @@ static void EmitPlaybackFinishedSignal(void* user_data)
       GSource* source = g_idle_source_new();
       g_source_set_callback(
         source,
-        [](gpointer userData) -> gboolean {
-          auto* player = static_cast<TizenVideoPlayer*>(userData);
-          player->mFinishedSignal.Emit();
-          player->Stop();
-          return G_SOURCE_REMOVE;
-        },
+        [](gpointer userData) -> gboolean
+      {
+        auto* player = static_cast<TizenVideoPlayer*>(userData);
+        player->mFinishedSignal.Emit();
+        player->Stop();
+        return G_SOURCE_REMOVE;
+      },
         player,
         nullptr);
       g_source_attach(source, context);
@@ -864,11 +865,9 @@ void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr na
 
     if(mCodecType != Dali::VideoPlayerPlugin::CodecType::DEFAULT)
     {
-      player_codec_type_e type = (mCodecType == Dali::VideoPlayerPlugin::CodecType::HW) ?
-                                 PLAYER_CODEC_TYPE_HW :
-                                 PLAYER_CODEC_TYPE_SW;
-      error = player_set_video_codec_type(mPlayer, type);
-      ret   = LogPlayerError(error);
+      player_codec_type_e type = (mCodecType == Dali::VideoPlayerPlugin::CodecType::HW) ? PLAYER_CODEC_TYPE_HW : PLAYER_CODEC_TYPE_SW;
+      error                    = player_set_video_codec_type(mPlayer, type);
+      ret                      = LogPlayerError(error);
       if(ret)
       {
         DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_video_codec_type() is failed\n");
@@ -963,11 +962,9 @@ void TizenVideoPlayer::InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow)
 
     if(mCodecType != Dali::VideoPlayerPlugin::CodecType::DEFAULT)
     {
-      player_codec_type_e type = (mCodecType == Dali::VideoPlayerPlugin::CodecType::HW) ?
-                                 PLAYER_CODEC_TYPE_HW :
-                                 PLAYER_CODEC_TYPE_SW;
-      error = player_set_video_codec_type(mPlayer, type);
-      ret   = LogPlayerError(error);
+      player_codec_type_e type = (mCodecType == Dali::VideoPlayerPlugin::CodecType::HW) ? PLAYER_CODEC_TYPE_HW : PLAYER_CODEC_TYPE_SW;
+      error                    = player_set_video_codec_type(mPlayer, type);
+      ret                      = LogPlayerError(error);
       if(ret)
       {
         DALI_LOG_ERROR("InitializeUnderlayMode, player_set_video_codec_type() is failed\n");
@@ -1248,7 +1245,7 @@ void TizenVideoPlayer::DestroyPlayer()
 void TizenVideoPlayer::SetCodecType(Dali::VideoPlayerPlugin::CodecType type)
 {
   int error;
-  int ret = 0;
+  int ret    = 0;
   mCodecType = type;
 
   if(mPlayerState != PLAYER_STATE_NONE)
@@ -1256,13 +1253,11 @@ void TizenVideoPlayer::SetCodecType(Dali::VideoPlayerPlugin::CodecType type)
     GetPlayerState(&mPlayerState);
 
     if(mPlayerState == PLAYER_STATE_IDLE &&
-      mCodecType != Dali::VideoPlayerPlugin::CodecType::DEFAULT)
+       mCodecType != Dali::VideoPlayerPlugin::CodecType::DEFAULT)
     {
-      player_codec_type_e type = (mCodecType == Dali::VideoPlayerPlugin::CodecType::HW) ?
-                                 PLAYER_CODEC_TYPE_HW :
-                                 PLAYER_CODEC_TYPE_SW;
-      error = player_set_video_codec_type(mPlayer, type);
-      ret   = LogPlayerError(error);
+      player_codec_type_e type = (mCodecType == Dali::VideoPlayerPlugin::CodecType::HW) ? PLAYER_CODEC_TYPE_HW : PLAYER_CODEC_TYPE_SW;
+      error                    = player_set_video_codec_type(mPlayer, type);
+      ret                      = LogPlayerError(error);
       if(ret)
       {
         DALI_LOG_ERROR("SetCodecType, player_set_video_codec_type() is failed\n");
@@ -1478,7 +1473,6 @@ void TizenVideoPlayer::SceneDisconnection()
   }
   mIsSceneConnected = false;
 }
-
 
 void TizenVideoPlayer::SetAutoRotationEnabled(bool enable)
 {

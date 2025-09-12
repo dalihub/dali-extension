@@ -20,7 +20,9 @@
 
 // EXTERNAL INCLUDES
 #include <string>
+
 #include <dali/public-api/math/vector4.h>
+
 #include <dali/devel-api/adaptor-framework/color-controller-plugin.h>
 
 namespace Dali
@@ -31,9 +33,7 @@ namespace Plugin
 
 class TizenColorController : public Dali::ColorControllerPlugin
 {
-
 public:
-
   /**
    * @brief TizenColorController constructor.
    */
@@ -48,14 +48,14 @@ public:
   /**
    * @copydoc Dali::ColorControllerPlugin::RetrieveColor(const std::string&, Vector4&)
    */
-  virtual bool RetrieveColor( const std::string& colorCode, Vector4& colorValue ) const;
+  virtual bool RetrieveColor(const std::string& colorCode, Vector4& colorValue) const;
 
   /**
    * @copydoc Dali::ColorControllerPlugin::RetrieveColor(const std::string&, Vector4&, Vector4&, Vector4&)
    */
-  virtual bool RetrieveColor( const std::string& colorCode , Vector4& textColor, Vector4& textOutlineColor, Vector4& textShadowColor ) const;
+  virtual bool RetrieveColor(const std::string& colorCode, Vector4& textColor, Vector4& textOutlineColor, Vector4& textShadowColor) const;
 };
 
-}
-}
+} //namespace Plugin
+} //namespace Dali
 #endif // DALI_TIZEN_COLOR_CONTROLLER_PLUGIN_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,13 @@ namespace Plugin
 {
 
 TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context)
-  : mWebSecurityOriginAcquiredCallback(nullptr)
-  , mWebStorageUsageAcquiredCallback(nullptr)
-  , mWebFormPasswordAcquiredCallback(nullptr)
-  , mWebDownloadStartedCallback(nullptr)
-  , mWebMimeOverriddenCallback(nullptr)
-  , mWebRequestInterceptedCallback(nullptr)
-  , mEwkContext(context)
+: mWebSecurityOriginAcquiredCallback(nullptr),
+  mWebStorageUsageAcquiredCallback(nullptr),
+  mWebFormPasswordAcquiredCallback(nullptr),
+  mWebDownloadStartedCallback(nullptr),
+  mWebMimeOverriddenCallback(nullptr),
+  mWebRequestInterceptedCallback(nullptr),
+  mEwkContext(context)
 {
 }
 
@@ -119,7 +119,7 @@ bool TizenWebEngineContext::GetWebStorageOrigins(Dali::WebEngineContext::WebEngi
 
 bool TizenWebEngineContext::GetWebStorageUsageForOrigin(WebEngineSecurityOrigin& origin, Dali::WebEngineContext::WebEngineStorageUsageAcquiredCallback callback)
 {
-  mWebStorageUsageAcquiredCallback = callback;
+  mWebStorageUsageAcquiredCallback           = callback;
   TizenWebEngineSecurityOrigin* engineOrigin = static_cast<TizenWebEngineSecurityOrigin*>(&origin);
   return ewk_context_web_storage_usage_for_origin_get(mEwkContext, engineOrigin->GetSecurityOrigin(), &TizenWebEngineContext::OnStorageUsageAcquired, this);
 }
@@ -160,7 +160,7 @@ void TizenWebEngineContext::GetFormPasswordList(Dali::WebEngineContext::WebEngin
 void TizenWebEngineContext::RegisterDownloadStartedCallback(Dali::WebEngineContext::WebEngineDownloadStartedCallback callback)
 {
   mWebDownloadStartedCallback = callback;
-  if (mWebDownloadStartedCallback)
+  if(mWebDownloadStartedCallback)
   {
     ewk_context_did_start_download_callback_set(mEwkContext, &TizenWebEngineContext::OnDownloadStarted, this);
   }
@@ -173,7 +173,7 @@ void TizenWebEngineContext::RegisterDownloadStartedCallback(Dali::WebEngineConte
 void TizenWebEngineContext::RegisterMimeOverriddenCallback(Dali::WebEngineContext::WebEngineMimeOverriddenCallback callback)
 {
   mWebMimeOverriddenCallback = callback;
-  if (mWebMimeOverriddenCallback)
+  if(mWebMimeOverriddenCallback)
   {
     ewk_context_mime_override_callback_set(mEwkContext, &TizenWebEngineContext::OnMimeOverridden, this);
   }
@@ -186,7 +186,7 @@ void TizenWebEngineContext::RegisterMimeOverriddenCallback(Dali::WebEngineContex
 void TizenWebEngineContext::RegisterRequestInterceptedCallback(Dali::WebEngineContext::WebEngineRequestInterceptedCallback callback)
 {
   mWebRequestInterceptedCallback = callback;
-  if (mWebRequestInterceptedCallback)
+  if(mWebRequestInterceptedCallback)
   {
     ewk_context_intercept_request_callback_set(mEwkContext, &TizenWebEngineContext::OnRequestIntercepted, this);
   }
@@ -244,7 +244,7 @@ float TizenWebEngineContext::GetDefaultZoomFactor() const
 void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes)
 {
   Eina_List* list = nullptr;
-  for (std::vector<std::string>::const_iterator it = schemes.begin(); it != schemes.end(); ++it)
+  for(std::vector<std::string>::const_iterator it = schemes.begin(); it != schemes.end(); ++it)
   {
     list = eina_list_append(list, (*it).c_str());
   }
@@ -254,7 +254,7 @@ void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<st
 void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)
 {
   Eina_List* list = nullptr;
-  for (std::vector<std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); ++it)
+  for(std::vector<std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); ++it)
   {
     list = eina_list_append(list, (*it).c_str());
   }
@@ -274,7 +274,7 @@ bool TizenWebEngineContext::DeleteAllWebIndexedDatabase()
 void TizenWebEngineContext::DeleteFormPasswordDataList(const std::vector<std::string>& list)
 {
   Eina_List* eList = nullptr;
-  for (std::vector<std::string>::const_iterator it = list.begin(); it != list.end(); ++it)
+  for(std::vector<std::string>::const_iterator it = list.begin(); it != list.end(); ++it)
   {
     eList = eina_list_append(eList, (*it).c_str());
   }
@@ -298,7 +298,7 @@ bool TizenWebEngineContext::FreeUnusedMemory()
 
 void TizenWebEngineContext::RequestIntercepted(Dali::WebEngineRequestInterceptorPtr interceptor)
 {
-  if (mWebRequestInterceptedCallback)
+  if(mWebRequestInterceptedCallback)
   {
     mWebRequestInterceptedCallback(interceptor);
   }
@@ -306,23 +306,23 @@ void TizenWebEngineContext::RequestIntercepted(Dali::WebEngineRequestInterceptor
 
 void TizenWebEngineContext::OnRequestIntercepted(Ewk_Context*, Ewk_Intercept_Request* request, void* userData)
 {
-  TizenWebEngineContext* pThis = static_cast<TizenWebEngineContext*>(userData);
+  TizenWebEngineContext*               pThis          = static_cast<TizenWebEngineContext*>(userData);
   Dali::WebEngineRequestInterceptorPtr webInterceptor = new TizenWebEngineRequestInterceptor(request);
   pThis->RequestIntercepted(webInterceptor);
 }
 
 void TizenWebEngineContext::OnSecurityOriginsAcquired(Eina_List* origins, void* userData)
 {
-  TizenWebEngineContext* pThis = static_cast<TizenWebEngineContext*>(userData);
+  TizenWebEngineContext*                                      pThis = static_cast<TizenWebEngineContext*>(userData);
   std::vector<std::unique_ptr<Dali::WebEngineSecurityOrigin>> originsList;
 
-  Eina_List* it = nullptr;
-  void* data = nullptr;
+  Eina_List* it   = nullptr;
+  void*      data = nullptr;
   EINA_LIST_FOREACH(origins, it, data)
   {
-    if (data)
+    if(data)
     {
-      Ewk_Security_Origin* securityOrigin = static_cast<Ewk_Security_Origin*>(data);
+      Ewk_Security_Origin*                           securityOrigin = static_cast<Ewk_Security_Origin*>(data);
       std::unique_ptr<Dali::WebEngineSecurityOrigin> origin(new TizenWebEngineSecurityOrigin(securityOrigin));
       originsList.push_back(std::move(origin));
     }
@@ -339,18 +339,18 @@ void TizenWebEngineContext::OnStorageUsageAcquired(uint64_t usage, void* userDat
 
 void TizenWebEngineContext::OnFormPasswordsAcquired(Eina_List* list, void* userData)
 {
-  TizenWebEngineContext* pThis = static_cast<TizenWebEngineContext*>(userData);
+  TizenWebEngineContext*                                             pThis = static_cast<TizenWebEngineContext*>(userData);
   std::vector<std::unique_ptr<Dali::WebEngineContext::PasswordData>> passwordDataList;
 
-  Eina_List* it = nullptr;
-  void* data = nullptr;
+  Eina_List* it   = nullptr;
+  void*      data = nullptr;
   EINA_LIST_FOREACH(list, it, data)
   {
-    if (data)
+    if(data)
     {
-      Ewk_Password_Data* ewkPassword = static_cast<Ewk_Password_Data*>(data);
+      Ewk_Password_Data*                                    ewkPassword = static_cast<Ewk_Password_Data*>(data);
       std::unique_ptr<Dali::WebEngineContext::PasswordData> passwordData(new Dali::WebEngineContext::PasswordData());
-      passwordData->url = ewkPassword->url;
+      passwordData->url            = ewkPassword->url;
       passwordData->useFingerprint = ewkPassword->useFingerprint;
       passwordDataList.push_back(std::move(passwordData));
     }
@@ -368,9 +368,9 @@ void TizenWebEngineContext::OnDownloadStarted(const char* downloadUrl, void* use
 Eina_Bool TizenWebEngineContext::OnMimeOverridden(const char* url, const char* defaultMime, char** newMime, void* userData)
 {
   TizenWebEngineContext* pThis = static_cast<TizenWebEngineContext*>(userData);
-  std::string newOverridingMime;
-  bool result = pThis->mWebMimeOverriddenCallback(url, defaultMime, newOverridingMime);
-  if (result)
+  std::string            newOverridingMime;
+  bool                   result = pThis->mWebMimeOverriddenCallback(url, defaultMime, newOverridingMime);
+  if(result)
   {
     // this memory would be freed by chromium-efl if mime-overridden-callback returns true.
     *newMime = strdup(newOverridingMime.c_str());

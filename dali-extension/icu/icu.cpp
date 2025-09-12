@@ -28,14 +28,14 @@
 // INTERNAL INCLUDES
 
 // The plugin factories
-extern "C" DALI_EXPORT_API Dali::TextAbstraction::ICUPlugin *CreateICUPlugin()
+extern "C" DALI_EXPORT_API Dali::TextAbstraction::ICUPlugin* CreateICUPlugin()
 {
   return new Dali::Plugin::ICU();
 }
 
-extern "C" DALI_EXPORT_API void DestroyICUPlugin(Dali::TextAbstraction::ICUPlugin *plugin)
+extern "C" DALI_EXPORT_API void DestroyICUPlugin(Dali::TextAbstraction::ICUPlugin* plugin)
 {
-  if (plugin != nullptr)
+  if(plugin != nullptr)
   {
     delete plugin;
   }
@@ -51,12 +51,10 @@ namespace
 
 ICU::ICU()
 {
-
 }
 
 ICU::~ICU()
 {
-
 }
 
 void ICU::UpdateLineBreakInfoByLocale(const std::string&              text,
@@ -73,7 +71,7 @@ void ICU::UpdateLineBreakInfoByLocale(const std::string&              text,
 
   icu::Locale icuLocale(locale);
 
-  UErrorCode status = U_ZERO_ERROR;
+  UErrorCode                          status = U_ZERO_ERROR;
   std::unique_ptr<icu::BreakIterator> lineIterator(icu::BreakIterator::createLineInstance(icuLocale, status));
 
   if(U_FAILURE(status))

@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_THREAD_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@
 #include <memory>
 
 // INTERNAL INCLUDES
-#include <dali-extension/internal/rive-animation-view/round-robin-container-view.h>
 #include <dali-extension/internal/rive-animation-view/rive-animation-task.h>
 #include <dali-extension/internal/rive-animation-view/rive-rasterize-thread.h>
+#include <dali-extension/internal/rive-animation-view/round-robin-container-view.h>
 
 namespace Dali
 {
@@ -103,7 +103,7 @@ private:
     void Rasterize(RiveAnimationTaskPtr task);
 
   public:
-    RasterizeHelper(const RasterizeHelper&) = delete;
+    RasterizeHelper(const RasterizeHelper&)            = delete;
     RasterizeHelper& operator=(const RasterizeHelper&) = delete;
 
     RasterizeHelper(RasterizeHelper&& rhs);
@@ -148,7 +148,7 @@ private:
     void Run() override;
 
   private:
-    SleepThread(const SleepThread& thread) = delete;
+    SleepThread(const SleepThread& thread)            = delete;
     SleepThread& operator=(const SleepThread& thread) = delete;
 
   private:
@@ -168,9 +168,9 @@ private:
   RiveAnimationThread& operator=(const RiveAnimationThread& thread) = delete;
 
 private:
-  std::vector<RiveAnimationTaskPtr>      mAnimationTasks;
-  std::vector<RiveAnimationTaskPtr>      mCompletedTasks;
-  std::vector<RiveAnimationTaskPtr>      mWorkingTasks;
+  std::vector<RiveAnimationTaskPtr>        mAnimationTasks;
+  std::vector<RiveAnimationTaskPtr>        mCompletedTasks;
+  std::vector<RiveAnimationTaskPtr>        mWorkingTasks;
   RoundRobinContainerView<RasterizeHelper> mRasterizers;
   SleepThread                              mSleepThread;
   ConditionalWait                          mConditionalWait;

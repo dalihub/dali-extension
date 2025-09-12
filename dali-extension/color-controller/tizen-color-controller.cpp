@@ -22,7 +22,7 @@
 #include <dali/public-api/common/constants.h>
 
 // The plugin factories
-extern "C" DALI_EXPORT_API Dali::ColorControllerPlugin* CreateColorControllerPlugin( void )
+extern "C" DALI_EXPORT_API Dali::ColorControllerPlugin* CreateColorControllerPlugin(void)
 {
   return new Dali::Plugin::TizenColorController;
 }
@@ -41,20 +41,20 @@ TizenColorController::~TizenColorController()
 {
 }
 
-bool TizenColorController::RetrieveColor( const std::string& colorCode, Vector4& colorValue ) const
+bool TizenColorController::RetrieveColor(const std::string& colorCode, Vector4& colorValue) const
 {
   colorValue = Color::WHITE;
   return true;
 }
 
-bool TizenColorController::RetrieveColor( const std::string& colorCode , Vector4& textColor, Vector4& textOutlineColor, Vector4& textShadowColor ) const
+bool TizenColorController::RetrieveColor(const std::string& colorCode, Vector4& textColor, Vector4& textOutlineColor, Vector4& textShadowColor) const
 {
-  textColor = Color::WHITE;
+  textColor        = Color::WHITE;
   textOutlineColor = Color::WHITE;
-  textShadowColor = Color::WHITE;
+  textShadowColor  = Color::WHITE;
   return true;
 }
 
 } // namespace Plugin
 
-} // namespace Dali;
+} //namespace Dali

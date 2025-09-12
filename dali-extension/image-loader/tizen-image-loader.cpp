@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ namespace Plugin
 namespace
 {
 /**
-   * Enum for file formats, has to be in sync with BITMAP_LOADER_LOOKUP_TABLE
-   */
+ * Enum for file formats, has to be in sync with BITMAP_LOADER_LOOKUP_TABLE
+ */
 enum FileFormats
 {
   // Unknown file format
@@ -55,9 +55,9 @@ enum FileFormats
 };
 
 /**
-   * A lookup table containing all the bitmap loaders with the appropriate information.
-   * Has to be in sync with enum FileFormats
-   */
+ * A lookup table containing all the bitmap loaders with the appropriate information.
+ * Has to be in sync with enum FileFormats
+ */
 const Dali::ImageLoader::BitmapLoader BITMAP_LOADER_LOOKUP_TABLE[FORMAT_TOTAL_COUNT] =
   {
     {0x0, 0x0, LoadBitmapFromImage, nullptr, LoadImageHeader, Dali::Integration::Bitmap::BITMAP_2D_PACKED_PIXELS},

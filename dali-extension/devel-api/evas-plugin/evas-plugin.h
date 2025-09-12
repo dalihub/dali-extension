@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_EVAS_PLUGIN_H
 
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,11 +198,9 @@ class EvasPlugin;
 class DALI_IMPORT_API EvasPlugin : public Dali::BaseHandle
 {
 public:
-
-  typedef Signal<void (void)> EvasPluginSignalType;
+  typedef Signal<void(void)> EvasPluginSignalType;
 
 public:
-
   /**
    * @brief This is the constructor of EvasPlugin for Tizen EFL applications
    *
@@ -211,7 +209,7 @@ public:
    * @param[in] height The initial height of the default scene
    * @param[in] isTranslucent Whether the Evas object is translucent or not
    */
-  static EvasPlugin New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
+  static EvasPlugin New(Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent);
 
   /**
    * @brief Constructs an empty handle
@@ -221,12 +219,12 @@ public:
   /**
    * @brief Copy constructor
    */
-  EvasPlugin( const EvasPlugin& evasPlugin );
+  EvasPlugin(const EvasPlugin& evasPlugin);
 
   /**
    * @brief Assignment operator
    */
-  EvasPlugin& operator=( const EvasPlugin& evasPlugin );
+  EvasPlugin& operator=(const EvasPlugin& evasPlugin);
 
   /**
    * @brief Destructor
@@ -234,7 +232,6 @@ public:
   ~EvasPlugin();
 
 public:
-
   /**
    * @brief Runs the Evas plugin (rendering, event handling, etc)
    */
@@ -256,7 +253,6 @@ public:
    * @brief Stops the Evas plugin
    */
   void Stop();
-
 
   /**
    * @brief Get the default Scene handle
@@ -286,8 +282,7 @@ public:
    */
   Evas_Object* GetDaliEvasObject();
 
-public:  // Signals
-
+public: // Signals
   /**
    * @brief Signal to notify the client when the application is ready to be initialized
    *
@@ -355,16 +350,15 @@ public: // Not intended for application developers
   /**
    * @brief Internal constructor
    */
-  explicit DALI_INTERNAL EvasPlugin( Internal::EvasPlugin* evasPlugin );
-
+  explicit DALI_INTERNAL EvasPlugin(Internal::EvasPlugin* evasPlugin);
 };
 
 /**
  * @}
  */
 
-}  // namespace Extension
+} // namespace Extension
 
-}  // namespace Dali
+} // namespace Dali
 
 #endif // DALI_EXTENSION_EVAS_PLUGIN_H

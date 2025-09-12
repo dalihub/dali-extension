@@ -46,9 +46,7 @@ namespace Internal
  */
 class EvasWrapper
 {
-
 public:
-
   /**
    * @brief Constructor
    * @param[in] pluginParent An parent evas object of a evas plugin
@@ -56,7 +54,7 @@ public:
    * @param[in] height The initial height of the Dali view port
    * @param[in] transparent Whether the Evas object is transparent or not
    */
-  EvasWrapper( Evas_Object* pluginParent, uint16_t width, uint16_t height, bool transparent );
+  EvasWrapper(Evas_Object* pluginParent, uint16_t width, uint16_t height, bool transparent);
 
   /**
    * @brief Destructor
@@ -101,7 +99,7 @@ public:
   /**
    * @brief Bind a tbm surface
    */
-  void BindTBMSurface( tbm_surface_h surface );
+  void BindTBMSurface(tbm_surface_h surface);
 
   /**
    * @brief Request rendering
@@ -109,17 +107,16 @@ public:
   void RequestRender();
 
 private:
-
   Ecore_Evas*  mEcoreEvas;
   Evas_Object* mImageEvasObject;
   Evas_Object* mAccessibilityEvasObject;
   Evas_Object* mFocusEvasObject;
 };
 
-}  // namespace Internal
+} // namespace Internal
 
-}  // namespace Extension
+} // namespace Extension
 
-}  // namespace Dali
+} // namespace Dali
 
 #endif // DALI_EXTENSION_INTERNAL_EVAS_WRAPPER

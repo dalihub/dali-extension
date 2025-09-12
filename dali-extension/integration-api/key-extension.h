@@ -19,9 +19,9 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/public-api/events/key-event.h>
-#include <dali/public-api/adaptor-framework/key.h>
 #include <dali/devel-api/adaptor-framework/key-extension-plugin.h>
+#include <dali/public-api/adaptor-framework/key.h>
+#include <dali/public-api/events/key-event.h>
 
 namespace Dali
 {
@@ -42,15 +42,13 @@ enum EXTENSION_KEY
  * @param daliKey Dali extension key enum
  * @return true if the key is matched, @c false if not
  */
-DALI_IMPORT_API bool IsExtensionKey( const Dali::KeyEvent& keyEvent, Dali::EXTENSION_KEY daliKey);
+DALI_IMPORT_API bool IsExtensionKey(const Dali::KeyEvent& keyEvent, Dali::EXTENSION_KEY daliKey);
 
 namespace Plugin
 {
 class KeyExtension : public Dali::KeyExtensionPlugin
 {
-
 public:
-
   /**
    * @brief KeyExtension constructor.
    * @SINCE_1_2.43
@@ -80,6 +78,6 @@ public:
   virtual std::size_t GetKeyLookupTableCount();
 };
 
-}
-}
+} //namespace Plugin
+} //namespace Dali
 #endif

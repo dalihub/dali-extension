@@ -27,11 +27,11 @@ namespace Dali
 namespace Extension
 {
 
-EvasPlugin EvasPlugin::New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
+EvasPlugin EvasPlugin::New(Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent)
 {
-  IntrusivePtr< Internal::EvasPlugin > impl = Internal::EvasPlugin::New( parentEvasObject, width, height, isTranslucent );
+  IntrusivePtr<Internal::EvasPlugin> impl = Internal::EvasPlugin::New(parentEvasObject, width, height, isTranslucent);
 
-  EvasPlugin evasPlugin = EvasPlugin( impl.Get() );
+  EvasPlugin evasPlugin = EvasPlugin(impl.Get());
 
   return evasPlugin;
 }
@@ -40,16 +40,16 @@ EvasPlugin::EvasPlugin()
 {
 }
 
-EvasPlugin::EvasPlugin( const EvasPlugin& evasPlugin )
-: BaseHandle( evasPlugin )
+EvasPlugin::EvasPlugin(const EvasPlugin& evasPlugin)
+: BaseHandle(evasPlugin)
 {
 }
 
-EvasPlugin& EvasPlugin::operator=( const EvasPlugin& evasPlugin )
+EvasPlugin& EvasPlugin::operator=(const EvasPlugin& evasPlugin)
 {
-  if( *this != evasPlugin )
+  if(*this != evasPlugin)
   {
-    BaseHandle::operator=( evasPlugin );
+    BaseHandle::operator=(evasPlugin);
   }
   return *this;
 }
@@ -60,79 +60,79 @@ EvasPlugin::~EvasPlugin()
 
 void EvasPlugin::Run()
 {
-  Internal::GetImplementation( *this ).Run();
+  Internal::GetImplementation(*this).Run();
 }
 
 void EvasPlugin::Pause()
 {
-  Internal::GetImplementation( *this ).Pause();
+  Internal::GetImplementation(*this).Pause();
 }
 
 void EvasPlugin::Resume()
 {
-  Internal::GetImplementation( *this ).Resume();
+  Internal::GetImplementation(*this).Resume();
 }
 
 void EvasPlugin::Stop()
 {
-  Internal::GetImplementation( *this ).Stop();
+  Internal::GetImplementation(*this).Stop();
 }
 
 Scene EvasPlugin::GetDefaultScene()
 {
-  return Internal::GetImplementation( *this ).GetDefaultScene();
+  return Internal::GetImplementation(*this).GetDefaultScene();
 }
 
 Evas_Object* EvasPlugin::GetAccessEvasObject()
 {
-  return Internal::GetImplementation( *this ).GetAccessEvasObject();
+  return Internal::GetImplementation(*this).GetAccessEvasObject();
 }
 
 Evas_Object* EvasPlugin::GetDaliEvasObject()
 {
-  return Internal::GetImplementation( *this ).GetDaliEvasObject();
+  return Internal::GetImplementation(*this).GetDaliEvasObject();
 }
 
 EvasPlugin::EvasPluginSignalType& EvasPlugin::InitSignal()
 {
-  return Internal::GetImplementation( *this ).InitSignal();
+  return Internal::GetImplementation(*this).InitSignal();
 }
 
 EvasPlugin::EvasPluginSignalType& EvasPlugin::TerminateSignal()
 {
-  return Internal::GetImplementation( *this ).TerminateSignal();
+  return Internal::GetImplementation(*this).TerminateSignal();
 }
 
 EvasPlugin::EvasPluginSignalType& EvasPlugin::PauseSignal()
 {
-  return Internal::GetImplementation( *this ).PauseSignal();
+  return Internal::GetImplementation(*this).PauseSignal();
 }
 
 EvasPlugin::EvasPluginSignalType& EvasPlugin::ResumeSignal()
 {
-  return Internal::GetImplementation( *this ).ResumeSignal();
+  return Internal::GetImplementation(*this).ResumeSignal();
 }
 
 EvasPlugin::EvasPluginSignalType& EvasPlugin::ResizeSignal()
 {
-  return Internal::GetImplementation( *this ).ResizeSignal();
+  return Internal::GetImplementation(*this).ResizeSignal();
 }
 
 EvasPlugin::EvasPluginSignalType& EvasPlugin::FocusedSignal()
 {
-  return Internal::GetImplementation( *this ).FocusedSignal();
+  return Internal::GetImplementation(*this).FocusedSignal();
 }
 
 EvasPlugin::EvasPluginSignalType& EvasPlugin::UnFocusedSignal()
 {
-  return Internal::GetImplementation( *this ).UnFocusedSignal();
+  return Internal::GetImplementation(*this).UnFocusedSignal();
 }
 
-EvasPlugin::EvasPlugin( Internal::EvasPlugin* evasPlugin )
-: BaseHandle( evasPlugin )
+EvasPlugin::EvasPlugin(Internal::EvasPlugin* evasPlugin)
+: BaseHandle(evasPlugin)
 {
 }
 
-}  // namespace Extension
+} // namespace Extension
 
-}  // namespace Dali
+} // namespace Dali

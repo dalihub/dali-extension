@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ namespace Plugin
 {
 
 TizenWebEngineContextMenuItem::TizenWebEngineContextMenuItem(Ewk_Context_Menu_Item* item)
-  : ewkContextMenuItem(item)
+: ewkContextMenuItem(item)
 {
 }
 
@@ -70,7 +70,7 @@ std::string TizenWebEngineContextMenuItem::GetTitle() const
 
 std::unique_ptr<Dali::WebEngineContextMenu> TizenWebEngineContextMenuItem::GetParentMenu() const
 {
-  Ewk_Context_Menu* menu = ewk_context_menu_item_parent_menu_get(ewkContextMenuItem);
+  Ewk_Context_Menu*                           menu = ewk_context_menu_item_parent_menu_get(ewkContextMenuItem);
   std::unique_ptr<Dali::WebEngineContextMenu> webEngineContextMenu(new TizenWebEngineContextMenu(menu));
   return webEngineContextMenu;
 }

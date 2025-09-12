@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include "tizen-web-engine-console-message.h"
 #include "tizen-web-engine-context-menu-item.h"
 #include "tizen-web-engine-context-menu.h"
+#include "tizen-web-engine-device-list-get.h"
 #include "tizen-web-engine-form-repost-decision.h"
 #include "tizen-web-engine-hit-test.h"
 #include "tizen-web-engine-http-auth-handler.h"
@@ -30,7 +31,6 @@
 #include "tizen-web-engine-policy-decision.h"
 #include "tizen-web-engine-settings.h"
 #include "tizen-web-engine-user-media-permission-request.h"
-#include "tizen-web-engine-device-list-get.h"
 
 #include <Ecore_Evas.h>
 #include <Ecore_Input_Evas.h>
@@ -237,7 +237,7 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
   evas_object_smart_callback_add(mWebView, "webauth,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
   evas_object_smart_callback_add(mWebView, "webauth,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
-  
+
   ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
   evas_object_smart_callback_add(mWebView, "device,connection,changed", &TizenWebEngineChromium::OnDeviceConnectionChanged, this);
 
@@ -801,7 +801,7 @@ bool TizenWebEngineChromium::SetImePositionAndAlignment(Dali::Vector2 position, 
 void TizenWebEngineChromium::SetCursorThemeName(const std::string themeName)
 {
   Ecore_Wl2_Display* display = ecore_wl2_connected_display_get(nullptr);
-  Ecore_Wl2_Input* input = ecore_wl2_input_default_input_get(display);
+  Ecore_Wl2_Input*   input   = ecore_wl2_input_default_input_get(display);
   ecore_wl2_input_cursor_theme_name_set(input, themeName.c_str());
 }
 
@@ -863,7 +863,7 @@ void TizenWebEngineChromium::FeedMouseWheel(bool yDirection, int step, int x, in
 void TizenWebEngineChromium::SetVideoHole(bool enabled, bool isWaylandWindow)
 {
   Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
-  ewk_view_set_support_video_hole(mWebView, win, enabled, isWaylandWindow? EINA_TRUE: EINA_FALSE);
+  ewk_view_set_support_video_hole(mWebView, win, enabled, isWaylandWindow ? EINA_TRUE : EINA_FALSE);
 }
 
 Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
@@ -1112,8 +1112,6 @@ void TizenWebEngineChromium::RegisterDeviceListGetCallback(WebEngineDeviceListGe
   ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
 }
 
-
-
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
 {
   // color-space is argb8888.
@@ -1216,7 +1214,7 @@ void TizenWebEngineChromium::OnConsoleMessageReceived(void* data, Evas_Object*, 
 
 void TizenWebEngineChromium::OnDeviceConnectionChanged(void* data, Evas_Object* obj, void* info)
 {
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto pThis       = static_cast<TizenWebEngineChromium*>(data);
   int* device_type = (int*)info;
 
   DALI_LOG_RELEASE_INFO("#DeviceConnectionChanged : device_type=%d\n", *device_type);
@@ -1230,7 +1228,6 @@ void TizenWebEngineChromium::OnDeviceListGet(EwkMediaDeviceInfo* device_list, in
   pThis->mDeviceListGet = new TizenWebEngineDeviceListGet(device_list, size);
   ExecuteCallback(pThis->mDeviceListGetCallback, pThis->mDeviceListGet, (int32_t)size);
 }
-
 
 void TizenWebEngineChromium::OnEdgeLeft(void* data, Evas_Object*, void*)
 {

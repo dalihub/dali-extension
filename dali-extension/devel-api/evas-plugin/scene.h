@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_SCENE_H
 
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,17 +64,15 @@ class Scene;
 class DALI_IMPORT_API Scene : public Dali::BaseHandle
 {
 public:
-
   typedef Uint16Pair SceneSize;
 
-  typedef Signal<void (Scene, bool)> VisibilityChangedSignalType;
+  typedef Signal<void(Scene, bool)> VisibilityChangedSignalType;
 
-  typedef Signal<void (Scene, bool)> FocusChangedSignalType;
+  typedef Signal<void(Scene, bool)> FocusChangedSignalType;
 
-  typedef Signal<void (Scene, uint16_t, uint16_t)> ResizedSignalType;
+  typedef Signal<void(Scene, uint16_t, uint16_t)> ResizedSignalType;
 
 public:
-
   /**
    * @brief Creates an initialized handle to a new Scene
    * @note You should hold the returned handle. If you missed the handle, the scene will be released
@@ -85,7 +83,7 @@ public:
    * @param[in] height The initial height of the scene
    * @param[in] isTranslucent Whether the Evas object is translucent or not
    */
-  static Scene New( EvasPlugin evasPlugin, Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent );
+  static Scene New(EvasPlugin evasPlugin, Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent);
 
   /**
    * @brief Constructs an empty handle
@@ -95,12 +93,12 @@ public:
   /**
    * @brief Copy constructor
    */
-  Scene( const Scene& scene );
+  Scene(const Scene& scene);
 
   /**
    * @brief Assignment operator
    */
-  Scene& operator=( const Scene& scene );
+  Scene& operator=(const Scene& scene);
 
   /**
    * @brief Destructor
@@ -117,7 +115,7 @@ public:
    * @pre The actor has been initialized.
    * @pre The actor does not have a parent.
    */
-  void Add( Actor actor );
+  void Add(Actor actor);
 
   /**
    * @brief Removes a child Actor from the Scene.
@@ -127,14 +125,14 @@ public:
    * @param[in] actor The child
    * @pre The actor has been added to the Scene.
    */
-  void Remove( Actor actor );
+  void Remove(Actor actor);
 
   /**
    * @brief Sets the background color of the Scene.
    *
    * @param[in] color The new background color
    */
-  void SetBackgroundColor( const Vector4& color );
+  void SetBackgroundColor(const Vector4& color);
 
   /**
    * @brief Gets the background color of the Scene.
@@ -167,7 +165,7 @@ public:
    * @return The layer found at the given depth
    * @pre Depth is less than layer count; see GetLayerCount().
    */
-  Layer GetLayer( uint32_t depth ) const;
+  Layer GetLayer(uint32_t depth) const;
 
   /**
    * @brief Returns the size of the Scene in pixels as a Vector.
@@ -197,8 +195,7 @@ public:
    */
   Evas_Object* GetDaliEvasObject();
 
-public:  // Signals
-
+public: // Signals
   /**
    * @brief Signal to notify the client when the Evas object's visibility is changed
    *
@@ -221,20 +218,18 @@ public:  // Signals
   FocusChangedSignalType& FocusChangedSignal();
 
 public: // Not intended for application developers
-
   /**
    * @brief Internal constructor
    */
-  explicit DALI_INTERNAL Scene( Internal::Scene* scene );
-
+  explicit DALI_INTERNAL Scene(Internal::Scene* scene);
 };
 
 /**
  * @}
  */
 
-}  // namespace Extension
+} // namespace Extension
 
-}  // namespace Dali
+} // namespace Dali
 
 #endif // DALI_EXTENSION_SCENE_H

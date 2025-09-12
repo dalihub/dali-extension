@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ namespace Plugin
 {
 
 TizenWebEngineBackForwardListItem::TizenWebEngineBackForwardListItem(Ewk_Back_Forward_List_Item* item, bool willItemBeDeleted)
-  : mEwkBackForwardListItem(item)
-  , mWillItemBeDeleted(willItemBeDeleted)
+: mEwkBackForwardListItem(item),
+  mWillItemBeDeleted(willItemBeDeleted)
 {
 }
 
 TizenWebEngineBackForwardListItem::~TizenWebEngineBackForwardListItem()
 {
-  if (mWillItemBeDeleted)
+  if(mWillItemBeDeleted)
   {
     ewk_back_forward_list_item_unref(mEwkBackForwardListItem);
   }

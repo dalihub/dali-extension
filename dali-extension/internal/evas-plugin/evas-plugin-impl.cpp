@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,33 +34,33 @@ namespace Extension
 namespace Internal
 {
 
-IntrusivePtr< EvasPlugin > EvasPlugin::New( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
+IntrusivePtr<EvasPlugin> EvasPlugin::New(Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent)
 {
-  IntrusivePtr< EvasPlugin > evasPlugin = new EvasPlugin( parentEvasObject, width, height, isTranslucent );
+  IntrusivePtr<EvasPlugin> evasPlugin = new EvasPlugin(parentEvasObject, width, height, isTranslucent);
   return evasPlugin;
 }
 
-EvasPlugin::EvasPlugin( Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
-: mState( READY )
+EvasPlugin::EvasPlugin(Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent)
+: mState(READY)
 {
-  DALI_ASSERT_ALWAYS( parentEvasObject && "No parent object for the EvasPlugin." );
+  DALI_ASSERT_ALWAYS(parentEvasObject && "No parent object for the EvasPlugin.");
 
   // Generate a default scene
-  IntrusivePtr< Internal::Scene > scenePtr = Internal::Scene::New( parentEvasObject, width, height, isTranslucent );
+  IntrusivePtr<Internal::Scene> scenePtr = Internal::Scene::New(parentEvasObject, width, height, isTranslucent);
 
-  mDefaultScene = Extension::Scene( scenePtr.Get() );
+  mDefaultScene = Extension::Scene(scenePtr.Get());
 
   // Generate DALi adaptor
-  NativeRenderSurface* surface = static_cast<NativeRenderSurface*>( scenePtr->GetSurface() );
+  NativeRenderSurface* surface = static_cast<NativeRenderSurface*>(scenePtr->GetSurface());
 
-  mAdaptor = &Adaptor::New( Dali::Integration::SceneHolder( scenePtr.Get() ), *surface );
+  mAdaptor = &Adaptor::New(Dali::Integration::SceneHolder(scenePtr.Get()), *surface);
 
   // Initialize default scene
-  scenePtr->Initialize( this, true );
+  scenePtr->Initialize(this, true);
 
-  scenePtr->ResizedSignal().Connect( this, &EvasPlugin::OnDefaultSceneResized );
+  scenePtr->ResizedSignal().Connect(this, &EvasPlugin::OnDefaultSceneResized);
 
-  scenePtr->FocusChangedSignal().Connect( this, &EvasPlugin::OnDefaultSceneFocusChanged );
+  scenePtr->FocusChangedSignal().Connect(this, &EvasPlugin::OnDefaultSceneFocusChanged);
 }
 
 EvasPlugin::~EvasPlugin()
@@ -76,7 +76,7 @@ Adaptor* EvasPlugin::GetAdaptor()
 
 void EvasPlugin::Run()
 {
-  if( READY == mState )
+  if(READY == mState)
   {
     // Start the adaptor
     mAdaptor->Start();
@@ -93,7 +93,7 @@ void EvasPlugin::Run()
 
 void EvasPlugin::Pause()
 {
-  if( mState == RUNNING )
+  if(mState == RUNNING)
   {
     mState = SUSPENDED;
 
@@ -105,7 +105,7 @@ void EvasPlugin::Pause()
 
 void EvasPlugin::Resume()
 {
-  if( mState == SUSPENDED )
+  if(mState == SUSPENDED)
   {
     mAdaptor->Resume();
 
@@ -117,7 +117,7 @@ void EvasPlugin::Resume()
 
 void EvasPlugin::Stop()
 {
-  if( mState != STOPPED )
+  if(mState != STOPPED)
   {
     // Stop the adaptor
     mAdaptor->Stop();
@@ -142,14 +142,14 @@ Evas_Object* EvasPlugin::GetDaliEvasObject()
   return mDefaultScene.GetDaliEvasObject();
 }
 
-void EvasPlugin::OnDefaultSceneResized( Extension::Scene defaultScene, uint16_t width, uint16_t height )
+void EvasPlugin::OnDefaultSceneResized(Extension::Scene defaultScene, uint16_t width, uint16_t height)
 {
   mResizeSignal.Emit();
 }
 
-void EvasPlugin::OnDefaultSceneFocusChanged( Extension::Scene defaultScene, bool focused )
+void EvasPlugin::OnDefaultSceneFocusChanged(Extension::Scene defaultScene, bool focused)
 {
-  if( focused )
+  if(focused)
   {
     mFocusedSignal.Emit();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ namespace Plugin
 {
 
 TizenWebEngineCookieManager::TizenWebEngineCookieManager(Ewk_Cookie_Manager* manager)
-  : mEwkCookieManager(manager)
-  , mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
-  , mWebChangesWatchCallback(nullptr)
+: mEwkCookieManager(manager),
+  mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY),
+  mWebChangesWatchCallback(nullptr)
 {
 }
 
@@ -59,7 +59,7 @@ void TizenWebEngineCookieManager::ClearCookies()
 void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback)
 {
   mWebChangesWatchCallback = callback;
-  if (mWebChangesWatchCallback)
+  if(mWebChangesWatchCallback)
   {
     ewk_cookie_manager_changes_watch(mEwkCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, this);
   }
@@ -69,10 +69,10 @@ void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::Web
   }
 }
 
-void TizenWebEngineCookieManager::OnChangesWatch(void *data)
+void TizenWebEngineCookieManager::OnChangesWatch(void* data)
 {
   TizenWebEngineCookieManager* pThis = static_cast<TizenWebEngineCookieManager*>(data);
-  if (pThis->mWebChangesWatchCallback)
+  if(pThis->mWebChangesWatchCallback)
   {
     pThis->mWebChangesWatchCallback();
   }
