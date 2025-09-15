@@ -908,14 +908,14 @@ void TizenWebEngineLWE::DestroyRenderingContext()
 {
   DestroyRenderingSurface();
 
-  if(mEglContext != EGL_NO_CONTEXT)
-  {
-    eglDestroyContext(mEglDisplay, mEglContext);
-    mEglContext = EGL_NO_CONTEXT;
-  }
-
   if(mEglDisplay != EGL_NO_DISPLAY)
   {
+    if(mEglContext != EGL_NO_CONTEXT)
+    {
+      eglDestroyContext(mEglDisplay, mEglContext);
+      mEglContext = EGL_NO_CONTEXT;
+    }
+
     eglTerminate(mEglDisplay);
     mEglDisplay = EGL_NO_DISPLAY;
   }
