@@ -18,6 +18,9 @@
  *
  */
 
+// INTERNAL INCLUDES
+#include "tizen-video-constraint-helper.h"
+
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/video-player-plugin.h>
 #include <dali/devel-api/adaptor-framework/video-sync-mode.h>
@@ -29,6 +32,7 @@
 #include <player.h>
 #include <list>
 #include <string>
+#include <unordered_map>
 
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
@@ -177,6 +181,40 @@ public:
    * @copydoc Dali::VideoPlayerPlugin::IsLetterBoxEnabled() const
    */
   virtual bool IsLetterBoxEnabled() const;
+
+  /**
+   * @brief Sets the frame interpolation interval for smooth video playback.
+   *
+   * The interpolation factor will progress from 0.0 to 1.0 over this duration.
+   * This interval is applied after the next call to SetVideoFrameBuffer.
+   *
+   * @param[in] intervalSeconds The interpolation interval in seconds
+   */
+  virtual void SetFrameInterpolationInterval(float intervalSeconds);
+
+  /**
+   * @brief Enables or disables offscreen frame rendering for video interpolation.
+   *
+   * When enabled, the video player will use offscreen rendering for frame interpolation,
+   * which can improve visual quality for certain video content.
+   *
+   * @param[in] useOffScreenFrame True to enable offscreen frame rendering, false to disable
+   * @param[in] previousFrameBufferNativeImageSourcePtr Native image source for previous frame buffer
+   * @param[in] currentFrameBufferNativeImageSourcePtr Native image source for current frame buffer
+   */
+  virtual void EnableOffscreenFrameRendering(bool useOffScreenFrame, Dali::NativeImageSourcePtr previousFrameBufferNativeImageSourcePtr, Dali::NativeImageSourcePtr currentFrameBufferNativeImageSourcePtr);
+
+  /**
+   * @brief Sets the video frame buffer for rendering.
+   *
+   * This method sets the native image source that will be used as the frame buffer
+   * for video rendering. The frame buffer contains the surface data for video playback.
+   *
+   * @param[in] source The video frame buffer source containing surface data
+   */
+  virtual void SetVideoFrameBuffer(Dali::NativeImageSourcePtr source);
+
+  void DestroyVideoConstraint();
 
   /**
    * @brief Push media packet with video frame image
@@ -336,8 +374,14 @@ private:
   Ecore_Wl2_Subsurface*         mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
   Dali::WeakHandle<Dali::Actor> mSyncActor;
   Constraint                    mVideoSizePropertyConstraint;
+  Constraint                    mVideoFrameBufferConstraint;
   Property::Index               mVideoSizePropertyIndex;
+  Constraint                    mVideoFrameBufferProgressPropertyConstraint;
+  Property::Index               mVideoFrameBufferProgressPropertyIndex;
   Dali::VideoSyncMode           mSyncMode;
+
+  float   mInterpolationInterval{0.0f};
+  int32_t mVideoConstraintHelperId; ///< unique id for Rotation and Ratio constraint helper
 
   bool mIsMovedHandle; ///< the flag for moved the handle
   bool mIsSceneConnected;
@@ -345,8 +389,9 @@ private:
 #ifdef OVER_TIZEN_VERSION_9
   Ecore_Wl2_VideoShell_Surface* mEcoreVideoShellSurface;
 #endif
-  Constraint      mVideoShellSizePropertyConstraint;
-  Property::Index mVideoShellSizePropertyIndex;
+  Constraint                                mVideoShellSizePropertyConstraint;
+  Property::Index                           mVideoShellSizePropertyIndex;
+  Dali::IntrusivePtr<VideoConstraintHelper> mVideoConstraintHelper;
 
 public:
   Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;
