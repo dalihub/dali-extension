@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@
 #include "rive-animation-view-impl.h"
 
 // EXTERNAL INCLUDES
+#include <dali-toolkit/devel-api/controls/control-devel.h>
 #include <dali/devel-api/adaptor-framework/window-devel.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/rendering/renderer-devel.h>
+#include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/type-registry-helper.h>
 #include <dali/public-api/object/type-registry.h>
-#include <dali-toolkit/devel-api/controls/control-devel.h>
 
 // INTERNAL INCLUDES
 #include <dali-extension/devel-api/rive-animation-view/rive-animation-view.h>
@@ -78,10 +79,11 @@ DALI_PROPERTY_REGISTRATION(Extension, RiveAnimationView, "url", STRING, URL)
 DALI_PROPERTY_REGISTRATION(Extension, RiveAnimationView, "playState", INTEGER, PLAY_STATE)
 DALI_TYPE_REGISTRATION_END()
 
+// clang-format off
 const char* VERTEX_SHADER = DALI_COMPOSE_SHADER(
   attribute mediump vec2 aPosition;\n
-  uniform highp   mat4 uMvpMatrix;\n
-  uniform highp   vec3 uSize;\n
+  uniform highp mat4 uMvpMatrix;\n
+  uniform highp vec3 uSize;\n
   varying mediump vec2 vTexCoord;\n
   \n
   void main()\n
@@ -98,10 +100,10 @@ const char* FRAGMENT_SHADER = DALI_COMPOSE_SHADER(
   \n
   void main()\n
   {\n
-      gl_FragColor = texture2D( sTexture, vTexCoord ) * uColor;\n
+    gl_FragColor = texture2D(sTexture, vTexCoord) * uColor;\n
   }\n
 );
-
+// clang-format on
 #if defined(DEBUG_ENABLED)
 Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_RIVE_ANIMATION");
 #endif
@@ -152,7 +154,7 @@ void RiveAnimationView::OnSceneConnection(int depth)
 
   if(mLoadFailed)
   {
-    //TODO: do something
+    // TODO: do something
   }
   else
   {
@@ -177,7 +179,6 @@ void RiveAnimationView::OnSceneConnection(int depth)
   }
 
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationView::OnSceneConnection [%p]\n", this);
-
 }
 
 void RiveAnimationView::OnSceneDisconnection()
@@ -476,7 +477,7 @@ void RiveAnimationView::SetUrl(const std::string& url)
 
   Geometry geometry = CreateQuadGeometry();
   Shader   shader   = Shader::New(VERTEX_SHADER, FRAGMENT_SHADER);
-  mRenderer  = Renderer::New(geometry, shader);
+  mRenderer         = Renderer::New(geometry, shader);
 
   TextureSet textureSet = TextureSet::New();
   mRenderer.SetTextures(textureSet);
@@ -495,7 +496,7 @@ void RiveAnimationView::OnUploadCompleted()
     Self().AddRenderer(mRenderer);
     mRendererAdded = true;
 
-    //TODO: do something - resource ready
+    // TODO: do something - resource ready
 
     DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationView::OnUploadCompleted: Renderer is added [%p]\n", this);
   }
@@ -546,14 +547,14 @@ void RiveAnimationView::SendAnimationData()
 
 void RiveAnimationView::ClearAnimationsData()
 {
-    mAnimationData.animations.clear();
-    mAnimationData.elapsedTimes.clear();
-    mAnimationData.fillColors.clear();
-    mAnimationData.strokeColors.clear();
-    mAnimationData.opacities.clear();
-    mAnimationData.scales.clear();
-    mAnimationData.rotations.clear();
-    mAnimationData.positions.clear();
+  mAnimationData.animations.clear();
+  mAnimationData.elapsedTimes.clear();
+  mAnimationData.fillColors.clear();
+  mAnimationData.strokeColors.clear();
+  mAnimationData.opacities.clear();
+  mAnimationData.scales.clear();
+  mAnimationData.rotations.clear();
+  mAnimationData.positions.clear();
 }
 
 void RiveAnimationView::SetVectorImageSize()
@@ -574,6 +575,11 @@ void RiveAnimationView::TriggerVectorRasterization()
     auto& riveAnimationManager = RiveAnimationManager::GetInstance();
     riveAnimationManager.RegisterEventCallback(mEventCallback);
     Stage::GetCurrent().KeepRendering(0.0f); // Trigger event processing
+    if(DALI_LIKELY(Dali::Adaptor::IsAvailable()))
+    {
+      // Request ProcessEvents on idle to make ensure Processor executed.
+      Dali::Adaptor::Get().RequestProcessEventsOnIdle();
+    }
   }
 }
 
@@ -597,7 +603,7 @@ void RiveAnimationView::OnScaleNotification(PropertyNotification& source)
 
 void RiveAnimationView::OnSizeNotification(PropertyNotification& source)
 {
-  Vector3 size       = Self().GetCurrentProperty<Vector3>(Actor::Property::SIZE);
+  Vector3 size = Self().GetCurrentProperty<Vector3>(Actor::Property::SIZE);
   mSize.width  = size.width;
   mSize.height = size.height;
 
