@@ -504,8 +504,7 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     mUpdateBufferTrigger.Trigger();
   };
 #endif
-  mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {
-  };
+  mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {};
 
   mOnPageStartedHandler = [this](LWE::WebContainer* container, const std::string& url)
   {
@@ -519,8 +518,7 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     ExecuteCallback(mLoadFinishedCallback, url);
   };
 
-  mOnLoadResourceHandler = [](LWE::WebContainer* container, const std::string& url) {
-  };
+  mOnLoadResourceHandler = [](LWE::WebContainer* container, const std::string& url) {};
 
   mFirstRenderSignal.Connect(this, &TizenWebEngineLWE::OnFirstRender);
 
@@ -908,14 +906,14 @@ void TizenWebEngineLWE::DestroyRenderingContext()
 {
   DestroyRenderingSurface();
 
-  if(mEglContext != EGL_NO_CONTEXT)
-  {
-    eglDestroyContext(mEglDisplay, mEglContext);
-    mEglContext = EGL_NO_CONTEXT;
-  }
-
   if(mEglDisplay != EGL_NO_DISPLAY)
   {
+    if(mEglContext != EGL_NO_CONTEXT)
+    {
+      eglDestroyContext(mEglDisplay, mEglContext);
+      mEglContext = EGL_NO_CONTEXT;
+    }
+
     eglTerminate(mEglDisplay);
     mEglDisplay = EGL_NO_DISPLAY;
   }

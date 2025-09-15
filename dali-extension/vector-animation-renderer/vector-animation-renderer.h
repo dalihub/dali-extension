@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_VECTOR_ANIMATION_RENDERER_H
 
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,11 +137,6 @@ protected:
   };
 
   /**
-   * @brief Reset buffer list.
-   */
-  virtual void ResetBuffers() = 0;
-
-  /**
    * @brief Reset properties
    */
   virtual void OnFinalize() = 0;
@@ -155,11 +150,6 @@ protected:
    * @brief Prepare target
    */
   virtual void PrepareTarget(std::shared_ptr<RenderingData> renderingData) = 0;
-
-  /**
-   * @brief Apply the changes of Size
-   */
-  virtual void OnSetSize(std::shared_ptr<RenderingData> renderingData) = 0;
 
   /**
    * @brief Retrieve whether the target is prepared or not.

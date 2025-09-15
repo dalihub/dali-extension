@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
 #include <dali/devel-api/common/hash.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/property-array.h>
-#include <tbm_surface_internal.h>
 #include <cstring> // for strlen()
 
 // INTERNAL INCLUDES
@@ -53,22 +52,16 @@ class VectorAnimationRendererTizen::RenderingDataImpl : public VectorAnimationRe
 {
 public:
   NativeImageSourceQueuePtr mTargetSurface;
-  tbm_surface_queue_h       mTbmQueue;
 };
 
 VectorAnimationRendererTizen::VectorAnimationRendererTizen()
-: mBuffers(),
-  mRenderedTexture(),
+: mRenderedTexture(),
   mPreviousTextures()
 {
 }
 
 VectorAnimationRendererTizen::~VectorAnimationRendererTizen()
 {
-  Dali::Mutex::ScopedLock lock(mMutex);
-
-  ResetBuffers();
-  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
 }
 
 // Called by VectorAnimationTaskThread
@@ -118,80 +111,49 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
     }
   }
 
-  if(!renderingDataImpl->mTbmQueue || !mVectorRenderer || !renderingDataImpl->mTargetSurface)
+  if(!mVectorRenderer || !renderingDataImpl->mTargetSurface)
   {
     return false;
   }
 
-  int canDequeue = tbm_surface_queue_can_dequeue(renderingDataImpl->mTbmQueue, 0);
+  int canDequeue = renderingDataImpl->mTargetSurface->CanDequeueBuffer();
   if(!canDequeue)
   {
     // Ignore the previous image which is inserted to the queue.
     renderingDataImpl->mTargetSurface->IgnoreSourceImage();
 
     // Check again
-    canDequeue = tbm_surface_queue_can_dequeue(renderingDataImpl->mTbmQueue, 0);
+    canDequeue = renderingDataImpl->mTargetSurface->CanDequeueBuffer();
     if(!canDequeue)
     {
       return false;
     }
   }
 
-  tbm_surface_h tbmSurface;
-
-  if(tbm_surface_queue_dequeue(renderingDataImpl->mTbmQueue, &tbmSurface) != TBM_SURFACE_QUEUE_ERROR_NONE)
-  {
-    DALI_LOG_ERROR("Failed to dequeue a tbm_surface [%p]\n", this);
-    return false;
-  }
-
-  tbm_surface_info_s info;
-  int                ret = TBM_SURFACE_ERROR_NONE;
-
+  NativeImageSourceQueue::BufferAccessType type;
   if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()) && (!mDecodedBuffers[frameNumber].second))
   {
-    ret = tbm_surface_map(tbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &info);
+    type = NativeImageSourceQueue::BufferAccessType::READ | NativeImageSourceQueue::BufferAccessType::WRITE;
   }
   else
   {
-    ret = tbm_surface_map(tbmSurface, TBM_SURF_OPTION_WRITE, &info);
+    type = NativeImageSourceQueue::BufferAccessType::WRITE;
   }
-  if(ret != TBM_SURFACE_ERROR_NONE)
+
+  uint32_t width, height, stride;
+
+  uint8_t* buffer = renderingDataImpl->mTargetSurface->DequeueBuffer(width, height, stride, type);
+  if(!buffer)
   {
-    DALI_LOG_ERROR("VectorAnimationRendererTizen::Render: tbm_surface_map is failed! [%d] [%p]\n", ret, this);
-    tbm_surface_queue_cancel_dequeue(renderingDataImpl->mTbmQueue, tbmSurface);
+    DALI_LOG_ERROR("DequeueBuffer failed [%p]\n", this);
     return false;
   }
 
-  unsigned char* buffer = info.planes[0].ptr;
-  if(info.width != renderingDataImpl->mWidth || info.height != renderingDataImpl->mHeight || !buffer)
+  if(width != renderingDataImpl->mWidth || height != renderingDataImpl->mHeight || !buffer)
   {
-    DALI_LOG_ERROR("VectorAnimationRendererTizen::Render: Invalid tbm surface! [%d, %d, %p] [%p]\n", info.width, info.height, buffer, this);
-    tbm_surface_unmap(tbmSurface);
-    tbm_surface_queue_cancel_dequeue(renderingDataImpl->mTbmQueue, tbmSurface);
+    DALI_LOG_ERROR("VectorAnimationRendererTizen::Render: Invalid buffer! [%d, %d, %p] [%p]\n", width, height, buffer, this);
+    renderingDataImpl->mTargetSurface->CancelDequeuedBuffer(buffer);
     return false;
-  }
-
-  rlottie::Surface surface;
-  bool             existing = false;
-
-  if(!mResourceReady)
-  {
-    // Need to reset buffer list
-    ResetBuffers();
-  }
-  else
-  {
-    for(auto&& iter : mBuffers)
-    {
-      if(iter.first == tbmSurface)
-      {
-        // Find the buffer in the existing list
-        existing = true;
-        surface  = iter.second;
-        break;
-      }
-    }
   }
 
   if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()) && mDecodedBuffers[frameNumber].second)
@@ -201,32 +163,22 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
   }
   else
   {
-    if(!existing)
-    {
-      tbm_surface_internal_ref(tbmSurface);
-
-      // Create Surface object
-      surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(info.planes[0].stride));
-
-      // Push the buffer
-      mBuffers.push_back(SurfacePair(tbmSurface, surface));
-    }
+    // Create Surface object
+    rlottie::Surface surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(stride));
 
     // Render the frame
     mVectorRenderer->renderSync(frameNumber, surface);
 
     if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()))
     {
-      const size_t         bufferSize = renderingDataImpl->mHeight * static_cast<size_t>(info.planes[0].stride);
+      const size_t         bufferSize = renderingDataImpl->mHeight * static_cast<size_t>(stride);
       std::vector<uint8_t> rasterizeBuffer(buffer, buffer + bufferSize);
       mDecodedBuffers[frameNumber].first  = std::move(rasterizeBuffer);
       mDecodedBuffers[frameNumber].second = true;
     }
   }
 
-  tbm_surface_unmap(tbmSurface);
-
-  tbm_surface_queue_enqueue(renderingDataImpl->mTbmQueue, tbmSurface);
+  renderingDataImpl->mTargetSurface->EnqueueBuffer(buffer);
 
   if(!mResourceReady)
   {
@@ -267,22 +219,7 @@ void VectorAnimationRendererTizen::RenderStopped()
   {
     // Animation is stopped. Free empty buffers
     renderingDataImpl->mTargetSurface->FreeReleasedBuffers();
-
-    {
-      Dali::Mutex::ScopedLock lock(mMutex);
-      ResetBuffers();
-    }
   }
-}
-
-// This Method is called inside mMutex
-void VectorAnimationRendererTizen::ResetBuffers()
-{
-  for(auto&& iter : mBuffers)
-  {
-    tbm_surface_internal_unref(iter.first);
-  }
-  mBuffers.clear();
 }
 
 // This Method is called inside mMutex
@@ -305,13 +242,6 @@ void VectorAnimationRendererTizen::PrepareTarget(std::shared_ptr<RenderingData> 
   std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
   renderingDataImpl->mTargetSurface                    = NativeImageSourceQueue::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, NativeImageSourceQueue::ColorFormat::BGRA8888);
   renderingDataImpl->mTexture                          = Texture::New(*renderingDataImpl->mTargetSurface);
-}
-
-// This Method is called inside mRenderingDataMutex
-void VectorAnimationRendererTizen::OnSetSize(std::shared_ptr<RenderingData> renderingData)
-{
-  std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
-  renderingDataImpl->mTbmQueue                         = AnyCast<tbm_surface_queue_h>(renderingDataImpl->mTargetSurface->GetNativeImageSourceQueue());
 }
 
 bool VectorAnimationRendererTizen::IsTargetPrepared()

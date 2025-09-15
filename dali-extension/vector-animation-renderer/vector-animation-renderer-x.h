@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_RENDERER_X_H
 
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,11 +59,6 @@ public:
 
 private:
   /**
-   * @brief Reset buffer list.
-   */
-  void ResetBuffers() override;
-
-  /**
    * @copydoc VectorAnimationRenderer::Finalize()
    */
   void OnFinalize() override;
@@ -77,14 +72,6 @@ private:
    * @copydoc VectorAnimationRenderer::PrepareTarget()
    */
   void PrepareTarget(std::shared_ptr<RenderingData> renderingData) override;
-
-  /**
-   * @copydoc VectorAnimationRenderer::OnSetSize()
-   * @note This Method is called inside mRenderingDataMutex
-   */
-  void OnSetSize(std::shared_ptr<RenderingData> renderingData) override
-  {
-  }
 
   /**
    * @copydoc VectorAnimationRenderer::IsTargetPrepared()
