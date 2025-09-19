@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,9 +235,9 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "fullscreen,enterfullscreen", &TizenWebEngineChromium::OnFullscreenEntered, this);
   evas_object_smart_callback_add(mWebView, "fullscreen,exitfullscreen", &TizenWebEngineChromium::OnFullscreenExited, this);
   evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
-  evas_object_smart_callback_add(mWebView, "webauth,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
-  evas_object_smart_callback_add(mWebView, "webauth,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
-  
+  evas_object_smart_callback_add(mWebView, "webauthn,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
+  evas_object_smart_callback_add(mWebView, "webauthn,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
+
   ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
   evas_object_smart_callback_add(mWebView, "device,connection,changed", &TizenWebEngineChromium::OnDeviceConnectionChanged, this);
 
