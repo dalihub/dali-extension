@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,15 @@ namespace Plugin
 {
 
 TizenWebEngineHitTest::TizenWebEngineHitTest(Ewk_Hit_Test* test, Evas* evas, bool needMemoryBeFreed)
-  : ewkHitTest(test)
-  , canvas(evas)
-  , isMemoryFreedByEwk(needMemoryBeFreed)
+: ewkHitTest(test),
+  canvas(evas),
+  isMemoryFreedByEwk(needMemoryBeFreed)
 {
 }
 
 TizenWebEngineHitTest::~TizenWebEngineHitTest()
 {
-  if (isMemoryFreedByEwk)
+  if(isMemoryFreedByEwk)
   {
     ewk_hit_test_free(ewkHitTest);
   }
@@ -109,7 +109,7 @@ Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()
 
   // color-space is argb8888.
   uint8_t* pixelBuffer = (uint8_t*)evas_object_image_data_get(image, false);
-  if (!pixelBuffer)
+  if(!pixelBuffer)
   {
     return Dali::PixelData();
   }
@@ -120,7 +120,7 @@ Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()
 
   uint32_t bufferSize = width * height * 4;
 
-  if (bufferSize != ewk_hit_test_image_buffer_length_get(ewkHitTest))
+  if(bufferSize != ewk_hit_test_image_buffer_length_get(ewkHitTest))
   {
     DALI_LOG_RELEASE_INFO("size of hit test image is not correct.\n");
   }
@@ -128,9 +128,9 @@ Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()
   uint8_t* convertedBuffer = new uint8_t[bufferSize];
 
   // convert the color-space to rgba8888.
-  for (uint32_t i = 0; i < bufferSize; i += 4)
+  for(uint32_t i = 0; i < bufferSize; i += 4)
   {
-    convertedBuffer[i] = pixelBuffer[i + 1];
+    convertedBuffer[i]     = pixelBuffer[i + 1];
     convertedBuffer[i + 1] = pixelBuffer[i + 2];
     convertedBuffer[i + 2] = pixelBuffer[i + 3];
     convertedBuffer[i + 3] = pixelBuffer[i];

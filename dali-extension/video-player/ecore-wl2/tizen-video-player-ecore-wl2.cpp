@@ -111,12 +111,12 @@ static void EmitPlaybackFinishedSignal(void* user_data)
       g_source_set_callback(
         source,
         [](gpointer userData) -> gboolean
-        {
-          auto* player = static_cast<TizenVideoPlayer*>(userData);
-          player->mFinishedSignal.Emit();
-          player->Stop();
-          return G_SOURCE_REMOVE;
-        },
+      {
+        auto* player = static_cast<TizenVideoPlayer*>(userData);
+        player->mFinishedSignal.Emit();
+        player->Stop();
+        return G_SOURCE_REMOVE;
+      },
         player,
         nullptr);
       g_source_attach(source, context);

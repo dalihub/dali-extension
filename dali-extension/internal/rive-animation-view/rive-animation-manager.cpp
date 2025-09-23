@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,8 @@ std::once_flag                        RiveAnimationManager::mOnceFlag;
 
 RiveAnimationManager& RiveAnimationManager::GetInstance()
 {
-  std::call_once(mOnceFlag, []() {
+  std::call_once(mOnceFlag, []()
+  {
     mInstance.reset(new RiveAnimationManager);
   });
   return *(mInstance.get());
@@ -113,9 +114,10 @@ void RiveAnimationManager::UnregisterEventCallback(CallbackBase* callback)
 {
   auto iter = std::find_if(mEventCallbacks.begin(),
                            mEventCallbacks.end(),
-                           [callback](const std::unique_ptr<CallbackBase>& element) {
-                             return element.get() == callback;
-                           });
+                           [callback](const std::unique_ptr<CallbackBase>& element)
+  {
+    return element.get() == callback;
+  });
   if(iter != mEventCallbacks.end())
   {
     mEventCallbacks.erase(iter);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,24 +26,24 @@ namespace Plugin
 {
 
 TizenWebEngineRequestInterceptor::TizenWebEngineRequestInterceptor(Ewk_Intercept_Request* interceptor)
-  : ewkRequestInterceptor(interceptor)
+: ewkRequestInterceptor(interceptor)
 {
   ewkWebView = ewk_intercept_request_view_get(ewkRequestInterceptor);
 
   const char* url = ewk_intercept_request_url_get(ewkRequestInterceptor);
-  if (url)
+  if(url)
   {
     requestUrl = std::string(url);
   }
 
   const char* method = ewk_intercept_request_http_method_get(ewkRequestInterceptor);
-  if (method)
+  if(method)
   {
     requestMethod = std::string(method);
   }
 
   const Eina_Hash* hash = ewk_intercept_request_headers_get(ewkRequestInterceptor);
-  if (hash)
+  if(hash)
   {
     eina_hash_foreach(hash, &TizenWebEngineRequestInterceptor::IterateRequestHeaders, this);
   }
@@ -90,8 +90,8 @@ bool TizenWebEngineRequestInterceptor::AddResponseHeader(const std::string& fiel
 
 bool TizenWebEngineRequestInterceptor::AddResponseHeaders(const Dali::Property::Map& headers)
 {
-  Eina_Hash* headerMap = eina_hash_string_small_new(nullptr);
-  Dali::Property::Map::SizeType count = headers.Count();
+  Eina_Hash*                    headerMap = eina_hash_string_small_new(nullptr);
+  Dali::Property::Map::SizeType count     = headers.Count();
   for(uint32_t i = 0; i < count; i++)
   {
     Dali::Property::Key key = headers.GetKeyAt(i);

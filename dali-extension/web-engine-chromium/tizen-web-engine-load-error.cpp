@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace Plugin
 {
 
 TizenWebEngineLoadError::TizenWebEngineLoadError(Ewk_Error* error)
-  : ewkError(error)
+: ewkError(error)
 {
 }
 
@@ -40,7 +40,7 @@ std::string TizenWebEngineLoadError::GetUrl() const
 Dali::WebEngineLoadError::ErrorCode TizenWebEngineLoadError::GetCode() const
 {
   int code = ewk_error_code_get(ewkError);
-  if (code > (int)Dali::WebEngineLoadError::ErrorCode::INTERNAL_SERVER)
+  if(code > (int)Dali::WebEngineLoadError::ErrorCode::INTERNAL_SERVER)
   {
     code = (int)Dali::WebEngineLoadError::ErrorCode::OTHER;
   }

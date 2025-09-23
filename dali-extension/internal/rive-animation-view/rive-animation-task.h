@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_TASK_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,10 +85,10 @@ public:
 
     AnimationData& operator=(const AnimationData& rhs)
     {
-      resendFlag     |= rhs.resendFlag; // OR resend flag
-      width           = rhs.width;
-      height          = rhs.height;
-      playState       = rhs.playState;
+      resendFlag |= rhs.resendFlag; // OR resend flag
+      width     = rhs.width;
+      height    = rhs.height;
+      playState = rhs.playState;
 
       animations.insert(animations.end(), rhs.animations.begin(), rhs.animations.end());
       elapsedTimes.insert(elapsedTimes.end(), rhs.elapsedTimes.begin(), rhs.elapsedTimes.end());
@@ -102,19 +102,19 @@ public:
       return *this;
     }
 
-    uint32_t                                      resendFlag;
-    uint32_t                                      width;
-    uint32_t                                      height;
-    Extension::RiveAnimationView::PlayState       playState;
-    std::vector<std::pair<std::string, bool>>     animations;
-    std::vector<std::pair<std::string, float>>    elapsedTimes;
-    std::vector<std::pair<std::string, Vector4>>  fillColors;
-    std::vector<std::pair<std::string, Vector4>>  strokeColors;
-    std::vector<std::pair<std::string, float>>    opacities;
-    std::vector<std::pair<std::string, Vector2>>  scales;
-    std::vector<std::pair<std::string, Degree>>   rotations;
-    std::vector<std::pair<std::string, Vector2>>  positions;
-    };
+    uint32_t                                     resendFlag;
+    uint32_t                                     width;
+    uint32_t                                     height;
+    Extension::RiveAnimationView::PlayState      playState;
+    std::vector<std::pair<std::string, bool>>    animations;
+    std::vector<std::pair<std::string, float>>   elapsedTimes;
+    std::vector<std::pair<std::string, Vector4>> fillColors;
+    std::vector<std::pair<std::string, Vector4>> strokeColors;
+    std::vector<std::pair<std::string, float>>   opacities;
+    std::vector<std::pair<std::string, Vector2>> scales;
+    std::vector<std::pair<std::string, Degree>>  rotations;
+    std::vector<std::pair<std::string, Vector2>> positions;
+  };
 
   /**
    * @brief Constructor.
@@ -376,7 +376,7 @@ private:
 
 } // namespace Internal
 
-} // namespace Toolkit
+} //namespace Extension
 
 } // namespace Dali
 

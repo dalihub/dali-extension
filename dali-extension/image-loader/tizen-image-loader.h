@@ -19,8 +19,8 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/integration-api/debug.h>
 #include <dali/devel-api/adaptor-framework/image-loader-plugin.h>
+#include <dali/integration-api/debug.h>
 
 namespace Dali
 {
@@ -33,9 +33,7 @@ namespace Plugin
  */
 class TizenImageLoader : public Dali::ImageLoaderPlugin
 {
-
 public: // Construction & Destruction
-
   /**
    * Constructor
    */
@@ -47,16 +45,14 @@ public: // Construction & Destruction
   virtual ~TizenImageLoader();
 
 public: // ImageLoaderPlugin overrides
-
   /**
    * @copydoc Dali::Plugin::TizenImageLoader::BitmapLoaderLookup()
    */
-  virtual const Dali::ImageLoader::BitmapLoader* BitmapLoaderLookup( const std::string& filename ) const;
-
+  virtual const Dali::ImageLoader::BitmapLoader* BitmapLoaderLookup(const std::string& filename) const;
 };
 
-}  // namespace Plugin
+} // namespace Plugin
 
-}  // namespace Dali
+} // namespace Dali
 
 #endif // DALI_TIZEN_IMAGE_LOADER_PLUGIN_H

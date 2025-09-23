@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@
 // INTERNAL INCLUDES
 
 // The plugin factories
-extern "C" DALI_EXPORT_API Dali::CameraPlayerPlugin *CreateCameraPlayerPlugin()
+extern "C" DALI_EXPORT_API Dali::CameraPlayerPlugin* CreateCameraPlayerPlugin()
 {
   return new Dali::Plugin::TizenCameraPlayer();
 }
 
-extern "C" DALI_EXPORT_API void DestroyCameraPlayerPlugin(Dali::CameraPlayerPlugin *plugin)
+extern "C" DALI_EXPORT_API void DestroyCameraPlayerPlugin(Dali::CameraPlayerPlugin* plugin)
 {
-  if (plugin != NULL)
+  if(plugin != NULL)
   {
     delete plugin;
   }
@@ -47,11 +47,11 @@ namespace
 
 const int TIMER_INTERVAL(20);
 
-static void MediaPacketCameraPreviewCb(media_packet_h packet, void *user_data)
+static void MediaPacketCameraPreviewCb(media_packet_h packet, void* user_data)
 {
-  TizenCameraPlayer *player = static_cast<TizenCameraPlayer *>(user_data);
+  TizenCameraPlayer* player = static_cast<TizenCameraPlayer*>(user_data);
 
-  if (player == NULL)
+  if(player == NULL)
   {
     DALI_LOG_ERROR("Preview callback got Null pointer as user_data.\n");
     return;
@@ -60,11 +60,11 @@ static void MediaPacketCameraPreviewCb(media_packet_h packet, void *user_data)
   player->PushPacket(packet);
 }
 
-void CameraPlayerError(int error, const char * function, int line)
+void CameraPlayerError(int error, const char* function, int line)
 {
-  if (error != CAMERA_ERROR_NONE)
+  if(error != CAMERA_ERROR_NONE)
   {
-    switch (error)
+    switch(error)
     {
       case CAMERA_ERROR_INVALID_PARAMETER:
       {
@@ -143,16 +143,16 @@ void CameraPlayerError(int error, const char * function, int line)
 } // unnamed namespace
 
 TizenCameraPlayer::TizenCameraPlayer()
-    : mCameraPlayer(NULL),
-      mCameraPlayerState(CAMERA_STATE_NONE),
-      mTbmSurface(NULL),
-      mPacket(NULL),
-      mNativeImageSourcePtr(NULL),
-      mTimer(),
-      mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
-      mPacketMutex(),
-      mPacketVector(),
-      mEcoreWlWindow(nullptr)
+: mCameraPlayer(NULL),
+  mCameraPlayerState(CAMERA_STATE_NONE),
+  mTbmSurface(NULL),
+  mPacket(NULL),
+  mNativeImageSourcePtr(NULL),
+  mTimer(),
+  mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
+  mPacketMutex(),
+  mPacketVector(),
+  mEcoreWlWindow(nullptr)
 {
 }
 
@@ -161,10 +161,10 @@ TizenCameraPlayer::~TizenCameraPlayer()
   Destroy();
 }
 
-void TizenCameraPlayer::GetPlayerState(camera_state_e *state) const
+void TizenCameraPlayer::GetPlayerState(camera_state_e* state) const
 {
-  if (mCameraPlayer != NULL &&
-      camera_get_state(mCameraPlayer, state) != CAMERA_ERROR_NONE)
+  if(mCameraPlayer != NULL &&
+     camera_get_state(mCameraPlayer, state) != CAMERA_ERROR_NONE)
   {
     DALI_LOG_ERROR("camera_get_state error: Invalid parameter\n");
     *state = CAMERA_STATE_NONE;
@@ -175,7 +175,7 @@ void TizenCameraPlayer::SetWindowRenderingTarget(Dali::Window target)
 {
   mNativeImageSourcePtr = NULL;
 
-  InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window *>(target.GetNativeHandle()));
+  InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window*>(target.GetNativeHandle()));
 }
 
 void TizenCameraPlayer::SetNativeImageRenderingTarget(Dali::NativeImageSourcePtr target)
@@ -189,12 +189,12 @@ void TizenCameraPlayer::StopPreview()
 {
   GetPlayerState(&mCameraPlayerState);
 
-  if (mCameraPlayerState == CAMERA_STATE_PREVIEW)
+  if(mCameraPlayerState == CAMERA_STATE_PREVIEW)
   {
     int error = camera_stop_preview(mCameraPlayer);
     CameraPlayerError(error, __FUNCTION__, __LINE__);
 
-    if (mNativeImageSourcePtr && mTimer)
+    if(mNativeImageSourcePtr && mTimer)
     {
       mTimer.Stop();
       DestroyPackets();
@@ -204,7 +204,7 @@ void TizenCameraPlayer::StopPreview()
 
 void TizenCameraPlayer::Destroy()
 {
-  if (mNativeImageSourcePtr && mTimer)
+  if(mNativeImageSourcePtr && mTimer)
   {
     mTimer.Stop();
     DestroyPackets();
@@ -220,7 +220,7 @@ void TizenCameraPlayer::Destroy()
 
 void TizenCameraPlayer::SetCameraPlayer(Any handle)
 {
-  mCameraPlayer = static_cast<camera_h>(AnyCast<void *>(handle));
+  mCameraPlayer = static_cast<camera_h>(AnyCast<void*>(handle));
   GetPlayerState(&mCameraPlayerState);
 }
 
@@ -233,7 +233,7 @@ void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr n
   GetPlayerState(&mCameraPlayerState);
 
   bool isPlay = false;
-  if (mCameraPlayerState == CAMERA_STATE_PREVIEW)
+  if(mCameraPlayerState == CAMERA_STATE_PREVIEW)
   {
     isPlay = true;
     StopPreview();
@@ -241,7 +241,7 @@ void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr n
 
   GetPlayerState(&mCameraPlayerState);
 
-  if (mCameraPlayerState == CAMERA_STATE_CREATED && mNativeImageSourcePtr)
+  if(mCameraPlayerState == CAMERA_STATE_CREATED && mNativeImageSourcePtr)
   {
     error = camera_set_media_packet_preview_cb(mCameraPlayer, MediaPacketCameraPreviewCb, this);
     CameraPlayerError(error, __FUNCTION__, __LINE__);
@@ -253,7 +253,7 @@ void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr n
     mTimer.TickSignal().Connect(this, &TizenCameraPlayer::Update);
     mTimer.Start();
 
-    if (isPlay)
+    if(isPlay)
     {
       error = camera_start_preview(mCameraPlayer);
       CameraPlayerError(error, __FUNCTION__, __LINE__);
@@ -261,7 +261,7 @@ void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr n
   }
 }
 
-void TizenCameraPlayer::InitializeUnderlayMode(Ecore_Wl2_Window *ecoreWlWindow)
+void TizenCameraPlayer::InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow)
 {
   int error;
 
@@ -270,7 +270,7 @@ void TizenCameraPlayer::InitializeUnderlayMode(Ecore_Wl2_Window *ecoreWlWindow)
   GetPlayerState(&mCameraPlayerState);
 
   bool isPlay = false;
-  if (mCameraPlayerState == CAMERA_STATE_PREVIEW)
+  if(mCameraPlayerState == CAMERA_STATE_PREVIEW)
   {
     isPlay = true;
     StopPreview();
@@ -278,7 +278,7 @@ void TizenCameraPlayer::InitializeUnderlayMode(Ecore_Wl2_Window *ecoreWlWindow)
 
   GetPlayerState(&mCameraPlayerState);
 
-  if (mCameraPlayerState == CAMERA_STATE_CREATED)
+  if(mCameraPlayerState == CAMERA_STATE_CREATED)
   {
     ecore_wl2_window_alpha_set(mEcoreWlWindow, false);
 
@@ -291,7 +291,7 @@ void TizenCameraPlayer::InitializeUnderlayMode(Ecore_Wl2_Window *ecoreWlWindow)
     error = camera_set_ecore_wl_display(mCameraPlayer, GET_DISPLAY(mEcoreWlWindow));
     CameraPlayerError(error, __FUNCTION__, __LINE__);
 
-    if (isPlay)
+    if(isPlay)
     {
       error = camera_start_preview(mCameraPlayer);
       CameraPlayerError(error, __FUNCTION__, __LINE__);
@@ -303,10 +303,10 @@ bool TizenCameraPlayer::Update()
 {
   int error;
 
-  if (mPacket != NULL)
+  if(mPacket != NULL)
   {
     error = media_packet_destroy(mPacket);
-    if (error != MEDIA_PACKET_ERROR_NONE)
+    if(error != MEDIA_PACKET_ERROR_NONE)
     {
       DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
     }
@@ -316,20 +316,20 @@ bool TizenCameraPlayer::Update()
   {
     Dali::Mutex::ScopedLock lock(mPacketMutex);
 
-    if (!mPacketVector.empty())
+    if(!mPacketVector.empty())
     {
       mPacket = mPacketVector.front();
       mPacketVector.pop_front();
     }
   }
 
-  if (mPacket == NULL)
+  if(mPacket == NULL)
   {
     return true;
   }
 
   error = media_packet_get_tbm_surface(mPacket, &mTbmSurface);
-  if (error != MEDIA_PACKET_ERROR_NONE)
+  if(error != MEDIA_PACKET_ERROR_NONE)
   {
     media_packet_destroy(mPacket);
     mPacket = NULL;
@@ -347,7 +347,7 @@ bool TizenCameraPlayer::Update()
 void TizenCameraPlayer::DestroyPackets()
 {
   int error;
-  if (mPacket != NULL)
+  if(mPacket != NULL)
   {
     error = media_packet_destroy(mPacket);
     DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
@@ -359,14 +359,13 @@ void TizenCameraPlayer::DestroyPackets()
     while(!mPacketVector.empty())
     {
       mPacket = mPacketVector.front();
-      error = media_packet_destroy(mPacket);
+      error   = media_packet_destroy(mPacket);
       DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
       mPacketVector.pop_front();
       mPacket = NULL;
     }
     mPacketVector.clear();
   }
-
 }
 
 void TizenCameraPlayer::PushPacket(media_packet_h packet)
@@ -380,19 +379,18 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
 {
   GetPlayerState(&mCameraPlayerState);
 
-  if (mNativeImageSourcePtr)
+  if(mNativeImageSourcePtr)
   {
     DALI_LOG_ERROR("SetDisplayArea is only for window surface target.\n");
     return;
   }
 
-  if (mCameraPlayerState == CAMERA_STATE_CREATED ||
-      mCameraPlayerState == CAMERA_STATE_PREVIEW)
+  if(mCameraPlayerState == CAMERA_STATE_CREATED ||
+     mCameraPlayerState == CAMERA_STATE_PREVIEW)
   {
-
-    int width, height;
-    Ecore_Wl2_Display *wl2_display = ecore_wl2_connected_display_get( NULL );
-    ecore_wl2_display_screen_size_get( wl2_display, &width, &height );
+    int                width, height;
+    Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
+    ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
     // camera x, y postion
     camera_rotation_e rotation = CAMERA_ROTATION_NONE;
@@ -401,17 +399,17 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
     int error = camera_get_display_rotation(mCameraPlayer, &rotation);
     CameraPlayerError(error, __FUNCTION__, __LINE__);
 
-    switch (rotation)
+    switch(rotation)
     {
       case CAMERA_ROTATION_270:
       {
         int temp = area.y;
-        area.y = width - area.x - area.width;
-        area.x = temp;
+        area.y   = width - area.x - area.width;
+        area.x   = temp;
 
         int tempWidth = area.width;
-        area.width = area.height;
-        area.height = tempWidth;
+        area.width    = area.height;
+        area.height   = tempWidth;
         break;
       }
       case CAMERA_ROTATION_NONE:
@@ -422,12 +420,12 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
       case CAMERA_ROTATION_90:
       {
         int temp = area.x;
-        area.x = height - area.y - area.height;
-        area.y = temp;
+        area.x   = height - area.y - area.height;
+        area.y   = temp;
 
         int tempWidth = area.width;
-        area.width = area.height;
-        area.height = tempWidth;
+        area.width    = area.height;
+        area.height   = tempWidth;
         break;
       }
       case CAMERA_ROTATION_180:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
 
 // EXTERNAL INCLUDES
-#include <dali/integration-api/debug.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
+#include <dali/integration-api/debug.h>
 
 namespace Dali
 {
@@ -55,73 +55,73 @@ RiveAnimationRendererManager::~RiveAnimationRendererManager()
   DALI_LOG_INFO(gRiveAnimationLogFilter, Debug::Verbose, "RiveAnimationRendererManager::~RiveAnimationRendererManager: this = %p\n", this);
 }
 
-void RiveAnimationRendererManager::AddEventHandler( RiveAnimationRendererEventHandler& handler )
+void RiveAnimationRendererManager::AddEventHandler(RiveAnimationRendererEventHandler& handler)
 {
-  if( mEventHandlers.end() == std::find( mEventHandlers.begin(), mEventHandlers.end(), &handler ) )
+  if(mEventHandlers.end() == std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler))
   {
-    if( mEventHandlers.empty() )
+    if(mEventHandlers.empty())
     {
-      Adaptor::Get().RegisterProcessor( *this );
+      Adaptor::Get().RegisterProcessor(*this);
     }
 
-    mEventHandlers.push_back( &handler );
+    mEventHandlers.push_back(&handler);
 
     {
-      Dali::Mutex::ScopedLock lock( mMutex );
+      Dali::Mutex::ScopedLock lock(mMutex);
 
-      if( !mEventTrigger )
+      if(!mEventTrigger)
       {
-        mEventTrigger = std::unique_ptr< EventThreadCallback >( new EventThreadCallback( MakeCallback( this, &RiveAnimationRendererManager::OnEventTriggered ) ) );
+        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &RiveAnimationRendererManager::OnEventTriggered)));
       }
     }
   }
 }
 
-void RiveAnimationRendererManager::RemoveEventHandler( RiveAnimationRendererEventHandler& handler )
+void RiveAnimationRendererManager::RemoveEventHandler(RiveAnimationRendererEventHandler& handler)
 {
-  auto iter = std::find( mEventHandlers.begin(), mEventHandlers.end(), &handler );
-  if( iter != mEventHandlers.end() )
+  auto iter = std::find(mEventHandlers.begin(), mEventHandlers.end(), &handler);
+  if(iter != mEventHandlers.end())
   {
-    mEventHandlers.erase( iter );
+    mEventHandlers.erase(iter);
   }
 
   bool releaseEventTrigger = false;
 
-  if( mEventHandlers.empty() )
+  if(mEventHandlers.empty())
   {
-    if( Adaptor::IsAvailable() )
+    if(Adaptor::IsAvailable())
     {
-      Adaptor::Get().UnregisterProcessor( *this );
+      Adaptor::Get().UnregisterProcessor(*this);
     }
 
     releaseEventTrigger = true;
   }
 
   {
-    Dali::Mutex::ScopedLock lock( mMutex );
+    Dali::Mutex::ScopedLock lock(mMutex);
 
-    auto triggeredHandler = std::find( mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler );
-    if( triggeredHandler != mTriggeredHandlers.end() )
+    auto triggeredHandler = std::find(mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler);
+    if(triggeredHandler != mTriggeredHandlers.end())
     {
-      mTriggeredHandlers.erase( triggeredHandler );
+      mTriggeredHandlers.erase(triggeredHandler);
     }
 
-    if( releaseEventTrigger )
+    if(releaseEventTrigger)
     {
       mEventTrigger.reset();
     }
   }
 }
 
-void RiveAnimationRendererManager::TriggerEvent( RiveAnimationRendererEventHandler& handler )
+void RiveAnimationRendererManager::TriggerEvent(RiveAnimationRendererEventHandler& handler)
 {
-  Dali::Mutex::ScopedLock lock( mMutex );
+  Dali::Mutex::ScopedLock lock(mMutex);
 
-  if( mTriggeredHandlers.end() == std::find( mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler ) )
+  if(mTriggeredHandlers.end() == std::find(mTriggeredHandlers.begin(), mTriggeredHandlers.end(), &handler))
   {
-    mTriggeredHandlers.push_back( &handler );
+    mTriggeredHandlers.push_back(&handler);
 
-    if( mEventTrigger )
+    if(mEventTrigger)
     {
       mEventTrigger->Trigger();
     }
@@ -136,21 +136,21 @@ void RiveAnimationRendererManager::Process(bool postProcessor)
 // This function is called in the main thread.
 void RiveAnimationRendererManager::OnEventTriggered()
 {
-  std::vector< RiveAnimationRendererEventHandler* > handlers;
+  std::vector<RiveAnimationRendererEventHandler*> handlers;
 
   {
-    Dali::Mutex::ScopedLock lock( mMutex );
+    Dali::Mutex::ScopedLock lock(mMutex);
 
     // Copy the list to the local variable and clear
     handlers = mTriggeredHandlers;
     mTriggeredHandlers.clear();
   }
 
-  for( auto&& iter : handlers )
+  for(auto&& iter : handlers)
   {
     // Check if it is valid
-    auto handler = std::find( mEventHandlers.begin(), mEventHandlers.end(), iter );
-    if( handler != mEventHandlers.end() )
+    auto handler = std::find(mEventHandlers.begin(), mEventHandlers.end(), iter);
+    if(handler != mEventHandlers.end())
     {
       iter->NotifyEvent();
     }

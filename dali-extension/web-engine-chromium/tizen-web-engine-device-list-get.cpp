@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ namespace Plugin
 
 TizenWebEngineDeviceListGet::TizenWebEngineDeviceListGet(EwkMediaDeviceInfo* device_list, int size)
 {
-  for(int i=0; i < size; i++)
+  for(int i = 0; i < size; i++)
   {
     EwkMediaDeviceInfo device = device_list[i];
 
-    std::string strId = device.device_id;
+    std::string strId    = device.device_id;
     std::string strLabel = device.label;
 
     DeviceItem item = {strId, strLabel, device.type, device.connected};
@@ -58,12 +58,12 @@ void TizenWebEngineDeviceListGet::GetTypeAndConnect(int32_t* type, bool* connect
 
   if(idx >= vc.size())
   {
-    *type = -1;
+    *type    = -1;
     *connect = false;
     return;
   }
 
-  *type = vc[idx].device_type;
+  *type    = vc[idx].device_type;
   *connect = vc[idx].connected;
 }
 

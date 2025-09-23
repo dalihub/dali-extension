@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_EVENT_HANDLER_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,12 @@ namespace Plugin
 class VectorAnimationEventHandler
 {
 public:
-
   /**
    * @brief Notify events
    */
   virtual void NotifyEvent() = 0;
 
 protected:
-
   /**
    * constructor
    */
@@ -55,14 +53,14 @@ protected:
   }
 
   // Undefined copy constructor.
-  VectorAnimationEventHandler( const VectorAnimationEventHandler& ) = delete;
+  VectorAnimationEventHandler(const VectorAnimationEventHandler&) = delete;
 
   // Undefined assignment operator.
-  VectorAnimationEventHandler& operator=( const VectorAnimationEventHandler& ) = delete;
+  VectorAnimationEventHandler& operator=(const VectorAnimationEventHandler&) = delete;
 };
 
 } // namespace Plugin
 
-} // namespace Dali;
+} //namespace Dali
 
 #endif // DALI_TIZEN_VECTOR_ANIMATION_EVENT_HANDLER_H

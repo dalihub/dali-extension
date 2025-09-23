@@ -32,7 +32,6 @@ namespace Plugin
 class ICU : public Dali::TextAbstraction::ICUPlugin
 {
 public:
-
   /**
    * @brief Constructor.
    */

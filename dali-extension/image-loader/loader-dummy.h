@@ -18,10 +18,10 @@
  *
  */
 
-#include <cstdio>
+#include <dali/devel-api/adaptor-framework/image-loader-input.h>
 #include <dali/public-api/common/dali-vector.h>
 #include <dali/public-api/images/pixel.h>
-#include <dali/devel-api/adaptor-framework/image-loader-input.h>
+#include <cstdio>
 
 namespace Dali
 {
@@ -42,7 +42,7 @@ class ResourceLoadingClient;
  * @param[out] bitmap The bitmap class where the decoded image will be stored
  * @return  true if file decoded successfully, false otherwise
  */
-bool LoadBitmapFromImage( const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap );
+bool LoadBitmapFromImage(const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap);
 
 /**
  * Loads the header of a image file and fills in the width and height appropriately.
@@ -52,7 +52,7 @@ bool LoadBitmapFromImage( const Dali::ImageLoader::Input& input, Dali::Devel::Pi
  * @param[out]  height  Is set with the height of the image
  * @return true if the file's header was read successully, false otherwise
  */
-bool LoadImageHeader( const Dali::ImageLoader::Input& input, unsigned int& width, unsigned int& height );
+bool LoadImageHeader(const Dali::ImageLoader::Input& input, unsigned int& width, unsigned int& height);
 
 } // namespace Plugin
 

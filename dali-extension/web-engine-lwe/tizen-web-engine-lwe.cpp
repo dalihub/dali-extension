@@ -602,23 +602,23 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
   mWebContainer->RegisterSetNeedsRenderingCallback(
     [this](LWE::WebContainer*, const std::function<void()>& doRenderingFunction)
+  {
+    if(!mLWERenderingFunction)
     {
-      if(!mLWERenderingFunction)
-      {
-        mLWERenderingFunction = doRenderingFunction;
-      }
+      mLWERenderingFunction = doRenderingFunction;
+    }
 
-      if(!mLWERenderingRequested.exchange(true))
-      {
-        PrepareLWERendering();
-      }
-    });
+    if(!mLWERenderingRequested.exchange(true))
+    {
+      PrepareLWERendering();
+    }
+  });
 
   mWebContainer->RegisterOnIdleHandler(
     [this](LWE::WebContainer*)
-    {
-      OnIdle();
-    });
+  {
+    OnIdle();
+  });
 
   auto settings = mWebContainer->GetSettings();
   settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
@@ -630,58 +630,58 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 
   mWebContainer->RegisterPreRenderingHandler(
     [this]() -> LWE::WebContainer::RenderInfo
+  {
+    if(mOutputBuffer == NULL)
     {
-      if(mOutputBuffer == NULL)
-      {
-        mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
-        mOutputStride = mOutputWidth * sizeof(uint32_t);
-      }
+      mOutputBuffer = (uint8_t*)malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t));
+      mOutputStride = mOutputWidth * sizeof(uint32_t);
+    }
 
-      ::LWE::WebContainer::RenderInfo result;
-      result.updatedBufferAddress = mOutputBuffer;
-      result.bufferStride         = mOutputStride;
+    ::LWE::WebContainer::RenderInfo result;
+    result.updatedBufferAddress = mOutputBuffer;
+    result.bufferStride         = mOutputStride;
 
-      return result;
-    });
+    return result;
+  });
 
   mWebContainer->RegisterOnRenderedHandler(
     [this](LWE::WebContainer* container, const LWE::WebContainer::RenderResult& renderResult)
-    {
-      mOnRenderedHandler(container, renderResult);
-    });
+  {
+    mOnRenderedHandler(container, renderResult);
+  });
 #endif
 
   mWebContainer->RegisterOnReceivedErrorHandler(
     [this](LWE::WebContainer* container, LWE::ResourceError error)
-    {
-      mCanGoBack    = container->CanGoBack();
-      mCanGoForward = container->CanGoForward();
-      mOnReceivedError(container, error);
-    });
+  {
+    mCanGoBack    = container->CanGoBack();
+    mCanGoForward = container->CanGoForward();
+    mOnReceivedError(container, error);
+  });
   mWebContainer->RegisterOnPageStartedHandler(
     [this](LWE::WebContainer* container, const std::string& url)
-    {
-      mUrl          = url;
-      mCanGoBack    = container->CanGoBack();
-      mCanGoForward = container->CanGoForward();
-      mOnPageStartedHandler(container, url);
-    });
+  {
+    mUrl          = url;
+    mCanGoBack    = container->CanGoBack();
+    mCanGoForward = container->CanGoForward();
+    mOnPageStartedHandler(container, url);
+  });
   mWebContainer->RegisterOnPageLoadedHandler(
     [this](LWE::WebContainer* container, const std::string& url)
-    {
-      mUrl          = url;
-      mCanGoBack    = container->CanGoBack();
-      mCanGoForward = container->CanGoForward();
-      mOnPageFinishedHandler(container, url);
-    });
+  {
+    mUrl          = url;
+    mCanGoBack    = container->CanGoBack();
+    mCanGoForward = container->CanGoForward();
+    mOnPageFinishedHandler(container, url);
+  });
   mWebContainer->RegisterOnLoadResourceHandler(
     [this](LWE::WebContainer* container, const std::string& url)
-    {
-      mUrl          = url;
-      mCanGoBack    = container->CanGoBack();
-      mCanGoForward = container->CanGoForward();
-      mOnLoadResourceHandler(container, url);
-    });
+  {
+    mUrl          = url;
+    mCanGoBack    = container->CanGoBack();
+    mCanGoForward = container->CanGoForward();
+    mOnLoadResourceHandler(container, url);
+  });
 }
 
 void TizenWebEngineLWE::TryRendering()
@@ -724,7 +724,7 @@ void TizenWebEngineLWE::TryRendering()
   else
   {
     mWebContainer->AddIdleCallback([](void* data)
-                                   {
+    {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
       lv->TryRendering(); },
                                    this);
@@ -752,7 +752,7 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
       eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
       // Still busy
       mWebContainer->AddIdleCallback([](void* data)
-                                     {
+      {
         TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
         lv->TryUpdateImage(false); },
                                      this);
@@ -795,7 +795,7 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
   {
     DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: tbm_surface_queue_can_acquire == false, retry!");
     mWebContainer->AddIdleCallback([](void* data)
-                                   {
+    {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
       lv->TryUpdateImage(false); },
                                    this);
@@ -807,14 +807,14 @@ void TizenWebEngineLWE::PrepareLWERendering()
   if(mInImageUpdateState)
   {
     mWebContainer->AddIdleCallback([](void* data)
-                                   {
+    {
       TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
       lv->PrepareLWERendering(); },
                                    this);
     return;
   }
   mWebContainer->AddIdleCallback([](void* data)
-                                 {
+  {
     TizenWebEngineLWE* lv = (TizenWebEngineLWE*)data;
     lv->TryRendering(); },
                                  this);
@@ -1515,7 +1515,7 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
     handler = [](const std::string&) {};
   }
   mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler](const std::string& data) -> std::string
-                                        {
+  {
     handler(data);
     return ""; });
 }

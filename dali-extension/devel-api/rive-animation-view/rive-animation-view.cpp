@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ RiveAnimationView RiveAnimationView::New()
 
 RiveAnimationView RiveAnimationView::New(const std::string& url)
 {
-  RiveAnimationView riveAnimationView = Internal::RiveAnimationView::New();
+  RiveAnimationView riveAnimationView                            = Internal::RiveAnimationView::New();
   riveAnimationView[Extension::RiveAnimationView::Property::URL] = url;
   return riveAnimationView;
 }
@@ -163,6 +163,6 @@ RiveAnimationView::AnimationSignalType& RiveAnimationView::AnimationFinishedSign
   return Extension::GetImplementation(*this).AnimationFinishedSignal();
 }
 
-} // namespace Toolkit
+} //namespace Extension
 
 } // namespace Dali

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -269,7 +269,6 @@ void RiveAnimationTask::SetAnimationFinishedCallback(EventThreadCallback* callba
   }
 }
 
-
 void RiveAnimationTask::GetDefaultSize(uint32_t& width, uint32_t& height) const
 {
   mVectorRenderer->GetDefaultSize(width, height);
@@ -308,8 +307,8 @@ bool RiveAnimationTask::Rasterize()
 
   if(mPlayState == PlayState::STOPPING)
   {
-    currentFrame  = mCurrentFrame;
-    stopped       = true;
+    currentFrame = mCurrentFrame;
+    stopped      = true;
   }
   else if(mPlayState == PlayState::PLAYING)
   {
@@ -334,9 +333,9 @@ bool RiveAnimationTask::Rasterize()
   bool renderSuccess = false;
   if(mVectorRenderer)
   {
-    auto currentTime = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed = currentTime - mEndTime;
-    mEndTime = currentTime;
+    auto                          currentTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed     = currentTime - mEndTime;
+    mEndTime                                  = currentTime;
 
     renderSuccess = mVectorRenderer->Render(elapsed.count());
     if(!renderSuccess)
@@ -348,7 +347,7 @@ bool RiveAnimationTask::Rasterize()
 
   if(stopped && renderSuccess)
   {
-    mPlayState   = PlayState::STOPPED;
+    mPlayState = PlayState::STOPPED;
 
     // Animation is finished
     {
@@ -517,6 +516,6 @@ void RiveAnimationTask::ApplyAnimationData()
 
 } // namespace Internal
 
-} // namespace Toolkit
+} //namespace Extension
 
 } // namespace Dali

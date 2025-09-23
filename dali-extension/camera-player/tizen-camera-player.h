@@ -2,7 +2,7 @@
 #define DALI_TIZEN_CAMERA_PLAYER_PLUGIN_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/public-api/adaptor-framework/native-image-source.h>
 #include <dali/public-api/adaptor-framework/timer.h>
-#include <string>
 #include <deque>
+#include <string>
 
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
 #endif
-#include <camera_internal.h>
 #include <Ecore_Wl2.h>
+#include <camera_internal.h>
 
 namespace Dali
 {
@@ -46,7 +46,6 @@ namespace Plugin
 class TizenCameraPlayer : public Dali::CameraPlayerPlugin, public Dali::ConnectionTracker
 {
 public:
-
   /**
    * @brief Constructor.
    */
@@ -92,7 +91,7 @@ private:
   /**
    * @brief Gets current player state
    */
-  void GetPlayerState(camera_state_e *state) const;
+  void GetPlayerState(camera_state_e* state) const;
 
   /**
    * @brief Destroy all packests, which this plugin stores
@@ -108,7 +107,7 @@ private:
   /**
    * @brief Initializes player for camera rendering using wayland window surface
    */
-  void InitializeUnderlayMode(Ecore_Wl2_Window *ecoreWlWindow);
+  void InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow);
 
   /**
    * @brief Stop camera preview
@@ -121,23 +120,22 @@ private:
   void Destroy();
 
 private:
-  camera_h mCameraPlayer;            ///< Camera handle
+  camera_h       mCameraPlayer;      ///< Camera handle
   camera_state_e mCameraPlayerState; ///< State of Camera Player
 
-  tbm_surface_h mTbmSurface; ///< tbm surface handle
-  media_packet_h mPacket; ///< Media packet handle with tbm surface of current camera frame image
+  tbm_surface_h  mTbmSurface; ///< tbm surface handle
+  media_packet_h mPacket;     ///< Media packet handle with tbm surface of current camera frame image
 
-  Dali::NativeImageSourcePtr mNativeImageSourcePtr;       ///< native image source for camera rendering
-  Dali::Timer mTimer;              ///< Timer for texture streaming rendering
-  Dali::Vector4 mBackgroundColor;  ///< Current background color, which
-                                   ///< texturestream mode needs.
+  Dali::NativeImageSourcePtr mNativeImageSourcePtr; ///< native image source for camera rendering
+  Dali::Timer                mTimer;                ///< Timer for texture streaming rendering
+  Dali::Vector4              mBackgroundColor;      ///< Current background color, which
+                                                    ///< texturestream mode needs.
 
   Dali::Mutex mPacketMutex;
 
   std::deque<media_packet_h> mPacketVector; ///< Container for media packet handle from Tizen player callback
 
-  Ecore_Wl2_Window *mEcoreWlWindow; ///< ecore native window handle
-
+  Ecore_Wl2_Window* mEcoreWlWindow; ///< ecore native window handle
 };
 
 } // namespace Plugin

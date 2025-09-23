@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,13 @@ namespace Dali
 namespace Extension
 {
 
-Scene Scene::New( EvasPlugin evasPlugin, Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent )
+Scene Scene::New(EvasPlugin evasPlugin, Evas_Object* parentEvasObject, uint16_t width, uint16_t height, bool isTranslucent)
 {
-  IntrusivePtr< Internal::Scene > impl = Internal::Scene::New( parentEvasObject, width, height, isTranslucent );
+  IntrusivePtr<Internal::Scene> impl = Internal::Scene::New(parentEvasObject, width, height, isTranslucent);
 
-  Scene scene = Scene( impl.Get() );
+  Scene scene = Scene(impl.Get());
 
-  impl->Initialize( &Internal::GetImplementation( evasPlugin ), false );
+  impl->Initialize(&Internal::GetImplementation(evasPlugin), false);
 
   return scene;
 }
@@ -46,16 +46,16 @@ Scene::Scene()
 {
 }
 
-Scene::Scene( const Scene& scene )
-: BaseHandle( scene )
+Scene::Scene(const Scene& scene)
+: BaseHandle(scene)
 {
 }
 
-Scene& Scene::operator=( const Scene& scene )
+Scene& Scene::operator=(const Scene& scene)
 {
-  if( *this != scene )
+  if(*this != scene)
   {
-    BaseHandle::operator=( scene );
+    BaseHandle::operator=(scene);
   }
   return *this;
 }
@@ -64,76 +64,76 @@ Scene::~Scene()
 {
 }
 
-void Scene::Add( Actor actor )
+void Scene::Add(Actor actor)
 {
-  Internal::GetImplementation( *this ).Add( actor );
+  Internal::GetImplementation(*this).Add(actor);
 }
 
-void Scene::Remove( Actor actor )
+void Scene::Remove(Actor actor)
 {
-  Internal::GetImplementation( *this ).Remove( actor );
+  Internal::GetImplementation(*this).Remove(actor);
 }
 
-void Scene::SetBackgroundColor( const Vector4& color )
+void Scene::SetBackgroundColor(const Vector4& color)
 {
-  Internal::GetImplementation( *this ).SetBackgroundColor( color );
+  Internal::GetImplementation(*this).SetBackgroundColor(color);
 }
 
 Vector4 Scene::GetBackgroundColor() const
 {
-  return Internal::GetImplementation( *this ).GetBackgroundColor();
+  return Internal::GetImplementation(*this).GetBackgroundColor();
 }
 
 Layer Scene::GetRootLayer() const
 {
-  return Internal::GetImplementation( *this ).GetRootLayer();
+  return Internal::GetImplementation(*this).GetRootLayer();
 }
 
 uint32_t Scene::GetLayerCount() const
 {
-  return Internal::GetImplementation( *this ).GetLayerCount();
+  return Internal::GetImplementation(*this).GetLayerCount();
 }
 
-Layer Scene::GetLayer( uint32_t depth ) const
+Layer Scene::GetLayer(uint32_t depth) const
 {
-  return Internal::GetImplementation( *this ).GetLayer( depth );
+  return Internal::GetImplementation(*this).GetLayer(depth);
 }
 
 Scene::SceneSize Scene::GetSize() const
 {
-  return Internal::GetImplementation( *this ).GetSize();
+  return Internal::GetImplementation(*this).GetSize();
 }
 
 Evas_Object* Scene::GetAccessEvasObject()
 {
-  return Internal::GetImplementation( *this ).GetAccessEvasObject();
+  return Internal::GetImplementation(*this).GetAccessEvasObject();
 }
 
 Evas_Object* Scene::GetDaliEvasObject()
 {
-  return Internal::GetImplementation( *this ).GetDaliEvasObject();
+  return Internal::GetImplementation(*this).GetDaliEvasObject();
 }
 
 Scene::ResizedSignalType& Scene::ResizedSignal()
 {
-  return Internal::GetImplementation( *this ).ResizedSignal();
+  return Internal::GetImplementation(*this).ResizedSignal();
 }
 
 Scene::VisibilityChangedSignalType& Scene::VisibilityChangedSignal()
 {
-  return Internal::GetImplementation( *this ).VisibilityChangedSignal();
+  return Internal::GetImplementation(*this).VisibilityChangedSignal();
 }
 
 Scene::FocusChangedSignalType& Scene::FocusChangedSignal()
 {
-  return Internal::GetImplementation( *this ).FocusChangedSignal();
+  return Internal::GetImplementation(*this).FocusChangedSignal();
 }
 
-Scene::Scene( Internal::Scene* scene )
-: BaseHandle( scene )
+Scene::Scene(Internal::Scene* scene)
+: BaseHandle(scene)
 {
 }
 
-}  // namespace Extension
+} // namespace Extension
 
-}  // namespace Dali
+} // namespace Dali

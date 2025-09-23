@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ namespace Plugin
 {
 
 TizenWebEngineContextMenu::TizenWebEngineContextMenu(Ewk_Context_Menu* menu)
-  : ewkContextMenu(menu)
+: ewkContextMenu(menu)
 {
 }
 
@@ -41,7 +41,7 @@ uint32_t TizenWebEngineContextMenu::GetItemCount() const
 
 std::unique_ptr<Dali::WebEngineContextMenuItem> TizenWebEngineContextMenu::GetItemAt(uint32_t index) const
 {
-  Ewk_Context_Menu_Item* item = ewk_context_menu_nth_item_get(ewkContextMenu, index);
+  Ewk_Context_Menu_Item*                          item = ewk_context_menu_nth_item_get(ewkContextMenu, index);
   std::unique_ptr<Dali::WebEngineContextMenuItem> contextMenuItem(new TizenWebEngineContextMenuItem(item));
   return contextMenuItem;
 }
@@ -49,14 +49,14 @@ std::unique_ptr<Dali::WebEngineContextMenuItem> TizenWebEngineContextMenu::GetIt
 std::vector<std::unique_ptr<Dali::WebEngineContextMenuItem>> TizenWebEngineContextMenu::GetItemList() const
 {
   std::vector<std::unique_ptr<Dali::WebEngineContextMenuItem>> contextMenuItemList;
-  Eina_List* itemList = const_cast<Eina_List*>(ewk_context_menu_items_get(ewkContextMenu));
-  Eina_List* list = nullptr;
-  void* item = nullptr;
+  Eina_List*                                                   itemList = const_cast<Eina_List*>(ewk_context_menu_items_get(ewkContextMenu));
+  Eina_List*                                                   list     = nullptr;
+  void*                                                        item     = nullptr;
   EINA_LIST_FOREACH(itemList, list, item)
   {
-    if (item)
+    if(item)
     {
-      Ewk_Context_Menu_Item* menuItem = static_cast<Ewk_Context_Menu_Item*>(item);
+      Ewk_Context_Menu_Item*                          menuItem = static_cast<Ewk_Context_Menu_Item*>(item);
       std::unique_ptr<Dali::WebEngineContextMenuItem> webitem(new TizenWebEngineContextMenuItem(menuItem));
       contextMenuItemList.push_back(std::move(webitem));
     }
