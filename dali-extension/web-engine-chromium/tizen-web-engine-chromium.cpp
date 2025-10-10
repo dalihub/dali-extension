@@ -208,6 +208,8 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
 
   ewk_settings_viewport_meta_tag_set(settings, false);
 
+  ewk_settings_drag_drop_enabled_set(settings, false);
+
   evas_object_smart_callback_add(mWebView, "offscreen,frame,rendered", &TizenWebEngineChromium::OnFrameRendered, this);
   evas_object_smart_callback_add(mWebView, "load,started", &TizenWebEngineChromium::OnLoadStarted, this);
   evas_object_smart_callback_add(mWebView, "load,progress", &TizenWebEngineChromium::OnLoadInProgress, this);
