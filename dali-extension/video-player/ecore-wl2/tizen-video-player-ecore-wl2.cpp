@@ -24,8 +24,11 @@
 #include <dali/devel-api/common/stage-devel.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/threading/mutex.h>
+#include <dali/integration-api/constraint-integ.h>
 #include <dali/integration-api/debug.h>
 #include <system_info.h>
+
+#include <mutex>
 
 #ifdef OVER_TIZEN_VERSION_9
 #include <wayland-egl-tizen.h>
@@ -54,6 +57,8 @@ namespace Plugin
 namespace
 {
 const char* TIZEN_GLIB_CONTEXT_ENV = "TIZEN_GLIB_CONTEXT";
+
+static constexpr uint32_t VIDEO_PLAYER_CONSTRAINT_TAG = Dali::ConstraintTagRanges::CORE_CONSTRAINT_TAG_MAX + 1u + (Dali::ConstraintTagRanges::INTERNAL_TAG_MAX_COUNT_PER_DERIVATION) * 4 + 123u;
 
 const int TIMER_INTERVAL(20);
 
@@ -345,6 +350,51 @@ private:
 };
 #endif
 
+// Global map to store and get constraint helper from multiple thread safely.
+static std::mutex gHelperMutex;
+static int32_t    gHelperId = 0;
+
+static std::unordered_map<int32_t, IntrusivePtr<VideoConstraintHelper>> gHelperMap;
+
+void AddConstraintHelper(int32_t helperId, IntrusivePtr<VideoConstraintHelper> helper)
+{
+  std::scoped_lock lock(gHelperMutex);
+  DALI_LOG_DEBUG_INFO("Add helper for id[%d], helper[%p]\n", helperId, helper.Get());
+  gHelperMap.insert({helperId, helper});
+}
+
+void RemoveConstraintHelper(int32_t helperId)
+{
+  std::scoped_lock lock(gHelperMutex);
+  DALI_LOG_DEBUG_INFO("Remove helper for id[%d]\n", helperId);
+  gHelperMap.erase(helperId);
+}
+
+void VideoFrameBufferUpdateConstraint(float& current, const Dali::PropertyInputContainer& inputs)
+{
+  IntrusivePtr<VideoConstraintHelper> mVideoHandler;
+  {
+    std::scoped_lock lock(gHelperMutex);
+
+    int32_t helperId = inputs[0]->GetInteger();
+
+    auto iter = gHelperMap.find(helperId);
+    if(iter != gHelperMap.end())
+    {
+      mVideoHandler = iter->second;
+    }
+  }
+
+  if(DALI_LIKELY(mVideoHandler))
+  {
+    current = mVideoHandler->UpdateInterpolationFactor();
+    if(mVideoHandler->UpdateVideoFrameBuffer())
+    {
+      current = 0.0f;
+    }
+  }
+}
+
 /**
  * @brief Whether set play positoin accurately or not.
  *  If true, we set play position to the nearest frame position. but this might be considerably slow, accurately.
@@ -374,6 +424,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mSyncActor(actor),
   mVideoSizePropertyIndex(Property::INVALID_INDEX),
   mSyncMode(syncMode),
+  mVideoConstraintHelperId(0),
   mIsMovedHandle(false),
   mIsSceneConnected(false),
 #ifdef OVER_TIZEN_VERSION_9
@@ -390,6 +441,7 @@ TizenVideoPlayer::~TizenVideoPlayer()
     DestroyVideoShellConstraint();
   }
 
+  DestroyVideoConstraint();
   if(mEcoreSubVideoWindow)
   {
     ecore_wl2_subsurface_del(mEcoreSubVideoWindow);
@@ -590,6 +642,15 @@ void TizenVideoPlayer::Play()
     {
       DALI_LOG_ERROR("Play, player_start() is failed\n");
     }
+
+    if(mVideoConstraintHelper)
+    {
+      mVideoConstraintHelper->ResetFirstFrameFlag();
+    }
+    if(mVideoFrameBufferProgressPropertyConstraint)
+    {
+      mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ALWAYS);
+    }
   }
 }
 
@@ -611,6 +672,11 @@ void TizenVideoPlayer::Pause()
       mTimer.Stop();
       DestroyPackets();
     }
+
+    if(mVideoFrameBufferProgressPropertyConstraint)
+    {
+      mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ONCE);
+    }
   }
 }
 
@@ -631,6 +697,11 @@ void TizenVideoPlayer::Stop()
     {
       mTimer.Stop();
       DestroyPackets();
+    }
+
+    if(mVideoFrameBufferProgressPropertyConstraint)
+    {
+      mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ONCE);
     }
   }
 }
@@ -1459,6 +1530,20 @@ void TizenVideoPlayer::SceneConnection()
       DALI_LOG_ERROR("mVideoShellSizePropertyConstraint() creation failed!\n");
     }
   }
+
+  if(mVideoFrameBufferProgressPropertyConstraint)
+  {
+    player_state_e playerState;
+    GetPlayerState(&playerState);
+    if(playerState == PLAYER_STATE_PLAYING)
+    {
+      mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ALWAYS);
+    }
+    else
+    {
+      mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ONCE);
+    }
+  }
   mIsSceneConnected = true;
 }
 
@@ -1470,6 +1555,11 @@ void TizenVideoPlayer::SceneDisconnection()
   {
     DALI_LOG_RELEASE_INFO("mVideoShellSizePropertyConstraint(%d).Remove()\n", mVideoShellSizePropertyIndex);
     DestroyVideoShellConstraint();
+  }
+
+  if(mVideoFrameBufferProgressPropertyConstraint)
+  {
+    mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ONCE);
   }
   mIsSceneConnected = false;
 }
@@ -1518,6 +1608,78 @@ bool TizenVideoPlayer::IsLetterBoxEnabled() const
 
   DALI_LOG_RELEASE_INFO("IsLetterBoxEnabled not yet supported.\n");
   return false;
+}
+
+void TizenVideoPlayer::SetFrameInterpolationInterval(float intervalSeconds)
+{
+  mInterpolationInterval = intervalSeconds;
+  if(mVideoConstraintHelper)
+  {
+    mVideoConstraintHelper->SetFrameInterpolationInterval(mInterpolationInterval);
+  }
+}
+
+void TizenVideoPlayer::EnableOffscreenFrameRendering(bool useOffScreenFrame, Dali::NativeImageSourcePtr previousFrameBufferNativeImageSourcePtr, Dali::NativeImageSourcePtr currentFrameBufferNativeImageSourcePtr)
+{
+  Actor syncActor = mSyncActor.GetHandle();
+  if(syncActor)
+  {
+    if(previousFrameBufferNativeImageSourcePtr == nullptr || currentFrameBufferNativeImageSourcePtr == nullptr)
+    {
+      mVideoFrameBufferProgressPropertyConstraint.Remove();
+      DestroyVideoConstraint();
+      return;
+    }
+
+    if(mVideoConstraintHelper)
+    {
+      DestroyVideoConstraint();
+    }
+
+    mVideoConstraintHelper = VideoConstraintHelper::New();
+    mVideoConstraintHelper->SetVideoFrameBufferNativeImageSource(previousFrameBufferNativeImageSourcePtr, currentFrameBufferNativeImageSourcePtr);
+    mVideoConstraintHelper->SetFrameInterpolationInterval(mInterpolationInterval);
+
+    mVideoConstraintHelperId = gHelperId++;
+    AddConstraintHelper(mVideoConstraintHelperId, mVideoConstraintHelper);
+    auto idIndex = syncActor.RegisterProperty("helperId", Property::Value(mVideoConstraintHelperId));
+
+    mVideoFrameBufferProgressPropertyIndex      = syncActor.RegisterProperty("uInterpolationFactor", 0.0f);
+    mVideoFrameBufferProgressPropertyConstraint = Constraint::New<float>(syncActor, mVideoFrameBufferProgressPropertyIndex, VideoFrameBufferUpdateConstraint);
+    mVideoFrameBufferProgressPropertyConstraint.AddSource(LocalSource(idIndex));
+    Dali::Integration::ConstraintSetInternalTag(mVideoFrameBufferProgressPropertyConstraint, VIDEO_PLAYER_CONSTRAINT_TAG);
+
+    player_state_e playerState;
+    GetPlayerState(&playerState);
+    if(playerState == PLAYER_STATE_PLAYING)
+    {
+      mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ALWAYS);
+    }
+    else
+    {
+      mVideoFrameBufferProgressPropertyConstraint.SetApplyRate(Dali::Constraint::ApplyRate::APPLY_ONCE);
+    }
+    mVideoFrameBufferProgressPropertyConstraint.Apply();
+  }
+}
+
+void TizenVideoPlayer::DestroyVideoConstraint()
+{
+  if(mVideoConstraintHelper)
+  {
+    RemoveConstraintHelper(mVideoConstraintHelperId);
+    mVideoConstraintHelper.Reset();
+  }
+}
+
+void TizenVideoPlayer::SetVideoFrameBuffer(Dali::NativeImageSourcePtr source)
+{
+  auto nativeSource = source->GetNativeImageSource();
+  if(nativeSource.GetType() == typeid(tbm_surface_h))
+  {
+    auto tbmSource = AnyCast<tbm_surface_h>(nativeSource);
+    mVideoConstraintHelper->SetVideoFrameBuffer(tbmSource);
+  }
 }
 
 } // namespace Plugin
