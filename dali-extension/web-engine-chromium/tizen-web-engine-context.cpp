@@ -249,6 +249,7 @@ void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<st
     list = eina_list_append(list, (*it).c_str());
   }
   ewk_context_register_url_schemes_as_cors_enabled(mEwkContext, list);
+  eina_list_free(list);
 }
 
 void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)
@@ -259,6 +260,7 @@ void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::str
     list = eina_list_append(list, (*it).c_str());
   }
   ewk_context_register_jsplugin_mime_types(mEwkContext, list);
+  eina_list_free(list);
 }
 
 bool TizenWebEngineContext::DeleteAllApplicationCache()
@@ -279,6 +281,7 @@ void TizenWebEngineContext::DeleteFormPasswordDataList(const std::vector<std::st
     eList = eina_list_append(eList, (*it).c_str());
   }
   ewk_context_form_password_data_list_free(mEwkContext, eList);
+  eina_list_free(eList);
 }
 
 void TizenWebEngineContext::DeleteAllFormPasswordData()

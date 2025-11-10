@@ -2039,6 +2039,11 @@ void TizenWebEngineLWE::RegisterWebAuthResponseCallback(WebEngineWebAuthResponse
   // NOT IMPLEMENTED
 }
 
+void TizenWebEngineLWE::RegisterFileChooserRequestedCallback(WebEngineFileChooserRequestedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
 void TizenWebEngineLWE::WebAuthenticationCancel()
 {
   // NOT IMPLEMENTED

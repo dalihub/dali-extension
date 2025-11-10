@@ -23,6 +23,7 @@
 #include "tizen-web-engine-context-menu-item.h"
 #include "tizen-web-engine-context-menu.h"
 #include "tizen-web-engine-device-list-get.h"
+#include "tizen-web-engine-file-chooser-request.h"
 #include "tizen-web-engine-form-repost-decision.h"
 #include "tizen-web-engine-hit-test.h"
 #include "tizen-web-engine-http-auth-handler.h"
@@ -239,6 +240,7 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "text,found", &TizenWebEngineChromium::OnTextFound, this);
   evas_object_smart_callback_add(mWebView, "webauthn,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
   evas_object_smart_callback_add(mWebView, "webauthn,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
+  evas_object_smart_callback_add(mWebView, "file,chooser,request", &TizenWebEngineChromium::OnFileChooserRequested, this);
 
   ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
   evas_object_smart_callback_add(mWebView, "device,connection,changed", &TizenWebEngineChromium::OnDeviceConnectionChanged, this);
@@ -1103,6 +1105,11 @@ void TizenWebEngineChromium::RegisterWebAuthResponseCallback(WebEngineWebAuthRes
   mWebAuthResponseCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterFileChooserRequestedCallback(WebEngineFileChooserRequestedCallback callback)
+{
+  mFileChooserRequestedCallback = callback;
+}
+
 void TizenWebEngineChromium::RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback)
 {
   mDeviceConnectionChangedCallback = callback;
@@ -1414,6 +1421,15 @@ void TizenWebEngineChromium::OnWebAuthResponse(void* data, Evas_Object*, void*)
   auto pThis = static_cast<TizenWebEngineChromium*>(data);
   DALI_LOG_RELEASE_INFO("#WebAuthResponse \n");
   ExecuteCallback(pThis->mWebAuthResponseCallback);
+}
+
+void TizenWebEngineChromium::OnFileChooserRequested(void* data, Evas_Object*, void* request)
+{
+  DALI_LOG_RELEASE_INFO("#FileChooserRequested.\n");
+  auto                                               pThis = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_File_Chooser_Request*                          ewkRequest  = (Ewk_File_Chooser_Request*)request;
+  std::unique_ptr<Dali::WebEngineFileChooserRequest> engineRequest(new TizenWebEngineFileChooserRequest(ewkRequest));
+  ExecuteCallback(pThis->mFileChooserRequestedCallback, std::move(engineRequest));
 }
 
 void TizenWebEngineChromium::OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)
