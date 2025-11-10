@@ -2,7 +2,7 @@
 #define DALI_TIZEN_WEB_ENGINE_LWE_H
 
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2025 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -599,6 +599,11 @@ public:
    * @copydoc Dali::WebEnginePlugin::RegisterWebAuthResponseCallback()
    */
   void RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFileChooserRequestedCallback()
+   */
+  void RegisterFileChooserRequestedCallback(WebEngineFileChooserRequestedCallback callback) override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::WebAuthenticationCancel()

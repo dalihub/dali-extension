@@ -603,6 +603,11 @@ public:
   void RegisterWebAuthResponseCallback(WebEngineWebAuthResponseCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterFileChooserRequestedCallback()
+   */
+  void RegisterFileChooserRequestedCallback(WebEngineFileChooserRequestedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::WebAuthenticationCancel()
    */
   void WebAuthenticationCancel() override;
@@ -679,6 +684,7 @@ private:
   static Eina_Bool OnUserMediaPermissonRequest(Evas_Object*, Ewk_User_Media_Permission_Request* request, void* data);
   static void      OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents);
   static void      OnWebAuthResponse(void* data, Evas_Object*, void*);
+  static void      OnFileChooserRequested(void* data, Evas_Object*, void* request);
 
   void UpdateImage(tbm_surface_h buffer);
   void InitWebView(bool incognito);
@@ -736,6 +742,7 @@ private:
   JavaScriptEntireMessageHandlerCallback      mJavaScriptEntireMessageReceivedCallback;
   WebEngineWebAuthDisplayQRCallback           mWebAuthDisplayQRCallback;
   WebEngineWebAuthResponseCallback            mWebAuthResponseCallback;
+  WebEngineFileChooserRequestedCallback       mFileChooserRequestedCallback;
   WebEngineUserMediaPermissionRequestCallback mUserMediaPermissionRequestCallback;
   WebEngineDeviceConnectionChangedCallback    mDeviceConnectionChangedCallback;
   WebEngineDeviceListGetCallback              mDeviceListGetCallback;
