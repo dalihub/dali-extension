@@ -242,6 +242,8 @@ void VectorAnimationRendererTizen::PrepareTarget(std::shared_ptr<RenderingData> 
   std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
   renderingDataImpl->mTargetSurface                    = NativeImageSourceQueue::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, NativeImageSourceQueue::ColorFormat::BGRA8888);
   renderingDataImpl->mTexture                          = Texture::New(*renderingDataImpl->mTargetSurface);
+
+  renderingDataImpl->mTargetSurface->SetQueueUsageHint(Dali::NativeImageSourceQueue::QueueUsageType::ENQUEUE_DEQUEUE);
 }
 
 bool VectorAnimationRendererTizen::IsTargetPrepared()
