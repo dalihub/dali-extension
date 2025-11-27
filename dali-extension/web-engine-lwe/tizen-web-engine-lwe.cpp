@@ -773,6 +773,8 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
     waitCount++;
   }
 
+  bool uploadImageCalled = false;
+
   if(tbm_surface_queue_can_acquire(mTbmQueue, 0))
   {
     if(!mFirstRenderEnded)
@@ -787,11 +789,19 @@ void TizenWebEngineLWE::TryUpdateImage(bool needsSync)
       mLastDrawnTbmSurface = nullptr;
     }
 
-    tbm_surface_queue_acquire(mTbmQueue, &mLastDrawnTbmSurface);
-    UpdateImage(mLastDrawnTbmSurface);
-    mInImageUpdateState = false;
+    if(tbm_surface_queue_acquire(mTbmQueue, &mLastDrawnTbmSurface) != TBM_SURFACE_QUEUE_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("TizenWebEngineLWE: tbm_surface_queue_acquire failed!\n");
+    }
+    else
+    {
+      uploadImageCalled = true;
+      UpdateImage(mLastDrawnTbmSurface);
+      mInImageUpdateState = false;
+    }
   }
-  else
+
+  if(!uploadImageCalled)
   {
     DALI_LOG_DEBUG_INFO("TizenWebEngineLWE: tbm_surface_queue_can_acquire == false, retry!");
     mWebContainer->AddIdleCallback([](void* data)
