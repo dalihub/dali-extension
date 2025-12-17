@@ -36,9 +36,6 @@ namespace Plugin
 {
 namespace
 {
-const char* const PIXEL_AREA_UNIFORM_NAME("pixelArea");
-const Vector4     FULL_TEXTURE_RECT(0.f, 0.f, 1.f, 1.f);
-
 #if defined(DEBUG_ENABLED)
 Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, false, "LOG_VECTOR_ANIMATION");
 #endif

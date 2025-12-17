@@ -40,7 +40,7 @@ namespace Plugin
  * @brief A class TizenWebEngineRequestInterceptor for intercepting http
  * request.
  */
-class TizenWebEngineRequestInterceptor : public Dali::WebEngineRequestInterceptor
+class TizenWebEngineRequestInterceptor final : public Dali::WebEngineRequestInterceptor
 {
 public:
   /**
