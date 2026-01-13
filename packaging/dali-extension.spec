@@ -52,12 +52,6 @@ BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
 BuildRequires:  pkgconfig(ecore-wl2)
 
-# For evas-plugin
-%if 0%{?enable_evas_plugin}
-BuildRequires:  pkgconfig(elementary)
-BuildRequires:  pkgconfig(evas)
-%endif
-
 %if 0%{?tizen_65_or_greater}
 BuildRequires:  pkgconfig(rive_tizen)
 %endif
@@ -298,9 +292,6 @@ autoreconf --install
 %if 0%{?enable_color_controller}
            --enable-color-controller \
 %endif
-%if 0%{?enable_evas_plugin}
-           --enable-evas-plugin \
-%endif
            --enable-ecore-wl2 \
            --enable-keyextension
 
@@ -468,7 +459,6 @@ exit 0
 %defattr(-,root,root,-)
 %{_sysconfdir}/profile.d/dali.sh
 %{_sysconfdir}/profile.d/dali-shader-conf.sh
-%{_libdir}/libdali2-extension.so*
 %license LICENSE
 
 %files devel

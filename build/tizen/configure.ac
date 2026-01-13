@@ -58,12 +58,6 @@ AC_ARG_ENABLE([color-controller],
               [enable_color_controller=$enableval],
               [enable_color_controller=no])
 
-AC_ARG_ENABLE([evas-plugin],
-              [AC_HELP_STRING([--enable-evas-plugin],
-                              [Turns on evas plugin])],
-              [enable_evas_plugin=$enableval],
-              [enable_evas_plugin=no])
-
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
