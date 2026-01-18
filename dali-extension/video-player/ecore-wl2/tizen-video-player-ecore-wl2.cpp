@@ -118,6 +118,7 @@ static void EmitPlaybackFinishedSignal(void* user_data)
         [](gpointer userData) -> gboolean
       {
         auto* player = static_cast<TizenVideoPlayer*>(userData);
+        player->Update();
         player->mFinishedSignal.Emit();
         player->Stop();
         return G_SOURCE_REMOVE;
@@ -129,6 +130,7 @@ static void EmitPlaybackFinishedSignal(void* user_data)
     }
     else
     {
+      player->Update();
       player->mFinishedSignal.Emit();
       player->Stop();
     }
@@ -410,6 +412,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mPlayer(NULL),
   mPlayerState(PLAYER_STATE_NONE),
   mPacket(NULL),
+  mPreviousPacket(NULL),
   mNativeImageSourcePtr(NULL),
   mTimer(),
   mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
@@ -1081,35 +1084,24 @@ bool TizenVideoPlayer::Update()
 {
   Dali::Mutex::ScopedLock lock(mPacketMutex);
 
-  int error;
-
-  if(mPacket != NULL)
-  {
-    error = media_packet_destroy(mPacket);
-    if(error != MEDIA_PACKET_ERROR_NONE)
-    {
-      DALI_LOG_ERROR("Update, media_packet_destroy() is failed\n");
-    }
-    mPacket = NULL;
-  }
+  media_packet_h nextPacket = NULL;
 
   if(!mPacketList.empty())
   {
-    mPacket = static_cast<media_packet_h>(mPacketList.front());
+    nextPacket = static_cast<media_packet_h>(mPacketList.front());
     mPacketList.pop_front();
   }
 
-  if(mPacket == NULL)
+  if(nextPacket == NULL)
   {
     return true;
   }
 
   tbm_surface_h tbmSurface = NULL;
-  error                    = media_packet_get_tbm_surface(mPacket, &tbmSurface);
+  int           error      = media_packet_get_tbm_surface(nextPacket, &tbmSurface);
   if(error != MEDIA_PACKET_ERROR_NONE)
   {
-    media_packet_destroy(mPacket);
-    mPacket = NULL;
+    media_packet_destroy(nextPacket);
     DALI_LOG_ERROR(" error: %d\n", error);
     return true;
   }
@@ -1118,12 +1110,32 @@ bool TizenVideoPlayer::Update()
   mNativeImageSourcePtr->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
 
+  if(mPreviousPacket != NULL)
+  {
+    error = media_packet_destroy(mPreviousPacket);
+    if(error != MEDIA_PACKET_ERROR_NONE)
+    {
+      DALI_LOG_ERROR("Update, media_packet_destroy() is failed\n");
+    }
+    mPreviousPacket = NULL;
+  }
+
+  mPreviousPacket = mPacket;
+  mPacket = nextPacket;
+
   return true;
 }
 
 void TizenVideoPlayer::DestroyPackets()
 {
   int error;
+  if(mPreviousPacket != NULL)
+  {
+    error = media_packet_destroy(mPreviousPacket);
+    DALI_LOG_ERROR("Media packet destroy error: %d\n", error);
+    mPreviousPacket = NULL;
+  }
+
   if(mPacket != NULL)
   {
     error = media_packet_destroy(mPacket);
