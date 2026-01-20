@@ -16,20 +16,12 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
-AM_CONDITIONAL([EVAS_PLUGIN], [test x$evas_plugin = xtrue])
-
 if test "x$enable_debug" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
 fi
 
 PKG_CHECK_MODULES(DALI_ADAPTOR_INTEGRATION, dali2-adaptor-integration)
 PKG_CHECK_MODULES(WAYLAND, [ecore-wl2])
-
-# For evas-plugin
-if test "x$enable_evas_plugin" = "xyes"; then
-PKG_CHECK_MODULES(ELEMENTARY, elementary)
-PKG_CHECK_MODULES(EVAS, evas)
-fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

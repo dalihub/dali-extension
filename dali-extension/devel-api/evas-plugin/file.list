@@ -1,7 +1,0 @@
-evas_plugin_devel_header_files = \
-   $(extension_src_dir)/devel-api/evas-plugin/evas-plugin.h \
-   $(extension_src_dir)/devel-api/evas-plugin/scene.h
-
-evas_plugin_devel_src_files = \
-   $(extension_src_dir)/devel-api/evas-plugin/evas-plugin.cpp \
-   $(extension_src_dir)/devel-api/evas-plugin/scene.cpp
