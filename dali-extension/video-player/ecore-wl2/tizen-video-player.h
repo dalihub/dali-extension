@@ -306,11 +306,12 @@ public:
    */
   void SceneDisconnection();
 
-private:
   /**
    * @brief Updates video frame image by timer if rendering targe is native image source
    */
   bool Update();
+
+private:
 
   /**
    * @brief Gets current player state
@@ -357,6 +358,7 @@ private:
   player_h                   mPlayer;               ///< Tizen player handle
   player_state_e             mPlayerState;          ///< Tizen player state
   media_packet_h             mPacket;               ///< Media packet handle with tbm surface of current video frame image
+  media_packet_h             mPreviousPacket;       ///< Media packet handle with tbm surface of previous video frame image
   Dali::NativeImageSourcePtr mNativeImageSourcePtr; ///< native image source for video rendering
   Dali::Timer                mTimer;                ///< Timer for texture streaming rendering
   Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
