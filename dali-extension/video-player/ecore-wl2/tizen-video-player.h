@@ -377,7 +377,6 @@ private:
   Dali::WeakHandle<Dali::Actor> mSyncActor;
   Constraint                    mVideoSizePropertyConstraint;
   Constraint                    mVideoFrameBufferConstraint;
-  Property::Index               mVideoSizePropertyIndex;
   Constraint                    mVideoFrameBufferProgressPropertyConstraint;
   Property::Index               mVideoFrameBufferProgressPropertyIndex;
   Dali::VideoSyncMode           mSyncMode;
