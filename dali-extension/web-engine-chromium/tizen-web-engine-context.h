@@ -121,7 +121,7 @@ public:
   /**
    * @copydoc Dali::WebEngineContext::GetWebStorageUsageForOrigin()
    */
-  bool GetWebStorageUsageForOrigin(WebEngineSecurityOrigin& origin, WebEngineStorageUsageAcquiredCallback callback) override;
+  bool GetWebStorageUsageForOrigin(WebEngineSecurityOrigin& origin, WebEngineStorageUsageAcquiredCallback callback);
 
   /**
    * @copydoc Dali::WebEngineContext::DeleteAllWebStorage()

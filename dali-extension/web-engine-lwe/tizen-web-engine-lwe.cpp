@@ -35,6 +35,8 @@
 #include <unistd.h>
 #include <vconf/vconf.h>
 
+using namespace LWE;
+
 // The plugin factories
 extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin(void)
 {
@@ -586,11 +588,11 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
   {
     return eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, reinterpret_cast<EGLContext>(context));
   };
-  config.onGetProcAddress = [](LWE::WebContainer*, const char* name) -> void*
+  config.onGetProcAddress = [this](LWE::WebContainer*, const char* name) -> void*
   {
     return reinterpret_cast<void*>(eglGetProcAddress(name));
   };
-  config.onIsSupportedExtension = [](LWE::WebContainer*, const char* name) -> bool
+  config.onIsSupportedExtension = [this](LWE::WebContainer*, const char* name) -> bool
   {
     const char* extensions = eglQueryString(eglGetCurrentDisplay(), EGL_EXTENSIONS);
     return (extensions != nullptr) ? (strstr(extensions, name) != nullptr) : false;
@@ -1294,19 +1296,19 @@ public:
   {
     return 1;
   }
-  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetBackwardItems(int limit) override
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetBackwardItems(int limit)
   {
     std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
     return vec;
   }
-  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetForwardItems(int limit) override
+  std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetForwardItems(int limit)
   {
     std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> vec;
     return vec;
   }
 
 private:
-  WebEngineBackForwardListItem* __attribute__((unused)) mItem;
+  WebEngineBackForwardListItem* mItem;
 };
 
 Dali::WebEngineBackForwardList& TizenWebEngineLWE::GetBackForwardList() const

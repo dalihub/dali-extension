@@ -114,7 +114,7 @@ public:
    */
   void AddPropertyValueCallback(const std::string& keyPath, VectorProperty property, CallbackBase* callback, int32_t id) override;
 
-  void KeepRasterizedBuffer() override;
+  void KeepRasterizedBuffer();
 
   /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()

@@ -425,6 +425,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mEcoreWlWindow(nullptr),
   mEcoreSubVideoWindow(nullptr),
   mSyncActor(actor),
+  mVideoSizePropertyIndex(Property::INVALID_INDEX),
   mSyncMode(syncMode),
   mVideoConstraintHelperId(0),
   mIsMovedHandle(false),
