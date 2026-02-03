@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_PLUGIN_MANAGER_H
 
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,7 @@ private:
   Dali::Mutex                          mMutex;
   std::unique_ptr<EventThreadCallback> mEventTrigger;
   bool                                 mProcessorRegistered : 1;
+  bool                                 mEventTriggered : 1;
   bool                                 mEventHandlerRemovedDuringEventProcessing : 1;
 };
 
