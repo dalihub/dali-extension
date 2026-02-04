@@ -4,7 +4,6 @@ rive_animation_view_internal_header_files = \
    $(extension_src_dir)/internal/rive-animation-view/rive-animation-thread.h \
    $(extension_src_dir)/internal/rive-animation-view/rive-animation-view-impl.h \
    $(extension_src_dir)/internal/rive-animation-view/rive-rasterize-thread.h \
-   $(extension_src_dir)/internal/rive-animation-view/round-robin-container-view.h \
    $(extension_src_dir)/internal/rive-animation-view/animation-renderer/rive-animation-renderer.h \
    $(extension_src_dir)/internal/rive-animation-view/animation-renderer/rive-animation-renderer-event-handler.h \
    $(extension_src_dir)/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h
