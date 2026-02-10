@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,15 +45,23 @@ VectorAnimationPluginManager::VectorAnimationPluginManager()
   mTriggeredHandlers(),
   mTriggerOrderId(0u),
   mMutex(),
-  mEventTrigger(),
+  mEventTrigger(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered))),
   mProcessorRegistered(false),
+  mEventTriggered(false),
   mEventHandlerRemovedDuringEventProcessing(false)
 {
+  DALI_LOG_DEBUG_INFO("VectorAnimationPluginManager Trigger Id(%d)\n", mEventTrigger->GetId());
 }
 
 VectorAnimationPluginManager::~VectorAnimationPluginManager()
 {
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
+
+  {
+    Dali::Mutex::ScopedLock lock(mMutex);
+    mEventTrigger.reset();
+  }
+
   if(Adaptor::IsAvailable() && mProcessorRegistered)
   {
     Adaptor::Get().UnregisterProcessorOnce(*this);
@@ -73,16 +81,6 @@ void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& 
     }
 
     mEventHandlers.insert(&handler);
-
-    {
-      Dali::Mutex::ScopedLock lock(mMutex);
-
-      if(!mEventTrigger)
-      {
-        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
-        DALI_LOG_DEBUG_INFO("VectorAnimationPluginManager Trigger Id(%d)\n", mEventTrigger->GetId());
-      }
-    }
   }
 }
 
@@ -113,8 +111,6 @@ void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandle
         // There is no valid event handler now. We could remove whole triggered event handlers.
         mTriggeredHandlers.clear();
         mEventHandlerRemovedDuringEventProcessing = false;
-
-        mEventTrigger.reset();
       }
       else
       {
@@ -141,9 +137,11 @@ void VectorAnimationPluginManager::TriggerEvent(VectorAnimationEventHandler& han
     {
       mTriggeredHandlers.insert({&handler, mTriggerOrderId++});
 
-      // Note : Always trigger event since eventfd might not emit triggered callback sometimes.
-      // Let we keep this logic until fd relative bug fixed. 2024-12-16 eunkiki.hong
-      mEventTrigger->Trigger();
+      if(!mEventTriggered)
+      {
+        mEventTrigger->Trigger();
+        mEventTriggered = true;
+      }
     }
   }
 }
@@ -168,6 +166,7 @@ void VectorAnimationPluginManager::OnEventTriggered()
     movedTriggeredHandlers.swap(mTriggeredHandlers);
 
     mTriggerOrderId = 0u;
+    mEventTriggered = false;
   }
 
   // Reorder event handler ordered by trigger request.

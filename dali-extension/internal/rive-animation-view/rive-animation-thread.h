@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_THREAD_H
 
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@
 #include <dali/devel-api/threading/conditional-wait.h>
 #include <dali/devel-api/threading/thread.h>
 #include <dali/integration-api/adaptor-framework/log-factory-interface.h>
+#include <dali/integration-api/adaptor-framework/round-robin-container-view.h>
 #include <dali/public-api/signals/connection-tracker.h>
 #include <memory>
 
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/rive-animation-task.h>
 #include <dali-extension/internal/rive-animation-view/rive-rasterize-thread.h>
-#include <dali-extension/internal/rive-animation-view/round-robin-container-view.h>
 
 namespace Dali
 {
@@ -168,15 +168,15 @@ private:
   RiveAnimationThread& operator=(const RiveAnimationThread& thread) = delete;
 
 private:
-  std::vector<RiveAnimationTaskPtr>        mAnimationTasks;
-  std::vector<RiveAnimationTaskPtr>        mCompletedTasks;
-  std::vector<RiveAnimationTaskPtr>        mWorkingTasks;
-  RoundRobinContainerView<RasterizeHelper> mRasterizers;
-  SleepThread                              mSleepThread;
-  ConditionalWait                          mConditionalWait;
-  bool                                     mNeedToSleep;
-  bool                                     mDestroyThread;
-  const Dali::LogFactoryInterface&         mLogFactory;
+  std::vector<RiveAnimationTaskPtr>              mAnimationTasks;
+  std::vector<RiveAnimationTaskPtr>              mCompletedTasks;
+  std::vector<RiveAnimationTaskPtr>              mWorkingTasks;
+  Dali::RoundRobinContainerView<RasterizeHelper> mRasterizers;
+  SleepThread                                    mSleepThread;
+  ConditionalWait                                mConditionalWait;
+  bool                                           mNeedToSleep;
+  bool                                           mDestroyThread;
+  const Dali::LogFactoryInterface&               mLogFactory;
 };
 
 } // namespace Internal
