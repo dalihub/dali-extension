@@ -45,23 +45,16 @@ VectorAnimationPluginManager::VectorAnimationPluginManager()
   mTriggeredHandlers(),
   mTriggerOrderId(0u),
   mMutex(),
-  mEventTrigger(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered))),
+  mEventTrigger(),
   mProcessorRegistered(false),
   mEventTriggered(false),
   mEventHandlerRemovedDuringEventProcessing(false)
 {
-  DALI_LOG_DEBUG_INFO("VectorAnimationPluginManager Trigger Id(%d)\n", mEventTrigger->GetId());
 }
 
 VectorAnimationPluginManager::~VectorAnimationPluginManager()
 {
   DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "this = %p\n", this);
-
-  {
-    Dali::Mutex::ScopedLock lock(mMutex);
-    mEventTrigger.reset();
-  }
-
   if(Adaptor::IsAvailable() && mProcessorRegistered)
   {
     Adaptor::Get().UnregisterProcessorOnce(*this);
@@ -81,6 +74,16 @@ void VectorAnimationPluginManager::AddEventHandler(VectorAnimationEventHandler& 
     }
 
     mEventHandlers.insert(&handler);
+
+    {
+      Dali::Mutex::ScopedLock lock(mMutex);
+
+      if(!mEventTrigger)
+      {
+        mEventTrigger = std::unique_ptr<EventThreadCallback>(new EventThreadCallback(MakeCallback(this, &VectorAnimationPluginManager::OnEventTriggered)));
+        DALI_LOG_DEBUG_INFO("VectorAnimationPluginManager Trigger Id(%d)\n", mEventTrigger->GetId());
+      }
+    }
   }
 }
 
@@ -111,6 +114,9 @@ void VectorAnimationPluginManager::RemoveEventHandler(VectorAnimationEventHandle
         // There is no valid event handler now. We could remove whole triggered event handlers.
         mTriggeredHandlers.clear();
         mEventHandlerRemovedDuringEventProcessing = false;
+
+        mEventTrigger.reset();
+        mEventTriggered = false;
       }
       else
       {
