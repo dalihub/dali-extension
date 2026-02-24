@@ -99,6 +99,7 @@ Summary:    Plugin to play a video file for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(capi-media-player)
 BuildRequires: pkgconfig(capi-system-info)
+BuildRequires: pkgconfig(esplusplayer)
 # dali-adaptor uses ecore mainloop
 BuildRequires:  pkgconfig(ecore-wl2)
 

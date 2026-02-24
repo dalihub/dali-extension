@@ -27,6 +27,8 @@ fi
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
 PKG_CHECK_MODULES(CAPI_SYSTEM_INFO, capi-system-info)
+PKG_CHECK_MODULES(ESPLUSPLAYER, esplusplayer)
+
 
 AC_ARG_ENABLE([ecore-wl2],
               [AC_HELP_STRING([--enable-ecore-wl2], [build with ecorewl2 on tizen])],

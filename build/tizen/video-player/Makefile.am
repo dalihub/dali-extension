@@ -35,16 +35,20 @@ libdali2_video_player_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
                       $(CAPI_MEDIA_PLAYER_CFLAGS) \
                       $(CAPI_SYSTEM_INFO_CFLAGS) \
+                      $(ESPLUSPLAYER_CFLAGS) \
                       -Werror -Wall
 
 libdali2_video_player_plugin_la_CXXFLAGS+= $(ECORE_WL2_CFLAGS) \
-                      -I../../../dali-extension/video-player/ecore-wl2
+                      -I../../../dali-extension/video-player/base \
+                      -I../../../dali-extension/video-player/tizen-video-player \
+                      -I../../../dali-extension/video-player/es-video-player
 
 libdali2_video_player_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
                       $(CAPI_MEDIA_PLAYER_LIBS) \
-                      $(CAPI_SYSTEM_INFO_LIBS)
+                      $(CAPI_SYSTEM_INFO_LIBS) \
+                      $(ESPLUSPLAYER_LIBS)
 
 libdali2_video_player_plugin_la_LIBADD+= $(ECORE_WL2_LIBS)
 
