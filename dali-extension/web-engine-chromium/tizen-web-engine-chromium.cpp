@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,13 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
 {
   // This API must be called at first.
-  ewk_set_arguments(argc, argv);
+  // And it must be called only once in current process.
+  static bool isAlreadyCalled = false;
+  if(!isAlreadyCalled)
+  {
+    ewk_set_arguments(argc, argv);
+    isAlreadyCalled = true;
+  }
 
   // Check if web engine is available and make sure that web engine is initialized.
   if(!WebEngineManager::IsAvailable())
