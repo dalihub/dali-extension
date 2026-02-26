@@ -247,6 +247,7 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "webauthn,display,qr", &TizenWebEngineChromium::OnWebAuthDisplayQR, this);
   evas_object_smart_callback_add(mWebView, "webauthn,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
   evas_object_smart_callback_add(mWebView, "file,chooser,request", &TizenWebEngineChromium::OnFileChooserRequested, this);
+  evas_object_smart_callback_add(mWebView, "webprocess,crashed", &TizenWebEngineChromium::OnWebProcessCrashed, this);
 
   ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
   evas_object_smart_callback_add(mWebView, "device,connection,changed", &TizenWebEngineChromium::OnDeviceConnectionChanged, this);
@@ -1116,6 +1117,11 @@ void TizenWebEngineChromium::RegisterFileChooserRequestedCallback(WebEngineFileC
   mFileChooserRequestedCallback = callback;
 }
 
+void TizenWebEngineChromium::RegisterWebProcessCrashedCallback(WebEngineWebProcessCrashedCallback callback)
+{
+  mWebProcessCrashedCallback = callback;
+}
+
 void TizenWebEngineChromium::RegisterDeviceConnectionChangedCallback(WebEngineDeviceConnectionChangedCallback callback)
 {
   mDeviceConnectionChangedCallback = callback;
@@ -1436,6 +1442,13 @@ void TizenWebEngineChromium::OnFileChooserRequested(void* data, Evas_Object*, vo
   Ewk_File_Chooser_Request*                          ewkRequest  = (Ewk_File_Chooser_Request*)request;
   std::unique_ptr<Dali::WebEngineFileChooserRequest> engineRequest(new TizenWebEngineFileChooserRequest(ewkRequest));
   ExecuteCallback(pThis->mFileChooserRequestedCallback, std::move(engineRequest));
+}
+
+void TizenWebEngineChromium::OnWebProcessCrashed(void* data, Evas_Object*, void*)
+{
+  DALI_LOG_RELEASE_INFO("#WebProcessCrashed.\n");
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  ExecuteCallback(pThis->mWebProcessCrashedCallback);
 }
 
 void TizenWebEngineChromium::OnAuthenticationChallenged(Evas_Object*, Ewk_Auth_Challenge* authChallenge, void* data)
