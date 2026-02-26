@@ -47,6 +47,9 @@ BuildRequires:  pkgconfig
 BuildRequires:  pkgconfig(dali2-core)
 BuildRequires:  pkgconfig(dali2-adaptor)
 BuildRequires:  pkgconfig(dali2-toolkit)
+BuildRequires:  dali2-integration-devel
+BuildRequires:  dali2-adaptor-integration-devel
+BuildRequires:  dali2-toolkit-integration-devel
 BuildRequires:  pkgconfig(dlog)
 
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
