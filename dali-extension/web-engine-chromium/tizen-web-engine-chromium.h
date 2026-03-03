@@ -2,7 +2,7 @@
 #define DALI_TIZEN_WEB_ENGINE_CHROMIUM_H
 
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -608,6 +608,11 @@ public:
   void RegisterFileChooserRequestedCallback(WebEngineFileChooserRequestedCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterWebProcessCrashedCallback()
+   */
+  void RegisterWebProcessCrashedCallback(WebEngineWebProcessCrashedCallback callback) override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::WebAuthenticationCancel()
    */
   void WebAuthenticationCancel() override;
@@ -685,6 +690,7 @@ private:
   static void      OnWebAuthDisplayQR(void* data, Evas_Object*, void* contents);
   static void      OnWebAuthResponse(void* data, Evas_Object*, void*);
   static void      OnFileChooserRequested(void* data, Evas_Object*, void* request);
+  static void      OnWebProcessCrashed(void* data, Evas_Object*, void*);
 
   void UpdateImage(tbm_surface_h buffer);
   void InitWebView(bool incognito);
@@ -743,6 +749,7 @@ private:
   WebEngineWebAuthDisplayQRCallback           mWebAuthDisplayQRCallback;
   WebEngineWebAuthResponseCallback            mWebAuthResponseCallback;
   WebEngineFileChooserRequestedCallback       mFileChooserRequestedCallback;
+  WebEngineWebProcessCrashedCallback          mWebProcessCrashedCallback;
   WebEngineUserMediaPermissionRequestCallback mUserMediaPermissionRequestCallback;
   WebEngineDeviceConnectionChangedCallback    mDeviceConnectionChangedCallback;
   WebEngineDeviceListGetCallback              mDeviceListGetCallback;
