@@ -34,7 +34,7 @@ And register your new image loader in tizen-image-loader.cpp
  2) add function of new image loader
   const Dali::ImageLoader::BitmapLoader BITMAP_LOADER_LOOKUP_TABLE[FORMAT_TOTAL_COUNT] =
   {
-    { 0x0,                0x0,                LoadBitmapFromImage,  LoadImageHeader,  Dali::Integration::Bitmap::BITMAP_2D_PACKED_PIXELS },
+    { 0x0,                0x0,                LoadBitmapFromImage,  LoadImageHeader },
   };
 
  3) add file extensions and formats

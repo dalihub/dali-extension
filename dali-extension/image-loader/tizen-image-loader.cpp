@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  */
 
 // CLASS HEADER
-#include <dali/integration-api/bitmap.h>
 #include <dali/integration-api/debug.h>
 #include <tizen-image-loader.h>
 #include "loader-dummy.h"
@@ -60,7 +59,7 @@ enum FileFormats
  */
 const Dali::ImageLoader::BitmapLoader BITMAP_LOADER_LOOKUP_TABLE[FORMAT_TOTAL_COUNT] =
   {
-    {0x0, 0x0, LoadBitmapFromImage, nullptr, LoadImageHeader, Dali::Integration::Bitmap::BITMAP_2D_PACKED_PIXELS},
+    {0x0, 0x0, LoadBitmapFromImage, nullptr, LoadImageHeader},
 };
 
 struct FormatExtension
