@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.5.11
+Version:    2.5.12
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and BSD-3-Clause and MIT
@@ -47,6 +47,9 @@ BuildRequires:  pkgconfig
 BuildRequires:  pkgconfig(dali2-core)
 BuildRequires:  pkgconfig(dali2-adaptor)
 BuildRequires:  pkgconfig(dali2-toolkit)
+BuildRequires:  dali2-integration-devel
+BuildRequires:  dali2-adaptor-integration-devel
+BuildRequires:  dali2-toolkit-integration-devel
 BuildRequires:  pkgconfig(dlog)
 
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
