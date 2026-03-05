@@ -81,9 +81,9 @@ public:
   void Destroy() override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
+   * @copydoc Dali::WebEnginePlugin::GetNativeImage()
    */
-  Dali::NativeImageSourcePtr GetNativeImageSource() override;
+  Dali::NativeImagePtr GetNativeImage() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ChangeOrientation()
@@ -710,8 +710,8 @@ private:
   std::function<void(LWE::WebContainer*, const std::string&)> mOnPageStartedHandler;
   std::function<void(LWE::WebContainer*, const std::string&)> mOnLoadResourceHandler;
 
-  LWE::WebContainer*         mWebContainer;
-  Dali::NativeImageSourcePtr mDaliImageSrc;
+  LWE::WebContainer*   mWebContainer;
+  Dali::NativeImagePtr mDaliImageSrc;
 
   EGLNativeDisplayType mNativeDisplay;
   EGLDisplay           mEglDisplay;

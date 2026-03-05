@@ -88,9 +88,9 @@ public:
   void LoadUrl(const std::string& url) override;
 
   /**
-   * @copydoc Dali::WebEnginePlugin::GetNativeImageSource()
+   * @copydoc Dali::WebEnginePlugin::GetNativeImage()
    */
-  NativeImageSourcePtr GetNativeImageSource() override;
+  NativeImagePtr GetNativeImage() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::ChangeOrientation()
@@ -698,12 +698,12 @@ private:
   bool FeedTouchEvent(const TouchEvent& touch);
 
   /**
-   * @brief Destroy and re-create native image source.
+   * @brief Destroy and re-create native image.
    */
   void ResetDaliImageSource();
 
   // ewk web view.
-  Dali::NativeImageSourcePtr                                        mDaliImageSrc;
+  Dali::NativeImagePtr                                              mDaliImageSrc;
   Evas_Object*                                                      mWebView;
   uint32_t                                                          mWidth;
   uint32_t                                                          mHeight;

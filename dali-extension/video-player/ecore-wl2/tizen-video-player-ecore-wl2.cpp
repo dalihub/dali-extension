@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -413,7 +413,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mPlayerState(PLAYER_STATE_NONE),
   mPacket(NULL),
   mPreviousPacket(NULL),
-  mNativeImageSourcePtr(NULL),
+  mNativeImagePtr(NULL),
   mTimer(),
   mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
   mTargetType(NATIVE_IMAGE),
@@ -483,7 +483,7 @@ void TizenVideoPlayer::SetUrl(const std::string& url)
 
     if(mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE)
     {
-      if(mNativeImageSourcePtr)
+      if(mNativeImagePtr)
       {
         error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
         ret   = LogPlayerError(error);
@@ -501,7 +501,7 @@ void TizenVideoPlayer::SetUrl(const std::string& url)
         DALI_LOG_ERROR("SetUrl, player_unprepare() is failed\n");
       }
 
-      if(mNativeImageSourcePtr)
+      if(mNativeImagePtr)
       {
         error = player_set_media_packet_video_frame_decoded_cb(mPlayer, MediaPacketVideoDecodedCb, this);
         ret   = LogPlayerError(error);
@@ -561,9 +561,9 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
 {
   DestroyPlayer();
 
-  mNativeImageSourcePtr = NULL;
+  mNativeImagePtr = NULL;
 
-  if(target.GetType() == typeid(Dali::NativeImageSourcePtr))
+  if(target.GetType() == typeid(Dali::NativeImagePtr))
   {
     if(mSyncMode == Dali::VideoSyncMode::ENABLED)
     {
@@ -571,10 +571,10 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
     }
     mTargetType = TizenVideoPlayer::NATIVE_IMAGE;
 
-    Dali::NativeImageSourcePtr nativeImageSourcePtr = AnyCast<Dali::NativeImageSourcePtr>(target);
+    Dali::NativeImagePtr nativeImagePtr = AnyCast<Dali::NativeImagePtr>(target);
 
     DALI_LOG_RELEASE_INFO("target is not underlay mode\n");
-    InitializeTextureStreamMode(nativeImageSourcePtr);
+    InitializeTextureStreamMode(nativeImagePtr);
   }
   else if(target.GetType() == typeid(Ecore_Wl2_Window*))
   {
@@ -633,7 +633,7 @@ void TizenVideoPlayer::Play()
 
   if(mPlayerState == PLAYER_STATE_READY || mPlayerState == PLAYER_STATE_PAUSED)
   {
-    if(mNativeImageSourcePtr && mTimer)
+    if(mNativeImagePtr && mTimer)
     {
       mTimer.Start();
     }
@@ -669,7 +669,7 @@ void TizenVideoPlayer::Pause()
       DALI_LOG_ERROR("Pause, player_pause() is failed\n");
     }
 
-    if(mNativeImageSourcePtr && mTimer)
+    if(mNativeImagePtr && mTimer)
     {
       mTimer.Stop();
       DestroyPackets();
@@ -695,7 +695,7 @@ void TizenVideoPlayer::Stop()
       DALI_LOG_ERROR("Stop, player_stop() is failed\n");
     }
 
-    if(mNativeImageSourcePtr && mTimer)
+    if(mNativeImagePtr && mTimer)
     {
       mTimer.Stop();
       DestroyPackets();
@@ -828,7 +828,7 @@ int TizenVideoPlayer::GetPlayPosition()
 
 void TizenVideoPlayer::SetDisplayRotation(Dali::VideoPlayerPlugin::DisplayRotation rotation)
 {
-  if(mNativeImageSourcePtr)
+  if(mNativeImagePtr)
   {
     DALI_LOG_ERROR("SetDisplayRotation is only for window rendering target.\n");
     return;
@@ -848,7 +848,7 @@ void TizenVideoPlayer::SetDisplayRotation(Dali::VideoPlayerPlugin::DisplayRotati
 
 Dali::VideoPlayerPlugin::DisplayRotation TizenVideoPlayer::GetDisplayRotation()
 {
-  if(mNativeImageSourcePtr)
+  if(mNativeImagePtr)
   {
     DALI_LOG_ERROR("GetDisplayRotation is only for window rendering target.\n");
     return Dali::VideoPlayerPlugin::ROTATION_NONE;
@@ -873,12 +873,12 @@ Dali::VideoPlayerPlugin::VideoPlayerSignalType& TizenVideoPlayer::FinishedSignal
   return mFinishedSignal;
 }
 
-void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr nativeImageSourcePtr)
+void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImagePtr nativeImagePtr)
 {
   int error;
   int ret = 0;
 
-  mNativeImageSourcePtr = nativeImageSourcePtr;
+  mNativeImagePtr = nativeImagePtr;
 
   if(mPlayerState == PLAYER_STATE_NONE)
   {
@@ -1106,7 +1106,7 @@ bool TizenVideoPlayer::Update()
   }
 
   Any source(tbmSurface);
-  mNativeImageSourcePtr->SetSource(source);
+  mNativeImagePtr->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
 
   if(mPreviousPacket != NULL)
@@ -1120,7 +1120,7 @@ bool TizenVideoPlayer::Update()
   }
 
   mPreviousPacket = mPacket;
-  mPacket = nextPacket;
+  mPacket         = nextPacket;
 
   return true;
 }
@@ -1165,7 +1165,7 @@ void TizenVideoPlayer::SetDisplayArea(DisplayArea area)
   DALI_LOG_RELEASE_INFO("Set Display Area (%f , %f) (%f x %f)\n", area.x, area.y, area.width, area.height);
   GetPlayerState(&mPlayerState);
 
-  if(mNativeImageSourcePtr)
+  if(mNativeImagePtr)
   {
     DALI_LOG_ERROR("SetDisplayArea is only for window surface target.\n");
     return;
@@ -1282,7 +1282,7 @@ void TizenVideoPlayer::DestroyPlayer()
 
     if(mPlayerState != PLAYER_STATE_IDLE)
     {
-      if(mNativeImageSourcePtr)
+      if(mNativeImagePtr)
       {
         error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
         ret   = LogPlayerError(error);
@@ -1577,7 +1577,7 @@ void TizenVideoPlayer::SceneDisconnection()
 
 void TizenVideoPlayer::SetAutoRotationEnabled(bool enable)
 {
-  if(!mNativeImageSourcePtr)
+  if(!mNativeImagePtr)
   {
     DALI_LOG_ERROR("SetAutoRotationEnabled is only for native image rendering target.\n");
     return;
@@ -1588,7 +1588,7 @@ void TizenVideoPlayer::SetAutoRotationEnabled(bool enable)
 
 bool TizenVideoPlayer::IsAutoRotationEnabled() const
 {
-  if(!mNativeImageSourcePtr)
+  if(!mNativeImagePtr)
   {
     DALI_LOG_ERROR("IsAutoRotationEnabled is only for native image rendering target.\n");
     return false;
@@ -1600,7 +1600,7 @@ bool TizenVideoPlayer::IsAutoRotationEnabled() const
 
 void TizenVideoPlayer::SetLetterBoxEnabled(bool enable)
 {
-  if(!mNativeImageSourcePtr)
+  if(!mNativeImagePtr)
   {
     DALI_LOG_ERROR("SetLetterBoxEnabled is only for native image rendering target.\n");
     return;
@@ -1611,7 +1611,7 @@ void TizenVideoPlayer::SetLetterBoxEnabled(bool enable)
 
 bool TizenVideoPlayer::IsLetterBoxEnabled() const
 {
-  if(!mNativeImageSourcePtr)
+  if(!mNativeImagePtr)
   {
     DALI_LOG_ERROR("IsLetterBoxEnabled is only for native image rendering target.\n");
     return false;
@@ -1630,12 +1630,12 @@ void TizenVideoPlayer::SetFrameInterpolationInterval(float intervalSeconds)
   }
 }
 
-void TizenVideoPlayer::EnableOffscreenFrameRendering(bool useOffScreenFrame, Dali::NativeImageSourcePtr previousFrameBufferNativeImageSourcePtr, Dali::NativeImageSourcePtr currentFrameBufferNativeImageSourcePtr)
+void TizenVideoPlayer::EnableOffscreenFrameRendering(bool useOffScreenFrame, Dali::NativeImagePtr previousFrameBufferNativeImagePtr, Dali::NativeImagePtr currentFrameBufferNativeImagePtr)
 {
   Actor syncActor = mSyncActor.GetHandle();
   if(syncActor)
   {
-    if(previousFrameBufferNativeImageSourcePtr == nullptr || currentFrameBufferNativeImageSourcePtr == nullptr)
+    if(previousFrameBufferNativeImagePtr == nullptr || currentFrameBufferNativeImagePtr == nullptr)
     {
       mVideoFrameBufferProgressPropertyConstraint.Remove();
       DestroyVideoConstraint();
@@ -1648,7 +1648,7 @@ void TizenVideoPlayer::EnableOffscreenFrameRendering(bool useOffScreenFrame, Dal
     }
 
     mVideoConstraintHelper = VideoConstraintHelper::New();
-    mVideoConstraintHelper->SetVideoFrameBufferNativeImageSource(previousFrameBufferNativeImageSourcePtr, currentFrameBufferNativeImageSourcePtr);
+    mVideoConstraintHelper->SetVideoFrameBufferNativeImage(previousFrameBufferNativeImagePtr, currentFrameBufferNativeImagePtr);
     mVideoConstraintHelper->SetFrameInterpolationInterval(mInterpolationInterval);
 
     mVideoConstraintHelperId = gHelperId++;
@@ -1683,9 +1683,9 @@ void TizenVideoPlayer::DestroyVideoConstraint()
   }
 }
 
-void TizenVideoPlayer::SetVideoFrameBuffer(Dali::NativeImageSourcePtr source)
+void TizenVideoPlayer::SetVideoFrameBuffer(Dali::NativeImagePtr source)
 {
-  auto nativeSource = source->GetNativeImageSource();
+  auto nativeSource = source->GetNativeImage();
   if(nativeSource.GetType() == typeid(tbm_surface_h))
   {
     auto tbmSource = AnyCast<tbm_surface_h>(nativeSource);

@@ -2,7 +2,7 @@
 #define DALI_TIZEN_CAMERA_PLAYER_PLUGIN_H
 
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include <camera.h>
 #include <dali/devel-api/adaptor-framework/camera-player-plugin.h>
 #include <dali/devel-api/threading/mutex.h>
-#include <dali/public-api/adaptor-framework/native-image-source.h>
+#include <dali/public-api/adaptor-framework/native-image.h>
 #include <dali/public-api/adaptor-framework/timer.h>
 #include <deque>
 #include <string>
@@ -64,7 +64,7 @@ public:
   /**
    * @copydoc Dali::CameraPlayerPlugin::SetNativeImageRenderingTarget()
    */
-  void SetNativeImageRenderingTarget(Dali::NativeImageSourcePtr target) override;
+  void SetNativeImageRenderingTarget(Dali::NativeImagePtr target) override;
 
   /**
    * @copydoc Dali::CameraPlayerPlugin::SetDisplayArea()
@@ -99,10 +99,10 @@ private:
   void DestroyPackets();
 
   /**
-   * @brief Initializes player for camera rendering using native image source
+   * @brief Initializes player for camera rendering using native image
    */
   void
-  InitializeTextureStreamMode(Dali::NativeImageSourcePtr nativeImageSourcePtr);
+  InitializeTextureStreamMode(Dali::NativeImagePtr nativeImagePtr);
 
   /**
    * @brief Initializes player for camera rendering using wayland window surface
@@ -126,10 +126,10 @@ private:
   tbm_surface_h  mTbmSurface; ///< tbm surface handle
   media_packet_h mPacket;     ///< Media packet handle with tbm surface of current camera frame image
 
-  Dali::NativeImageSourcePtr mNativeImageSourcePtr; ///< native image source for camera rendering
-  Dali::Timer                mTimer;                ///< Timer for texture streaming rendering
-  Dali::Vector4              mBackgroundColor;      ///< Current background color, which
-                                                    ///< texturestream mode needs.
+  Dali::NativeImagePtr mNativeImagePtr;  ///< native image for camera rendering
+  Dali::Timer          mTimer;           ///< Timer for texture streaming rendering
+  Dali::Vector4        mBackgroundColor; ///< Current background color, which
+                                         ///< texturestream mode needs.
 
   Dali::Mutex mPacketMutex;
 

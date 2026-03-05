@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ VideoConstraintHelperPtr VideoConstraintHelper::New()
 }
 
 VideoConstraintHelper::VideoConstraintHelper()
-: mPreviousFrameBufferNativeImageSourcePtr(nullptr),
-  mCurrentFrameBufferNativeImageSourcePtr(nullptr),
+: mPreviousFrameBufferNativeImagePtr(nullptr),
+  mCurrentFrameBufferNativeImagePtr(nullptr),
   mPreviousFrameBufferSurface(nullptr),
   mCurrentFrameBufferSurface(nullptr),
   mIsFirstUpdate(true)
@@ -52,22 +52,22 @@ void VideoConstraintHelper::SetFrameInterpolationInterval(float intervalSeconds)
   mInterpolationIntervalCandidate = intervalSeconds;
 }
 
-void VideoConstraintHelper::SetVideoFrameBufferNativeImageSource(Dali::NativeImageSourcePtr previousFrameBufferNativeImageSourcePtr, Dali::NativeImageSourcePtr currentFrameBufferNativeImageSourcePtr)
+void VideoConstraintHelper::SetVideoFrameBufferNativeImage(Dali::NativeImagePtr previousFrameBufferNativeImagePtr, Dali::NativeImagePtr currentFrameBufferNativeImagePtr)
 {
-  mPreviousFrameBufferNativeImageSourcePtr = previousFrameBufferNativeImageSourcePtr;
-  mCurrentFrameBufferNativeImageSourcePtr  = currentFrameBufferNativeImageSourcePtr;
+  mPreviousFrameBufferNativeImagePtr = previousFrameBufferNativeImagePtr;
+  mCurrentFrameBufferNativeImagePtr  = currentFrameBufferNativeImagePtr;
 }
 
 void VideoConstraintHelper::SetVideoFrameBuffer(tbm_surface_h newVideoFrameBufferSurface)
 {
   Dali::Mutex::ScopedLock lock(mConstraintMutex);
-  if(!mPreviousFrameBufferNativeImageSourcePtr || !mCurrentFrameBufferNativeImageSourcePtr)
+  if(!mPreviousFrameBufferNativeImagePtr || !mCurrentFrameBufferNativeImagePtr)
   {
-    DALI_LOG_ERROR("NativeImageSources are not initialized.\n");
+    DALI_LOG_ERROR("NativeImages are not initialized.\n");
   }
 
   tbm_surface_h previousSurfaceTemp = mPreviousFrameBufferSurface;
-  tbm_surface_h currentSurfaceTemp = mCurrentFrameBufferSurface;
+  tbm_surface_h currentSurfaceTemp  = mCurrentFrameBufferSurface;
 
   if(mIsFirstVideoFrame)
   {
@@ -79,7 +79,7 @@ void VideoConstraintHelper::SetVideoFrameBuffer(tbm_surface_h newVideoFrameBuffe
     mPreviousFrameBufferSurface = mCurrentFrameBufferSurface;
   }
   mCurrentFrameBufferSurface = newVideoFrameBufferSurface;
-  mInterpolationInterval = mInterpolationIntervalCandidate;
+  mInterpolationInterval     = mInterpolationIntervalCandidate;
 
   if(mPreviousFrameBufferSurface != nullptr)
   {
@@ -119,10 +119,10 @@ bool VideoConstraintHelper::UpdateVideoFrameBuffer()
     return false;
   }
 
-  if(mPreviousFrameBufferNativeImageSourcePtr && mCurrentFrameBufferNativeImageSourcePtr)
+  if(mPreviousFrameBufferNativeImagePtr && mCurrentFrameBufferNativeImagePtr)
   {
-    mPreviousFrameBufferNativeImageSourcePtr->SetSource(mPreviousFrameBufferSurface);
-    mCurrentFrameBufferNativeImageSourcePtr->SetSource(mCurrentFrameBufferSurface);
+    mPreviousFrameBufferNativeImagePtr->SetSource(mPreviousFrameBufferSurface);
+    mCurrentFrameBufferNativeImagePtr->SetSource(mCurrentFrameBufferSurface);
   }
   mInterpolationFactor = 0.0f;
   mIsFrameReady        = false;
