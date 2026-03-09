@@ -38,8 +38,6 @@ Source0:    %{name}-%{version}.tar.gz
 %define enable_web_engine_plugin 1
 %endif
 
-%define enable_color_controller 1
-
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
@@ -165,17 +163,6 @@ BuildRequires:  pkgconfig(rlottie)
 %description vector-animation-renderer-plugin
 Plugin to render a vector animation
 
-####################################
-# color controller Plugin
-####################################
-
-%package color-controller-plugin
-Summary:    Plugin to load color theme
-Group:      System/Libraries
-
-%description color-controller-plugin
-Plugin to load color theme
-
 ##############################
 # Dali Web Engine LWE Plugin
 ##############################
@@ -292,9 +279,6 @@ autoreconf --install
 %if 0%{?enable_image_loader}
            --enable-imageloader-extension \
 %endif
-%if 0%{?enable_color_controller}
-           --enable-color-controller \
-%endif
            --enable-ecore-wl2 \
            --enable-keyextension
 
@@ -376,12 +360,6 @@ exit 0
 exit 0
 %endif
 
-%if 0%{?enable_color_controller}
-%post color-controller-plugin
-/sbin/ldconfig
-exit 0
-%endif
-
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %post web-engine-lwe-plugin
 /sbin/ldconfig
@@ -437,12 +415,6 @@ exit 0
 
 %if 0%{?tizen_65_or_greater}
 %postun rive-animation-view
-/sbin/ldconfig
-exit 0
-%endif
-
-%if 0%{?enable_color_controller}
-%postun color-controller-plugin
 /sbin/ldconfig
 exit 0
 %endif
@@ -532,14 +504,6 @@ exit 0
 %defattr(-,root,root,-)
 %{_includedir}/dali-extension/devel-api/rive-animation-view/*
 %{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
-%endif
-
-%if 0%{?enable_color_controller}
-%files color-controller-plugin
-%manifest dali-extension.manifest
-%defattr(-,root,root,-)
-%{_libdir}/libdali2-color-controller-plugin.so*
-%license LICENSE
 %endif
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
