@@ -25,7 +25,7 @@
 #include <dali/devel-api/adaptor-framework/video-player-plugin.h>
 #include <dali/devel-api/adaptor-framework/video-sync-mode.h>
 #include <dali/devel-api/threading/mutex.h>
-#include <dali/public-api/adaptor-framework/native-image-source.h>
+#include <dali/public-api/adaptor-framework/native-image.h>
 #include <dali/public-api/adaptor-framework/timer.h>
 #include <dali/public-api/animation/constraints.h>
 #include <dali/public-api/object/weak-handle.h>
@@ -199,20 +199,20 @@ public:
    * which can improve visual quality for certain video content.
    *
    * @param[in] useOffScreenFrame True to enable offscreen frame rendering, false to disable
-   * @param[in] previousFrameBufferNativeImageSourcePtr Native image source for previous frame buffer
-   * @param[in] currentFrameBufferNativeImageSourcePtr Native image source for current frame buffer
+   * @param[in] previousFrameBufferNativeImagePtr Native image for previous frame buffer
+   * @param[in] currentFrameBufferNativeImagePtr Native image for current frame buffer
    */
-  virtual void EnableOffscreenFrameRendering(bool useOffScreenFrame, Dali::NativeImageSourcePtr previousFrameBufferNativeImageSourcePtr, Dali::NativeImageSourcePtr currentFrameBufferNativeImageSourcePtr);
+  virtual void EnableOffscreenFrameRendering(bool useOffScreenFrame, Dali::NativeImagePtr previousFrameBufferNativeImagePtr, Dali::NativeImagePtr currentFrameBufferNativeImagePtr);
 
   /**
    * @brief Sets the video frame buffer for rendering.
    *
-   * This method sets the native image source that will be used as the frame buffer
+   * This method sets the native image that will be used as the frame buffer
    * for video rendering. The frame buffer contains the surface data for video playback.
    *
    * @param[in] source The video frame buffer source containing surface data
    */
-  virtual void SetVideoFrameBuffer(Dali::NativeImageSourcePtr source);
+  virtual void SetVideoFrameBuffer(Dali::NativeImagePtr source);
 
   void DestroyVideoConstraint();
 
@@ -307,12 +307,11 @@ public:
   void SceneDisconnection();
 
   /**
-   * @brief Updates video frame image by timer if rendering targe is native image source
+   * @brief Updates video frame image by timer if rendering targe is native image
    */
   bool Update();
 
 private:
-
   /**
    * @brief Gets current player state
    */
@@ -324,9 +323,9 @@ private:
   void DestroyPackets();
 
   /**
-   * @brief Initializes player for video rendering using native image source
+   * @brief Initializes player for video rendering using native image
    */
-  void InitializeTextureStreamMode(Dali::NativeImageSourcePtr nativeImageSourcePtr);
+  void InitializeTextureStreamMode(Dali::NativeImagePtr nativeImagePtr);
 
   /**
    * @brief Initializes player for video rendering using wayland window surface
@@ -354,15 +353,15 @@ private:
   void DestroyVideoShellConstraint();
 
 private:
-  std::string                mUrl;                  ///< The video file path
-  player_h                   mPlayer;               ///< Tizen player handle
-  player_state_e             mPlayerState;          ///< Tizen player state
-  media_packet_h             mPacket;               ///< Media packet handle with tbm surface of current video frame image
-  media_packet_h             mPreviousPacket;       ///< Media packet handle with tbm surface of previous video frame image
-  Dali::NativeImageSourcePtr mNativeImageSourcePtr; ///< native image source for video rendering
-  Dali::Timer                mTimer;                ///< Timer for texture streaming rendering
-  Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
-  RenderingTargetType        mTargetType;           ///< Current rendering target type
+  std::string          mUrl;             ///< The video file path
+  player_h             mPlayer;          ///< Tizen player handle
+  player_state_e       mPlayerState;     ///< Tizen player state
+  media_packet_h       mPacket;          ///< Media packet handle with tbm surface of current video frame image
+  media_packet_h       mPreviousPacket;  ///< Media packet handle with tbm surface of previous video frame image
+  Dali::NativeImagePtr mNativeImagePtr;  ///< native image for video rendering
+  Dali::Timer          mTimer;           ///< Timer for texture streaming rendering
+  Dali::Vector4        mBackgroundColor; ///< Current background color, which texturestream mode needs.
+  RenderingTargetType  mTargetType;      ///< Current rendering target type
 
   Dali::Mutex               mPacketMutex;
   std::list<media_packet_h> mPacketList; ///< Container for media packet handle from Tizen player callback

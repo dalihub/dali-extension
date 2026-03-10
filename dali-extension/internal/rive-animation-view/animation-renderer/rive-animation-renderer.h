@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_RENDERER_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
+#include <dali/devel-api/adaptor-framework/native-image-queue.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/debug.h> ///< note : Debug::DebugPriority::DEBUG can be removed due to <rive/rive_types.hpp>.
 #include <dali/public-api/common/dali-vector.h>
@@ -286,7 +286,7 @@ private:
   };
 
   /**
-   * @brief Set shader for NativeImageSourceQueue with custom sampler type and prefix.
+   * @brief Set shader for NativeImageQueue with custom sampler type and prefix.
    */
   void SetShader();
 
@@ -317,7 +317,7 @@ private:
   Dali::Texture             mTexture;                ///< Texture
   Dali::Texture             mRenderedTexture;        ///< Rendered Texture
   Dali::Texture             mPreviousTexture;        ///< Previous rendered texture
-  NativeImageSourceQueuePtr mTargetSurface;          ///< The target surface
+  NativeImageQueuePtr       mTargetSurface;          ///< The target surface
   UploadCompletedSignalType mUploadCompletedSignal;  ///< Upload completed signal
   tbm_surface_queue_h       mTbmQueue;               ///< Tbm surface queue handle
   rive::Artboard*           mArtboard;               ///< Rive artboard handle

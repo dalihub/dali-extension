@@ -2,7 +2,7 @@
 #define __DALI_TIZEN_VIDEO_CONSTRAINT_HELPER_H__
 
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/threading/mutex.h>
-#include <dali/public-api/adaptor-framework/native-image-source.h>
+#include <dali/public-api/adaptor-framework/native-image.h>
 #include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/object/ref-object.h>
 #include <tbm_surface.h>
@@ -55,15 +55,15 @@ public:
   void SetFrameInterpolationInterval(float intervalSeconds);
 
   /**
-   * @brief Sets the native image sources for video frame buffers.
+   * @brief Sets the native images for video frame buffers.
    *
-   * This method sets the native image sources that will be used as frame buffers
+   * This method sets the native images that will be used as frame buffers
    * for video interpolation between previous and current frames.
    *
-   * @param[in] previousFrameBufferNativeImageSourcePtr Native image source for previous frame buffer
-   * @param[in] currentFrameBufferNativeImageSourcePtr Native image source for current frame buffer
+   * @param[in] previousFrameBufferNativeImagePtr Native image for previous frame buffer
+   * @param[in] currentFrameBufferNativeImagePtr Native image for current frame buffer
    */
-  void SetVideoFrameBufferNativeImageSource(Dali::NativeImageSourcePtr previousFrameBufferNativeImageSourcePtr, Dali::NativeImageSourcePtr currentFrameBufferNativeImageSourcePtr);
+  void SetVideoFrameBufferNativeImage(Dali::NativeImagePtr previousFrameBufferNativeImagePtr, Dali::NativeImagePtr currentFrameBufferNativeImagePtr);
 
   /**
    * @brief Sets the video frame buffer surface for rendering.
@@ -112,10 +112,10 @@ private:
 private:
   Dali::Mutex mConstraintMutex;
 
-  Dali::NativeImageSourcePtr mPreviousFrameBufferNativeImageSourcePtr;
-  Dali::NativeImageSourcePtr mCurrentFrameBufferNativeImageSourcePtr;
-  tbm_surface_h              mPreviousFrameBufferSurface;
-  tbm_surface_h              mCurrentFrameBufferSurface;
+  Dali::NativeImagePtr mPreviousFrameBufferNativeImagePtr;
+  Dali::NativeImagePtr mCurrentFrameBufferNativeImagePtr;
+  tbm_surface_h        mPreviousFrameBufferSurface;
+  tbm_surface_h        mCurrentFrameBufferSurface;
 
   float mInterpolationIntervalCandidate{0.0f};
   float mInterpolationInterval{0.0f};

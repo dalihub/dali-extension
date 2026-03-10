@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #include <dali-extension/vector-animation-renderer/vector-animation-renderer-tizen.h>
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
+#include <dali/devel-api/adaptor-framework/native-image-queue.h>
 #include <dali/devel-api/common/hash.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/property-array.h>
@@ -48,7 +48,7 @@ Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, 
 class VectorAnimationRendererTizen::RenderingDataImpl : public VectorAnimationRenderer::RenderingData
 {
 public:
-  NativeImageSourceQueuePtr mTargetSurface;
+  NativeImageQueuePtr mTargetSurface;
 };
 
 VectorAnimationRendererTizen::VectorAnimationRendererTizen()
@@ -127,14 +127,14 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
     }
   }
 
-  NativeImageSourceQueue::BufferAccessType type;
+  NativeImageQueue::BufferAccessType type;
   if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()) && (!mDecodedBuffers[frameNumber].second))
   {
-    type = NativeImageSourceQueue::BufferAccessType::READ | NativeImageSourceQueue::BufferAccessType::WRITE;
+    type = NativeImageQueue::BufferAccessType::READ | NativeImageQueue::BufferAccessType::WRITE;
   }
   else
   {
-    type = NativeImageSourceQueue::BufferAccessType::WRITE;
+    type = NativeImageQueue::BufferAccessType::WRITE;
   }
 
   uint32_t width, height, stride;
@@ -237,10 +237,10 @@ void VectorAnimationRendererTizen::OnNotify()
 void VectorAnimationRendererTizen::PrepareTarget(std::shared_ptr<RenderingData> renderingData)
 {
   std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
-  renderingDataImpl->mTargetSurface                    = NativeImageSourceQueue::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, NativeImageSourceQueue::ColorFormat::BGRA8888);
+  renderingDataImpl->mTargetSurface                    = NativeImageQueue::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, NativeImageQueue::ColorFormat::BGRA8888);
   renderingDataImpl->mTexture                          = Texture::New(*renderingDataImpl->mTargetSurface);
 
-  renderingDataImpl->mTargetSurface->SetQueueUsageHint(Dali::NativeImageSourceQueue::QueueUsageType::ENQUEUE_DEQUEUE);
+  renderingDataImpl->mTargetSurface->SetQueueUsageHint(Dali::NativeImageQueue::QueueUsageType::ENQUEUE_DEQUEUE);
 }
 
 bool VectorAnimationRendererTizen::IsTargetPrepared()

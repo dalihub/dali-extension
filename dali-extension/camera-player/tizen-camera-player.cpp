@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,7 +147,7 @@ TizenCameraPlayer::TizenCameraPlayer()
   mCameraPlayerState(CAMERA_STATE_NONE),
   mTbmSurface(NULL),
   mPacket(NULL),
-  mNativeImageSourcePtr(NULL),
+  mNativeImagePtr(NULL),
   mTimer(),
   mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
   mPacketMutex(),
@@ -173,14 +173,14 @@ void TizenCameraPlayer::GetPlayerState(camera_state_e* state) const
 
 void TizenCameraPlayer::SetWindowRenderingTarget(Dali::Window target)
 {
-  mNativeImageSourcePtr = NULL;
+  mNativeImagePtr = NULL;
 
   InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window*>(target.GetNativeHandle()));
 }
 
-void TizenCameraPlayer::SetNativeImageRenderingTarget(Dali::NativeImageSourcePtr target)
+void TizenCameraPlayer::SetNativeImageRenderingTarget(Dali::NativeImagePtr target)
 {
-  mNativeImageSourcePtr = NULL;
+  mNativeImagePtr = NULL;
 
   InitializeTextureStreamMode(target);
 }
@@ -194,7 +194,7 @@ void TizenCameraPlayer::StopPreview()
     int error = camera_stop_preview(mCameraPlayer);
     CameraPlayerError(error, __FUNCTION__, __LINE__);
 
-    if(mNativeImageSourcePtr && mTimer)
+    if(mNativeImagePtr && mTimer)
     {
       mTimer.Stop();
       DestroyPackets();
@@ -204,7 +204,7 @@ void TizenCameraPlayer::StopPreview()
 
 void TizenCameraPlayer::Destroy()
 {
-  if(mNativeImageSourcePtr && mTimer)
+  if(mNativeImagePtr && mTimer)
   {
     mTimer.Stop();
     DestroyPackets();
@@ -224,11 +224,11 @@ void TizenCameraPlayer::SetCameraPlayer(Any handle)
   GetPlayerState(&mCameraPlayerState);
 }
 
-void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr nativeImageSourcePtr)
+void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImagePtr nativeImagePtr)
 {
   int error;
 
-  mNativeImageSourcePtr = nativeImageSourcePtr;
+  mNativeImagePtr = nativeImagePtr;
 
   GetPlayerState(&mCameraPlayerState);
 
@@ -241,7 +241,7 @@ void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImageSourcePtr n
 
   GetPlayerState(&mCameraPlayerState);
 
-  if(mCameraPlayerState == CAMERA_STATE_CREATED && mNativeImageSourcePtr)
+  if(mCameraPlayerState == CAMERA_STATE_CREATED && mNativeImagePtr)
   {
     error = camera_set_media_packet_preview_cb(mCameraPlayer, MediaPacketCameraPreviewCb, this);
     CameraPlayerError(error, __FUNCTION__, __LINE__);
@@ -338,7 +338,7 @@ bool TizenCameraPlayer::Update()
   }
 
   Any source(mTbmSurface);
-  mNativeImageSourcePtr->SetSource(source);
+  mNativeImagePtr->SetSource(source);
   Dali::Stage::GetCurrent().KeepRendering(0.0f);
 
   return true;
@@ -379,7 +379,7 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
 {
   GetPlayerState(&mCameraPlayerState);
 
-  if(mNativeImageSourcePtr)
+  if(mNativeImagePtr)
   {
     DALI_LOG_ERROR("SetDisplayArea is only for window surface target.\n");
     return;

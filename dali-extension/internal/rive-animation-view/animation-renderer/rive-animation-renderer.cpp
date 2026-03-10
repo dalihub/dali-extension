@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/file-loader.h>
-#include <dali/devel-api/adaptor-framework/native-image-source-queue.h>
+#include <dali/devel-api/adaptor-framework/native-image-queue.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/property-array.h>
 #include <tbm_surface_internal.h>
@@ -217,7 +217,7 @@ void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
     return;
   }
 
-  mTargetSurface = NativeImageSourceQueue::New(width, height, NativeImageSourceQueue::ColorFormat::BGRA8888);
+  mTargetSurface = NativeImageQueue::New(width, height, NativeImageQueue::ColorFormat::BGRA8888);
 
   mTexture = Texture::New(*mTargetSurface);
 
@@ -226,7 +226,7 @@ void RiveAnimationRenderer::SetSize(uint32_t width, uint32_t height)
     SetShader();
   }
 
-  mTbmQueue = AnyCast<tbm_surface_queue_h>(mTargetSurface->GetNativeImageSourceQueue());
+  mTbmQueue = AnyCast<tbm_surface_queue_h>(mTargetSurface->GetNativeImageQueue());
 
   mWidth  = width;
   mHeight = height;

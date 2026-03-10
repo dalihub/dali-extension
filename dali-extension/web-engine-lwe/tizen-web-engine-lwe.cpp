@@ -367,7 +367,7 @@ TizenWebEngineLWE::TizenWebEngineLWE()
 #endif
   mInDestroyingLWEInstance(false),
   mWebContainer(NULL),
-  mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
+  mDaliImageSrc(NativeImage::New(0, 0, NativeImage::COLOR_DEPTH_DEFAULT)),
   mNativeDisplay(NULL),
   mEglDisplay(EGL_NO_DISPLAY),
   mEglConfig(NULL),
@@ -1329,7 +1329,7 @@ void TizenWebEngineLWE::DestroyInstance()
   mWebContainer            = NULL;
 }
 
-Dali::NativeImageSourcePtr TizenWebEngineLWE::GetNativeImageSource()
+Dali::NativeImagePtr TizenWebEngineLWE::GetNativeImage()
 {
   return mDaliImageSrc;
 }
@@ -1787,7 +1787,7 @@ void TizenWebEngineLWE::SetFocus(bool focused)
 
 void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
 {
-  mDaliImageSrc = NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT);
+  mDaliImageSrc = NativeImage::New(0, 0, NativeImage::COLOR_DEPTH_DEFAULT);
   SetSize(displayArea.width, displayArea.height);
 }
 

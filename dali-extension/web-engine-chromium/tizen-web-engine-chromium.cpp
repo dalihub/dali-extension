@@ -124,7 +124,7 @@ Ret ExecuteCallbackReturn(Callback callback, std::unique_ptr<Arg> arg)
 } // Anonymous namespace
 
 TizenWebEngineChromium::TizenWebEngineChromium()
-: mDaliImageSrc(NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT)),
+: mDaliImageSrc(NativeImage::New(0, 0, NativeImage::COLOR_DEPTH_DEFAULT)),
   mWebView(nullptr),
   mWidth(0),
   mHeight(0),
@@ -289,7 +289,7 @@ Dali::PixelData TizenWebEngineChromium::GetFavicon() const
   return ConvertImageColorSpace(iconObject);
 }
 
-NativeImageSourcePtr TizenWebEngineChromium::GetNativeImageSource()
+NativeImagePtr TizenWebEngineChromium::GetNativeImage()
 {
   return mDaliImageSrc;
 }
@@ -717,7 +717,7 @@ bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
 
 void TizenWebEngineChromium::ResetDaliImageSource()
 {
-  mDaliImageSrc = NativeImageSource::New(0, 0, NativeImageSource::COLOR_DEPTH_DEFAULT);
+  mDaliImageSrc = NativeImage::New(0, 0, NativeImage::COLOR_DEPTH_DEFAULT);
 }
 
 bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
@@ -970,7 +970,7 @@ void TizenWebEngineChromium::RegisterUserMediaPermissionRequestCallback(WebEngin
 
 void TizenWebEngineChromium::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
 {
-  // Size was changed. Destroy previous native image source, and create new one.
+  // Size was changed. Destroy previous native image, and create new one.
   ResetDaliImageSource();
 
   evas_object_move(mWebView, displayArea.x, displayArea.y);
@@ -1438,8 +1438,8 @@ void TizenWebEngineChromium::OnWebAuthResponse(void* data, Evas_Object*, void*)
 void TizenWebEngineChromium::OnFileChooserRequested(void* data, Evas_Object*, void* request)
 {
   DALI_LOG_RELEASE_INFO("#FileChooserRequested.\n");
-  auto                                               pThis = static_cast<TizenWebEngineChromium*>(data);
-  Ewk_File_Chooser_Request*                          ewkRequest  = (Ewk_File_Chooser_Request*)request;
+  auto                                               pThis      = static_cast<TizenWebEngineChromium*>(data);
+  Ewk_File_Chooser_Request*                          ewkRequest = (Ewk_File_Chooser_Request*)request;
   std::unique_ptr<Dali::WebEngineFileChooserRequest> engineRequest(new TizenWebEngineFileChooserRequest(ewkRequest));
   ExecuteCallback(pThis->mFileChooserRequestedCallback, std::move(engineRequest));
 }
