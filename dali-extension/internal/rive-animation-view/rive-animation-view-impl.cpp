@@ -115,7 +115,7 @@ Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, fa
 } // unnamed namespace
 
 RiveAnimationView::RiveAnimationView()
-: Control(ControlBehaviour(CONTROL_BEHAVIOUR_DEFAULT)),
+: ControlImpl(ControlBehaviour(CONTROL_BEHAVIOUR_DEFAULT)),
   mRiveAnimationTask(new RiveAnimationTask())
 {
 }
@@ -154,7 +154,7 @@ Extension::RiveAnimationView RiveAnimationView::New()
 
 void RiveAnimationView::OnSceneConnection(int depth)
 {
-  Control::OnSceneConnection(depth);
+  ControlImpl::OnSceneConnection(depth);
 
   if(mLoadFailed)
   {
@@ -187,7 +187,7 @@ void RiveAnimationView::OnSceneConnection(int depth)
 
 void RiveAnimationView::OnSceneDisconnection()
 {
-  Control::OnSceneDisconnection();
+  ControlImpl::OnSceneDisconnection();
 
   StopAnimation();
   SendAnimationData();
@@ -250,7 +250,7 @@ Vector3 RiveAnimationView::GetNaturalSize()
 
 void RiveAnimationView::OnRelayout(const Vector2& size, RelayoutContainer& container)
 {
-  Control::OnRelayout(size, container);
+  ControlImpl::OnRelayout(size, container);
 
   if(Self()[Actor::Property::CONNECTED_TO_SCENE] && size != mSize)
   {
