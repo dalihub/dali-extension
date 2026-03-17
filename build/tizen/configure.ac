@@ -52,12 +52,6 @@ AC_ARG_ENABLE([imageloader-extension],
               [enable_imageloader_extension=$enableval],
               [enable_imageloader_extension=no])
 
-AC_ARG_ENABLE([color-controller],
-              [AC_HELP_STRING([--enable-color-controller],
-                              [Turns on color controller plugin build])],
-              [enable_color_controller=$enableval],
-              [enable_color_controller=no])
-
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
 AC_CONFIG_SUBDIRS(key)
@@ -65,9 +59,6 @@ AC_CONFIG_SUBDIRS(video-player)
 
 if test "x$enable_imageloader_extension" = "xyes"; then
 AC_CONFIG_SUBDIRS(image-loader)
-fi
-if test "x$enable_color_controller" = "xyes"; then
-AC_CONFIG_SUBDIRS(color-controller)
 fi
 
 if test "x$with_tizen_55_or_greater" = "xyes"; then
