@@ -518,8 +518,8 @@ void RiveAnimationRenderer::SetShader()
 
   Shader shader = mRenderer.GetShader();
 
-  std::string fragmentShader;
-  std::string vertexShader;
+  String fragmentShader;
+  String vertexShader;
 
   // Get the current fragment shader source
   Property::Value program = shader.GetProperty(Shader::Property::PROGRAM);
@@ -529,13 +529,13 @@ void RiveAnimationRenderer::SetShader()
     Property::Value* fragment = map->Find("fragment");
     if(fragment)
     {
-      fragmentShader = fragment->Get<std::string>();
+      fragmentShader = fragment->Get<String>();
     }
 
     Property::Value* vertex = map->Find("vertex");
     if(vertex)
     {
-      vertexShader = vertex->Get<std::string>();
+      vertexShader = vertex->Get<String>();
     }
   }
 

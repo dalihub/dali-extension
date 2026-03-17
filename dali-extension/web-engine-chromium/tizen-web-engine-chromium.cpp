@@ -729,15 +729,15 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
     memset(&downEvent, 0, sizeof(Evas_Event_Key_Down));
 
     downEvent.timestamp = keyEvent.GetTime();
-    downEvent.keyname   = const_cast<char*>(keyEvent.GetKeyName().c_str());
-    downEvent.key       = keyEvent.GetLogicalKey().c_str();
-    downEvent.string    = keyEvent.GetKeyString().c_str();
+    downEvent.keyname   = const_cast<char*>(keyEvent.GetKeyName().CStr());
+    downEvent.key       = keyEvent.GetLogicalKey().CStr();
+    downEvent.string    = keyEvent.GetKeyString().CStr();
     downEvent.keycode   = keyEvent.GetKeyCode();
     Evas* evas          = ecore_evas_get(WebEngineManager::Get().GetWindow());
     ecore_event_evas_modifier_lock_update(evas, (unsigned int)keyEvent.GetKeyModifier());
     downEvent.modifiers = const_cast<Evas_Modifier*>(evas_key_modifier_get(evas));
     downEvent.locks     = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
-    downEvent.dev       = evas_device_get(evas, keyEvent.GetDeviceName().c_str());
+    downEvent.dev       = evas_device_get(evas, keyEvent.GetDeviceName().CStr());
 
     evasKeyEvent = static_cast<void*>(&downEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, true);
@@ -748,15 +748,15 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
     memset(&upEvent, 0, sizeof(Evas_Event_Key_Up));
 
     upEvent.timestamp = keyEvent.GetTime();
-    upEvent.keyname   = const_cast<char*>(keyEvent.GetKeyName().c_str());
-    upEvent.key       = keyEvent.GetLogicalKey().c_str();
-    upEvent.string    = keyEvent.GetKeyString().c_str();
+    upEvent.keyname   = const_cast<char*>(keyEvent.GetKeyName().CStr());
+    upEvent.key       = keyEvent.GetLogicalKey().CStr();
+    upEvent.string    = keyEvent.GetKeyString().CStr();
     upEvent.keycode   = keyEvent.GetKeyCode();
     Evas* evas        = ecore_evas_get(WebEngineManager::Get().GetWindow());
     ecore_event_evas_modifier_lock_update(evas, (unsigned int)keyEvent.GetKeyModifier());
     upEvent.modifiers = const_cast<Evas_Modifier*>(evas_key_modifier_get(evas));
     upEvent.locks     = const_cast<Evas_Lock*>(evas_key_lock_get(evas));
-    upEvent.dev       = evas_device_get(evas, keyEvent.GetDeviceName().c_str());
+    upEvent.dev       = evas_device_get(evas, keyEvent.GetDeviceName().CStr());
 
     evasKeyEvent = static_cast<void*>(&upEvent);
     ewk_view_send_key_event(mWebView, evasKeyEvent, false);

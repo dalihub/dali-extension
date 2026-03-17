@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <dali/devel-api/common/hash.h>
 #include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
+#include <dali/integration-api/string-utils.h>
 #include <dali/integration-api/texture-integ.h>
 #include <dali/public-api/object/property-array.h>
 
@@ -29,6 +30,8 @@
 
 // INTERNAL INCLUDES
 #include <dali-extension/vector-animation-renderer/vector-animation-plugin-manager.h>
+
+using Dali::Integration::ToDaliString;
 
 namespace Dali
 {
@@ -266,7 +269,7 @@ void VectorAnimationRenderer::GetLayerInfo(Property::Map& map) const
       Property::Array frames;
       frames.PushBack(std::get<1>(iter));
       frames.PushBack(std::get<2>(iter));
-      map.Add(std::get<0>(iter), frames);
+      map.Add(ToDaliString(std::get<0>(iter)), frames);
     }
   }
 }
@@ -303,7 +306,7 @@ void VectorAnimationRenderer::GetMarkerInfo(Property::Map& map) const
       Property::Array frames;
       frames.PushBack(std::get<1>(iter));
       frames.PushBack(std::get<2>(iter));
-      map.Add(std::get<0>(iter), frames);
+      map.Add(ToDaliString(std::get<0>(iter)), frames);
     }
   }
 }
