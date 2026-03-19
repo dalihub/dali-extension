@@ -1751,13 +1751,13 @@ void TizenWebEngineLWE::DispatchKeyUpEvent(LWE::KeyValue keyCode)
 bool TizenWebEngineLWE::SendKeyEvent(const Dali::KeyEvent& event)
 {
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
-  if(32 < event.GetKeyString().c_str()[0] && 127 > event.GetKeyString().c_str()[0])
+  if(32 < event.GetKeyString().CStr()[0] && 127 > event.GetKeyString().CStr()[0])
   {
-    keyValue = static_cast<LWE::KeyValue>(event.GetKeyString().c_str()[0]);
+    keyValue = static_cast<LWE::KeyValue>(event.GetKeyString().CStr()[0]);
   }
   else
   {
-    keyValue = KeyStringToKeyValue(event.GetKeyName().c_str(), event.GetKeyModifier() & 1);
+    keyValue = KeyStringToKeyValue(event.GetKeyName().CStr(), event.GetKeyModifier() & 1);
   }
   if(event.GetState() == Dali::KeyEvent::DOWN)
   {

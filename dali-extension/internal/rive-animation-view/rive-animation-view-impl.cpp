@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,18 @@
 #include <dali-toolkit/devel-api/controls/control-devel.h>
 #include <dali/devel-api/adaptor-framework/window-devel.h>
 #include <dali/devel-api/common/stage.h>
+#include <dali/devel-api/object/type-registry-helper.h>
+#include <dali/devel-api/object/type-registry.h>
 #include <dali/devel-api/rendering/renderer-devel.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
-#include <dali/public-api/object/type-registry-helper.h>
-#include <dali/public-api/object/type-registry.h>
+#include <dali/integration-api/string-utils.h>
 
 // INTERNAL INCLUDES
 #include <dali-extension/devel-api/rive-animation-view/rive-animation-view.h>
+
+using Dali::Integration::ToPropertyValue;
+using Dali::Integration::ToStdString;
 
 namespace Dali
 {
@@ -110,7 +114,7 @@ Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, fa
 } // unnamed namespace
 
 RiveAnimationView::RiveAnimationView()
-: Control(ControlBehaviour(CONTROL_BEHAVIOUR_DEFAULT)),
+: ControlImpl(ControlBehaviour(CONTROL_BEHAVIOUR_DEFAULT)),
   mRiveAnimationTask(new RiveAnimationTask())
 {
 }
@@ -149,7 +153,7 @@ Extension::RiveAnimationView RiveAnimationView::New()
 
 void RiveAnimationView::OnSceneConnection(int depth)
 {
-  Control::OnSceneConnection(depth);
+  ControlImpl::OnSceneConnection(depth);
 
   if(mLoadFailed)
   {
@@ -182,7 +186,7 @@ void RiveAnimationView::OnSceneConnection(int depth)
 
 void RiveAnimationView::OnSceneDisconnection()
 {
-  Control::OnSceneDisconnection();
+  ControlImpl::OnSceneDisconnection();
 
   StopAnimation();
   SendAnimationData();
@@ -245,7 +249,7 @@ Vector3 RiveAnimationView::GetNaturalSize()
 
 void RiveAnimationView::OnRelayout(const Vector2& size, RelayoutContainer& container)
 {
-  Control::OnRelayout(size, container);
+  ControlImpl::OnRelayout(size, container);
 
   if(Self()[Actor::Property::CONNECTED_TO_SCENE] && size != mSize)
   {
@@ -281,10 +285,10 @@ void RiveAnimationView::SetProperty(BaseObject* object, Property::Index index, c
     {
       case Dali::Extension::RiveAnimationView::Property::URL:
       {
-        std::string url;
+        String url;
         if(value.Get(url))
         {
-          impl.SetUrl(url);
+          impl.SetUrl(ToStdString(url));
         }
         break;
       }
@@ -305,7 +309,7 @@ Property::Value RiveAnimationView::GetProperty(BaseObject* object, Property::Ind
     {
       case Dali::Extension::RiveAnimationView::Property::URL:
       {
-        value = impl.mUrl;
+        value = ToPropertyValue(impl.mUrl);
         break;
       }
     }

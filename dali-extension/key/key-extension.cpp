@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ bool IsExtensionKey(const Dali::KeyEvent& keyEvent, Dali::EXTENSION_KEY daliKey)
 
   for(size_t i = 0; i < sizeof(mKeyLookupTable) / sizeof(KeyExtensionPlugin::KeyLookup); i++)
   {
-    if(!keyEvent.GetKeyName().compare(mKeyLookupTable[i].keyName))
+    if(keyEvent.GetKeyName() == mKeyLookupTable[i].keyName)
     {
       key = mKeyLookupTable[i].daliKeyCode;
       break;

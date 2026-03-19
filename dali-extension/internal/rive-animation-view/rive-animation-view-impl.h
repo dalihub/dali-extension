@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_VIEW_H
 
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ namespace Extension
 namespace Internal
 {
 
-class RiveAnimationView : public Toolkit::Internal::Control, public RiveAnimationManager::LifecycleObserver
+class RiveAnimationView : public Toolkit::ControlImpl, public RiveAnimationManager::LifecycleObserver
 {
 protected:
   /**
@@ -176,19 +176,19 @@ private: // From CustomActorImpl
    */
   void OnSceneDisconnection() override;
 
-private: // From Control
+private: // From ControlImpl
   /**
-   * @copydoc Toolkit::Control::OnInitialize
+   * @copydoc Toolkit::ControlImpl::OnInitialize
    */
   void OnInitialize() override;
 
   /**
-   * @copydoc Toolkit::Control::GetNaturalSize
+   * @copydoc Toolkit::ControlImpl::GetNaturalSize
    */
   Vector3 GetNaturalSize() override;
 
   /**
-   * @copydoc Toolkit::Control::OnRelayout()
+   * @copydoc Toolkit::ControlImpl::OnRelayout()
    */
   void OnRelayout(const Vector2& size, RelayoutContainer& container) override;
 

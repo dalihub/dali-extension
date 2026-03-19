@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,10 +97,10 @@ bool TizenWebEngineRequestInterceptor::AddResponseHeaders(const Dali::Property::
     Dali::Property::Key key = headers.GetKeyAt(i);
     if(key.type == Dali::Property::Key::STRING)
     {
-      std::string value;
+      String value;
       if(headers.GetValue(i).Get(value))
       {
-        eina_hash_add(headerMap, key.stringKey.c_str(), value.c_str());
+        eina_hash_add(headerMap, key.stringKey.CStr(), value.CStr());
       }
     }
   }
