@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_WEB_ENGINE_CONTEXT_H
 
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,17 @@ public:
   /**
    * @brief Constructor.
    */
-  TizenWebEngineContext(Ewk_Context*);
+  TizenWebEngineContext(Ewk_Context*, bool isIncognito);
 
   /**
    * @brief Destructor.
    */
   ~TizenWebEngineContext();
+
+  /**
+   * @brief Unregister some callbacks of Context.
+   */
+  void UnregisterContextCallbacks();
 
   /**
    * @copydoc Dali::WebEngineContext::GetCacheModel()
@@ -322,6 +327,7 @@ private:
   WebEngineMimeOverriddenCallback         mWebMimeOverriddenCallback;
   WebEngineRequestInterceptedCallback     mWebRequestInterceptedCallback;
   Ewk_Context*                            mEwkContext;
+  bool                                    mIsIncognito;
 };
 
 } // namespace Plugin
