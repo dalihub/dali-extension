@@ -22,6 +22,7 @@
 #include "tizen-web-engine-console-message.h"
 #include "tizen-web-engine-context-menu-item.h"
 #include "tizen-web-engine-context-menu.h"
+#include "tizen-web-engine-context.h"
 #include "tizen-web-engine-device-list-get.h"
 #include "tizen-web-engine-file-chooser-request.h"
 #include "tizen-web-engine-form-repost-decision.h"
@@ -128,6 +129,7 @@ TizenWebEngineChromium::TizenWebEngineChromium()
   mWebView(nullptr),
   mWidth(0),
   mHeight(0),
+  mIsIncognito(false),
   mWebUserMediaPermissionRequest(nullptr),
   mDeviceListGet(nullptr)
 {
@@ -150,7 +152,7 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::
   mWidth  = width;
   mHeight = height;
   InitWebView(false);
-  WebEngineManager::Get().Add(mWebView, this);
+  WebEngineManager::Get().Add(mWebView, this, false);
 }
 
 void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
@@ -184,13 +186,14 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t ar
   mWidth  = width;
   mHeight = height;
   InitWebView(incognito);
-  WebEngineManager::Get().Add(mWebView, this);
+  WebEngineManager::Get().Add(mWebView, this, incognito);
 }
 
 void TizenWebEngineChromium::InitWebView(bool incognito)
 {
+  mIsIncognito = incognito;
   Ewk_Context* context = nullptr;
-  if(incognito)
+  if(mIsIncognito)
   {
     mWebView = ewk_view_add_in_incognito_mode(ecore_evas_get(WebEngineManager::Get().GetWindow()));
     context  = ewk_view_context_get(mWebView);
@@ -200,7 +203,7 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
     context  = ewk_context_default_get();
     mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
   }
-  WebEngineManager::Get().SetContext(context);
+  WebEngineManager::Get().SetContext(context, mIsIncognito);
   ewk_context_max_refresh_rate_set(context, 60);
   ewk_view_offscreen_rendering_enabled_set(mWebView, true);
 
@@ -260,12 +263,18 @@ void TizenWebEngineChromium::Destroy()
 {
   mJavaScriptInjectedCallbacks.clear();
 
-  if(WebEngineManager::IsAvailable())
+  if(WebEngineManager::IsAvailable() && mWebView != nullptr)
   {
-    WebEngineManager::Get().Remove(mWebView);
+    WebEngineManager::Get().Remove(mWebView, mIsIncognito);
   }
+
   evas_object_del(mWebView);
   mWebView = nullptr;
+}
+
+bool TizenWebEngineChromium::IsIncognito() const
+{
+  return mIsIncognito;
 }
 
 void TizenWebEngineChromium::LoadUrl(const std::string& path)

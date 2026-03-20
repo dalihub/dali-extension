@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ bool WebEngineManager::IsAvailable()
 
 WebEngineManager::WebEngineManager()
 : mSlotDelegate(this),
+  mWindow(nullptr),
   mWebEngineManagerAvailable(true)
 {
   DALI_LOG_RELEASE_INFO("#WebEngineManager is created.\n");
@@ -89,55 +90,80 @@ Ecore_Evas* WebEngineManager::GetWindow()
   return mWindow;
 }
 
-void WebEngineManager::SetContext(Ewk_Context* context)
+void WebEngineManager::SetContext(Ewk_Context* context, bool isIncognito)
 {
-  mWebEngineContext.reset(new TizenWebEngineContext(context));
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  mWebEngineContexts[uintContextType].reset(new TizenWebEngineContext(context, isIncognito));
 
   Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
-  mWebEngineCookieManager.reset(new TizenWebEngineCookieManager(manager));
+  mWebEngineCookieManagers[uintContextType].reset(new TizenWebEngineCookieManager(manager));
 }
 
-Dali::WebEngineContext* WebEngineManager::GetContext()
+Dali::WebEngineContext* WebEngineManager::GetContext(bool isIncognito)
 {
-  return mWebEngineContext.get();
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  return mWebEngineContexts[uintContextType].get();
 }
 
-Dali::WebEngineCookieManager* WebEngineManager::GetCookieManager()
+Dali::WebEngineCookieManager* WebEngineManager::GetCookieManager(bool isIncognito)
 {
-  return mWebEngineCookieManager.get();
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  return mWebEngineCookieManagers[uintContextType].get();
 }
 
-void WebEngineManager::Add(Evas_Object* webView, Dali::WebEnginePlugin* engine)
+void WebEngineManager::Add(Evas_Object* webView, Dali::WebEnginePlugin* engine, bool isIncognito)
 {
-  mWebEngines[webView] = engine;
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  mWebEngines[uintContextType][webView] = engine;
 }
 
-void WebEngineManager::Remove(Evas_Object* webView)
+void WebEngineManager::Remove(Evas_Object* webView, bool isIncognito)
 {
-  auto iter = mWebEngines.find(webView);
-  if(iter != mWebEngines.end())
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  auto&       table           = mWebEngines[uintContextType];
+  auto        iter            = table.find(webView);
+  if(iter != table.end())
   {
-    mWebEngines.erase(iter);
+    table.erase(iter);
+  }
+
+  // when some web views are in incognito mode, and the last one would be destroyed,
+  // callbacks of ewk context need be reset here.
+  if(isIncognito && mWebEngineContexts[uintContextType] != nullptr && table.size() == 0)
+  {
+    TizenWebEngineContext* context = static_cast<TizenWebEngineContext*>(mWebEngineContexts[uintContextType].get());
+    context->UnregisterContextCallbacks();
   }
 }
 
 Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
 {
-  auto iter = mWebEngines.find(webView);
-  if(iter != mWebEngines.end())
+  for(uint8_t index = 0; index < ContextTypeCount; index++)
   {
-    return iter->second;
+    auto iter = mWebEngines[index].find(webView);
+    if(iter != mWebEngines[index].end())
+    {
+      return iter->second;
+    }
   }
   return nullptr;
 }
 
 Evas_Object* WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
 {
-  for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
+  for(uint8_t index = 0; index < ContextTypeCount; index++)
   {
-    if(it->second == plugin)
+    for(auto it = mWebEngines[index].begin(); it != mWebEngines[index].end(); it++)
     {
-      return it->first;
+      if(it->second == plugin)
+      {
+        return it->first;
+      }
     }
   }
   return nullptr;
@@ -152,24 +178,29 @@ void WebEngineManager::OnTerminated()
   }
   DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed.\n");
 
-  // App is terminated. Now web engine is not available anymore.
+  // App is terminated. Now web engine is not available any more.
   mWebEngineManagerAvailable = false;
 
-  for(auto it = mWebEngines.begin(); it != mWebEngines.end(); it++)
+  for(uint8_t index = 0; index < ContextTypeCount; index++)
   {
-    // Destroy WebEngine
-    auto webEnginePlugin = it->second;
-    if(webEnginePlugin)
+    for(auto it = mWebEngines[index].begin(); it != mWebEngines[index].end(); it++)
     {
-      webEnginePlugin->Destroy();
+      // Destroy WebEngine
+      auto webEnginePlugin = it->second;
+      if(webEnginePlugin)
+      {
+        webEnginePlugin->Destroy();
+      }
     }
+    mWebEngines[index].clear();
   }
-  mWebEngines.clear();
-  ecore_evas_free(mWindow);
+  mWebEngines = {};
 
   // Release context and cookie manager before ewk_shutdown.
-  mWebEngineContext.reset();
-  mWebEngineCookieManager.reset();
+  mWebEngineContexts       = {};
+  mWebEngineCookieManagers = {};
+
+  ecore_evas_free(mWindow);
 
   ewk_shutdown();
   elm_shutdown();
@@ -179,12 +210,12 @@ void WebEngineManager::OnTerminated()
 } // namespace Plugin
 } // namespace Dali
 
-extern "C" DALI_EXPORT_API Dali::WebEngineContext* GetWebEngineContext()
+extern "C" DALI_EXPORT_API Dali::WebEngineContext* GetWebEngineContext(bool isIncognito)
 {
-  return Dali::Plugin::WebEngineManager::Get().GetContext();
+  return Dali::Plugin::WebEngineManager::Get().GetContext(isIncognito);
 }
 
-extern "C" DALI_EXPORT_API Dali::WebEngineCookieManager* GetWebEngineCookieManager()
+extern "C" DALI_EXPORT_API Dali::WebEngineCookieManager* GetWebEngineCookieManager(bool isIncognito)
 {
-  return Dali::Plugin::WebEngineManager::Get().GetCookieManager();
+  return Dali::Plugin::WebEngineManager::Get().GetCookieManager(isIncognito);
 }

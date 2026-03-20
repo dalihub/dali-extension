@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
 
 /*
- * Copyright (c) 2023 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 
 #include <ewk_context.h>
 
+#include <array>
 #include <map>
 #include <memory>
 
@@ -53,15 +54,15 @@ public:
 
   Ecore_Evas* GetWindow();
 
-  void SetContext(Ewk_Context* context);
+  void SetContext(Ewk_Context* context, bool isIncognito);
 
-  Dali::WebEngineContext* GetContext();
+  Dali::WebEngineContext* GetContext(bool isIncognito = false);
 
-  Dali::WebEngineCookieManager* GetCookieManager();
+  Dali::WebEngineCookieManager* GetCookieManager(bool isIncognito = false);
 
-  void Add(Evas_Object* webView, Dali::WebEnginePlugin* engine);
+  void Add(Evas_Object* webView, Dali::WebEnginePlugin* engine, bool isIncognito);
 
-  void Remove(Evas_Object* webView);
+  void Remove(Evas_Object* webView, bool isIncognito);
 
   Dali::WebEnginePlugin* Find(Evas_Object* o);
 
@@ -74,12 +75,21 @@ private:
 
   void OnTerminated();
 
-  SlotDelegate<WebEngineManager>                 mSlotDelegate;
-  std::unique_ptr<WebEngineContext>              mWebEngineContext;
-  std::unique_ptr<WebEngineCookieManager>        mWebEngineCookieManager;
-  Ecore_Evas*                                    mWindow;
-  std::map<Evas_Object*, Dali::WebEnginePlugin*> mWebEngines;
-  bool                                           mWebEngineManagerAvailable;
+  enum class ContextType
+  {
+    NORMAL = 0,
+    INCOGNITO,
+    TYPE_COUNT,
+  };
+
+  static constexpr uint8_t ContextTypeCount = static_cast<int>(ContextType::TYPE_COUNT);
+
+  SlotDelegate<WebEngineManager>                                               mSlotDelegate;
+  std::array<std::unique_ptr<WebEngineContext>, ContextTypeCount>              mWebEngineContexts;
+  std::array<std::unique_ptr<WebEngineCookieManager>, ContextTypeCount>        mWebEngineCookieManagers;
+  std::array<std::map<Evas_Object*, Dali::WebEnginePlugin*>, ContextTypeCount> mWebEngines;
+  Ecore_Evas*                                                                  mWindow;
+  bool                                                                         mWebEngineManagerAvailable;
 };
 
 } // namespace Plugin
