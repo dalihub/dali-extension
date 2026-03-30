@@ -87,7 +87,7 @@ static void EmitPlaybackFinishedSignal(void* user_data)
     return;
   }
 
-  if(!player->FinishedSignal().Empty())
+  if(!player->FinishedSignal().Empty() || !player->EventSignal().Empty())
   {
     DALI_LOG_ERROR("EmitPlaybackFinishedSignal.\n");
 
