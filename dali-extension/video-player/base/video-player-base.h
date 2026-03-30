@@ -248,8 +248,14 @@ public:
    */
   void EmitFinishedSignal()
   {
-    mFinishedSignal.Emit();
-    mEventSignal.Emit(Dali::VideoPlayerPlugin::PlayerEventType::PLAYBACK_FINISHED);
+    if(!mFinishedSignal.Empty())
+    {
+      mFinishedSignal.Emit();
+    }
+    if(!mEventSignal.Empty())
+    {
+      mEventSignal.Emit(Dali::VideoPlayerPlugin::PlayerEventType::PLAYBACK_FINISHED);
+    }
   }
 
   /**
