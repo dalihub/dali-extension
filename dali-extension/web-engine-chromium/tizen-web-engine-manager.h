@@ -82,7 +82,7 @@ private:
     TYPE_COUNT,
   };
 
-  static constexpr uint8_t ContextTypeCount = static_cast<int>(ContextType::TYPE_COUNT);
+  static constexpr uint8_t ContextTypeCount = static_cast<uint8_t>(ContextType::TYPE_COUNT);
 
   SlotDelegate<WebEngineManager>                                               mSlotDelegate;
   std::array<std::unique_ptr<WebEngineContext>, ContextTypeCount>              mWebEngineContexts;
