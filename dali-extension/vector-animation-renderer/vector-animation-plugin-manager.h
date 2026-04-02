@@ -20,9 +20,9 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
+#include <dali/devel-api/common/vector-wrapper.h>
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/processor-interface.h>
-#include <dali/public-api/common/vector-wrapper.h>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
