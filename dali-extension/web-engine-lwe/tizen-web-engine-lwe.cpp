@@ -1334,6 +1334,12 @@ Dali::NativeImagePtr TizenWebEngineLWE::GetNativeImage()
   return mDaliImageSrc;
 }
 
+bool TizenWebEngineLWE::IsIncognito() const
+{
+  // NOT IMPLEMENTED
+  return false;
+}
+
 void TizenWebEngineLWE::ChangeOrientation(int orientation)
 {
   // NOT IMPLEMENTED

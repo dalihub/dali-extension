@@ -1,0 +1,6 @@
+SET( root_dir ${ROOT_SRC_DIR}/dali-extension/image-loader )
+
+SET( SOURCES ${SOURCES}
+  ${root_dir}/tizen-image-loader.cpp
+  ${root_dir}/loader-dummy.cpp
+)

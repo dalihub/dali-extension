@@ -81,6 +81,11 @@ public:
   void Destroy() override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::IsIncognito()
+   */
+  bool IsIncognito() const override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::GetNativeImage()
    */
   Dali::NativeImagePtr GetNativeImage() override;

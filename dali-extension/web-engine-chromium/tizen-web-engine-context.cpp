@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,18 +28,28 @@ namespace Dali
 namespace Plugin
 {
 
-TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context)
+TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context, bool isIncognito)
 : mWebSecurityOriginAcquiredCallback(nullptr),
   mWebStorageUsageAcquiredCallback(nullptr),
   mWebFormPasswordAcquiredCallback(nullptr),
   mWebDownloadStartedCallback(nullptr),
   mWebMimeOverriddenCallback(nullptr),
   mWebRequestInterceptedCallback(nullptr),
-  mEwkContext(context)
+  mEwkContext(context),
+  mIsIncognito(isIncognito)
 {
 }
 
 TizenWebEngineContext::~TizenWebEngineContext()
+{
+  // In non-incognito mode, context callbacks can be reset here.
+  if(!mIsIncognito)
+  {
+    UnregisterContextCallbacks();
+  }
+}
+
+void TizenWebEngineContext::UnregisterContextCallbacks()
 {
   ewk_context_intercept_request_callback_set(mEwkContext, nullptr, nullptr);
   ewk_context_did_start_download_callback_set(mEwkContext, nullptr, nullptr);

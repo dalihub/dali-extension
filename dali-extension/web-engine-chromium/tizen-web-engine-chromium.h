@@ -73,6 +73,11 @@ public:
   void Destroy() override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::IsIncognito()
+   */
+  bool IsIncognito() const override;
+
+  /**
    * @copydoc Dali::WebEnginePlugin::GetSettings()
    */
   Dali::WebEngineSettings& GetSettings() const override;
@@ -707,6 +712,7 @@ private:
   Evas_Object*                                                      mWebView;
   uint32_t                                                          mWidth;
   uint32_t                                                          mHeight;
+  bool                                                              mIsIncognito;
   std::unique_ptr<WebEngineBackForwardList>                         mWebEngineBackForwardList;
   std::unique_ptr<WebEngineSettings>                                mWebEngineSettings;
   std::unordered_map<std::string, JavaScriptMessageHandlerCallback> mJavaScriptInjectedCallbacks;
