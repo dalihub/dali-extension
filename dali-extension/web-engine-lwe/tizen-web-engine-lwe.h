@@ -33,6 +33,8 @@
 
 #include <LWEWebView.h>
 
+#include <atomic>
+
 namespace Dali
 {
 namespace Plugin
