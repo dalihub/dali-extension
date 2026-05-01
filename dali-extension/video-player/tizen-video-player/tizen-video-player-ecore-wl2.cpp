@@ -486,7 +486,7 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
 
   mNativeImagePtr = NULL;
 
-  if(target.GetType() == typeid(Dali::NativeImagePtr))
+  if(target.IsType<Dali::NativeImagePtr>())
   {
     if(mSyncMode == Dali::VideoSyncMode::ENABLED)
     {
@@ -499,7 +499,7 @@ void TizenVideoPlayer::SetRenderingTarget(Any target)
     DALI_LOG_RELEASE_INFO("target is not underlay mode\n");
     InitializeTextureStreamMode(nativeImagePtr);
   }
-  else if(target.GetType() == typeid(Ecore_Wl2_Window*))
+  else if(target.IsType<Ecore_Wl2_Window*>())
   {
     mTargetType = TizenVideoPlayer::WINDOW_SURFACE;
 
@@ -1194,7 +1194,7 @@ void TizenVideoPlayer::DestroyVideoConstraint()
 void TizenVideoPlayer::SetVideoFrameBuffer(Dali::NativeImagePtr source)
 {
   auto nativeSource = source->GetNativeImage();
-  if(nativeSource.GetType() == typeid(tbm_surface_h))
+  if(nativeSource.IsType<tbm_surface_h>())
   {
     auto tbmSource = AnyCast<tbm_surface_h>(nativeSource);
     mVideoConstraintHelper->SetVideoFrameBuffer(tbmSource);
