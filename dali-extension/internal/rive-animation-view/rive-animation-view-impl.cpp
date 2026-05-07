@@ -587,7 +587,7 @@ void RiveAnimationView::TriggerVectorRasterization()
   }
 }
 
-void RiveAnimationView::OnScaleNotification(PropertyNotification& source)
+void RiveAnimationView::OnScaleNotification(PropertyNotification source)
 {
   Vector3 scale = Self().GetProperty<Vector3>(Actor::Property::WORLD_SCALE);
 
@@ -605,7 +605,7 @@ void RiveAnimationView::OnScaleNotification(PropertyNotification& source)
   }
 }
 
-void RiveAnimationView::OnSizeNotification(PropertyNotification& source)
+void RiveAnimationView::OnSizeNotification(PropertyNotification source)
 {
   Vector3 size = Self().GetCurrentProperty<Vector3>(Actor::Property::SIZE);
   mSize.width  = size.width;
