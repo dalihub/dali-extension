@@ -191,7 +191,7 @@ void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t ar
 
 void TizenWebEngineChromium::InitWebView(bool incognito)
 {
-  mIsIncognito = incognito;
+  mIsIncognito         = incognito;
   Ewk_Context* context = nullptr;
   if(mIsIncognito)
   {
@@ -924,7 +924,7 @@ void TizenWebEngineChromium::AddDynamicCertificatePath(const std::string& host, 
   ewk_view_add_dynamic_certificate_path(mWebView, host.c_str(), certPath.c_str());
 }
 
-Dali::PixelData TizenWebEngineChromium::GetScreenshot(Dali::Rect<int32_t> viewArea, float scaleFactor)
+Dali::PixelData TizenWebEngineChromium::GetScreenshot(Dali::BoundsInteger viewArea, float scaleFactor)
 {
   Eina_Rectangle rect;
   EINA_RECTANGLE_SET(&rect, viewArea.x, viewArea.y, viewArea.width, viewArea.height);
@@ -937,7 +937,7 @@ Dali::PixelData TizenWebEngineChromium::GetScreenshot(Dali::Rect<int32_t> viewAr
   return ConvertImageColorSpace(snapShotObject);
 }
 
-bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, ScreenshotCapturedCallback callback)
+bool TizenWebEngineChromium::GetScreenshotAsynchronously(Dali::BoundsInteger viewArea, float scaleFactor, ScreenshotCapturedCallback callback)
 {
   mScreenshotCapturedCallback = callback;
   Eina_Rectangle rect;
@@ -977,7 +977,7 @@ void TizenWebEngineChromium::RegisterUserMediaPermissionRequestCallback(WebEngin
   ewk_view_user_media_permission_callback_set(mWebView, &TizenWebEngineChromium::OnUserMediaPermissonRequest, this);
 }
 
-void TizenWebEngineChromium::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
+void TizenWebEngineChromium::UpdateDisplayArea(Dali::BoundsInteger displayArea)
 {
   // Size was changed. Destroy previous native image, and create new one.
   ResetDaliImageSource();
