@@ -1791,7 +1791,7 @@ void TizenWebEngineLWE::SetFocus(bool focused)
   }
 }
 
-void TizenWebEngineLWE::UpdateDisplayArea(Dali::Rect<int32_t> displayArea)
+void TizenWebEngineLWE::UpdateDisplayArea(Dali::BoundsInteger displayArea)
 {
   mDaliImageSrc = NativeImage::New(0, 0, NativeImage::COLOR_DEPTH_DEFAULT);
   SetSize(displayArea.width, displayArea.height);
@@ -1883,13 +1883,13 @@ void TizenWebEngineLWE::AddDynamicCertificatePath(const std::string& host, const
   // NOT IMPLEMENTED
 }
 
-Dali::PixelData TizenWebEngineLWE::GetScreenshot(Dali::Rect<int32_t> viewArea, float scaleFactor)
+Dali::PixelData TizenWebEngineLWE::GetScreenshot(Dali::BoundsInteger viewArea, float scaleFactor)
 {
   // NOT IMPLEMENTED
   return Dali::PixelData();
 }
 
-bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::Rect<int32_t> viewArea, float scaleFactor, Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
+bool TizenWebEngineLWE::GetScreenshotAsynchronously(Dali::BoundsInteger viewArea, float scaleFactor, Dali::WebEnginePlugin::ScreenshotCapturedCallback callback)
 {
   // NOT IMPLEMENTED
   return false;
