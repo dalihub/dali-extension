@@ -59,6 +59,7 @@ VectorAnimationRenderer::VectorAnimationRenderer()
   mResourceReady(false),
   mResourceReadyTriggered(false),
   mEnableFixedCache(false),
+  mEnableAspectFit(true),
   mFinalized(false)
 {
   VectorAnimationPluginManager::Get().AddEventHandler(*this);
@@ -522,6 +523,18 @@ void VectorAnimationRenderer::KeepRasterizedBuffer()
   Dali::Mutex::ScopedLock lock(mMutex);
   mEnableFixedCache = true;
   mDecodedBuffers.clear();
+}
+
+void VectorAnimationRenderer::SetEnableAspectFit(bool enable)
+{
+  Dali::Mutex::ScopedLock lock(mMutex);
+  mEnableAspectFit = enable;
+  DALI_LOG_INFO(gVectorAnimationLogFilter, Debug::Verbose, "SetEnableAspectFit(%s) [%p]\n", enable ? "true" : "false", this);
+}
+
+bool VectorAnimationRenderer::IsEnableAspectFit() const
+{
+  return mEnableAspectFit;
 }
 
 VectorAnimationRendererPlugin::UploadCompletedSignalType& VectorAnimationRenderer::UploadCompletedSignal()

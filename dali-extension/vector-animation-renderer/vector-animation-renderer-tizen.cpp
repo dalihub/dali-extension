@@ -167,7 +167,8 @@ bool VectorAnimationRendererTizen::Render(uint32_t frameNumber)
     rlottie::Surface surface = rlottie::Surface(reinterpret_cast<uint32_t*>(buffer), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(stride));
 
     // Render the frame
-    mVectorRenderer->renderSync(frameNumber, surface);
+    // mEnableAspectFit: true = keep aspect ratio (aspect fit mode), false = stretch to fit
+    mVectorRenderer->renderSync(frameNumber, surface, mEnableAspectFit);
 
     if(mEnableFixedCache && (frameNumber < mDecodedBuffers.size()))
     {
