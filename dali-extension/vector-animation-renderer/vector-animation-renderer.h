@@ -117,6 +117,16 @@ public:
   void KeepRasterizedBuffer() override;
 
   /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::SetEnableAspectFit()
+   */
+  void SetEnableAspectFit(bool enable) override;
+
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::IsEnableAspectFit()
+   */
+  bool IsEnableAspectFit() const override;
+
+  /**
    * @copydoc Dali::VectorAnimationRendererPlugin::UploadCompletedSignal()
    */
   UploadCompletedSignalType& UploadCompletedSignal() override;
@@ -199,6 +209,7 @@ protected:
   bool                                mResourceReady : 1;          ///< Whether the resource is ready
   bool                                mResourceReadyTriggered : 1; ///< Whether the resource ready is triggered
   bool                                mEnableFixedCache : 1;
+  bool                                mEnableAspectFit : 1;        ///< Whether to keep aspect ratio
   bool                                mFinalized : 1;
 };
 
