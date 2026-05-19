@@ -105,7 +105,9 @@ bool VectorAnimationRendererX::Render(uint32_t frameNumber)
     return false;
   }
 
-  mVectorRenderer->renderSync(frameNumber, renderingDataImpl->mLottieSurface);
+  // Render the frame
+  // mEnableAspectFit: true = keep aspect ratio (aspect fit mode), false = stretch to fit
+  mVectorRenderer->renderSync(frameNumber, renderingDataImpl->mLottieSurface, mEnableAspectFit);
 
   mUploadPixelBufferRequired = true;
 
