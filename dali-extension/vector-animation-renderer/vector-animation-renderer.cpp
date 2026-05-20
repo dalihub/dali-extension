@@ -20,7 +20,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/common/hash.h>
-#include <dali/devel-api/common/stage.h>
+#include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/integration-api/string-utils.h>
 #include <dali/integration-api/texture-integ.h>
@@ -190,7 +190,7 @@ void VectorAnimationRenderer::SetRenderer(Renderer renderer)
 
 void VectorAnimationRenderer::SetSize(uint32_t width, uint32_t height)
 {
-  if(!Stage::IsCoreThread())
+  if(!Dali::Adaptor::IsEventThread())
   {
     DALI_LOG_ERROR("SetSize should be called by Core Thread.\n");
     return;
