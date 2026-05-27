@@ -19,8 +19,8 @@
 #include <video-player-base.h>
 
 // EXTERNAL INCLUDES
+#include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
-#include <dali/devel-api/common/stage.h>
 
 namespace Dali
 {
@@ -53,7 +53,8 @@ VideoPlayerBase::~VideoPlayerBase()
 void VideoPlayerBase::SetUrl(const std::string& url)
 {
   mUrl = url;
-  PostCommand([this, url]() {
+  PostCommand([this, url]()
+  {
     DoSetUrl(url);
   });
 }
@@ -66,7 +67,8 @@ std::string VideoPlayerBase::GetUrl()
 void VideoPlayerBase::SetLooping(bool looping)
 {
   mIsLooping = looping;
-  PostCommand([this, looping]() {
+  PostCommand([this, looping]()
+  {
     DoSetLooping(looping);
   });
 }
@@ -78,7 +80,8 @@ bool VideoPlayerBase::IsLooping()
 
 void VideoPlayerBase::Play()
 {
-  PostCommand([this]() {
+  PostCommand([this]()
+  {
     DoPlay();
     OnAfterPlay();
   });
@@ -86,7 +89,8 @@ void VideoPlayerBase::Play()
 
 void VideoPlayerBase::Pause()
 {
-  PostCommand([this]() {
+  PostCommand([this]()
+  {
     DoPause();
     OnAfterPause();
   });
@@ -94,7 +98,8 @@ void VideoPlayerBase::Pause()
 
 void VideoPlayerBase::Stop()
 {
-  PostCommand([this]() {
+  PostCommand([this]()
+  {
     DoStop();
     OnAfterStop();
   });
@@ -103,7 +108,8 @@ void VideoPlayerBase::Stop()
 void VideoPlayerBase::SetMute(bool mute)
 {
   mIsMuted = mute;
-  PostCommand([this, mute]() {
+  PostCommand([this, mute]()
+  {
     DoSetMute(mute);
   });
 }
@@ -115,16 +121,17 @@ bool VideoPlayerBase::IsMuted()
 
 void VideoPlayerBase::SetVolume(float left, float right)
 {
-  mVolumeLeft = left;
+  mVolumeLeft  = left;
   mVolumeRight = right;
-  PostCommand([this, left, right]() {
+  PostCommand([this, left, right]()
+  {
     DoSetVolume(left, right);
   });
 }
 
 void VideoPlayerBase::GetVolume(float& left, float& right)
 {
-  left = mVolumeLeft;
+  left  = mVolumeLeft;
   right = mVolumeRight;
 }
 
@@ -146,7 +153,8 @@ void VideoPlayerBase::SetRenderingTarget(Any target)
 
 void VideoPlayerBase::SetPlayPosition(int millisecond)
 {
-  PostCommand([this, millisecond]() {
+  PostCommand([this, millisecond]()
+  {
     DoSetPlayPosition(millisecond);
   });
 }
@@ -158,7 +166,8 @@ int VideoPlayerBase::GetPlayPosition()
 
 void VideoPlayerBase::SetDisplayArea(DisplayArea area)
 {
-  PostCommand([this, area]() {
+  PostCommand([this, area]()
+  {
     DoSetDisplayArea(area);
   });
 }
@@ -166,7 +175,8 @@ void VideoPlayerBase::SetDisplayArea(DisplayArea area)
 void VideoPlayerBase::SetDisplayRotation(Dali::VideoPlayerPlugin::DisplayRotation rotation)
 {
   mDisplayRotation = rotation;
-  PostCommand([this, rotation]() {
+  PostCommand([this, rotation]()
+  {
     DoSetDisplayRotation(rotation);
   });
 }
@@ -214,8 +224,8 @@ void VideoPlayerBase::SetFrameInterpolationInterval(float intervalSeconds)
 void VideoPlayerBase::EnableOffscreenFrameRendering(bool useOffScreenFrame, Dali::NativeImagePtr previousFrameBufferNativeImagePtr, Dali::NativeImagePtr currentFrameBufferNativeImagePtr)
 {
   mUseOffscreenFrameRendering = useOffScreenFrame;
-  mPreviousFrameBuffer = previousFrameBufferNativeImagePtr;
-  mCurrentFrameBuffer = currentFrameBufferNativeImagePtr;
+  mPreviousFrameBuffer        = previousFrameBufferNativeImagePtr;
+  mCurrentFrameBuffer         = currentFrameBufferNativeImagePtr;
 }
 
 void VideoPlayerBase::SetVideoFrameBuffer(Dali::NativeImagePtr source)
@@ -226,14 +236,14 @@ void VideoPlayerBase::SetVideoFrameBuffer(Dali::NativeImagePtr source)
 void VideoPlayerBase::Forward(int millisecond)
 {
   int currentPosition = GetPlayPosition();
-  int newPosition = currentPosition + millisecond;
+  int newPosition     = currentPosition + millisecond;
   SetPlayPosition(newPosition);
 }
 
 void VideoPlayerBase::Backward(int millisecond)
 {
   int currentPosition = GetPlayPosition();
-  int newPosition = currentPosition - millisecond;
+  int newPosition     = currentPosition - millisecond;
   if(newPosition < 0)
   {
     newPosition = 0;
@@ -249,7 +259,8 @@ bool VideoPlayerBase::IsVideoTextureSupported()
 void VideoPlayerBase::SetCodecType(Dali::VideoPlayerPlugin::CodecType type)
 {
   mCodecType = type;
-  PostCommand([this, type]() {
+  PostCommand([this, type]()
+  {
     DoSetCodecType(type);
   });
 }
@@ -262,7 +273,8 @@ Dali::VideoPlayerPlugin::CodecType VideoPlayerBase::GetCodecType() const
 void VideoPlayerBase::SetDisplayMode(Dali::VideoPlayerPlugin::DisplayMode::Type mode)
 {
   mDisplayMode = mode;
-  PostCommand([this, mode]() {
+  PostCommand([this, mode]()
+  {
     DoSetDisplayMode(mode);
   });
 }
@@ -327,7 +339,7 @@ void VideoPlayerBase::PostCommand(Command command)
   }
 
   // Try to process immediately if player is ready
-  if (IsPlayerReady())
+  if(IsPlayerReady())
   {
     ProcessCommandQueue();
   }
@@ -335,12 +347,12 @@ void VideoPlayerBase::PostCommand(Command command)
 
 void VideoPlayerBase::ProcessCommandQueue()
 {
-  while (true)
+  while(true)
   {
     Command command;
     {
       Dali::Mutex::ScopedLock lock(mCommandMutex);
-      if (mCommandQueue.empty() || !IsPlayerReady())
+      if(mCommandQueue.empty() || !IsPlayerReady())
       {
         break;
       }
@@ -349,7 +361,7 @@ void VideoPlayerBase::ProcessCommandQueue()
     }
 
     // Execute command outside the lock to avoid deadlocks
-    if (command)
+    if(command)
     {
       command();
     }
@@ -371,7 +383,7 @@ void VideoPlayerBase::OnAfterStop()
 
 void VideoPlayerBase::InitializeUiUpdateCallback()
 {
-  if (!mEventCallback)
+  if(!mEventCallback)
   {
     mEventCallback = std::unique_ptr<Dali::EventThreadCallback>(
       new Dali::EventThreadCallback(MakeCallback(this, &VideoPlayerBase::DoUpdateUi)));
@@ -380,7 +392,7 @@ void VideoPlayerBase::InitializeUiUpdateCallback()
 
 void VideoPlayerBase::TriggerUiUpdate()
 {
-  if (mEventCallback)
+  if(mEventCallback)
   {
     mEventCallback->Trigger();
   }
@@ -429,9 +441,9 @@ void VideoPlayerBase::DoUpdateUi()
   if(!surface.Empty() && mNativeImagePtr)
   {
     mNativeImagePtr->SetSource(surface);
-    Dali::Stage::GetCurrent().KeepRendering(0.0f);
+    Dali::Adaptor::Get().RequestProcessEventsAndUpdate();
   }
-  else if (surface.Empty())
+  else if(surface.Empty())
   {
     DestroyMediaPacket(nextPacket);
     return; // Failed to extract surface
