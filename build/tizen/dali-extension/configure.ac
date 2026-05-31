@@ -21,7 +21,25 @@ if test "x$enable_debug" = "xyes"; then
 fi
 
 PKG_CHECK_MODULES(DALI_ADAPTOR_INTEGRATION, dali2-adaptor-integration)
-PKG_CHECK_MODULES(WAYLAND, [ecore-wl2])
+
+TIZEN_WAYLAND_BACKEND_INIT
+
+if test "x$use_tcore_backend" != "xyes"; then
+  case " $CFLAGS $CXXFLAGS " in
+    *USE_TCORE_BACKEND*)
+      use_tcore_backend=yes
+      tizen_wayland_backend=TCORE
+      DALI_CFLAGS="$DALI_CFLAGS -DUSE_TCORE_BACKEND"
+      enable_web_engine_plugin=no
+      ;;
+  esac
+fi
+
+if test "x$use_tcore_backend" = "xyes"; then
+  PKG_CHECK_MODULES(TCORE_WL, tizen-core-wl)
+else
+  PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
+fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

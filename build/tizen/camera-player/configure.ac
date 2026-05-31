@@ -23,7 +23,13 @@ fi
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(CAPI_MEDIA_CAMERA, capi-media-camera)
 
-PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
+TIZEN_WAYLAND_BACKEND_INIT
+
+if test "x$use_tcore_backend" = "xyes"; then
+  PKG_CHECK_MODULES(TCORE_WL, tizen-core-wl)
+else
+  PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
+fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

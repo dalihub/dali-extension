@@ -1,0 +1,221 @@
+/*
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#include "tizen-web-engine-manager.h"
+
+#include "tizen-web-engine-context.h"
+#include "tizen-web-engine-cookie-manager.h"
+
+#include <Elementary.h>
+
+#include <dali/devel-api/adaptor-framework/lifecycle-controller.h>
+#include <dali/integration-api/debug.h>
+
+#include <ewk_main.h>
+
+#include <memory>
+#include <stdexcept>
+
+namespace Dali
+{
+namespace Plugin
+{
+WebEngineManager& WebEngineManager::Get()
+{
+  static WebEngineManager instance;
+  return instance;
+}
+
+bool WebEngineManager::IsAvailable()
+{
+  return Get().mWebEngineManagerAvailable;
+}
+
+WebEngineManager::WebEngineManager()
+: mSlotDelegate(this),
+  mWindow(nullptr),
+  mWebEngineManagerAvailable(true)
+{
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is created.\n");
+
+  elm_init(0, 0);
+  ewk_init();
+  mWindow = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
+
+  Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
+
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is created fully.\n");
+}
+
+WebEngineManager::~WebEngineManager()
+{
+  if(mWebEngineManagerAvailable)
+  {
+    try
+    {
+      // Call OnTerminated directly.
+      OnTerminated();
+    }
+    catch(std::bad_weak_ptr const& ex)
+    {
+      DALI_LOG_ERROR("WebEngineManager::~WebEngineManager() - std::bad_weak_ptr caught: %s\n", ex.what());
+    }
+    catch(std::system_error const& ex)
+    {
+      DALI_LOG_ERROR("WebEngineManager::~WebEngineManager() - std::system_error caught: %s\n", ex.what());
+    }
+    catch(std::invalid_argument const& ex)
+    {
+      DALI_LOG_RELEASE_INFO("Failed to destroy web engine:%s!\n", ex.what());
+    }
+  }
+}
+
+Ecore_Evas* WebEngineManager::GetWindow()
+{
+  return mWindow;
+}
+
+void WebEngineManager::SetContext(Ewk_Context* context, bool isIncognito)
+{
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  mWebEngineContexts[uintContextType].reset(new TizenWebEngineContext(context, isIncognito));
+
+  Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
+  mWebEngineCookieManagers[uintContextType].reset(new TizenWebEngineCookieManager(manager));
+}
+
+Dali::WebEngineContext* WebEngineManager::GetContext(bool isIncognito)
+{
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  return mWebEngineContexts[uintContextType].get();
+}
+
+Dali::WebEngineCookieManager* WebEngineManager::GetCookieManager(bool isIncognito)
+{
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  return mWebEngineCookieManagers[uintContextType].get();
+}
+
+void WebEngineManager::Add(Evas_Object* webView, Dali::WebEnginePlugin* engine, bool isIncognito)
+{
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  mWebEngines[uintContextType][webView] = engine;
+}
+
+void WebEngineManager::Remove(Evas_Object* webView, bool isIncognito)
+{
+  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  auto&       table           = mWebEngines[uintContextType];
+  auto        iter            = table.find(webView);
+  if(iter != table.end())
+  {
+    table.erase(iter);
+  }
+
+  // when some web views are in incognito mode, and the last one would be destroyed,
+  // callbacks of ewk context need be reset here.
+  if(isIncognito && mWebEngineContexts[uintContextType] != nullptr && table.size() == 0)
+  {
+    TizenWebEngineContext* context = static_cast<TizenWebEngineContext*>(mWebEngineContexts[uintContextType].get());
+    context->UnregisterContextCallbacks();
+  }
+}
+
+Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
+{
+  for(uint8_t index = 0; index < ContextTypeCount; index++)
+  {
+    auto iter = mWebEngines[index].find(webView);
+    if(iter != mWebEngines[index].end())
+    {
+      return iter->second;
+    }
+  }
+  return nullptr;
+}
+
+Evas_Object* WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
+{
+  for(uint8_t index = 0; index < ContextTypeCount; index++)
+  {
+    for(auto it = mWebEngines[index].begin(); it != mWebEngines[index].end(); it++)
+    {
+      if(it->second == plugin)
+      {
+        return it->first;
+      }
+    }
+  }
+  return nullptr;
+}
+
+void WebEngineManager::OnTerminated()
+{
+  // Ignore duplicated termination
+  if(DALI_UNLIKELY(!mWebEngineManagerAvailable))
+  {
+    return;
+  }
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed.\n");
+
+  // App is terminated. Now web engine is not available any more.
+  mWebEngineManagerAvailable = false;
+
+  for(uint8_t index = 0; index < ContextTypeCount; index++)
+  {
+    for(auto it = mWebEngines[index].begin(); it != mWebEngines[index].end(); it++)
+    {
+      // Destroy WebEngine
+      auto webEnginePlugin = it->second;
+      if(webEnginePlugin)
+      {
+        webEnginePlugin->Destroy();
+      }
+    }
+    mWebEngines[index].clear();
+  }
+  mWebEngines = {};
+
+  // Release context and cookie manager before ewk_shutdown.
+  mWebEngineContexts       = {};
+  mWebEngineCookieManagers = {};
+
+  ecore_evas_free(mWindow);
+
+  ewk_shutdown();
+  elm_shutdown();
+  DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");
+}
+
+} // namespace Plugin
+} // namespace Dali
+
+extern "C" DALI_EXPORT_API Dali::WebEngineContext* GetWebEngineContext(bool isIncognito)
+{
+  return Dali::Plugin::WebEngineManager::Get().GetContext(isIncognito);
+}
+
+extern "C" DALI_EXPORT_API Dali::WebEngineCookieManager* GetWebEngineCookieManager(bool isIncognito)
+{
+  return Dali::Plugin::WebEngineManager::Get().GetCookieManager(isIncognito);
+}

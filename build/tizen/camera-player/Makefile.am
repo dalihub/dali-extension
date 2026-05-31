@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# Build the Dali feedback plugin
+AUTOMAKE_OPTIONS = subdir-objects
 
 extension_src_dir = ../../../dali-extension
 
@@ -24,9 +24,13 @@ lib_LTLIBRARIES =
 
 lib_LTLIBRARIES += libdali2-camera-player-plugin.la
 
-# Todo Camera player plugin separation
+if USE_TCORE_BACKEND
 libdali2_camera_player_plugin_la_SOURCES = \
-                     $(camera_player_plugin_src_files)
+                     $(camera_player_tcore_wl_plugin_src_files)
+else
+libdali2_camera_player_plugin_la_SOURCES = \
+                     $(camera_player_ecore_wl_plugin_src_files)
+endif
 
 libdali2_camera_player_plugin_la_DEPENDENCIES =
 
@@ -36,16 +40,24 @@ libdali2_camera_player_plugin_la_CXXFLAGS = \
                       $(CAPI_MEDIA_CAMERA_CFLAGS) \
                       -Werror -Wall
 
+if USE_TCORE_BACKEND
+libdali2_camera_player_plugin_la_CXXFLAGS+= $(TCORE_WL_CFLAGS) \
+                      -I../../../dali-extension/camera-player
+else
 libdali2_camera_player_plugin_la_CXXFLAGS+= $(ECORE_WL2_CFLAGS) \
                       -I../../../dali-extension/camera-player
+endif
 
 libdali2_camera_player_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
                       $(CAPI_MEDIA_CAMERA_LIBS)
 
+if USE_TCORE_BACKEND
+libdali2_camera_player_plugin_la_LIBADD+= $(TCORE_WL_LIBS)
+else
 libdali2_camera_player_plugin_la_LIBADD+= $(ECORE_WL2_LIBS)
+endif
 
 libdali2_camera_player_plugin_la_LDFLAGS = \
                       -rdynamic
-

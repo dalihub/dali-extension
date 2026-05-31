@@ -23,8 +23,6 @@
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 
-// INTERNAL INCLUDES
-
 // The plugin factories
 extern "C" DALI_EXPORT_API Dali::CameraPlayerPlugin* CreateCameraPlayerPlugin()
 {
@@ -59,6 +57,8 @@ static void MediaPacketCameraPreviewCb(media_packet_h packet, void* user_data)
 
   player->PushPacket(packet);
 }
+
+} // unnamed namespace
 
 void CameraPlayerError(int error, const char* function, int line)
 {
@@ -140,8 +140,6 @@ void CameraPlayerError(int error, const char* function, int line)
   }
 }
 
-} // unnamed namespace
-
 TizenCameraPlayer::TizenCameraPlayer()
 : mCameraPlayer(NULL),
   mCameraPlayerState(CAMERA_STATE_NONE),
@@ -152,7 +150,11 @@ TizenCameraPlayer::TizenCameraPlayer()
   mBackgroundColor(Dali::Vector4(1.0f, 1.0f, 1.0f, 0.0f)),
   mPacketMutex(),
   mPacketVector(),
+#ifdef USE_TCORE_BACKEND
+  mTcoreWlWindow(nullptr)
+#else
   mEcoreWlWindow(nullptr)
+#endif
 {
 }
 
@@ -175,7 +177,11 @@ void TizenCameraPlayer::SetWindowRenderingTarget(Dali::Window target)
 {
   mNativeImagePtr = NULL;
 
+#ifdef USE_TCORE_BACKEND
+  InitializeUnderlayMode(Dali::AnyCast<tizen_core_wl_window_h>(target.GetNativeHandle()));
+#else
   InitializeUnderlayMode(Dali::AnyCast<Ecore_Wl2_Window*>(target.GetNativeHandle()));
+#endif
 }
 
 void TizenCameraPlayer::SetNativeImageRenderingTarget(Dali::NativeImagePtr target)
@@ -261,44 +267,6 @@ void TizenCameraPlayer::InitializeTextureStreamMode(Dali::NativeImagePtr nativeI
   }
 }
 
-void TizenCameraPlayer::InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow)
-{
-  int error;
-
-  mEcoreWlWindow = ecoreWlWindow;
-
-  GetPlayerState(&mCameraPlayerState);
-
-  bool isPlay = false;
-  if(mCameraPlayerState == CAMERA_STATE_PREVIEW)
-  {
-    isPlay = true;
-    StopPreview();
-  }
-
-  GetPlayerState(&mCameraPlayerState);
-
-  if(mCameraPlayerState == CAMERA_STATE_CREATED)
-  {
-    ecore_wl2_window_alpha_set(mEcoreWlWindow, false);
-
-    error = camera_set_display_mode(mCameraPlayer, CAMERA_DISPLAY_MODE_CUSTOM_ROI);
-    CameraPlayerError(error, __FUNCTION__, __LINE__);
-
-    error = camera_attr_set_display_roi_area(mCameraPlayer, 0, 0, 1, 1);
-    CameraPlayerError(error, __FUNCTION__, __LINE__);
-
-    error = camera_set_ecore_wl_display(mCameraPlayer, GET_DISPLAY(mEcoreWlWindow));
-    CameraPlayerError(error, __FUNCTION__, __LINE__);
-
-    if(isPlay)
-    {
-      error = camera_start_preview(mCameraPlayer);
-      CameraPlayerError(error, __FUNCTION__, __LINE__);
-    }
-  }
-}
-
 bool TizenCameraPlayer::Update()
 {
   int error;
@@ -373,80 +341,6 @@ void TizenCameraPlayer::PushPacket(media_packet_h packet)
   Dali::Mutex::ScopedLock lock(mPacketMutex);
 
   mPacketVector.push_back(packet);
-}
-
-void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
-{
-  GetPlayerState(&mCameraPlayerState);
-
-  if(mNativeImagePtr)
-  {
-    DALI_LOG_ERROR("SetDisplayArea is only for window surface target.\n");
-    return;
-  }
-
-  if(mCameraPlayerState == CAMERA_STATE_CREATED ||
-     mCameraPlayerState == CAMERA_STATE_PREVIEW)
-  {
-    int                width, height;
-    Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
-    ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
-
-    // camera x, y postion
-    camera_rotation_e rotation = CAMERA_ROTATION_NONE;
-
-    /* Get the default display rotation value */
-    int error = camera_get_display_rotation(mCameraPlayer, &rotation);
-    CameraPlayerError(error, __FUNCTION__, __LINE__);
-
-    switch(rotation)
-    {
-      case CAMERA_ROTATION_270:
-      {
-        int temp = area.y;
-        area.y   = width - area.x - area.width;
-        area.x   = temp;
-
-        int tempWidth = area.width;
-        area.width    = area.height;
-        area.height   = tempWidth;
-        break;
-      }
-      case CAMERA_ROTATION_NONE:
-      {
-        // same position
-        break;
-      }
-      case CAMERA_ROTATION_90:
-      {
-        int temp = area.x;
-        area.x   = height - area.y - area.height;
-        area.y   = temp;
-
-        int tempWidth = area.width;
-        area.width    = area.height;
-        area.height   = tempWidth;
-        break;
-      }
-      case CAMERA_ROTATION_180:
-      {
-        area.x = width - area.x - area.width;
-        area.y = height - area.y - area.height;
-        break;
-      }
-      default:
-      {
-        DALI_LOG_ERROR("Unkown camera rotation : %d \n", rotation);
-        break;
-      }
-    }
-
-    area.x = (area.x < 0) ? 0 : area.x;
-    area.y = (area.y < 0) ? 0 : area.y;
-
-    error = camera_attr_set_display_roi_area(mCameraPlayer, area.x, area.y, area.width, area.height);
-    CameraPlayerError(error, __FUNCTION__, __LINE__);
-  }
 }
 
 } // namespace Plugin

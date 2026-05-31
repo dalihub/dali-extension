@@ -300,7 +300,7 @@ public:
     Vector3 actorSize = size * worldScale;
     Vector2 screenPosition(mHalfScreenWidth + worldPosition.x, mHalfScreenHeight + worldPosition.y);
 
-    //1. Update VideoView area
+    // 1. Update VideoView area
     DisplayArea area;
     area.x      = screenPosition.x - actorSize.x / 2;
     area.y      = screenPosition.y - actorSize.y / 2;
@@ -916,14 +916,14 @@ Dali::VideoPlayerPlugin::DisplayMode::Type TizenVideoPlayer::GetDisplayMode() co
 void TizenVideoPlayer::StartSynchronization()
 {
   DALI_LOG_RELEASE_INFO("sync VideoPlayer\n");
-  //ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_TRUE);
+  // ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_TRUE);
 }
 
 void TizenVideoPlayer::FinishSynchronization()
 {
   // Finish
   DALI_LOG_RELEASE_INFO("desync VideoPlayer\n");
-  //ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_FALSE);
+  // ecore_wl2_subsurface_sync_set(mEcoreSubVideoWindow, EINA_FALSE);
 }
 
 void TizenVideoPlayer::CreateVideoShellConstraint()

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# Build the Dali feedback plugin
+AUTOMAKE_OPTIONS = subdir-objects
 
 extension_src_dir = ../../../dali-extension
 
@@ -24,9 +24,13 @@ lib_LTLIBRARIES =
 
 lib_LTLIBRARIES += libdali2-video-player-plugin.la
 
-# Todo Video player plugin separation
+if USE_TCORE_BACKEND
+libdali2_video_player_plugin_la_SOURCES = \
+                     $(video_player_tcore_wl_plugin_src_files)
+else
 libdali2_video_player_plugin_la_SOURCES = \
                      $(video_player_ecore_wl2_plugin_src_files)
+endif
 
 libdali2_video_player_plugin_la_DEPENDENCIES =
 
@@ -38,10 +42,17 @@ libdali2_video_player_plugin_la_CXXFLAGS = \
                       $(ESPLUSPLAYER_CFLAGS) \
                       -Werror -Wall
 
+if USE_TCORE_BACKEND
+libdali2_video_player_plugin_la_CXXFLAGS+= $(TCORE_WL_CFLAGS) \
+                      -I../../../dali-extension/video-player/base \
+                      -I../../../dali-extension/video-player/tizen-video-player \
+                      -I../../../dali-extension/video-player/es-video-player
+else
 libdali2_video_player_plugin_la_CXXFLAGS+= $(ECORE_WL2_CFLAGS) \
                       -I../../../dali-extension/video-player/base \
                       -I../../../dali-extension/video-player/tizen-video-player \
                       -I../../../dali-extension/video-player/es-video-player
+endif
 
 libdali2_video_player_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
@@ -50,8 +61,11 @@ libdali2_video_player_plugin_la_LIBADD = \
                       $(CAPI_SYSTEM_INFO_LIBS) \
                       $(ESPLUSPLAYER_LIBS)
 
+if USE_TCORE_BACKEND
+libdali2_video_player_plugin_la_LIBADD+= $(TCORE_WL_LIBS)
+else
 libdali2_video_player_plugin_la_LIBADD+= $(ECORE_WL2_LIBS)
+endif
 
 libdali2_video_player_plugin_la_LDFLAGS = \
                       -rdynamic
-
