@@ -29,8 +29,6 @@ namespace Plugin
 
 namespace
 {
-const int MAX_QUEUE_SIZE = 3;
-
 /**
  * @brief Converts esplusplayer error code to string.
  *
