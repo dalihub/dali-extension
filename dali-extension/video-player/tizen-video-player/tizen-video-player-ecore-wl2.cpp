@@ -45,8 +45,6 @@ const char* TIZEN_GLIB_CONTEXT_ENV = "TIZEN_GLIB_CONTEXT";
 
 static constexpr uint32_t VIDEO_PLAYER_CONSTRAINT_TAG = Dali::ConstraintTagRanges::CORE_CONSTRAINT_TAG_MAX + 1u + (Dali::ConstraintTagRanges::INTERNAL_TAG_MAX_COUNT_PER_DERIVATION) * 4 + 123u;
 
-const int TIMER_INTERVAL(20);
-
 static void MediaPacketVideoDecodedCb(media_packet_h packet, void* user_data)
 {
   TizenVideoPlayer* player = static_cast<TizenVideoPlayer*>(user_data);
