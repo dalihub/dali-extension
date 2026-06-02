@@ -27,7 +27,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-hit-test.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-security-origin.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-settings.h>
-#include <dali/devel-api/common/stage.h>
+#include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/events/key-event.h>
 #include <dali/public-api/events/touch-event.h>
@@ -1041,7 +1041,7 @@ void TizenWebEngineLWE::UpdateImage(tbm_surface_h image)
 #endif
       Any source(image);
       mDaliImageSrc->SetSource(source);
-      Dali::Stage::GetCurrent().KeepRendering(0.0f);
+      Dali::Adaptor::Get().RequestProcessEventsAndUpdate();
 #ifndef OVER_TIZEN_VERSION_9
     }
 #endif

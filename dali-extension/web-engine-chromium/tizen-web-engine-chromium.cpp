@@ -38,7 +38,6 @@
 #include <Ecore_Input_Evas.h>
 #include <Ecore_Wl2.h>
 
-#include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/images/pixel-data.h>
@@ -1176,7 +1175,7 @@ void TizenWebEngineChromium::UpdateImage(tbm_surface_h buffer)
   {
     Any source(buffer);
     mDaliImageSrc->SetSource(source);
-    Dali::Stage::GetCurrent().KeepRendering(0.0f);
+    Dali::Adaptor::Get().RequestProcessEventsAndUpdate();
     ExecuteCallback(mFrameRenderedCallback);
   }
   else

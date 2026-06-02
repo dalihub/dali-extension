@@ -19,8 +19,8 @@
 #include <tizen-camera-player.h>
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/common/stage.h>
 #include <dali/devel-api/threading/mutex.h>
+#include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 
 // INTERNAL INCLUDES
@@ -339,7 +339,7 @@ bool TizenCameraPlayer::Update()
 
   Any source(mTbmSurface);
   mNativeImagePtr->SetSource(source);
-  Dali::Stage::GetCurrent().KeepRendering(0.0f);
+  Dali::Adaptor::Get().RequestProcessEventsAndUpdate();
 
   return true;
 }
