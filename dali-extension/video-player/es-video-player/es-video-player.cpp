@@ -15,11 +15,10 @@
  *
  */
 
- // CLASS HEADER
+// CLASS HEADER
 #include <es-video-player.h>
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/common/stage.h>
 #include <dali/integration-api/debug.h>
 #include <tbm_surface.h>
 
@@ -202,7 +201,7 @@ void EsVideoPlayer::DoSetVolume(float left, float right)
 
   // esplusplayer uses volume in range 0-100
   int volume = static_cast<int>(left); // Use left channel for simplicity
-  int error = esplusplayer_set_volume(mEsPlayer, volume);
+  int error  = esplusplayer_set_volume(mEsPlayer, volume);
   LogPlayerError(error);
 }
 
@@ -224,7 +223,7 @@ int EsVideoPlayer::DoGetPlayPosition()
     return 0;
   }
 
-  uint64_t currentTime = 0;
+  uint64_t           currentTime = 0;
   esplusplayer_state playerState = esplusplayer_get_state(mEsPlayer);
   if(playerState != ESPLUSPLAYER_STATE_NONE && playerState != ESPLUSPLAYER_STATE_IDLE)
   {
@@ -277,12 +276,11 @@ void EsVideoPlayer::DoSetDisplayRotation(Dali::VideoPlayerPlugin::DisplayRotatio
     case Dali::VideoPlayerPlugin::DisplayRotation::ROTATION_270:
       error = esplusplayer_set_display_rotation(mEsPlayer, ESPLUSPLAYER_DISPLAY_ROTATION_TYPE_270);
       break;
-    default :
+    default:
       error = esplusplayer_set_display_rotation(mEsPlayer, ESPLUSPLAYER_DISPLAY_ROTATION_TYPE_NONE);
       break;
   }
   LogPlayerError(error);
-
 }
 
 Dali::VideoPlayerPlugin::DisplayRotation EsVideoPlayer::DoGetDisplayRotation()
@@ -308,9 +306,9 @@ void EsVideoPlayer::DoInitializeTextureStreamMode(Dali::NativeImagePtr nativeIma
 {
   DALI_LOG_RELEASE_INFO("EsVideoPlayer::DoInitializeTextureStreamMode\n");
   esplusplayer_state playerState = ESPLUSPLAYER_STATE_NONE;
-  if (mEsPlayer)
+  if(mEsPlayer)
   {
-      playerState = esplusplayer_get_state(mEsPlayer);
+    playerState = esplusplayer_get_state(mEsPlayer);
   }
 
   if(playerState == ESPLUSPLAYER_STATE_IDLE)
@@ -363,7 +361,7 @@ Any EsVideoPlayer::GetSurfaceFromPacket(void* packet)
 
 void EsVideoPlayer::LogPlayerError(int error)
 {
-  if (error != ESPLUSPLAYER_ERROR_TYPE_NONE)
+  if(error != ESPLUSPLAYER_ERROR_TYPE_NONE)
   {
     DALI_LOG_ERROR("Player error: %d (%s)\n", error, GetEsPlayerErrorString(error));
   }

@@ -212,7 +212,7 @@ void RiveAnimationView::OnSceneDisconnection()
     mPlacementWindow.Reset();
   }
 
-  // Reset the visual size to zero so that when adding the actor back to stage the rasterization is forced
+  // Reset the visual size to zero so that when adding the actor back to scene the rasterization is forced
   mSize  = Vector2::ZERO;
   mScale = Vector2::ONE;
 
