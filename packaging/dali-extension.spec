@@ -7,7 +7,7 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.5.25
+Version:    2.5.26
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and FSFAP
