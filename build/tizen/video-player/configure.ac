@@ -29,13 +29,13 @@ PKG_CHECK_MODULES(CAPI_MEDIA_PLAYER, capi-media-player)
 PKG_CHECK_MODULES(CAPI_SYSTEM_INFO, capi-system-info)
 PKG_CHECK_MODULES(ESPLUSPLAYER, esplusplayer)
 
+TIZEN_WAYLAND_BACKEND_INIT
 
-AC_ARG_ENABLE([ecore-wl2],
-              [AC_HELP_STRING([--enable-ecore-wl2], [build with ecorewl2 on tizen])],
-              [enable_ecore_wl2=yes],
-              [enable_ecore_wl2=no])
-
-PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
+if test "x$use_tcore_backend" = "xyes"; then
+  PKG_CHECK_MODULES(TCORE_WL, tizen-core-wl)
+else
+  PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
+fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)
