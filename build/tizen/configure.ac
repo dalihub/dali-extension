@@ -54,6 +54,8 @@ AC_ARG_ENABLE([imageloader-extension],
 
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 
+TIZEN_WAYLAND_BACKEND_INIT
+
 AC_CONFIG_SUBDIRS(key)
 AC_CONFIG_SUBDIRS(video-player)
 
@@ -63,10 +65,11 @@ fi
 
 if test "x$with_tizen_55_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(vector-animation-renderer)
-if test "x$enable_web_engine_plugin" = "xyes"; then
-  AC_CONFIG_SUBDIRS(web-engine-chromium)
-  AC_CONFIG_SUBDIRS(web-engine-lwe)
-fi
+  # web-engine-chromium/lwe: skipped when TCORE (see TIZEN_WAYLAND_BACKEND_INIT)
+  if test "x$enable_web_engine_plugin" = "xyes"; then
+    AC_CONFIG_SUBDIRS(web-engine-chromium)
+    AC_CONFIG_SUBDIRS(web-engine-lwe)
+  fi
 fi
 
 if test "x$with_tizen_65_or_greater" = "xyes"; then

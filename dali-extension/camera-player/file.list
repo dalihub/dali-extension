@@ -1,2 +1,10 @@
-camera_player_plugin_src_files = \
-   $(extension_src_dir)/camera-player/tizen-camera-player.cpp
+camera_player_common_plugin_src_files = \
+   $(extension_src_dir)/camera-player/common/tizen-camera-player.cpp
+
+camera_player_ecore_wl_plugin_src_files = \
+   $(camera_player_common_plugin_src_files) \
+   $(extension_src_dir)/camera-player/ecore/tizen-camera-player-ecore-wl.cpp
+
+camera_player_tcore_wl_plugin_src_files = \
+   $(camera_player_common_plugin_src_files) \
+   $(extension_src_dir)/camera-player/tcore/tizen-camera-player-tcore-wl.cpp

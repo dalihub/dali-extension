@@ -32,7 +32,11 @@
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
 #endif
+#ifdef USE_TCORE_BACKEND
+#include <tizen_core_wl.h>
+#else
 #include <Ecore_Wl2.h>
+#endif
 #include <player_internal.h>
 
 namespace Dali
@@ -268,9 +272,13 @@ protected:
    * Configures the player to render video directly to a wayland window surface
    * that appears underneath the UI layer with a transparent hole.
    *
-   * @param[in] ecoreWlWindow The ecore wayland window handle for underlay rendering
+   * @param[in] wlWindow The wayland window handle for underlay rendering
    */
-  void InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow);
+#ifdef USE_TCORE_BACKEND
+  void InitializeUnderlayMode(tizen_core_wl_window_h wlWindow);
+#else
+  void InitializeUnderlayMode(Ecore_Wl2_Window* wlWindow);
+#endif
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::SetAutoRotationEnabled()
@@ -337,7 +345,11 @@ private:
   /**
    * @brief Initializes player for video rendering using wayland window surface
    */
-  void InitializeVideoShell(Ecore_Wl2_Window* ecoreWlWindow);
+#ifdef USE_TCORE_BACKEND
+  void InitializeVideoShell(tizen_core_wl_window_h wlWindow);
+#else
+  void InitializeVideoShell(Ecore_Wl2_Window* wlWindow);
+#endif
 
   /**
    * @brief Destroys player handle
@@ -363,8 +375,13 @@ private:
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
 
-  Ecore_Wl2_Window*             mEcoreWlWindow;       ///< ecore native window handle
-  Ecore_Wl2_Subsurface*         mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
+#ifdef USE_TCORE_BACKEND
+  tizen_core_wl_window_h     mTcoreWlWindow;       ///< tizen-core native window handle
+  tizen_core_wl_subsurface_h mTcoreSubVideoWindow; ///< tizen-core native subsurface for synchronization with video player
+#else
+  Ecore_Wl2_Window*     mEcoreWlWindow;       ///< ecore native window handle
+  Ecore_Wl2_Subsurface* mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
+#endif
   Constraint                    mVideoSizePropertyConstraint;
   Constraint                    mVideoFrameBufferConstraint;
   Constraint                    mVideoFrameBufferProgressPropertyConstraint;
@@ -377,7 +394,11 @@ private:
   bool mIsExternalPlayer; ///< indicates if the player handle was externally injected
 
 #ifdef OVER_TIZEN_VERSION_9
+#ifdef USE_TCORE_BACKEND
+  tizen_core_wl_video_shell_surface_h mTcoreVideoShellSurface;
+#else
   Ecore_Wl2_VideoShell_Surface* mEcoreVideoShellSurface;
+#endif
 #endif
   Constraint                                mVideoShellSizePropertyConstraint;
   Property::Index                           mVideoShellSizePropertyIndex;

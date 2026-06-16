@@ -28,6 +28,7 @@ PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(WAYLAND, libtbm)
 PKG_CHECK_MODULES(WEB_ENGINE_CHROMIUM, chromium-efl)
 PKG_CHECK_MODULES(ELEMENTARY, elementary)
+PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

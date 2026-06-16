@@ -213,14 +213,14 @@ public:
    *
    * @param[in] millisecond The position for forward playback
    */
-  void Forward(int millisecond);
+  void Forward(int millisecond) override;
 
   /**
    * @brief Seeks backward by the specified number of milliseconds.
    *
    * @param[in] millisecond The position for backward playback
    */
-  void Backward(int millisecond);
+  void Backward(int millisecond) override;
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::IsVideoTextureSupported()

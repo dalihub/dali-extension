@@ -30,14 +30,19 @@
 #ifndef HAVE_WAYLAND
 #define HAVE_WAYLAND
 #endif
+#ifdef USE_TCORE_BACKEND
+#include <tizen_core_wl.h>
+#else
 #include <Ecore_Wl2.h>
+#endif
 #include <camera_internal.h>
 
 namespace Dali
 {
-
 namespace Plugin
 {
+
+void CameraPlayerError(int error, const char* function, int line);
 
 /**
  * @brief Implementation of the Tizen camera player class which has Tizen
@@ -107,7 +112,11 @@ private:
   /**
    * @brief Initializes player for camera rendering using wayland window surface
    */
+#ifdef USE_TCORE_BACKEND
+  void InitializeUnderlayMode(tizen_core_wl_window_h tcoreWlWindow);
+#else
   void InitializeUnderlayMode(Ecore_Wl2_Window* ecoreWlWindow);
+#endif
 
   /**
    * @brief Stop camera preview
@@ -135,7 +144,11 @@ private:
 
   std::deque<media_packet_h> mPacketVector; ///< Container for media packet handle from Tizen player callback
 
+#ifdef USE_TCORE_BACKEND
+  tizen_core_wl_window_h mTcoreWlWindow; ///< tizen-core native window handle
+#else
   Ecore_Wl2_Window* mEcoreWlWindow; ///< ecore native window handle
+#endif
 };
 
 } // namespace Plugin

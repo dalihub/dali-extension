@@ -1,23 +1,25 @@
-web_engine_chromium_plugin_src_files = \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-back-forward-list.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-back-forward-list-item.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-certificate.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-chromium.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-console-message.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-context.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-context-menu.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-context-menu-item.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-cookie-manager.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-form-repost-decision.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-frame.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-hit-test.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-http-auth-handler.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-load-error.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-manager.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-policy-decision.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-request-interceptor.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-security-origin.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-settings.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-user-media-permission-request.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-device-list-get.cpp \
-   $(extension_src_dir)/web-engine-chromium/tizen-web-engine-file-chooser-request.cpp
+web_engine_chromium_common_plugin_src_files = \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-back-forward-list-item.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-certificate.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-console-message.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-cookie-manager.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-form-repost-decision.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-frame.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-http-auth-handler.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-load-error.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-policy-decision.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-security-origin.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-settings.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-user-media-permission-request.cpp \
+   $(extension_src_dir)/web-engine-chromium/common/tizen-web-engine-device-list-get.cpp
+
+web_engine_chromium_ecore_plugin_src_files = \
+   $(web_engine_chromium_common_plugin_src_files) \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-back-forward-list.cpp \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-chromium.cpp \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-context.cpp \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-context-menu.cpp \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-file-chooser-request.cpp \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-hit-test.cpp \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-manager.cpp \
+   $(extension_src_dir)/web-engine-chromium/ecore/tizen-web-engine-request-interceptor.cpp

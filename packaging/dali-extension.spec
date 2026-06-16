@@ -7,10 +7,10 @@
 
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.5.25
+Version:    2.5.26
 Release:    1
 Group:      System/Libraries
-License:    Apache-2.0 and BSD-3-Clause and MIT
+License:    Apache-2.0 and FSFAP
 URL:        https://review.tizen.org/git/?p=platform/core/uifw/dali-extensions.git;a=summary
 Source0:    %{name}-%{version}.tar.gz
 
@@ -34,8 +34,20 @@ Source0:    %{name}-%{version}.tar.gz
 %define tizen_90_or_greater 1
 %endif
 
+# Tizen Wayland backend: ECORE or TCORE. Example: gbs build ... --define "tizen_wayland_backend TCORE"
+# Default ECORE until tcore backend is ready. Tizen < 11: always ECORE (TCORE override ignored).
+%{!?tizen_wayland_backend: %global tizen_wayland_backend ECORE}
+%if 0%{?tizen_version_major} < 11
+%global tizen_wayland_backend ECORE
+%endif
+
 %if %{undefined NO_WEB_FRAMEWORK}
 %define enable_web_engine_plugin 1
+%endif
+
+# Web engine plugins depend on EFL/chromium-efl; disable until TCORE migration is ready.
+%if "%{tizen_wayland_backend}" == "TCORE"
+%global enable_web_engine_plugin 0
 %endif
 
 Requires(post): /sbin/ldconfig
@@ -51,7 +63,11 @@ BuildRequires:  dali2-toolkit-integration-devel
 BuildRequires:  pkgconfig(dlog)
 
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
+%if "%{tizen_wayland_backend}" == "TCORE"
+BuildRequires:  pkgconfig(tizen-core-wl)
+%else
 BuildRequires:  pkgconfig(ecore-wl2)
+%endif
 
 %if 0%{?tizen_65_or_greater}
 BuildRequires:  pkgconfig(rive_tizen)
@@ -100,8 +116,12 @@ Group:      System/Libraries
 BuildRequires: pkgconfig(capi-media-player)
 BuildRequires: pkgconfig(capi-system-info)
 BuildRequires: pkgconfig(esplusplayer)
+%if "%{tizen_wayland_backend}" == "TCORE"
+BuildRequires:  pkgconfig(tizen-core-wl)
+%else
 # dali-adaptor uses ecore mainloop
 BuildRequires:  pkgconfig(ecore-wl2)
+%endif
 
 %if 0%{?tizen_90_or_greater}
 BuildRequires: pkgconfig(wayland-egl)
@@ -118,8 +138,12 @@ VideoPlayer plugin to play a video file for Dali
 Summary:    Plugin to play a camera file for Dali
 Group:      System/Libraries
 BuildRequires: pkgconfig(capi-media-camera)
+%if "%{tizen_wayland_backend}" == "TCORE"
+BuildRequires:  pkgconfig(tizen-core-wl)
+%else
 # dali-adaptor uses ecore mainloop
 BuildRequires:  pkgconfig(ecore-wl2)
+%endif
 
 %description camera-player-plugin
 CameraPlayer plugin to play a camera file for Dali
@@ -234,13 +258,21 @@ ICU plugin to use an International Components for Unicode for Dali
 ##############################
 %build
 PREFIX+="/usr"
+# GBS qemu-user builds use a host liblto_plugin.so (ELFCLASS64) via /emul;
+# disable the linker plugin so configure/make link tests succeed on armv7l.
+CFLAGS+=" -fno-use-linker-plugin"
+CXXFLAGS+=" -fno-use-linker-plugin"
 CXXFLAGS+=" -Wall -g -Os -fPIC -fvisibility-inlines-hidden -fdata-sections -ffunction-sections -DGL_GLEXT_PROTOTYPES"
 LDFLAGS+=" -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic-functions "
 
 %if 0%{?tizen_50_or_greater}
+%if "%{tizen_wayland_backend}" == "TCORE"
+CFLAGS+=" -DUSE_TCORE_BACKEND"
+CXXFLAGS+=" -DUSE_TCORE_BACKEND"
+%else
 CFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 CXXFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
-configure_flags="--enable-ecore-wl2"
+%endif
 %endif
 
 %if "%{?profile}" == "tv"
@@ -257,6 +289,9 @@ LDFLAGS+=" -fsanitize=address"
 libtoolize --force
 cd %{_builddir}/%{name}-%{version}/build/tizen
 autoreconf --install
+pushd dali-extension
+autoreconf --install
+popd
 
 %configure --prefix=$PREFIX \
 %if 0%{?enable_debug}
@@ -280,7 +315,7 @@ autoreconf --install
 %if 0%{?enable_image_loader}
            --enable-imageloader-extension \
 %endif
-           --enable-ecore-wl2 \
+           --with-tizen-wayland-backend=%{tizen_wayland_backend} \
            --enable-keyextension
 
 make %{?jobs:-j%jobs}

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# Build the Dali web engine chromium plugin
+AUTOMAKE_OPTIONS = subdir-objects
 
 extension_src_dir = ../../../dali-extension
 
@@ -25,7 +25,7 @@ lib_LTLIBRARIES =
 lib_LTLIBRARIES += libdali2-web-engine-chromium-plugin.la
 
 libdali2_web_engine_chromium_plugin_la_SOURCES = \
-                     $(web_engine_chromium_plugin_src_files)
+                     $(web_engine_chromium_ecore_plugin_src_files)
 
 libdali2_web_engine_chromium_plugin_la_DEPENDENCIES =
 
@@ -33,15 +33,16 @@ libdali2_web_engine_chromium_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
                       $(WEB_ENGINE_CHROMIUM_CFLAGS) \
                       $(ELEMENTARY_CFLAGS) \
-                      -I../../../dali-extension/web-engine-chromium \
+                      $(ECORE_WL2_CFLAGS) \
+                      -I../../../dali-extension/web-engine-chromium/common \
                       -Werror -Wall
 
 libdali2_web_engine_chromium_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
-                      $(WEB_ENGINE_CHROMIUM_LIBS)
+                      $(WEB_ENGINE_CHROMIUM_LIBS) \
+                      $(ECORE_WL2_LIBS)
 
 libdali2_web_engine_chromium_plugin_la_LDFLAGS = \
                       -rdynamic \
                       -lelementary
-
