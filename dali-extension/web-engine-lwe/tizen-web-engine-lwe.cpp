@@ -618,10 +618,6 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     OnIdle();
   });
 
-  auto settings = mWebContainer->GetSettings();
-  settings.SetWebSecurityMode(LWE::WebSecurityMode::Disable);
-  mWebContainer->SetSettings(settings);
-
   mWebContainer->LoadURL("about:blank");
 #else
   mWebContainer = LWE::WebContainer::Create(mOutputWidth, mOutputHeight, 1.0, "", locale.data(), timezoneId.data());
