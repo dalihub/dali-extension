@@ -1650,7 +1650,10 @@ void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
 
 void TizenWebEngineLWE::SetDocumentBackgroundColor(Dali::Vector4 color)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  auto settings = mWebContainer->GetSettings();
+  settings.SetBaseBackgroundColor(color.r * 255, color.g * 255, color.b * 255, color.a * 255);
+  mWebContainer->SetSettings(settings);
 }
 
 void TizenWebEngineLWE::ClearTilesWhenHidden(bool cleared)
