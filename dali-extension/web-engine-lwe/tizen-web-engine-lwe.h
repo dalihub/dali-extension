@@ -636,6 +636,32 @@ public:
   void RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback) override;
 
   /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoReadyCallback()
+   */
+  void RegisterPlaybackVideoReadyCallback(WebEnginePlaybackVideoReadyCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoStartedCallback()
+   */
+  void RegisterPlaybackVideoStartedCallback(WebEnginePlaybackVideoStartedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoFinishedCallback()
+   */
+  void RegisterPlaybackVideoFinishedCallback(WebEnginePlaybackVideoFinishedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoStoppedCallback()
+   */
+  void RegisterPlaybackVideoStoppedCallback(WebEnginePlaybackVideoStoppedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoPausedCallback()
+   */
+  void RegisterPlaybackVideoPausedCallback(WebEnginePlaybackVideoPausedCallback callback) override;
+
+
+  /**
    * @copydoc Dali::WebEnginePlugin::FeedMouseWheel()
    */
   void FeedMouseWheel(bool yDirection, int step, int x, int y) override;

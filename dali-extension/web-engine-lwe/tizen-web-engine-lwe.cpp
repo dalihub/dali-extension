@@ -2084,6 +2084,30 @@ void TizenWebEngineLWE::RegisterDeviceListGetCallback(WebEngineDeviceListGetCall
 {
   // NOT IMPLEMENTED
 }
+void TizenWebEngineLWE::RegisterPlaybackVideoReadyCallback(WebEnginePlaybackVideoReadyCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPlaybackVideoStartedCallback(WebEnginePlaybackVideoStartedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPlaybackVideoFinishedCallback(WebEnginePlaybackVideoFinishedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPlaybackVideoStoppedCallback(WebEnginePlaybackVideoStoppedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RegisterPlaybackVideoPausedCallback(WebEnginePlaybackVideoPausedCallback callback)
+{
+  // NOT IMPLEMENTED
+}
 
 void TizenWebEngineLWE::FeedMouseWheel(bool yDirection, int step, int x, int y)
 {
