@@ -173,7 +173,7 @@ void RiveAnimationView::OnSceneConnection(int depth)
 
     DevelActor::VisibilityChangedSignal(actor).Connect(this, &RiveAnimationView::OnControlVisibilityChanged);
 
-    Window window = DevelWindow::Get(actor);
+    Window window = Window::Get(actor);
     if(window)
     {
       mPlacementWindow = window;
