@@ -171,7 +171,7 @@ void RiveAnimationView::OnSceneConnection(int depth)
     mSizeNotification = actor.AddPropertyNotification(Actor::Property::SIZE, StepCondition(3.0f));
     mSizeNotification.NotifySignal().Connect(this, &RiveAnimationView::OnSizeNotification);
 
-    DevelActor::VisibilityChangedSignal(actor).Connect(this, &RiveAnimationView::OnControlVisibilityChanged);
+    actor.VisibilityChangedSignal().Connect(this, &RiveAnimationView::OnControlVisibilityChanged);
 
     Window window = Window::Get(actor);
     if(window)
@@ -203,7 +203,7 @@ void RiveAnimationView::OnSceneDisconnection()
   actor.RemovePropertyNotification(mScaleNotification);
   actor.RemovePropertyNotification(mSizeNotification);
 
-  DevelActor::VisibilityChangedSignal(actor).Disconnect(this, &RiveAnimationView::OnControlVisibilityChanged);
+  actor.VisibilityChangedSignal().Disconnect(this, &RiveAnimationView::OnControlVisibilityChanged);
 
   Window window = mPlacementWindow.GetHandle();
   if(window)
@@ -616,7 +616,7 @@ void RiveAnimationView::OnSizeNotification(PropertyNotification source)
   Dali::Adaptor::Get().RequestProcessEventsAndUpdate(); // Trigger event processing
 }
 
-void RiveAnimationView::OnControlVisibilityChanged(Actor actor, bool visible, DevelActor::VisibilityChange::Type type)
+void RiveAnimationView::OnControlVisibilityChanged(Actor actor, bool visible, VisibilityChangeType type)
 {
   if(!visible)
   {
