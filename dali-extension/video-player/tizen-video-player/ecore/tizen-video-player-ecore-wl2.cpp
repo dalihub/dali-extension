@@ -946,7 +946,7 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
       Ecore_Wl2_Display* wl2_display = ecore_wl2_connected_display_get(NULL);
       ecore_wl2_display_screen_size_get(wl2_display, &width, &height);
 
-      Window                                window                        = DevelWindow::Get(syncActor);
+      Window                                window                        = Window::Get(syncActor);
       wl_egl_window*                        windowBuffer                  = Dali::AnyCast<wl_egl_window*>(DevelWindow::GetNativeBuffer(window));
       Ecore_Wl2_VideoShell_Surface_Wrapper* ecoreVidoeShellSurfaceWrapper = Ecore_Wl2_VideoShell_Surface_wrapper_new(mEcoreVideoShellSurface);
 

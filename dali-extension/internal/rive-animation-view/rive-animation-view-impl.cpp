@@ -172,11 +172,11 @@ void RiveAnimationView::OnSceneConnection(int depth)
 
     DevelActor::VisibilityChangedSignal(actor).Connect(this, &RiveAnimationView::OnControlVisibilityChanged);
 
-    Window window = DevelWindow::Get(actor);
+    Window window = Window::Get(actor);
     if(window)
     {
       mPlacementWindow = window;
-      DevelWindow::VisibilityChangedSignal(window).Connect(this, &RiveAnimationView::OnWindowVisibilityChanged);
+      window.VisibilityChangedSignal().Connect(this, &RiveAnimationView::OnWindowVisibilityChanged);
     }
   }
 
@@ -207,7 +207,7 @@ void RiveAnimationView::OnSceneDisconnection()
   Window window = mPlacementWindow.GetHandle();
   if(window)
   {
-    DevelWindow::VisibilityChangedSignal(window).Disconnect(this, &RiveAnimationView::OnWindowVisibilityChanged);
+    window.VisibilityChangedSignal().Disconnect(this, &RiveAnimationView::OnWindowVisibilityChanged);
     mPlacementWindow.Reset();
   }
 
