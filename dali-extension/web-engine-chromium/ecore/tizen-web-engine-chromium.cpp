@@ -40,6 +40,8 @@
 
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
+#include <dali/public-api/events/key-event.h>
+#include <dali/public-api/events/touch-event.h>
 #include <dali/public-api/images/pixel-data.h>
 
 #include <ewk_main_internal.h>

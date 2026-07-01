@@ -21,8 +21,8 @@
 // EXTERNAL INCLUDES
 #include <Evas.h>
 
-#include <dali-toolkit/dali-toolkit.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
+#include <dali/public-api/events/hover-event.h>
 #include <dali/public-api/images/native-image-interface.h>
 
 #include <ewk_view_internal.h>

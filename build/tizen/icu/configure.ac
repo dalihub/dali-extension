@@ -20,7 +20,7 @@ if test "x$enable_debug" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
 fi
 
-PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
+PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor])
 PKG_CHECK_MODULES([ICU], [icu-i18n icu-uc])
 
 devincludepath=${includedir}

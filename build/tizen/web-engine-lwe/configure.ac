@@ -24,7 +24,7 @@ if test "x$with_tizen_90_or_greater" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DOVER_TIZEN_VERSION_9"
 fi
 
-PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
+PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor])
 PKG_CHECK_MODULES(WAYLAND, libtbm)
 PKG_CHECK_MODULES([WEB_ENGINE_LWE], [lightweight-web-engine])
 
