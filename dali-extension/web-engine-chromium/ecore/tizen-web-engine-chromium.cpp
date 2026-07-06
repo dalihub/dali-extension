@@ -887,7 +887,7 @@ void TizenWebEngineChromium::SetVideoHole(bool enabled, bool isWaylandWindow)
   ewk_view_set_support_video_hole(mWebView, win, enabled, isWaylandWindow ? EINA_TRUE : EINA_FALSE);
 }
 
-Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
+Devel::Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
 {
   static const char plugIdKey[] = "__PlugID";
   static const char rootPath[]  = "root";

@@ -222,7 +222,7 @@ void RiveAnimationView::OnSceneDisconnection()
 void RiveAnimationView::OnInitialize()
 {
   // Accessibility
-  Self().SetProperty(Toolkit::DevelControl::Property::ACCESSIBILITY_ROLE, Dali::Accessibility::Role::IMAGE);
+  Self().SetProperty(Toolkit::DevelControl::Property::ACCESSIBILITY_ROLE, Toolkit::Accessibility::Role::IMAGE);
   Self().SetProperty(Toolkit::DevelControl::Property::ACCESSIBILITY_HIGHLIGHTABLE, true);
 }
 
