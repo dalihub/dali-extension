@@ -16,15 +16,14 @@
  */
 
 // INTERNAL INCLUDES
-#include <tizen-video-player.h>
 #include <es-video-player.h>
+#include <tizen-video-player.h>
 
 // EXTERNAL INCLUDES
-#include <dali/public-api/object/any.h>
-#include <dali/public-api/adaptor-framework/timer.h>
-#include <dali/integration-api/debug.h>
 #include <dali/devel-api/adaptor-framework/video-player-plugin.h>
-#include <dali-toolkit/devel-api/controls/video-view/video-view-devel.h>
+#include <dali/integration-api/debug.h>
+#include <dali/public-api/adaptor-framework/timer.h>
+#include <dali/public-api/object/any.h>
 #include <esplusplayer_capi/esplusplayer_capi.h>
 #include <esplusplayer_capi/esplusplayer_internal.h>
 
@@ -52,13 +51,12 @@ extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPluginByHan
 
     default:
       DALI_LOG_ERROR("CreateVideoPlayerPluginByHandle: Unknown playerType %d\n",
-                   static_cast<int>(playerHandle.playerType));
+                     static_cast<int>(playerHandle.playerType));
       return nullptr;
   }
   DALI_LOG_ERROR("CreateVideoPlayerPluginByHandle: Unsupported player handle type injected!\n");
   return nullptr;
 }
-
 
 extern "C" DALI_EXPORT_API void DestroyVideoPlayerPlugin(Dali::VideoPlayerPlugin* plugin)
 {

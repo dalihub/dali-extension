@@ -40,6 +40,8 @@
 
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
+#include <dali/public-api/events/key-event.h>
+#include <dali/public-api/events/touch-event.h>
 #include <dali/public-api/images/pixel-data.h>
 
 #include <ewk_main_internal.h>
@@ -885,7 +887,7 @@ void TizenWebEngineChromium::SetVideoHole(bool enabled, bool isWaylandWindow)
   ewk_view_set_support_video_hole(mWebView, win, enabled, isWaylandWindow ? EINA_TRUE : EINA_FALSE);
 }
 
-Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
+Devel::Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
 {
   static const char plugIdKey[] = "__PlugID";
   static const char rootPath[]  = "root";

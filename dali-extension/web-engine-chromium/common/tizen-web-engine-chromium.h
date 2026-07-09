@@ -21,8 +21,8 @@
 // EXTERNAL INCLUDES
 #include <Evas.h>
 
-#include <dali-toolkit/dali-toolkit.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
+#include <dali/public-api/events/hover-event.h>
 #include <dali/public-api/images/native-image-interface.h>
 
 #include <ewk_view_internal.h>
@@ -420,7 +420,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetAccessibilityAddress()
    */
-  Accessibility::Address GetAccessibilityAddress() override;
+  Devel::Accessibility::Address GetAccessibilityAddress() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetVisibility()

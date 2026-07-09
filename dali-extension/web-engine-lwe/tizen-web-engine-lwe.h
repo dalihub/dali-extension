@@ -420,7 +420,7 @@ public:
   /**
    * @copydoc Dali::WebEnginePlugin::GetAccessibilityAddress()
    */
-  Accessibility::Address GetAccessibilityAddress() override;
+  Devel::Accessibility::Address GetAccessibilityAddress() override;
 
   /**
    * @copydoc Dali::WebEnginePlugin::SetVisibility()

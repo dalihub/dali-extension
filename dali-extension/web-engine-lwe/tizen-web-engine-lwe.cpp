@@ -1851,7 +1851,7 @@ void TizenWebEngineLWE::ActivateAccessibility(bool activated)
   // NOT IMPLEMENTED
 }
 
-Accessibility::Address TizenWebEngineLWE::GetAccessibilityAddress()
+Devel::Accessibility::Address TizenWebEngineLWE::GetAccessibilityAddress()
 {
   // NOT IMPLEMENTED
   return {};
