@@ -44,6 +44,19 @@ const char* TIZEN_GLIB_CONTEXT_ENV = "TIZEN_GLIB_CONTEXT";
 
 static constexpr uint32_t VIDEO_PLAYER_CONSTRAINT_TAG = Dali::ConstraintTagRanges::CORE_CONSTRAINT_TAG_MAX + 1u + (Dali::ConstraintTagRanges::INTERNAL_TAG_MAX_COUNT_PER_DERIVATION) * 4 + 123u;
 
+static player_h ExtractPlayerHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source)
+{
+  if(source.nativeSession.IsType<player_h>())
+  {
+    return AnyCast<player_h>(source.nativeSession);
+  }
+  if(source.nativeSession.IsType<void*>())
+  {
+    return static_cast<player_h>(AnyCast<void*>(source.nativeSession));
+  }
+  return nullptr;
+}
+
 static void MediaPacketVideoDecodedCb(media_packet_h packet, void* user_data)
 {
   TizenVideoPlayer* player = static_cast<TizenVideoPlayer*>(user_data);
@@ -282,18 +295,29 @@ static void eglWindowBufferPreCommit(void* data)
 struct VideoShellSyncConstraint
 {
 public:
-  VideoShellSyncConstraint(tizen_core_wl_video_shell_surface_wrapper_h tcoreVideoShellSurfaceWrapper, wl_egl_window* eglWindowBuffer, int screenWidth, int screenHeight)
+  VideoShellSyncConstraint(tizen_core_wl_video_shell_surface_wrapper_h tcoreVideoShellSurfaceWrapper, Dali::Window window, int screenWidth, int screenHeight)
   {
-    mEglWindowBuffer               = eglWindowBuffer;
+    mWindow                        = window;
     mTcoreVideoShellSurfaceWrapper = tcoreVideoShellSurfaceWrapper;
 
     mHalfScreenWidth  = static_cast<float>(screenWidth) / 2;
     mHalfScreenHeight = static_cast<float>(screenHeight) / 2;
-    DALI_LOG_RELEASE_INFO("create videoShell constraint: mTcoreVideoShellSurfaceWrapper %p, mEglWindowBuffer: %p\n", mTcoreVideoShellSurfaceWrapper, mEglWindowBuffer);
+    DALI_LOG_RELEASE_INFO("create videoShell constraint: mTcoreVideoShellSurfaceWrapper %p\n", mTcoreVideoShellSurfaceWrapper);
   }
 
   void operator()(Vector3& current, const PropertyInputContainer& inputs)
   {
+    // Fetched fresh every time instead of captured once at Constraint-creation time: the
+    // window's EGL surface (mEglWindow) is created lazily on first render, so it is still
+    // null when this constraint is set up during SceneConnection(). By the time operator()
+    // runs, rendering is already underway and the EGL window is guaranteed to exist.
+    wl_egl_window* eglWindowBuffer = Dali::AnyCast<wl_egl_window*>(DevelWindow::GetNativeBuffer(mWindow));
+    if(!eglWindowBuffer)
+    {
+      DALI_LOG_ERROR("VideoShellSyncConstraint, EGL window buffer is not ready yet\n");
+      return;
+    }
+
     const Vector3& size          = inputs[0]->GetVector3();
     const Vector3& worldScale    = inputs[1]->GetVector3();
     const Vector3& worldPosition = inputs[2]->GetVector3();
@@ -324,11 +348,11 @@ public:
     DALI_LOG_DEBUG_INFO("Setup the eglWindow PreCommit Callback with wrapper : %p, (%d,%d)(%d x %d)\n", bufferCommitData->tcoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
 
     // callback option 0 : Once, 1 : continuos
-    wl_egl_window_tizen_set_pre_commit_callback(mEglWindowBuffer, eglWindowBufferPreCommit, bufferCommitData, ONCE);
+    wl_egl_window_tizen_set_pre_commit_callback(eglWindowBuffer, eglWindowBufferPreCommit, bufferCommitData, ONCE);
   }
 
 private:
-  wl_egl_window*                              mEglWindowBuffer;
+  Dali::Window                                mWindow;
   tizen_core_wl_video_shell_surface_wrapper_h mTcoreVideoShellSurfaceWrapper;
   float                                       mHalfScreenWidth;
   float                                       mHalfScreenHeight;
@@ -411,7 +435,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
 {
 }
 
-TizenVideoPlayer::TizenVideoPlayer(Dali::VideoPlayerPlugin::PlayerHandle playerHandle, Dali::VideoSyncMode syncMode, Dali::Actor actor)
+TizenVideoPlayer::TizenVideoPlayer(Dali::VideoPlayerPlugin::VideoSourceDescriptor source, Dali::VideoSyncMode syncMode, Dali::Actor actor)
 : VideoPlayerBase(syncMode, actor),
   mPlayer(nullptr),
   mPlayerState(PLAYER_STATE_NONE),
@@ -430,14 +454,14 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::VideoPlayerPlugin::PlayerHandle playerH
 #endif
   mVideoShellSizePropertyIndex(Property::INVALID_INDEX)
 {
-  if(!playerHandle.handle.Empty())
+  mPlayer = ExtractPlayerHandle(source);
+  if(!mPlayer)
   {
-    mPlayer = static_cast<player_h>(AnyCast<void*>(playerHandle.handle));
-    DALI_LOG_RELEASE_INFO("TizenVideoPlayer initialized: %p\n", mPlayer);
+    DALI_LOG_ERROR("TizenVideoPlayer source initialized with invalid player handle.\n");
   }
   else
   {
-    DALI_LOG_ERROR("EsVideoPlayer initialized with invalid handle type!\n");
+    DALI_LOG_RELEASE_INFO("TizenVideoPlayer source: %p\n", mPlayer);
   }
   GetPlayerState(&mPlayerState);
 }
@@ -613,11 +637,11 @@ void TizenVideoPlayer::InitializeVideoShell(tizen_core_wl_window_h tcoreWlWindow
       tizen_core_wl_video_shell_surface_destroy(mTcoreVideoShellSurface);
     }
 
-    // Crate ecore_wl2 sursurface
+    // Create tcore video shell surface
     tizen_core_wl_video_shell_surface_create(mTcoreWlWindow, &mTcoreVideoShellSurface);
     if(!mTcoreVideoShellSurface)
     {
-      DALI_LOG_ERROR("InitializeVideoShell, ecore_wl2_subsurface_new() is failed\n");
+      DALI_LOG_ERROR("InitializeVideoShell, tizen_core_wl_video_shell_surface_create() is failed\n");
       return;
     }
 
@@ -630,11 +654,40 @@ void TizenVideoPlayer::InitializeVideoShell(tizen_core_wl_window_h tcoreWlWindow
     DALI_LOG_RELEASE_INFO("VideoShell(%p) handle: %s\n", mTcoreVideoShellSurface, videoShellHandle);
   }
 #else
-  DALI_LOG_ERROR("InitializeVideoShell, ecore_wl2_subsurface_new() NOT SUPPORT THIS TIZEN VERSION!\n");
+  DALI_LOG_ERROR("InitializeVideoShell, tcore video shell NOT SUPPORT THIS TIZEN VERSION!\n");
 #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TizenVideoPlayer::SetTcoreDisplayForUnderlay()
+{
+#ifdef OVER_TIZEN_VERSION_9
+  if(mSyncMode == Dali::VideoSyncMode::ENABLED && mTcoreVideoShellSurface)
+  {
+    const char* videoShellHandle = nullptr;
+    tizen_core_wl_video_shell_surface_get_handle(mTcoreVideoShellSurface, &videoShellHandle);
+    if(videoShellHandle)
+    {
+      int error = player_set_tcore_display(mPlayer, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI, const_cast<void*>(static_cast<const void*>(videoShellHandle)));
+      int ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("SetTcoreDisplayForUnderlay, player_set_tcore_display(OVERLAY_SYNC_UI) is failed\n");
+      }
+      return;
+    }
+    DALI_LOG_ERROR("SetTcoreDisplayForUnderlay, video shell handle is not available, falling back to plain overlay\n");
+  }
+#endif
+
+  int error = player_set_tcore_display(mPlayer, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY, static_cast<void*>(mTcoreWlWindow));
+  int ret   = LogPlayerError(error);
+  if(ret)
+  {
+    DALI_LOG_ERROR("SetTcoreDisplayForUnderlay, player_set_tcore_display(OVERLAY) is failed\n");
+  }
+}
 
 void TizenVideoPlayer::InitializeUnderlayMode(tizen_core_wl_window_h tcoreWlWindow)
 {
@@ -646,16 +699,59 @@ void TizenVideoPlayer::InitializeUnderlayMode(tizen_core_wl_window_h tcoreWlWind
   GetPlayerState(&mPlayerState);
 
   DALI_LOG_RELEASE_INFO("InitializeUnderlayMode mPlayerState : %d", mPlayerState);
-  if(mPlayerState == PLAYER_STATE_NONE)
+  if(mIsExternalPlayer)
   {
-    if(!mIsExternalPlayer) // Added wrapper
+    // ------ MMPlayer external player branch ------
+    if(mPlayerState != PLAYER_STATE_IDLE)
     {
-      error = player_create(&mPlayer);
+      DALI_LOG_ERROR("External player must be IDLE to bind display (state=%d). Attach the view before player_prepare().\n", mPlayerState);
+    }
+
+    if(mPlayerState == PLAYER_STATE_IDLE ||
+       mPlayerState == PLAYER_STATE_READY ||
+       mPlayerState == PLAYER_STATE_PLAYING ||
+       mPlayerState == PLAYER_STATE_PAUSED)
+    {
+      if(!mTcoreWlWindow)
+      {
+        DALI_LOG_ERROR("InitializeUnderlayMode, failed to get window handle\n");
+        return;
+      }
+      tizen_core_wl_window_set_alpha(mTcoreWlWindow, false);
+
+      error = player_set_display_mode(mPlayer, PLAYER_DISPLAY_MODE_DST_ROI);
       ret   = LogPlayerError(error);
       if(ret)
       {
-        DALI_LOG_ERROR("InitializeUnderlayMode, player_create() is failed\n");
+        DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_mode() is failed\n");
       }
+
+      error = player_set_display_roi_area(mPlayer, 0, 0, 1, 1);
+      ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_roi_area() is failed\n");
+      }
+
+      SetTcoreDisplayForUnderlay();
+
+      error = player_set_display_visible(mPlayer, true);
+      ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_visible() is failed\n");
+      }
+    }
+    return;
+  }
+
+  if(mPlayerState == PLAYER_STATE_NONE)
+  {
+    error = player_create(&mPlayer);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_create() is failed\n");
     }
   }
 
@@ -715,12 +811,7 @@ void TizenVideoPlayer::InitializeUnderlayMode(tizen_core_wl_window_h tcoreWlWind
       DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_roi_area() is failed\n");
     }
 
-    error = player_set_tcore_display(mPlayer, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY, static_cast<void*>(mTcoreWlWindow));
-    ret   = LogPlayerError(error);
-    if(ret)
-    {
-      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_tcore_display() is failed\n");
-    }
+    SetTcoreDisplayForUnderlay();
 
     error = player_set_display_visible(mPlayer, true);
     ret   = LogPlayerError(error);
@@ -761,6 +852,40 @@ Any TizenVideoPlayer::GetSurfaceFromPacket(void* packet)
 void TizenVideoPlayer::DestroyPlayer()
 {
   DALI_LOG_RELEASE_INFO("TizenVideoPlayer DestroyPlayer\n");
+  if(mIsExternalPlayer)
+  {
+    // MMPlayer external player cleanup
+    if(mPlayer && mNativeImagePtr)
+    {
+      player_state_e state;
+      GetPlayerState(&state);
+      if(state == PLAYER_STATE_PLAYING || state == PLAYER_STATE_PAUSED)
+      {
+        int error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
+        int ret   = LogPlayerError(error);
+        if(ret)
+        {
+          DALI_LOG_ERROR("DestroyPlayer, player_unset_media_packet_video_frame_decoded_cb() is failed\n");
+        }
+      }
+    }
+
+    if(mStreamInfo != NULL)
+    {
+      int error = sound_manager_destroy_stream_information(mStreamInfo);
+      int ret   = LogPlayerError(error);
+      if(ret)
+      {
+        DALI_LOG_ERROR("DestroyPlayer, sound_manager_destroy_stream_information() is failed\n");
+      }
+    }
+
+    mPlayerState = PLAYER_STATE_NONE;
+    mStreamInfo  = NULL;
+    ClearPackets();
+    return;
+  }
+
   if(mPlayer)
   { // If user take the handle, user must be responsible for its destruction.
     if(mPlayerState != PLAYER_STATE_NONE)
@@ -822,6 +947,7 @@ void TizenVideoPlayer::DestroyPlayer()
   {
     mPlayer = NULL;
   }
+  ClearPackets();
 }
 
 void TizenVideoPlayer::DoSetCodecType(Dali::VideoPlayerPlugin::CodecType type)
@@ -960,18 +1086,16 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
       tizen_core_wl_screen_get_geometry(screen, &screenX, &screenY, &width, &height);
 
       Window                                      window                        = Window::Get(syncActor);
-      wl_egl_window*                              windowBuffer                  = Dali::AnyCast<wl_egl_window*>(DevelWindow::GetNativeBuffer(window));
       tizen_core_wl_video_shell_surface_wrapper_h tcoreVideoShellSurfaceWrapper = nullptr;
       tizen_core_wl_video_shell_surface_wrapper_create(mTcoreVideoShellSurface, &tcoreVideoShellSurfaceWrapper);
 
-      DALI_LOG_RELEASE_INFO("Get EGL Window Surface: %p\n", windowBuffer);
       const char* videoShellHandle = nullptr;
       tizen_core_wl_video_shell_surface_get_handle(mTcoreVideoShellSurface, &videoShellHandle);
       DALI_LOG_RELEASE_INFO("VideoShell(%p) handle: %s\n", mTcoreVideoShellSurface, videoShellHandle);
 
       mVideoShellSizePropertyConstraint = Constraint::New<Vector3>(syncActor,
                                                                    mVideoShellSizePropertyIndex,
-                                                                   VideoShellSyncConstraint(tcoreVideoShellSurfaceWrapper, windowBuffer, width, height));
+                                                                   VideoShellSyncConstraint(tcoreVideoShellSurfaceWrapper, window, width, height));
 
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
@@ -1350,6 +1474,12 @@ void TizenVideoPlayer::DoSetUrl(const std::string& url)
   GetPlayerState(&mPlayerState);
   DALI_LOG_RELEASE_INFO("DoSetUrl [%s] current state : %d", url.c_str(), mPlayerState);
 
+  if(mIsExternalPlayer)
+  {
+    DALI_LOG_ERROR("DoSetUrl is unsupported for external MMPlayer source.\n");
+    return;
+  }
+
   if(mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE)
   {
     if(mNativeImagePtr)
@@ -1388,12 +1518,7 @@ void TizenVideoPlayer::DoSetUrl(const std::string& url)
         return;
       }
 
-      error = player_set_tcore_display(mPlayer, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY, static_cast<void*>(mTcoreWlWindow));
-      ret   = LogPlayerError(error);
-      if(ret)
-      {
-        DALI_LOG_ERROR("DoSetUrl, player_set_tcore_display() is failed\n");
-      }
+      SetTcoreDisplayForUnderlay();
     }
 
     GetPlayerState(&mPlayerState);
@@ -1447,6 +1572,13 @@ void TizenVideoPlayer::DoSetPlayPosition(int millisecond)
   int ret = 0;
   GetPlayerState(&mPlayerState);
   DALI_LOG_RELEASE_INFO("DoSetPlayPosition current state : %d ", mPlayerState);
+
+  if(mIsExternalPlayer && mPlayerState == PLAYER_STATE_IDLE)
+  {
+    DALI_LOG_ERROR("DoSetPlayPosition cannot prepare external MMPlayer source.\n");
+    return;
+  }
+
   if(mPlayerState == PLAYER_STATE_IDLE)
   {
     error = player_prepare(mPlayer);
@@ -1524,6 +1656,9 @@ void TizenVideoPlayer::DoSetDisplayArea(DisplayArea area)
     return;
   }
 
+  area.x = (area.x < 0) ? 0 : area.x;
+  area.y = (area.y < 0) ? 0 : area.y;
+
   GetPlayerState(&mPlayerState);
   DALI_LOG_RELEASE_INFO("DoSetDisplayArea current state : %d ", mPlayerState);
 
@@ -1532,9 +1667,6 @@ void TizenVideoPlayer::DoSetDisplayArea(DisplayArea area)
      mPlayerState == PLAYER_STATE_PLAYING ||
      mPlayerState == PLAYER_STATE_PAUSED)
   {
-    area.x = (area.x < 0) ? 0 : area.x;
-    area.y = (area.y < 0) ? 0 : area.y;
-
     int error = player_set_display_roi_area(mPlayer, area.x, area.y, area.width, area.height);
     int ret   = LogPlayerError(error);
     if(ret)
