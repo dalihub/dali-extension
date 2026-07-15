@@ -69,9 +69,9 @@ public:
   TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMode);
 
   /**
-   * @brief Construct a new TizenVideoPlayer using existing player handle.
+   * @brief Construct a new TizenVideoPlayer using a video source descriptor.
    */
-  TizenVideoPlayer(Dali::VideoPlayerPlugin::PlayerHandle playerHandle, Dali::VideoSyncMode syncMode, Dali::Actor syncActor);
+  TizenVideoPlayer(Dali::VideoPlayerPlugin::VideoSourceDescriptor source, Dali::VideoSyncMode syncMode, Dali::Actor syncActor);
 
   /**
    * @brief Destructor.
@@ -351,6 +351,18 @@ private:
   void InitializeVideoShell(Ecore_Wl2_Window* wlWindow);
 #endif
 
+#ifdef USE_TCORE_BACKEND
+  /**
+   * @brief Binds the player's tcore display for underlay rendering.
+   *
+   * When sync mode is enabled and a video shell surface has been created, binds via
+   * PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI using the shell surface's handle string so the
+   * player's video plane stays synchronized with UI frame commits (see VideoShellSyncConstraint).
+   * Otherwise falls back to the plain window-bound PLAYER_DISPLAY_TYPE_TCORE_OVERLAY.
+   */
+  void SetTcoreDisplayForUnderlay();
+#endif
+
   /**
    * @brief Destroys player handle
    */
@@ -367,7 +379,7 @@ private:
   void DestroyVideoShellConstraint();
 
   // TizenVideoPlayer specific member variables (not in base class)
-  player_h                   mPlayer;               ///< Tizen player handle
+  player_h                   mPlayer;               ///< Tizen MMPlayer handle
   player_state_e             mPlayerState;          ///< Tizen player state
   Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
   RenderingTargetType        mTargetType;           ///< Current rendering target type
