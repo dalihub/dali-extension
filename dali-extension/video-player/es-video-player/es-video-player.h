@@ -23,11 +23,18 @@
 
 // EXTERNAL INCLUDES
 #include <dali/public-api/adaptor-framework/timer.h>
+#include <dali/public-api/animation/constraints.h>
 #include <esplusplayer_capi/esplusplayer_capi.h>
 #include <esplusplayer_capi/esplusplayer_internal.h>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
+
+#ifdef USE_TCORE_BACKEND
+#include <tizen_core_wl.h>
+#else
+#include <Ecore_Wl2.h>
+#endif
 
 namespace Dali
 {
@@ -45,16 +52,13 @@ class EsVideoPlayer : public VideoPlayerBase
 {
 public:
   /**
-   * @brief Constructor with external player handle and actor for synchronization.
+   * @brief Constructor with external video source descriptor and actor for synchronization.
    *
-   * Creates a new EsVideoPlayer instance using an externally created esplusplayer handle.
-   The actor parameter enables synchronization features between the UI and video player.
-   *
-   * @param[in] playerHandle The externally created esplusplayer handle with type information
+   * @param[in] source The externally created ESPlayer source descriptor
    * @param[in] syncMode The synchronization mode between the UI and VideoPlayer
    * @param[in] syncActor The actor for synchronization with the video player. Can be empty if synchronization is not needed.
    */
-  EsVideoPlayer(Dali::VideoPlayerPlugin::PlayerHandle playerHandle, Dali::VideoSyncMode syncMode, Dali::Actor syncActor);
+  EsVideoPlayer(Dali::VideoPlayerPlugin::VideoSourceDescriptor source, Dali::VideoSyncMode syncMode, Dali::Actor syncActor);
 
   /**
    * @brief Destructor.
@@ -229,12 +233,20 @@ protected:
   /**
    * @copydoc Dali::VideoPlayerPlugin::SceneConnection()
    */
-  void SceneConnection() override { /* EsVideoPlayer specific implementation */ }
+  void SceneConnection() override;
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::SceneDisconnection()
    */
-  void SceneDisconnection() override { /* EsVideoPlayer specific implementation */ }
+  void SceneDisconnection() override;
+
+  /**
+   * @copydoc Dali::VideoPlayerPlugin::SetRenderingTarget()
+   *
+   * Handles both NativeImage (texture stream) and underlay (window surface) targets,
+   * on both the tcore and ecore backends.
+   */
+  void SetRenderingTarget(Any target) override;
 
 protected:
   /**
@@ -267,8 +279,64 @@ private:
    */
   void DestroyPlayer();
 
+  /**
+   * @brief Initializes the player for underlay (window surface) rendering.
+   *
+   * Binds the esplusplayer to a wayland window as an overlay so the video is
+   * composited underneath the UI layer through a transparent hole.
+   *
+   * @param[in] wlWindow The native window handle for underlay rendering
+   */
+#ifdef USE_TCORE_BACKEND
+  void InitializeUnderlayMode(tizen_core_wl_window_h wlWindow);
+#else
+  void InitializeUnderlayMode(Ecore_Wl2_Window* wlWindow);
+#endif
+
+  /**
+   * @brief Creates the video shell surface used to keep the underlay video display
+   * synchronized with UI frame commits (see VideoShellSyncConstraint).
+   *
+   * NOTE: esplusplayer_capi has no equivalent to MMPlayer's
+   * PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI, so binding the player's actual display to
+   * this shell surface's handle is not currently possible. The shell surface and
+   * constraint are created so the mechanism is ready if/when such an API is added, but
+   * they do not yet visibly affect playback.
+   *
+   * @param[in] wlWindow The native window handle for underlay rendering
+   */
+#ifdef USE_TCORE_BACKEND
+  void InitializeVideoShell(tizen_core_wl_window_h wlWindow);
+#else
+  void InitializeVideoShell(Ecore_Wl2_Window* wlWindow);
+#endif
+
+  /**
+   * @brief Creates the constraint that keeps the video shell surface synced to UI frames.
+   */
+  void CreateVideoShellConstraint();
+
+  /**
+   * @brief Destroys the constraint created by CreateVideoShellConstraint().
+   */
+  void DestroyVideoShellConstraint();
+
   // EsVideoPlayer specific member variables
   esplusplayer_handle mEsPlayer;
+#ifdef USE_TCORE_BACKEND
+  tizen_core_wl_window_h mTcoreWlWindow; ///< tizen-core native window handle for underlay
+#ifdef OVER_TIZEN_VERSION_9
+  tizen_core_wl_video_shell_surface_h mTcoreVideoShellSurface{nullptr}; ///< tcore video shell surface for UI sync
+#endif
+#else
+  Ecore_Wl2_Window* mEcoreWlWindow{nullptr}; ///< ecore_wl2 native window handle for underlay
+#ifdef OVER_TIZEN_VERSION_9
+  Ecore_Wl2_VideoShell_Surface* mEcoreVideoShellSurface{nullptr}; ///< ecore video shell surface for UI sync
+#endif
+#endif
+  Property::Index mVideoShellSizePropertyIndex{Property::INVALID_INDEX}; ///< Registered property index driving VideoShellSyncConstraint
+  Constraint      mVideoShellSizePropertyConstraint;                     ///< Constraint that keeps the video shell surface synced to UI frames
+
   Dali::Mutex                                     mPacketMutex;
   std::vector<esplusplayer_decoded_video_packet*> mPacketVector;
 };

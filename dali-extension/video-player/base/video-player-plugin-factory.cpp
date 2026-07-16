@@ -26,35 +26,116 @@
 #include <dali/public-api/object/any.h>
 #include <esplusplayer_capi/esplusplayer_capi.h>
 #include <esplusplayer_capi/esplusplayer_internal.h>
+#include <cstring>
+#include <vector>
+
+namespace
+{
+constexpr const char* TIZEN_MMPLAYER_PROVIDER_ID = "tizen.mmplayer";
+constexpr const char* TIZEN_ESPLAYER_PROVIDER_ID = "tizen.esplayer";
+
+class VideoSourceProvider
+{
+public:
+  virtual ~VideoSourceProvider() = default;
+
+  virtual const char* GetProviderId() const = 0;
+  virtual bool CanHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source) const = 0;
+  virtual Dali::VideoPlayerPlugin* Create(Dali::Actor actor, const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source, Dali::VideoSyncMode syncMode) const = 0;
+};
+
+bool HasNativeSession(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source)
+{
+  return !source.nativeSession.Empty();
+}
+
+bool HasSupportedSourceHeader(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source)
+{
+  return source.version == 1u && source.ownership == Dali::VideoPlayerPlugin::VideoSourceOwnership::EXTERNAL;
+}
+
+bool ProviderIdEquals(const char* lhs, const char* rhs)
+{
+  return lhs != nullptr && rhs != nullptr && std::strcmp(lhs, rhs) == 0;
+}
+
+class TizenMMPlayerSourceProvider : public VideoSourceProvider
+{
+public:
+  const char* GetProviderId() const override
+  {
+    return TIZEN_MMPLAYER_PROVIDER_ID;
+  }
+
+  bool CanHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source) const override
+  {
+    return ProviderIdEquals(source.providerId, GetProviderId()) &&
+           HasSupportedSourceHeader(source) &&
+           HasNativeSession(source) &&
+           (source.nativeSession.IsType<void*>() || source.nativeSession.IsType<player_h>());
+  }
+
+  Dali::VideoPlayerPlugin* Create(Dali::Actor actor, const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source, Dali::VideoSyncMode syncMode) const override
+  {
+    return new Dali::Plugin::TizenVideoPlayer(source, syncMode, actor);
+  }
+};
+
+class TizenESPlayerSourceProvider : public VideoSourceProvider
+{
+public:
+  const char* GetProviderId() const override
+  {
+    return TIZEN_ESPLAYER_PROVIDER_ID;
+  }
+
+  bool CanHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source) const override
+  {
+    return ProviderIdEquals(source.providerId, GetProviderId()) &&
+           HasSupportedSourceHeader(source) &&
+           HasNativeSession(source) &&
+           (source.nativeSession.IsType<void*>() || source.nativeSession.IsType<esplusplayer_handle>());
+  }
+
+  Dali::VideoPlayerPlugin* Create(Dali::Actor actor, const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source, Dali::VideoSyncMode syncMode) const override
+  {
+    return new Dali::Plugin::EsVideoPlayer(source, syncMode, actor);
+  }
+};
+
+const std::vector<VideoSourceProvider*>& GetVideoSourceProviders()
+{
+  static TizenMMPlayerSourceProvider mmPlayerProvider;
+  static TizenESPlayerSourceProvider esPlayerProvider;
+  static std::vector<VideoSourceProvider*> providers = {
+    &mmPlayerProvider,
+    &esPlayerProvider,
+  };
+  return providers;
+}
+
+} // namespace
 
 extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPlugin(Dali::Actor actor, Dali::VideoSyncMode syncMode)
 {
   return new Dali::Plugin::TizenVideoPlayer(actor, syncMode);
 }
 
-extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPluginByHandle(Dali::Actor actor, Dali::VideoPlayerPlugin::PlayerHandle playerHandle, Dali::VideoSyncMode syncMode)
+extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPluginBySource(Dali::Actor actor, Dali::VideoPlayerPlugin::VideoSourceDescriptor source, Dali::VideoSyncMode syncMode)
 {
-  // Check playerType field to determine which player to create
-  switch(playerHandle.playerType)
+  for(auto* provider : GetVideoSourceProviders())
   {
-    case Dali::VideoPlayerPlugin::PlayerHandleType::DEFAULT:
+    if(provider != nullptr && provider->CanHandle(source))
     {
-      // Pass PlayerHandle for TizenVideoPlayer
-      return new Dali::Plugin::TizenVideoPlayer(playerHandle, syncMode, actor);
+      return provider->Create(actor, source, syncMode);
     }
-
-    case Dali::VideoPlayerPlugin::PlayerHandleType::EXTERNAL:
-    {
-      // Pass PlayerHandle for EsVideoPlayer
-      return new Dali::Plugin::EsVideoPlayer(playerHandle, syncMode, actor);
-    }
-
-    default:
-      DALI_LOG_ERROR("CreateVideoPlayerPluginByHandle: Unknown playerType %d\n",
-                     static_cast<int>(playerHandle.playerType));
-      return nullptr;
   }
-  DALI_LOG_ERROR("CreateVideoPlayerPluginByHandle: Unsupported player handle type injected!\n");
+
+  DALI_LOG_ERROR("CreateVideoPlayerPluginBySource: Unsupported providerId[%s], version[%u], ownership[%u], nativeSessionEmpty[%d]\n",
+                 source.providerId ? source.providerId : "(null)",
+                 source.version,
+                 static_cast<uint32_t>(source.ownership),
+                 source.nativeSession.Empty());
   return nullptr;
 }
 
