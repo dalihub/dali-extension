@@ -46,13 +46,13 @@ static constexpr uint32_t VIDEO_PLAYER_CONSTRAINT_TAG = Dali::ConstraintTagRange
 
 static player_h ExtractPlayerHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source)
 {
-  if(source.nativeSession.IsType<player_h>())
+  if(source.GetNativeSession().IsType<player_h>())
   {
-    return AnyCast<player_h>(source.nativeSession);
+    return AnyCast<player_h>(source.GetNativeSession());
   }
-  if(source.nativeSession.IsType<void*>())
+  if(source.GetNativeSession().IsType<void*>())
   {
-    return static_cast<player_h>(AnyCast<void*>(source.nativeSession));
+    return static_cast<player_h>(AnyCast<void*>(source.GetNativeSession()));
   }
   return nullptr;
 }
