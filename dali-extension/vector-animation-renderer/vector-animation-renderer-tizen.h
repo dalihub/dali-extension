@@ -92,6 +92,11 @@ private:
    */
   std::shared_ptr<RenderingData> CreateRenderingData() override;
 
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::RefreshDynamicProperty()
+   */
+  void RefreshDynamicProperty() override;
+
 private:
   Dali::Texture              mRenderedTexture;  ///< Rendered Texture
   std::vector<Dali::Texture> mPreviousTextures; ///< Previous rendered texture
