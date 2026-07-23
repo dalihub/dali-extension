@@ -518,6 +518,11 @@ void VectorAnimationRenderer::AddPropertyValueCallback(const std::string& keyPat
   }
 }
 
+void VectorAnimationRenderer::RefreshDynamicProperty()
+{
+  DALI_LOG_ERROR("rlottie don't support refresh dynamic property.\n");
+}
+
 void VectorAnimationRenderer::KeepRasterizedBuffer()
 {
   Dali::Mutex::ScopedLock lock(mMutex);

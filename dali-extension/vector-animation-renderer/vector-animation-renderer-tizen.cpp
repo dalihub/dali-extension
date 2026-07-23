@@ -275,11 +275,6 @@ std::shared_ptr<VectorAnimationRenderer::RenderingData> VectorAnimationRendererT
   return std::make_shared<RenderingDataImpl>();
 }
 
-void VectorAnimationRendererTizen::RefreshDynamicProperty()
-{
-}
-
-
 } // namespace Plugin
 
 } // namespace Dali
