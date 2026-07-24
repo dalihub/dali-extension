@@ -260,8 +260,15 @@ ICU plugin to use an International Components for Unicode for Dali
 PREFIX+="/usr"
 # GBS qemu-user builds use a host liblto_plugin.so (ELFCLASS64) via /emul;
 # disable the linker plugin so configure/make link tests succeed on armv7l.
-CFLAGS+=" -fno-use-linker-plugin"
-CXXFLAGS+=" -fno-use-linker-plugin"
+# -fno-use-linker-plugin is GCC-only; clang does not support it and errors
+# with [-Werror,-Wignored-optimization-argument].
+# Skip the flag when the compiler is clang (detected via $CC at build time).
+if echo "${CC:-gcc}" | grep -q "clang"; then
+  : # clang: skip -fno-use-linker-plugin
+else
+  CFLAGS+=" -fno-use-linker-plugin"
+  CXXFLAGS+=" -fno-use-linker-plugin"
+fi
 CXXFLAGS+=" -Wall -g -Os -fPIC -fvisibility-inlines-hidden -fdata-sections -ffunction-sections -DGL_GLEXT_PROTOTYPES"
 LDFLAGS+=" -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic-functions "
 
