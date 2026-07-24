@@ -46,17 +46,17 @@ public:
 
 bool HasNativeSession(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source)
 {
-  return !source.nativeSession.Empty();
+  return !source.GetNativeSession().Empty();
 }
 
 bool HasSupportedSourceHeader(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source)
 {
-  return source.version == 1u && source.ownership == Dali::VideoPlayerPlugin::VideoSourceOwnership::EXTERNAL;
+  return source.GetVersion() == 1u && source.GetOwnership() == Dali::VideoPlayerPlugin::VideoSourceOwnership::EXTERNAL;
 }
 
-bool ProviderIdEquals(const char* lhs, const char* rhs)
+bool ProviderIdEquals(Dali::StringView lhs, Dali::StringView rhs)
 {
-  return lhs != nullptr && rhs != nullptr && std::strcmp(lhs, rhs) == 0;
+  return lhs == rhs;
 }
 
 class TizenMMPlayerSourceProvider : public VideoSourceProvider
@@ -69,10 +69,10 @@ public:
 
   bool CanHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source) const override
   {
-    return ProviderIdEquals(source.providerId, GetProviderId()) &&
+    return ProviderIdEquals(source.GetProviderId(), GetProviderId()) &&
            HasSupportedSourceHeader(source) &&
            HasNativeSession(source) &&
-           (source.nativeSession.IsType<void*>() || source.nativeSession.IsType<player_h>());
+           (source.GetNativeSession().IsType<void*>() || source.GetNativeSession().IsType<player_h>());
   }
 
   Dali::VideoPlayerPlugin* Create(Dali::Actor actor, const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source, Dali::VideoSyncMode syncMode) const override
@@ -91,10 +91,10 @@ public:
 
   bool CanHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source) const override
   {
-    return ProviderIdEquals(source.providerId, GetProviderId()) &&
+    return ProviderIdEquals(source.GetProviderId(), GetProviderId()) &&
            HasSupportedSourceHeader(source) &&
            HasNativeSession(source) &&
-           (source.nativeSession.IsType<void*>() || source.nativeSession.IsType<esplusplayer_handle>());
+           (source.GetNativeSession().IsType<void*>() || source.GetNativeSession().IsType<esplusplayer_handle>());
   }
 
   Dali::VideoPlayerPlugin* Create(Dali::Actor actor, const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source, Dali::VideoSyncMode syncMode) const override
@@ -132,10 +132,10 @@ extern "C" DALI_EXPORT_API Dali::VideoPlayerPlugin* CreateVideoPlayerPluginBySou
   }
 
   DALI_LOG_ERROR("CreateVideoPlayerPluginBySource: Unsupported providerId[%s], version[%u], ownership[%u], nativeSessionEmpty[%d]\n",
-                 source.providerId ? source.providerId : "(null)",
-                 source.version,
-                 static_cast<uint32_t>(source.ownership),
-                 source.nativeSession.Empty());
+                 source.GetProviderId().CStr(),
+                 source.GetVersion(),
+                 static_cast<uint32_t>(source.GetOwnership()),
+                 source.GetNativeSession().Empty());
   return nullptr;
 }
 

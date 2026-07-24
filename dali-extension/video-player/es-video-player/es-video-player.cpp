@@ -96,13 +96,13 @@ static void MediaPacketVideoDecodedCb(esplusplayer_decoded_video_packet* packet,
 
 static esplusplayer_handle ExtractEsPlayerHandle(const Dali::VideoPlayerPlugin::VideoSourceDescriptor& source)
 {
-  if(source.nativeSession.IsType<esplusplayer_handle>())
+  if(source.GetNativeSession().IsType<esplusplayer_handle>())
   {
-    return AnyCast<esplusplayer_handle>(source.nativeSession);
+    return AnyCast<esplusplayer_handle>(source.GetNativeSession());
   }
-  if(source.nativeSession.IsType<void*>())
+  if(source.GetNativeSession().IsType<void*>())
   {
-    return static_cast<esplusplayer_handle>(AnyCast<void*>(source.nativeSession));
+    return static_cast<esplusplayer_handle>(AnyCast<void*>(source.GetNativeSession()));
   }
   return nullptr;
 }
