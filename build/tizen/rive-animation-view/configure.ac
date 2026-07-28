@@ -21,6 +21,7 @@ if test "x$enable_debug" = "xyes"; then
 fi
 
 # For rive animation
+PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
 PKG_CHECK_MODULES(THORVG, thorvg)
 PKG_CHECK_MODULES(RIVE_TIZEN, rive_tizen)
 
