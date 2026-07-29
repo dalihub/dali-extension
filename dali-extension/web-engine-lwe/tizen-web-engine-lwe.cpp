@@ -18,6 +18,10 @@
 // CLASS HEADER
 #include "tizen-web-engine-lwe.h"
 
+// INTERNAL INCLUDES
+#include "tizen-web-engine-lwe-load-error.h"
+#include "tizen-web-engine-lwe-settings.h"
+
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/application-devel.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-back-forward-list-item.h>
@@ -383,7 +387,8 @@ TizenWebEngineLWE::TizenWebEngineLWE()
   mFirstRenderEnded(false),
   mFrameRenderedCallback(nullptr),
   mLoadStartedCallback(nullptr),
-  mLoadFinishedCallback(nullptr)
+  mLoadFinishedCallback(nullptr),
+  mLoadErrorCallback(nullptr)
 {
 #ifndef OVER_TIZEN_VERSION_9
   pthread_mutex_init(&mOutputBufferMutex, NULL);
@@ -502,7 +507,16 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     mUpdateBufferTrigger.Trigger();
   };
 #endif
-  mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {};
+  mOnReceivedError = [this](LWE::WebContainer* container, LWE::ResourceError error)
+  {
+    // Fires on any failed resource load, not only the main-frame navigation
+    // (src/core/modules/resource_request/ResourceRequest.cpp:76-100) — unlike
+    // chromium's WebEnginePageLoadErrorCallback, which is main-frame only.
+    // Forwarded as-is since Bixby's current LWE-direct usage relies on the
+    // same broad behaviour.
+    std::unique_ptr<Dali::WebEngineLoadError> error2 = std::make_unique<TizenWebEngineLweLoadError>(error);
+    ExecuteCallback(mLoadErrorCallback, std::move(error2));
+  };
 
   mOnPageStartedHandler = [this](LWE::WebContainer* container, const std::string& url)
   {
@@ -644,6 +658,8 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     mOnRenderedHandler(container, renderResult);
   });
 #endif
+
+  mWebEngineSettings = std::make_unique<TizenWebEngineLweSettings>(mWebContainer);
 
   mWebContainer->RegisterOnReceivedErrorHandler(
     [this](LWE::WebContainer* container, LWE::ResourceError error)
@@ -1239,7 +1255,12 @@ public:
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
 {
-  // NOT IMPLEMENTED
+  if(mWebEngineSettings)
+  {
+    return *mWebEngineSettings;
+  }
+  // Fallback for the window between construction and Create(), or after
+  // Destroy() — GetSettings() must return a valid reference even then.
   static NullWebEngineSettings settings;
   return settings;
 }
@@ -1319,6 +1340,7 @@ void TizenWebEngineLWE::DestroyInstance()
   {
     return;
   }
+  mWebEngineSettings.reset();
   mInDestroyingLWEInstance = true;
   mWebContainer->Destroy();
   mInDestroyingLWEInstance = false;
@@ -1344,6 +1366,13 @@ void TizenWebEngineLWE::ChangeOrientation(int orientation)
 void TizenWebEngineLWE::LoadUrl(const std::string& url)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
+  // LWE::WebContainer::LoadURL() is posted asynchronously to the LWE main
+  // thread, while GetURL() reads synchronously, so a GetUrl() call made
+  // right after LoadUrl() would otherwise still see the previous page's
+  // URL. Update the cache eagerly; OnPageStarted/OnPageLoaded/OnLoadResource
+  // below overwrite it once the engine reports the (possibly redirected)
+  // real URL.
+  mUrl = url;
   mWebContainer->LoadURL(url);
 }
 
@@ -1368,6 +1397,9 @@ std::string TizenWebEngineLWE::GetUrl() const
 void TizenWebEngineLWE::LoadHtmlString(const std::string& str)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
+  // See the comment in LoadUrl() — LoadData() has no URL of its own, so the
+  // cache is reset to the same "about:blank" LoadUrl() uses at Create() time.
+  mUrl = "about:blank";
   mWebContainer->LoadData(str);
 }
 
@@ -1532,7 +1564,19 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
 
 void TizenWebEngineLWE::AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, Dali::WebEnginePlugin::JavaScriptEntireMessageHandlerCallback handler)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  // LWE don't support empty std::function
+  if(!handler)
+  {
+    handler = [](const std::string&, const std::string&) {};
+  }
+  // exposedObjectName is captured so the callback can report which object
+  // received the message, matching JavaScriptEntireMessageHandlerCallback's
+  // (name, body) contract — mirrors chromium's Ewk_Script_Message mapping.
+  mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler, exposedObjectName](const std::string& data) -> std::string
+  {
+    handler(exposedObjectName, data);
+    return ""; });
 }
 
 void TizenWebEngineLWE::RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback)
@@ -1651,9 +1695,13 @@ void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
 void TizenWebEngineLWE::SetDocumentBackgroundColor(Dali::Vector4 color)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
-  auto settings = mWebContainer->GetSettings();
-  settings.SetBaseBackgroundColor(color.r * 255, color.g * 255, color.b * 255, color.a * 255);
-  mWebContainer->SetSettings(settings);
+  DALI_ASSERT_ALWAYS(mWebEngineSettings);
+  // Routed through the shared TizenWebEngineLweSettings snapshot instead of
+  // its own GetSettings()/SetSettings() round-trip: SetSettings() applies
+  // asynchronously, so a second, independently-fetched snapshot could
+  // clobber a settings change (e.g. EnableWebSecurity()) that has not been
+  // applied to the engine yet.
+  mWebEngineSettings->SetBaseBackgroundColor(color);
 }
 
 void TizenWebEngineLWE::ClearTilesWhenHidden(bool cleared)
@@ -1949,7 +1997,7 @@ void TizenWebEngineLWE::RegisterPageLoadFinishedCallback(WebEnginePageLoadCallba
 
 void TizenWebEngineLWE::RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback)
 {
-  // NOT IMPLEMENTED
+  mLoadErrorCallback = callback;
 }
 
 void TizenWebEngineLWE::RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback)
