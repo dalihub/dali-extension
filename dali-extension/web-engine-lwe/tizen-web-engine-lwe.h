@@ -749,6 +749,8 @@ private:
   WebEnginePageLoadCallback      mLoadStartedCallback;
   WebEnginePageLoadCallback      mLoadFinishedCallback;
   WebEnginePageLoadErrorCallback mLoadErrorCallback;
+
+  Dali::WebEnginePlugin::JavaScriptAlertCallback mJavaScriptAlertCallback;
 };
 
 } // namespace Plugin

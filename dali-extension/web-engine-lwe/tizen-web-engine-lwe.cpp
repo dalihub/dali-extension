@@ -392,7 +392,8 @@ TizenWebEngineLWE::TizenWebEngineLWE()
   mFrameRenderedCallback(nullptr),
   mLoadStartedCallback(nullptr),
   mLoadFinishedCallback(nullptr),
-  mLoadErrorCallback(nullptr)
+  mLoadErrorCallback(nullptr),
+  mJavaScriptAlertCallback(nullptr)
 {
 #ifndef OVER_TIZEN_VERSION_9
   pthread_mutex_init(&mOutputBufferMutex, NULL);
@@ -1589,7 +1590,19 @@ void TizenWebEngineLWE::AddJavaScriptEntireMessageHandler(const std::string& exp
 
 void TizenWebEngineLWE::RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mJavaScriptAlertCallback = callback;
+  if(mJavaScriptAlertCallback)
+  {
+    mWebContainer->RegisterShowAlertHandler(
+      [this](LWE::WebContainer* container, const std::string& title, const std::string& message)
+    {
+      if(mJavaScriptAlertCallback)
+      {
+        mJavaScriptAlertCallback(message);
+      }
+    });
+  }
 }
 
 void TizenWebEngineLWE::JavaScriptAlertReply()
