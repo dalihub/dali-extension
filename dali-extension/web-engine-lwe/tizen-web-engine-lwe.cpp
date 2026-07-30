@@ -1437,12 +1437,14 @@ void TizenWebEngineLWE::StopLoading()
 
 void TizenWebEngineLWE::Suspend()
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->Pause();
 }
 
 void TizenWebEngineLWE::Resume()
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->Resume();
 }
 
 void TizenWebEngineLWE::SuspendNetworkLoading()
@@ -1481,7 +1483,8 @@ bool TizenWebEngineLWE::StopInspectorServer()
 
 void TizenWebEngineLWE::ScrollBy(int32_t deltaX, int32_t deltaY)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->ScrollBy(deltaX, deltaY);
 }
 
 bool TizenWebEngineLWE::ScrollEdgeBy(int32_t deltaX, int32_t deltaY)
@@ -1492,13 +1495,14 @@ bool TizenWebEngineLWE::ScrollEdgeBy(int32_t deltaX, int32_t deltaY)
 
 void TizenWebEngineLWE::SetScrollPosition(int32_t x, int32_t y)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->ScrollTo(x, y);
 }
 
 Dali::Vector2 TizenWebEngineLWE::GetScrollPosition() const
 {
-  // NOT IMPLEMENTED
-  return Dali::Vector2::ZERO;
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  return Dali::Vector2(static_cast<float>(mWebContainer->GetScrollX()), static_cast<float>(mWebContainer->GetScrollY()));
 }
 
 Dali::Vector2 TizenWebEngineLWE::GetScrollSize() const
@@ -1635,13 +1639,17 @@ void TizenWebEngineLWE::ClearAllTilesResources()
 
 std::string TizenWebEngineLWE::GetUserAgent() const
 {
-  // NOT IMPLEMENTED
-  return std::string();
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  // WebContainer::Get/SetUserAgentString are convenience passthroughs
+  // separate from the Settings value type, so no Settings snapshot round
+  // trip is needed here.
+  return mWebContainer->GetUserAgentString();
 }
 
 void TizenWebEngineLWE::SetUserAgent(const std::string& userAgent)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->SetUserAgentString(userAgent);
 }
 
 void TizenWebEngineLWE::EnableMouseEvents(bool enabled)
