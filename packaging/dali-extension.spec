@@ -45,6 +45,10 @@ Source0:    %{name}-%{version}.tar.gz
 %define enable_web_engine_plugin 1
 %endif
 
+%if %{undefined enable_rive_animation_view}
+%define enable_rive_animation_view 1
+%endif
+
 # Web engine plugins depend on EFL/chromium-efl; disable until TCORE migration is ready.
 %if "%{tizen_wayland_backend}" == "TCORE"
 %global enable_web_engine_plugin 0
@@ -56,10 +60,8 @@ Requires(postun): /sbin/ldconfig
 BuildRequires:  pkgconfig
 BuildRequires:  pkgconfig(dali2-core)
 BuildRequires:  pkgconfig(dali2-adaptor)
-BuildRequires:  pkgconfig(dali2-toolkit)
 BuildRequires:  dali2-integration-devel
 BuildRequires:  dali2-adaptor-integration-devel
-BuildRequires:  dali2-toolkit-integration-devel
 BuildRequires:  pkgconfig(dlog)
 
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
@@ -69,7 +71,10 @@ BuildRequires:  pkgconfig(tizen-core-wl)
 BuildRequires:  pkgconfig(ecore-wl2)
 %endif
 
-%if 0%{?tizen_65_or_greater}
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
+BuildRequires:  pkgconfig(dali2-toolkit)
+BuildRequires:  dali2-toolkit-integration-devel
+BuildRequires:  pkgconfig(thorvg)
 BuildRequires:  pkgconfig(rive_tizen)
 %endif
 
@@ -205,6 +210,7 @@ BuildRequires: pkgconfig(vconf)
 %description web-engine-lwe-plugin
 Web Engine LWE(Light-weight Web Engine) plugin to support WebView for Dali
 
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
 ####################################
 # Rive Animation View Plugin
 ####################################
@@ -212,10 +218,6 @@ Web Engine LWE(Light-weight Web Engine) plugin to support WebView for Dali
 Summary:    Plugin to render a rive animation
 Group:      System/Libraries
 Requires: dali2-extension-rive-animation-view = %{version}-%{release}
-%if 0%{?tizen_65_or_greater}
-BuildRequires:  pkgconfig(thorvg)
-BuildRequires:  pkgconfig(rive_tizen)
-%endif
 
 %description rive-animation-view
 Plugin to render a rive animation
@@ -227,6 +229,7 @@ Requires: dali2-extension-rive-animation-view = %{version}-%{release}
 
 %description rive-animation-view-devel
 Header & package configuration of rive-animation-view
+%endif
 
 ##############################
 # Dali ICU Plugin
@@ -260,8 +263,15 @@ ICU plugin to use an International Components for Unicode for Dali
 PREFIX+="/usr"
 # GBS qemu-user builds use a host liblto_plugin.so (ELFCLASS64) via /emul;
 # disable the linker plugin so configure/make link tests succeed on armv7l.
-CFLAGS+=" -fno-use-linker-plugin"
-CXXFLAGS+=" -fno-use-linker-plugin"
+# -fno-use-linker-plugin is GCC-only; clang does not support it and errors
+# with [-Werror,-Wignored-optimization-argument].
+# Skip the flag when the compiler is clang (detected via $CC at build time).
+if echo "${CC:-gcc}" | grep -q "clang"; then
+  : # clang: skip -fno-use-linker-plugin
+else
+  CFLAGS+=" -fno-use-linker-plugin"
+  CXXFLAGS+=" -fno-use-linker-plugin"
+fi
 CXXFLAGS+=" -Wall -g -Os -fPIC -fvisibility-inlines-hidden -fdata-sections -ffunction-sections -DGL_GLEXT_PROTOTYPES"
 LDFLAGS+=" -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic-functions "
 
@@ -314,6 +324,11 @@ popd
 %endif
 %if 0%{?enable_image_loader}
            --enable-imageloader-extension \
+%endif
+%if 0%{?enable_rive_animation_view} == 1
+           --enable-rive-animation-view \
+%else
+           --disable-rive-animation-view \
 %endif
            --with-tizen-wayland-backend=%{tizen_wayland_backend} \
            --enable-keyextension
@@ -390,7 +405,7 @@ exit 0
 exit 0
 %endif
 
-%if 0%{?tizen_65_or_greater}
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
 %post rive-animation-view
 /sbin/ldconfig
 exit 0
@@ -449,7 +464,7 @@ exit 0
 exit 0
 %endif
 
-%if 0%{?tizen_65_or_greater}
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
 %postun rive-animation-view
 /sbin/ldconfig
 exit 0
@@ -529,7 +544,7 @@ exit 0
 %license LICENSE
 %endif
 
-%if 0%{?tizen_65_or_greater}
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
 %files rive-animation-view
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)

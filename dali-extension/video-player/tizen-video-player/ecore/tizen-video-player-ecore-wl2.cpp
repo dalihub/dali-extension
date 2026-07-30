@@ -423,6 +423,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mStreamType(SOUND_STREAM_TYPE_MEDIA),
   mEcoreWlWindow(nullptr),
   mEcoreSubVideoWindow(nullptr),
+  mVideoFrameBufferProgressPropertyIndex(Property::INVALID_INDEX),
   mVideoConstraintHelperId(0),
   mIsMovedHandle(false),
   mIsSceneConnected(false),

@@ -52,7 +52,17 @@ AC_ARG_ENABLE([imageloader-extension],
               [enable_imageloader_extension=$enableval],
               [enable_imageloader_extension=no])
 
-PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor dali2-toolkit])
+AC_ARG_ENABLE([rive-animation-view],
+              [AC_HELP_STRING([--enable-rive-animation-view],
+                              [Turns on Rive animation view build])],
+              [enable_rive_animation_view=$enableval],
+              [enable_rive_animation_view=yes])
+
+PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor])
+
+AM_CONDITIONAL([USE_RIVE_ANIMATION_VIEW],
+               [test "x$with_tizen_65_or_greater" = "xyes" &&
+                test "x$enable_rive_animation_view" = "xyes"])
 
 TIZEN_WAYLAND_BACKEND_INIT
 
@@ -75,7 +85,9 @@ fi
 if test "x$with_tizen_65_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(camera-player)
   AC_CONFIG_SUBDIRS(icu)
-  AC_CONFIG_SUBDIRS(rive-animation-view)
+  if test "x$enable_rive_animation_view" = "xyes"; then
+    AC_CONFIG_SUBDIRS(rive-animation-view)
+  fi
 fi
 
 AC_CONFIG_SUBDIRS(dali-extension)

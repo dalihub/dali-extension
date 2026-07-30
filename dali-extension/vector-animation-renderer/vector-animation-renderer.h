@@ -114,6 +114,11 @@ public:
    */
   void AddPropertyValueCallback(const std::string& keyPath, VectorProperty property, CallbackBase* callback, int32_t id) override;
 
+  /**
+   * @copydoc Dali::VectorAnimationRendererPlugin::RefreshDynamicProperty()
+   */
+  void RefreshDynamicProperty() override;
+
   void KeepRasterizedBuffer() override;
 
   /**
@@ -209,7 +214,7 @@ protected:
   bool                                mResourceReady : 1;          ///< Whether the resource is ready
   bool                                mResourceReadyTriggered : 1; ///< Whether the resource ready is triggered
   bool                                mEnableFixedCache : 1;
-  bool                                mEnableAspectFit : 1;        ///< Whether to keep aspect ratio
+  bool                                mEnableAspectFit : 1; ///< Whether to keep aspect ratio
   bool                                mFinalized : 1;
 };
 
