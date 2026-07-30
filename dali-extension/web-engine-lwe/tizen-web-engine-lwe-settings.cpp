@@ -54,21 +54,23 @@ void TizenWebEngineLweSettings::AllowMixedContents(bool allowed)
 
 void TizenWebEngineLweSettings::EnableSpatialNavigation(bool enabled)
 {
-  // NOT IMPLEMENTED: LWE::Settings::SetUseSpatialNavigation exists but isn't
-  // wired up yet.
+  mSettings.SetUseSpatialNavigation(enabled);
+  Apply();
 }
 
 uint32_t TizenWebEngineLweSettings::GetDefaultFontSize() const
 {
-  // NOT IMPLEMENTED: WebContainer::GetDefaultFontSize exists but isn't wired
-  // up yet.
-  return 0;
+  // Default font size is a WebContainer convenience method, not part of the
+  // Settings value type, so it's read straight from the engine rather than
+  // the cached mSettings snapshot.
+  return mWebContainer->GetDefaultFontSize();
 }
 
 void TizenWebEngineLweSettings::SetDefaultFontSize(uint32_t size)
 {
-  // NOT IMPLEMENTED: WebContainer::SetDefaultFontSize exists but isn't wired
-  // up yet.
+  // See GetDefaultFontSize() above; clamped to 1..72 by the engine
+  // (LWEWebContainerDelegate.cpp).
+  mWebContainer->SetDefaultFontSize(size);
 }
 
 void TizenWebEngineLweSettings::EnableWebSecurity(bool enabled)
@@ -300,14 +302,73 @@ bool TizenWebEngineLweSettings::IsTextZoomEnabled() const
 
 void TizenWebEngineLweSettings::SetExtraFeature(const std::string& feature, bool enable)
 {
-  // NOT IMPLEMENTED: LWE::Settings::UpdateSetting is a raw, unvalidated
-  // key-value map that could back this, but isn't wired up yet.
+  // Prefer LWE::Settings' typed accessors over the raw UpdateSetting() string
+  // map where one exists, to avoid string-literal typos/case mismatches.
+  // ttsMode's enum values (Default=0/Forced=1) map directly onto bool.
+  if(feature == "ttsMode")
+  {
+    mSettings.SetTTSMode(static_cast<LWE::TTSMode>(enable));
+  }
+  else if(feature == "useHttp2")
+  {
+    mSettings.SetUseHttp2(enable);
+  }
+  else if(feature == "scrollbarVisible")
+  {
+    mSettings.SetScrollbarVisible(enable);
+  }
+  else if(feature == "needsDownloadWebFontsEarly")
+  {
+    mSettings.SetNeedsDownloadWebFontsEarly(enable);
+  }
+  else if(feature == "useExternalPopup")
+  {
+    mSettings.SetUseExternalPopup(enable);
+  }
+  else if(feature == "showLoadFailMsg" || feature == "--show-fps")
+  {
+    // Debug-only keys read back with a lowercase-only comparison
+    // (LWEWebContainerDelegate.cpp), unlike the "True"/"False" convention
+    // used elsewhere.
+    mSettings.UpdateSetting(feature, enable ? "true" : "false");
+  }
+  else
+  {
+    // No typed accessor (e.g. "videoOverlayEnabled") or an LWE key this
+    // plugin doesn't otherwise know about: fall back to the raw map so any
+    // boolean-valued LWE setting can still be reached through this generic
+    // hook, even without a dedicated DALi API for it.
+    mSettings.UpdateSetting(feature, enable ? "True" : "False");
+  }
+  Apply();
 }
 
 bool TizenWebEngineLweSettings::IsExtraFeatureEnabled(const std::string& feature) const
 {
-  // NOT IMPLEMENTED: see SetExtraFeature() above.
-  return false;
+  if(feature == "ttsMode")
+  {
+    return mSettings.GetTTSMode() == LWE::TTSMode::Forced;
+  }
+  if(feature == "useHttp2")
+  {
+    return mSettings.UseHttp2();
+  }
+  if(feature == "scrollbarVisible")
+  {
+    return mSettings.ScrollbarVisible();
+  }
+  if(feature == "needsDownloadWebFontsEarly")
+  {
+    return mSettings.NeedsDownloadWebFontsEarly();
+  }
+  if(feature == "useExternalPopup")
+  {
+    return mSettings.UseExternalPopup();
+  }
+  // videoOverlayEnabled, showLoadFailMsg/--show-fps, and any other key this
+  // plugin doesn't have a typed accessor for: read back through the raw map.
+  const std::string value = mSettings.GetSetting(feature);
+  return value == "True" || value == "true";
 }
 
 void TizenWebEngineLweSettings::SetImeStyle(int style)
