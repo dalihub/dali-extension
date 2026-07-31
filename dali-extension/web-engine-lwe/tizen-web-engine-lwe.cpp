@@ -33,8 +33,10 @@
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-settings.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
+#include <dali/public-api/events/hover-event.h>
 #include <dali/public-api/events/key-event.h>
 #include <dali/public-api/events/touch-event.h>
+#include <dali/public-api/events/wheel-event.h>
 
 #include <unistd.h>
 #include <vconf/vconf.h>
@@ -359,6 +361,8 @@ static PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR;
 TizenWebEngineLWE::TizenWebEngineLWE()
 : mUrl(""),
   mIsMouseLbuttonDown(false),
+  mMouseEventsEnabled(true),
+  mKeyEventsEnabled(true),
   mCanGoBack(false),
   mCanGoForward(false),
 #ifndef OVER_TIZEN_VERSION_9
@@ -1654,12 +1658,12 @@ void TizenWebEngineLWE::SetUserAgent(const std::string& userAgent)
 
 void TizenWebEngineLWE::EnableMouseEvents(bool enabled)
 {
-  // NOT IMPLEMENTED
+  mMouseEventsEnabled = enabled;
 }
 
 void TizenWebEngineLWE::EnableKeyEvents(bool enabled)
 {
-  // NOT IMPLEMENTED
+  mKeyEventsEnabled = enabled;
 }
 
 void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
@@ -1762,6 +1766,11 @@ void TizenWebEngineLWE::DispatchMouseMoveEvent(float x, float y, bool isLButtonP
 
 bool TizenWebEngineLWE::SendTouchEvent(const TouchEvent& touch)
 {
+  if(!mMouseEventsEnabled)
+  {
+    return false;
+  }
+
   size_t pointCount = touch.GetPointCount();
   if(pointCount == 1)
   {
@@ -1811,6 +1820,11 @@ void TizenWebEngineLWE::DispatchKeyUpEvent(LWE::KeyValue keyCode)
 
 bool TizenWebEngineLWE::SendKeyEvent(const Dali::KeyEvent& event)
 {
+  if(!mKeyEventsEnabled)
+  {
+    return false;
+  }
+
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
   if(32 < event.GetKeyString().CStr()[0] && 127 > event.GetKeyString().CStr()[0])
   {
@@ -1968,13 +1982,46 @@ void TizenWebEngineLWE::EnableVideoHole(bool enabled)
 
 bool TizenWebEngineLWE::SendHoverEvent(const Dali::HoverEvent& event)
 {
-  // NOT IMPLEMENTED
+  if(!mMouseEventsEnabled)
+  {
+    return false;
+  }
+
+  if(event.GetPointCount() > 0)
+  {
+    switch(event.GetState(0))
+    {
+      case PointState::MOTION:
+      {
+        float x = event.GetScreenPosition(0).x;
+        float y = event.GetScreenPosition(0).y;
+        DispatchMouseMoveEvent(x, y, mIsMouseLbuttonDown, false);
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+  }
+
   return false;
 }
 
 bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
 {
-  // NOT IMPLEMENTED
+  if(!mMouseEventsEnabled)
+  {
+    return false;
+  }
+
+  int   step = event.GetDelta();
+  float x    = event.GetPoint().x;
+  float y    = event.GetPoint().y;
+
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->DispatchMouseWheelEvent(x, y, step);
+
   return false;
 }
 
@@ -2140,7 +2187,9 @@ void TizenWebEngineLWE::RegisterDeviceListGetCallback(WebEngineDeviceListGetCall
 
 void TizenWebEngineLWE::FeedMouseWheel(bool yDirection, int step, int x, int y)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  int delta = yDirection ? step : -step;
+  mWebContainer->DispatchMouseWheelEvent(x, y, delta);
 }
 
 void TizenWebEngineLWE::SetVideoHole(bool enabled, bool isWaylandWindow)

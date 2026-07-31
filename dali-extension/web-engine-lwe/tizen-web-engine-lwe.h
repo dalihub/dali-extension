@@ -697,6 +697,8 @@ private:
   std::string mUrl;
 
   bool mIsMouseLbuttonDown;
+  bool mMouseEventsEnabled;
+  bool mKeyEventsEnabled;
   bool mCanGoBack;
   bool mCanGoForward;
   bool mInDestroyingLWEInstance;
