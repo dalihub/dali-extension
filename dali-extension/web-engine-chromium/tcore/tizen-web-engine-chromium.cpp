@@ -975,6 +975,11 @@ void TizenWebEngineChromium::WebAuthenticationCancel()
 #endif
 }
 
+void TizenWebEngineChromium::RemoveJavaScriptMessageHandler(const std::string& exposedObjectName)
+{
+  // NOT IMPLEMENTED: Chromium has no corresponding operation.
+}
+
 void TizenWebEngineChromium::RegisterGeolocationPermissionCallback(GeolocationPermissionCallback callback)
 {
   mGeolocationPermissionCallback = callback;

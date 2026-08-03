@@ -322,6 +322,16 @@ public:
    */
   void EnableDragAndDrop(bool enable) override;
 
+  /**
+   * @copydoc Dali::WebEngineSettings::SetExtraFeatureValue()
+   */
+  bool SetExtraFeatureValue(const std::string& feature, const std::string& value) override;
+
+  /**
+   * @copydoc Dali::WebEngineSettings::GetExtraFeatureValue()
+   */
+  std::string GetExtraFeatureValue(const std::string& feature) const override;
+
 private:
   /**
    * @brief Pushes the cached settings snapshot to the engine.
@@ -330,6 +340,7 @@ private:
 
   LWE::WebContainer* mWebContainer; ///< Not owned; outlives this settings object.
   LWE::Settings      mSettings;     ///< Cached snapshot; the only copy this class writes to.
+  std::string mTtsLanguage; ///< TTS language set through the DALi extra-feature API.
 };
 
 } // namespace Plugin

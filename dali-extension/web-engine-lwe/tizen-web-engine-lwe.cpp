@@ -1256,6 +1256,16 @@ public:
   {
     // NOT IMPLEMENTED
   }
+  bool SetExtraFeatureValue(const std::string& feature, const std::string& value) override
+  {
+    // NOT IMPLEMENTED
+    return false;
+  }
+  std::string GetExtraFeatureValue(const std::string& feature) const override
+  {
+    // NOT IMPLEMENTED
+    return {};
+  }
 };
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
@@ -2208,6 +2218,12 @@ void TizenWebEngineLWE::FeedMouseWheel(bool yDirection, int step, int x, int y)
 void TizenWebEngineLWE::SetVideoHole(bool enabled, bool isWaylandWindow)
 {
   // NOT IMPLEMENTED
+}
+
+void TizenWebEngineLWE::RemoveJavaScriptMessageHandler(const std::string& exposedObjectName)
+{
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->RemoveJavascriptInterface(exposedObjectName, "postMessage");
 }
 
 } // namespace Plugin

@@ -650,6 +650,11 @@ public:
    */
   void SetVideoHole(bool enabled, bool isWaylandWindow) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RemoveJavaScriptMessageHandler()
+   */
+  void RemoveJavaScriptMessageHandler(const std::string& exposedObjectName) override;
+
 private:
 #ifndef OVER_TIZEN_VERSION_9
   void LegacyUpdateBuffer();
