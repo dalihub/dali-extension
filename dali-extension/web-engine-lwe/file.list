@@ -1,2 +1,4 @@
 web_engine_lwe_plugin_src_files = \
-   $(extension_src_dir)/web-engine-lwe/tizen-web-engine-lwe.cpp
+   $(extension_src_dir)/web-engine-lwe/tizen-web-engine-lwe.cpp \
+   $(extension_src_dir)/web-engine-lwe/tizen-web-engine-lwe-settings.cpp \
+   $(extension_src_dir)/web-engine-lwe/tizen-web-engine-lwe-load-error.cpp

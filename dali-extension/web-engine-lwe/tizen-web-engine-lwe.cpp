@@ -18,6 +18,10 @@
 // CLASS HEADER
 #include "tizen-web-engine-lwe.h"
 
+// INTERNAL INCLUDES
+#include "tizen-web-engine-lwe-load-error.h"
+#include "tizen-web-engine-lwe-settings.h"
+
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/application-devel.h>
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-back-forward-list-item.h>
@@ -29,8 +33,10 @@
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-settings.h>
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
+#include <dali/public-api/events/hover-event.h>
 #include <dali/public-api/events/key-event.h>
 #include <dali/public-api/events/touch-event.h>
+#include <dali/public-api/events/wheel-event.h>
 
 #include <unistd.h>
 #include <vconf/vconf.h>
@@ -355,6 +361,8 @@ static PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR;
 TizenWebEngineLWE::TizenWebEngineLWE()
 : mUrl(""),
   mIsMouseLbuttonDown(false),
+  mMouseEventsEnabled(true),
+  mKeyEventsEnabled(true),
   mCanGoBack(false),
   mCanGoForward(false),
 #ifndef OVER_TIZEN_VERSION_9
@@ -383,7 +391,9 @@ TizenWebEngineLWE::TizenWebEngineLWE()
   mFirstRenderEnded(false),
   mFrameRenderedCallback(nullptr),
   mLoadStartedCallback(nullptr),
-  mLoadFinishedCallback(nullptr)
+  mLoadFinishedCallback(nullptr),
+  mLoadErrorCallback(nullptr),
+  mJavaScriptAlertCallback(nullptr)
 {
 #ifndef OVER_TIZEN_VERSION_9
   pthread_mutex_init(&mOutputBufferMutex, NULL);
@@ -502,7 +512,16 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     mUpdateBufferTrigger.Trigger();
   };
 #endif
-  mOnReceivedError = [](LWE::WebContainer* container, LWE::ResourceError error) {};
+  mOnReceivedError = [this](LWE::WebContainer* container, LWE::ResourceError error)
+  {
+    // Fires on any failed resource load, not only the main-frame navigation
+    // (src/core/modules/resource_request/ResourceRequest.cpp:76-100) — unlike
+    // chromium's WebEnginePageLoadErrorCallback, which is main-frame only.
+    // Forwarded as-is since Bixby's current LWE-direct usage relies on the
+    // same broad behaviour.
+    std::unique_ptr<Dali::WebEngineLoadError> error2 = std::make_unique<TizenWebEngineLweLoadError>(error);
+    ExecuteCallback(mLoadErrorCallback, std::move(error2));
+  };
 
   mOnPageStartedHandler = [this](LWE::WebContainer* container, const std::string& url)
   {
@@ -644,6 +663,8 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
     mOnRenderedHandler(container, renderResult);
   });
 #endif
+
+  mWebEngineSettings = std::make_unique<TizenWebEngineLweSettings>(mWebContainer);
 
   mWebContainer->RegisterOnReceivedErrorHandler(
     [this](LWE::WebContainer* container, LWE::ResourceError error)
@@ -1239,7 +1260,12 @@ public:
 
 Dali::WebEngineSettings& TizenWebEngineLWE::GetSettings() const
 {
-  // NOT IMPLEMENTED
+  if(mWebEngineSettings)
+  {
+    return *mWebEngineSettings;
+  }
+  // Fallback for the window between construction and Create(), or after
+  // Destroy() — GetSettings() must return a valid reference even then.
   static NullWebEngineSettings settings;
   return settings;
 }
@@ -1319,6 +1345,7 @@ void TizenWebEngineLWE::DestroyInstance()
   {
     return;
   }
+  mWebEngineSettings.reset();
   mInDestroyingLWEInstance = true;
   mWebContainer->Destroy();
   mInDestroyingLWEInstance = false;
@@ -1344,6 +1371,13 @@ void TizenWebEngineLWE::ChangeOrientation(int orientation)
 void TizenWebEngineLWE::LoadUrl(const std::string& url)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
+  // LWE::WebContainer::LoadURL() is posted asynchronously to the LWE main
+  // thread, while GetURL() reads synchronously, so a GetUrl() call made
+  // right after LoadUrl() would otherwise still see the previous page's
+  // URL. Update the cache eagerly; OnPageStarted/OnPageLoaded/OnLoadResource
+  // below overwrite it once the engine reports the (possibly redirected)
+  // real URL.
+  mUrl = url;
   mWebContainer->LoadURL(url);
 }
 
@@ -1368,6 +1402,9 @@ std::string TizenWebEngineLWE::GetUrl() const
 void TizenWebEngineLWE::LoadHtmlString(const std::string& str)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
+  // See the comment in LoadUrl() — LoadData() has no URL of its own, so the
+  // cache is reset to the same "about:blank" LoadUrl() uses at Create() time.
+  mUrl = "about:blank";
   mWebContainer->LoadData(str);
 }
 
@@ -1405,12 +1442,14 @@ void TizenWebEngineLWE::StopLoading()
 
 void TizenWebEngineLWE::Suspend()
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->Pause();
 }
 
 void TizenWebEngineLWE::Resume()
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->Resume();
 }
 
 void TizenWebEngineLWE::SuspendNetworkLoading()
@@ -1449,7 +1488,8 @@ bool TizenWebEngineLWE::StopInspectorServer()
 
 void TizenWebEngineLWE::ScrollBy(int32_t deltaX, int32_t deltaY)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->ScrollBy(deltaX, deltaY);
 }
 
 bool TizenWebEngineLWE::ScrollEdgeBy(int32_t deltaX, int32_t deltaY)
@@ -1460,13 +1500,14 @@ bool TizenWebEngineLWE::ScrollEdgeBy(int32_t deltaX, int32_t deltaY)
 
 void TizenWebEngineLWE::SetScrollPosition(int32_t x, int32_t y)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->ScrollTo(x, y);
 }
 
 Dali::Vector2 TizenWebEngineLWE::GetScrollPosition() const
 {
-  // NOT IMPLEMENTED
-  return Dali::Vector2::ZERO;
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  return Dali::Vector2(static_cast<float>(mWebContainer->GetScrollX()), static_cast<float>(mWebContainer->GetScrollY()));
 }
 
 Dali::Vector2 TizenWebEngineLWE::GetScrollSize() const
@@ -1532,12 +1573,36 @@ void TizenWebEngineLWE::AddJavaScriptMessageHandler(const std::string& exposedOb
 
 void TizenWebEngineLWE::AddJavaScriptEntireMessageHandler(const std::string& exposedObjectName, Dali::WebEnginePlugin::JavaScriptEntireMessageHandlerCallback handler)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  // LWE don't support empty std::function
+  if(!handler)
+  {
+    handler = [](const std::string&, const std::string&) {};
+  }
+  // exposedObjectName is captured so the callback can report which object
+  // received the message, matching JavaScriptEntireMessageHandlerCallback's
+  // (name, body) contract — mirrors chromium's Ewk_Script_Message mapping.
+  mWebContainer->AddJavaScriptInterface(exposedObjectName, "postMessage", [handler, exposedObjectName](const std::string& data) -> std::string
+  {
+    handler(exposedObjectName, data);
+    return ""; });
 }
 
 void TizenWebEngineLWE::RegisterJavaScriptAlertCallback(Dali::WebEnginePlugin::JavaScriptAlertCallback callback)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mJavaScriptAlertCallback = callback;
+  if(mJavaScriptAlertCallback)
+  {
+    mWebContainer->RegisterShowAlertHandler(
+      [this](LWE::WebContainer* container, const std::string& title, const std::string& message)
+    {
+      if(mJavaScriptAlertCallback)
+      {
+        mJavaScriptAlertCallback(message);
+      }
+    });
+  }
 }
 
 void TizenWebEngineLWE::JavaScriptAlertReply()
@@ -1591,23 +1656,27 @@ void TizenWebEngineLWE::ClearAllTilesResources()
 
 std::string TizenWebEngineLWE::GetUserAgent() const
 {
-  // NOT IMPLEMENTED
-  return std::string();
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  // WebContainer::Get/SetUserAgentString are convenience passthroughs
+  // separate from the Settings value type, so no Settings snapshot round
+  // trip is needed here.
+  return mWebContainer->GetUserAgentString();
 }
 
 void TizenWebEngineLWE::SetUserAgent(const std::string& userAgent)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->SetUserAgentString(userAgent);
 }
 
 void TizenWebEngineLWE::EnableMouseEvents(bool enabled)
 {
-  // NOT IMPLEMENTED
+  mMouseEventsEnabled = enabled;
 }
 
 void TizenWebEngineLWE::EnableKeyEvents(bool enabled)
 {
-  // NOT IMPLEMENTED
+  mKeyEventsEnabled = enabled;
 }
 
 void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
@@ -1651,9 +1720,13 @@ void TizenWebEngineLWE::SetSize(uint32_t width, uint32_t height)
 void TizenWebEngineLWE::SetDocumentBackgroundColor(Dali::Vector4 color)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
-  auto settings = mWebContainer->GetSettings();
-  settings.SetBaseBackgroundColor(color.r * 255, color.g * 255, color.b * 255, color.a * 255);
-  mWebContainer->SetSettings(settings);
+  DALI_ASSERT_ALWAYS(mWebEngineSettings);
+  // Routed through the shared TizenWebEngineLweSettings snapshot instead of
+  // its own GetSettings()/SetSettings() round-trip: SetSettings() applies
+  // asynchronously, so a second, independently-fetched snapshot could
+  // clobber a settings change (e.g. EnableWebSecurity()) that has not been
+  // applied to the engine yet.
+  mWebEngineSettings->SetBaseBackgroundColor(color);
 }
 
 void TizenWebEngineLWE::ClearTilesWhenHidden(bool cleared)
@@ -1706,6 +1779,11 @@ void TizenWebEngineLWE::DispatchMouseMoveEvent(float x, float y, bool isLButtonP
 
 bool TizenWebEngineLWE::SendTouchEvent(const TouchEvent& touch)
 {
+  if(!mMouseEventsEnabled)
+  {
+    return false;
+  }
+
   size_t pointCount = touch.GetPointCount();
   if(pointCount == 1)
   {
@@ -1755,6 +1833,11 @@ void TizenWebEngineLWE::DispatchKeyUpEvent(LWE::KeyValue keyCode)
 
 bool TizenWebEngineLWE::SendKeyEvent(const Dali::KeyEvent& event)
 {
+  if(!mKeyEventsEnabled)
+  {
+    return false;
+  }
+
   LWE::KeyValue keyValue = LWE::KeyValue::UnidentifiedKey;
   if(32 < event.GetKeyString().CStr()[0] && 127 > event.GetKeyString().CStr()[0])
   {
@@ -1912,13 +1995,46 @@ void TizenWebEngineLWE::EnableVideoHole(bool enabled)
 
 bool TizenWebEngineLWE::SendHoverEvent(const Dali::HoverEvent& event)
 {
-  // NOT IMPLEMENTED
+  if(!mMouseEventsEnabled)
+  {
+    return false;
+  }
+
+  if(event.GetPointCount() > 0)
+  {
+    switch(event.GetState(0))
+    {
+      case PointState::MOTION:
+      {
+        float x = event.GetScreenPosition(0).x;
+        float y = event.GetScreenPosition(0).y;
+        DispatchMouseMoveEvent(x, y, mIsMouseLbuttonDown, false);
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+  }
+
   return false;
 }
 
 bool TizenWebEngineLWE::SendWheelEvent(const Dali::WheelEvent& event)
 {
-  // NOT IMPLEMENTED
+  if(!mMouseEventsEnabled)
+  {
+    return false;
+  }
+
+  int   step = event.GetDelta();
+  float x    = event.GetPoint().x;
+  float y    = event.GetPoint().y;
+
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  mWebContainer->DispatchMouseWheelEvent(x, y, step);
+
   return false;
 }
 
@@ -1949,7 +2065,7 @@ void TizenWebEngineLWE::RegisterPageLoadFinishedCallback(WebEnginePageLoadCallba
 
 void TizenWebEngineLWE::RegisterPageLoadErrorCallback(WebEnginePageLoadErrorCallback callback)
 {
-  // NOT IMPLEMENTED
+  mLoadErrorCallback = callback;
 }
 
 void TizenWebEngineLWE::RegisterScrollEdgeReachedCallback(WebEngineScrollEdgeReachedCallback callback)
@@ -2084,7 +2200,9 @@ void TizenWebEngineLWE::RegisterDeviceListGetCallback(WebEngineDeviceListGetCall
 
 void TizenWebEngineLWE::FeedMouseWheel(bool yDirection, int step, int x, int y)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  int delta = yDirection ? step : -step;
+  mWebContainer->DispatchMouseWheelEvent(x, y, delta);
 }
 
 void TizenWebEngineLWE::SetVideoHole(bool enabled, bool isWaylandWindow)

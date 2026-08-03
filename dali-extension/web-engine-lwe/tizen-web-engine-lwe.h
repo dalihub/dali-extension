@@ -34,11 +34,14 @@
 #include <LWEWebView.h>
 
 #include <atomic>
+#include <memory>
 
 namespace Dali
 {
 namespace Plugin
 {
+class TizenWebEngineLweSettings;
+
 /**
  * @brief Implementation of the Tizen WebEngineLWE class which has Tizen
  * platform dependency.
@@ -694,6 +697,8 @@ private:
   std::string mUrl;
 
   bool mIsMouseLbuttonDown;
+  bool mMouseEventsEnabled;
+  bool mKeyEventsEnabled;
   bool mCanGoBack;
   bool mCanGoForward;
   bool mInDestroyingLWEInstance;
@@ -720,6 +725,8 @@ private:
   LWE::WebContainer*   mWebContainer;
   Dali::NativeImagePtr mDaliImageSrc;
 
+  std::unique_ptr<TizenWebEngineLweSettings> mWebEngineSettings;
+
   EGLNativeDisplayType mNativeDisplay;
   EGLDisplay           mEglDisplay;
   EGLConfig            mEglConfig;
@@ -741,6 +748,9 @@ private:
   WebEngineFrameRenderedCallback mFrameRenderedCallback;
   WebEnginePageLoadCallback      mLoadStartedCallback;
   WebEnginePageLoadCallback      mLoadFinishedCallback;
+  WebEnginePageLoadErrorCallback mLoadErrorCallback;
+
+  Dali::WebEnginePlugin::JavaScriptAlertCallback mJavaScriptAlertCallback;
 };
 
 } // namespace Plugin
