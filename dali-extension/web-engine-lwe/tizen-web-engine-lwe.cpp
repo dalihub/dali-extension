@@ -358,6 +358,8 @@ static PFNEGLCREATESYNCKHRPROC     gEglCreateSyncKHR;
 static PFNEGLDESTROYSYNCKHRPROC    gEglDestroySyncKHR;
 static PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR;
 
+std::set<TizenWebEngineLWE*> TizenWebEngineLWE::sLiveInstances;
+
 TizenWebEngineLWE::TizenWebEngineLWE()
 : mUrl(""),
   mIsMouseLbuttonDown(false),
@@ -665,6 +667,7 @@ void TizenWebEngineLWE::Create(uint32_t width, uint32_t height, const std::strin
 #endif
 
   mWebEngineSettings = std::make_unique<TizenWebEngineLweSettings>(mWebContainer);
+  sLiveInstances.insert(this);
 
   mWebContainer->RegisterOnReceivedErrorHandler(
     [this](LWE::WebContainer* container, LWE::ResourceError error)
@@ -1345,11 +1348,20 @@ void TizenWebEngineLWE::DestroyInstance()
   {
     return;
   }
+  sLiveInstances.erase(this);
   mWebEngineSettings.reset();
   mInDestroyingLWEInstance = true;
   mWebContainer->Destroy();
   mInDestroyingLWEInstance = false;
   mWebContainer            = NULL;
+}
+
+void TizenWebEngineLWE::ClearSharedCache()
+{
+  if(!sLiveInstances.empty())
+  {
+    (*sLiveInstances.begin())->mWebContainer->ClearCache();
+  }
 }
 
 Dali::NativeImagePtr TizenWebEngineLWE::GetNativeImage()
