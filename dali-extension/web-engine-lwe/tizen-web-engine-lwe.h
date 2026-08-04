@@ -35,6 +35,7 @@
 
 #include <atomic>
 #include <memory>
+#include <set>
 
 namespace Dali
 {
@@ -64,6 +65,16 @@ public:
    * @copydoc Dali::WebEnginePlugin::Create()
    */
   void Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
+
+  /**
+   * @brief Clears the process-wide HTTP cache via any one live instance's
+   * WebContainer. Not part of the Dali::WebEnginePlugin interface — used
+   * internally by TizenWebEngineLweContext::ClearCache() (see
+   * tizen-web-engine-lwe-context.cpp), since LWE has no global registry of
+   * live instances and WebContainer::ClearCache() already clears a
+   * Starfish-level cache shared by every WebContainer, not a per-instance one.
+   */
+  static void ClearSharedCache();
 
   /**
    * @copydoc Dali::WebEnginePlugin::GetSettings()
@@ -699,6 +710,8 @@ private:
   void UpdateImage(tbm_surface_h image);
 
 private:
+  static std::set<TizenWebEngineLWE*> sLiveInstances; ///< See ClearSharedCache() above.
+
   std::string mUrl;
 
   bool mIsMouseLbuttonDown;
