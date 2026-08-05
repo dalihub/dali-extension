@@ -18,6 +18,9 @@
 // CLASS HEADER
 #include "tizen-web-engine-lwe-settings.h"
 
+// EXTERNAL INCLUDES
+#include <stdexcept>
+
 namespace Dali
 {
 namespace Plugin
@@ -401,6 +404,22 @@ bool TizenWebEngineLweSettings::SetExtraFeatureValue(const std::string& feature,
     Apply();
     return true;
   }
+  if(feature == "imageDownscaleThreshold")
+  {
+    // LWE exposes this through a typed uint32_t setting rather than the raw
+    // string map; a plain UpdateSetting() would store the string but never
+    // actually change image-downscaling behavior.
+    try
+    {
+      mSettings.SetNeedsDownScaleImageResourceLargerThan(std::stoul(value));
+    }
+    catch(const std::exception&)
+    {
+      return false;
+    }
+    Apply();
+    return true;
+  }
 
   mSettings.UpdateSetting(feature, value);
   Apply();
@@ -412,6 +431,10 @@ std::string TizenWebEngineLweSettings::GetExtraFeatureValue(const std::string& f
   if(feature == "ttsLanguage")
   {
     return mSettings.GetTTSLanguage();
+  }
+  if(feature == "imageDownscaleThreshold")
+  {
+    return std::to_string(mSettings.NeedsDownScaleImageResourceLargerThan());
   }
   return mSettings.GetSetting(feature);
 }
