@@ -340,7 +340,6 @@ private:
 
   LWE::WebContainer* mWebContainer; ///< Not owned; outlives this settings object.
   LWE::Settings      mSettings;     ///< Cached snapshot; the only copy this class writes to.
-  std::string mTtsLanguage; ///< TTS language set through the DALi extra-feature API.
 };
 
 } // namespace Plugin

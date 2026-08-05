@@ -1914,13 +1914,19 @@ void TizenWebEngineLWE::SetCursorThemeName(const std::string themeName)
 
 void TizenWebEngineLWE::SetPageZoomFactor(float zoomFactor)
 {
-  // NOT IMPLEMENTED
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  // LWE has no separate page-zoom concept, but SetDevicePixelRatio() already
+  // does what real browsers do for zoom: recomputes the CSS-px viewport from
+  // physical/DPR and triggers a full reflow, with window.devicePixelRatio
+  // and `resolution` media queries reacting to it -- matching spec/Chrome's
+  // own zoom behavior (not a bug/leak, see MDN + Media Queries L4 spec).
+  mWebContainer->SetDevicePixelRatio(zoomFactor);
 }
 
 float TizenWebEngineLWE::GetPageZoomFactor() const
 {
-  // NOT IMPLEMENTED
-  return 0.0f;
+  DALI_ASSERT_ALWAYS(mWebContainer);
+  return mWebContainer->GetDevicePixelRatio();
 }
 
 void TizenWebEngineLWE::SetTextZoomFactor(float zoomFactor)

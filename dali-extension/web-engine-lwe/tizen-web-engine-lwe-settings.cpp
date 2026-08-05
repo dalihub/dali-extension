@@ -398,24 +398,20 @@ bool TizenWebEngineLweSettings::SetExtraFeatureValue(const std::string& feature,
   {
     // LWE exposes the TTS language through a typed setting rather than the raw string map.
     mSettings.SetTTSLanguage(value);
-    mTtsLanguage = value;
     Apply();
     return true;
   }
 
-  const bool updated = mSettings.UpdateSetting(feature, value);
-  if(updated)
-  {
-    Apply();
-  }
-  return updated;
+  mSettings.UpdateSetting(feature, value);
+  Apply();
+  return true;
 }
 
 std::string TizenWebEngineLweSettings::GetExtraFeatureValue(const std::string& feature) const
 {
   if(feature == "ttsLanguage")
   {
-    return mTtsLanguage;
+    return mSettings.GetTTSLanguage();
   }
   return mSettings.GetSetting(feature);
 }
