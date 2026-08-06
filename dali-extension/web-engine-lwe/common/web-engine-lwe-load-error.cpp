@@ -15,23 +15,19 @@
  *
  */
 
-// CLASS HEADER
-#include "tizen-web-engine-lwe-load-error.h"
+#include "web-engine-lwe-load-error.h"
+
+#include <utility>
 
 namespace Dali
 {
 namespace Plugin
 {
-
 namespace
 {
-// LWE::ResourceError::GetErrorCode() is a plain int cast of the engine's
-// internal Starfish::RequestErrorType enum (src/public/delegate/
-// LWEWebContainerDelegate.cpp: convertErrorCode() returns
-// static_cast<int>(errortype)). That enum is not part of LWE's public
-// headers, so its values are reproduced here in declaration order
-// (src/core/modules/resource_request/ResourceRequest.h:77-94) rather than
-// referenced by name.
+// LWE exposes Starfish's internal RequestErrorType as an integer. The values
+// below follow its public conversion order and are mapped explicitly so they
+// are never confused with DALi's unrelated ErrorCode values.
 enum class StarfishRequestErrorType
 {
   NO_ERROR                      = 0,
@@ -51,88 +47,61 @@ enum class StarfishRequestErrorType
   FILE_NOT_FOUND_ERROR          = 14,
   TOO_MANY_REQUEST_ERROR        = 15,
 };
+} // unnamed namespace
 
-} // Anonymous namespace
-
-TizenWebEngineLweLoadError::TizenWebEngineLweLoadError(const LWE::ResourceError& error)
-: mUrl(error.GetUrl()),
-  mDescription(error.GetDescription()),
-  mErrorCode(error.GetErrorCode())
+WebEngineLweLoadError::WebEngineLweLoadError(std::string url, std::string description, int errorCode)
+: mUrl(std::move(url)),
+  mDescription(std::move(description)),
+  mErrorCode(errorCode)
 {
 }
 
-TizenWebEngineLweLoadError::~TizenWebEngineLweLoadError()
-{
-}
-
-std::string TizenWebEngineLweLoadError::GetUrl() const
+std::string WebEngineLweLoadError::GetUrl() const
 {
   return mUrl;
 }
 
-Dali::WebEngineLoadError::ErrorCode TizenWebEngineLweLoadError::GetCode() const
+Dali::WebEngineLoadError::ErrorCode WebEngineLweLoadError::GetCode() const
 {
   switch(static_cast<StarfishRequestErrorType>(mErrorCode))
   {
     case StarfishRequestErrorType::HOST_LOOKUP_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::CANT_LOOKUP_HOST;
-    }
+      return ErrorCode::CANT_LOOKUP_HOST;
     case StarfishRequestErrorType::UNSUPPORTED_AUTH_SCHEME_ERROR:
     case StarfishRequestErrorType::AUTHENTICATION_ERROR:
     case StarfishRequestErrorType::PROXY_AUTHENTICATION_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::AUTHENTICATION;
-    }
+      return ErrorCode::AUTHENTICATION;
     case StarfishRequestErrorType::CONNECT_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::CANT_CONNECT;
-    }
+      return ErrorCode::CANT_CONNECT;
     case StarfishRequestErrorType::IO_ERROR:
     case StarfishRequestErrorType::FILE_ERROR:
     case StarfishRequestErrorType::FILE_NOT_FOUND_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::FAILED_FILE_IO;
-    }
+      return ErrorCode::FAILED_FILE_IO;
     case StarfishRequestErrorType::TIMEOUT_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::REQUEST_TIMEOUT;
-    }
+      return ErrorCode::REQUEST_TIMEOUT;
     case StarfishRequestErrorType::REDIRECT_LOOP_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::TOO_MANY_REDIRECTS;
-    }
+      return ErrorCode::TOO_MANY_REDIRECTS;
     case StarfishRequestErrorType::UNSUPPORTED_SCHEME_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::UNSUPPORTED_SCHEME;
-    }
+      return ErrorCode::UNSUPPORTED_SCHEME;
     case StarfishRequestErrorType::FAILED_SSL_HANDSHAKE_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::FAILED_TLS_HANDSHAKE;
-    }
+      return ErrorCode::FAILED_TLS_HANDSHAKE;
     case StarfishRequestErrorType::BAD_URL_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::BAD_URL;
-    }
+      return ErrorCode::BAD_URL;
     case StarfishRequestErrorType::TOO_MANY_REQUEST_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::TOO_MANY_REQUESTS;
-    }
+      return ErrorCode::TOO_MANY_REQUESTS;
     case StarfishRequestErrorType::NO_ERROR:
     case StarfishRequestErrorType::UNKNOWN_ERROR:
     default:
-    {
-      return Dali::WebEngineLoadError::ErrorCode::UNKNOWN;
-    }
+      return ErrorCode::UNKNOWN;
   }
 }
 
-std::string TizenWebEngineLweLoadError::GetDescription() const
+std::string WebEngineLweLoadError::GetDescription() const
 {
   return mDescription;
 }
 
-Dali::WebEngineLoadError::ErrorType TizenWebEngineLweLoadError::GetType() const
+Dali::WebEngineLoadError::ErrorType WebEngineLweLoadError::GetType() const
 {
   switch(static_cast<StarfishRequestErrorType>(mErrorCode))
   {
@@ -145,23 +114,17 @@ Dali::WebEngineLoadError::ErrorType TizenWebEngineLweLoadError::GetType() const
     case StarfishRequestErrorType::REDIRECT_LOOP_ERROR:
     case StarfishRequestErrorType::FAILED_SSL_HANDSHAKE_ERROR:
     case StarfishRequestErrorType::TOO_MANY_REQUEST_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorType::NETWORK;
-    }
+      return ErrorType::NETWORK;
     case StarfishRequestErrorType::IO_ERROR:
     case StarfishRequestErrorType::FILE_ERROR:
     case StarfishRequestErrorType::FILE_NOT_FOUND_ERROR:
     case StarfishRequestErrorType::UNSUPPORTED_SCHEME_ERROR:
     case StarfishRequestErrorType::BAD_URL_ERROR:
     case StarfishRequestErrorType::UNKNOWN_ERROR:
-    {
-      return Dali::WebEngineLoadError::ErrorType::INTERNAL;
-    }
+      return ErrorType::INTERNAL;
     case StarfishRequestErrorType::NO_ERROR:
     default:
-    {
-      return Dali::WebEngineLoadError::ErrorType::NONE;
-    }
+      return ErrorType::NONE;
   }
 }
 
