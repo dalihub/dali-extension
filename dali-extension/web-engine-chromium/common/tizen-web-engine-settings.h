@@ -445,6 +445,16 @@ public:
    */
   void EnableDragAndDrop(bool enable) override;
 
+  /**
+   * @copydoc Dali::WebEngineSettings::SetExtraFeatureValue()
+   */
+  bool SetExtraFeatureValue(const std::string& feature, const std::string& value) override;
+
+  /**
+   * @copydoc Dali::WebEngineSettings::GetExtraFeatureValue()
+   */
+  std::string GetExtraFeatureValue(const std::string& feature) const override;
+
 private:
   Ewk_Settings* ewkSettings;
 };

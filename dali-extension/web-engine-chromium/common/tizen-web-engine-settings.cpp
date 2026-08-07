@@ -290,5 +290,17 @@ void TizenWebEngineSettings::EnableDragAndDrop(bool enable)
   ewk_settings_drag_drop_enabled_set(ewkSettings, enable);
 }
 
+bool TizenWebEngineSettings::SetExtraFeatureValue(const std::string& feature, const std::string& value)
+{
+  // NOT IMPLEMENTED: Chromium has no corresponding setting.
+  return false;
+}
+
+std::string TizenWebEngineSettings::GetExtraFeatureValue(const std::string& feature) const
+{
+  // NOT IMPLEMENTED: Chromium has no corresponding setting.
+  return {};
+}
+
 } // namespace Plugin
 } // namespace Dali

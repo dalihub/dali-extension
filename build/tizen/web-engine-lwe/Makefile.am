@@ -25,7 +25,7 @@ lib_LTLIBRARIES =
 lib_LTLIBRARIES += libdali2-web-engine-lwe-plugin.la
 
 libdali2_web_engine_lwe_plugin_la_SOURCES = \
-                     $(web_engine_lwe_plugin_src_files)
+                     $(web_engine_lwe_tizen_plugin_src_files)
 
 libdali2_web_engine_lwe_plugin_la_DEPENDENCIES =
 

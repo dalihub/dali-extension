@@ -1,2 +1,13 @@
-web_engine_lwe_plugin_src_files = \
-   $(extension_src_dir)/web-engine-lwe/tizen-web-engine-lwe.cpp
+web_engine_lwe_common_plugin_src_files = \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe.cpp \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe-back-forward-list.cpp \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe-context.cpp \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe-cookie-manager.cpp \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe-input.cpp \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe-load-error.cpp \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe-plugin.cpp \
+   $(extension_src_dir)/web-engine-lwe/common/web-engine-lwe-settings.cpp
+
+web_engine_lwe_tizen_plugin_src_files = \
+   $(web_engine_lwe_common_plugin_src_files) \
+   $(extension_src_dir)/web-engine-lwe/tizen/web-engine-lwe-backend-tizen.cpp

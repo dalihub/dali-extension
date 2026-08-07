@@ -647,6 +647,11 @@ public:
    */
   void SetVideoHole(bool enabled, bool isWaylandWindow) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RemoveJavaScriptMessageHandler()
+   */
+  void RemoveJavaScriptMessageHandler(const std::string& exposedObjectName) override;
+
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
