@@ -19,8 +19,8 @@
  */
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/pixel-buffer.h>
 #include <dali/public-api/adaptor-framework/native-image.h>
+#include <dali/public-api/adaptor-framework/pixel-buffer.h>
 
 // INTERNAL INCLUDES
 #include <dali-extension/vector-animation-renderer/vector-animation-renderer.h>

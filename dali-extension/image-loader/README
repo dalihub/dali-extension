@@ -11,7 +11,7 @@ implement LoadBitmapFromImage and LoadImageHeader in the loader-dummy.cpp file.
   return success;
  }
 
- bool LoadBitmapFromImage( const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap )
+ bool LoadBitmapFromImage( const Dali::ImageLoader::Input& input, Dali::PixelBuffer& bitmap )
  {
    bool success = false;
    /* Loads the bitmap from an image file.  This function checks the header first */

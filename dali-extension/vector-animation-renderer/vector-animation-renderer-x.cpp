@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <dali-extension/vector-animation-renderer/vector-animation-renderer-x.h>
 
 // EXTERNAL INCLUDES
+#include <dali/devel-api/adaptor-framework/pixel-buffer-devel.h>
 #include <dali/devel-api/common/hash.h>
 #include <dali/devel-api/rendering/texture-devel.h>
 #include <dali/integration-api/debug.h>
@@ -49,8 +50,8 @@ Debug::Filter* gVectorAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, 
 class VectorAnimationRendererX::RenderingDataImpl : public VectorAnimationRenderer::RenderingData
 {
 public:
-  rlottie::Surface         mLottieSurface;
-  Dali::Devel::PixelBuffer mPixelBuffer;
+  rlottie::Surface  mLottieSurface;
+  Dali::PixelBuffer mPixelBuffer;
 };
 
 VectorAnimationRendererX::VectorAnimationRendererX()
@@ -151,7 +152,7 @@ void VectorAnimationRendererX::OnNotify()
 
   if(renderingDataImpl && renderingDataImpl->mPixelBuffer && renderingDataImpl->mTexture)
   {
-    PixelData pixelData = renderingDataImpl->mPixelBuffer.CreatePixelData();
+    PixelData pixelData = DevelPixelBuffer::CreatePixelData(renderingDataImpl->mPixelBuffer);
     renderingDataImpl->mTexture.Upload(pixelData);
 
     mUploadPixelBufferRequired = false;
@@ -163,7 +164,7 @@ void VectorAnimationRendererX::PrepareTarget(std::shared_ptr<RenderingData> rend
 {
   std::shared_ptr<RenderingDataImpl> renderingDataImpl = std::static_pointer_cast<RenderingDataImpl>(renderingData);
   renderingDataImpl->mTexture                          = Texture::New(Dali::TextureType::TEXTURE_2D, Dali::Pixel::BGRA8888, renderingDataImpl->mWidth, renderingDataImpl->mHeight);
-  renderingDataImpl->mPixelBuffer                      = Dali::Devel::PixelBuffer::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, Dali::Pixel::BGRA8888);
+  renderingDataImpl->mPixelBuffer                      = Dali::PixelBuffer::New(renderingDataImpl->mWidth, renderingDataImpl->mHeight, Dali::Pixel::BGRA8888);
   renderingDataImpl->mLottieSurface                    = rlottie::Surface(reinterpret_cast<uint32_t*>(renderingDataImpl->mPixelBuffer.GetBuffer()), renderingDataImpl->mWidth, renderingDataImpl->mHeight, static_cast<size_t>(renderingDataImpl->mPixelBuffer.GetStrideBytes()));
 }
 

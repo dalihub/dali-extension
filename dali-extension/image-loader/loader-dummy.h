@@ -42,7 +42,7 @@ class ResourceLoadingClient;
  * @param[out] bitmap The bitmap class where the decoded image will be stored
  * @return  true if file decoded successfully, false otherwise
  */
-bool LoadBitmapFromImage(const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap);
+bool LoadBitmapFromImage(const Dali::ImageLoader::Input& input, Dali::PixelBuffer& bitmap);
 
 /**
  * Loads the header of a image file and fills in the width and height appropriately.
