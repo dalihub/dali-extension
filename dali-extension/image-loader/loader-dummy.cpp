@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 // HEADER
 #include "loader-dummy.h"
 
-#include <dali/devel-api/adaptor-framework/pixel-buffer.h>
 #include <dali/integration-api/debug.h>
+#include <dali/public-api/adaptor-framework/pixel-buffer.h>
 // INTERNAL INCLUDES
 
 namespace Dali
@@ -38,7 +38,7 @@ bool LoadImageHeader(const Dali::ImageLoader::Input& input, unsigned int& width,
   return success;
 }
 
-bool LoadBitmapFromImage(const Dali::ImageLoader::Input& input, Dali::Devel::PixelBuffer& bitmap)
+bool LoadBitmapFromImage(const Dali::ImageLoader::Input& input, Dali::PixelBuffer& bitmap)
 {
   bool success = false;
   /* Loads the bitmap from an image file.  This function checks the header first */
