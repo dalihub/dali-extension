@@ -167,6 +167,11 @@ public:
   void RegisterDeviceListGetCallback(WebEngineDeviceListGetCallback callback) override;
   void FeedMouseWheel(bool yDirection, int step, int x, int y) override;
   void SetVideoHole(bool enabled, bool isWaylandWindow) override;
+  void RegisterPlaybackVideoReadyCallback(WebEnginePlaybackVideoReadyCallback callback) override;
+  void RegisterPlaybackVideoStartedCallback(WebEnginePlaybackVideoStartedCallback callback) override;
+  void RegisterPlaybackVideoFinishedCallback(WebEnginePlaybackVideoFinishedCallback callback) override;
+  void RegisterPlaybackVideoStoppedCallback(WebEnginePlaybackVideoStoppedCallback callback) override;
+  void RegisterPlaybackVideoPausedCallback(WebEnginePlaybackVideoPausedCallback callback) override;
 
   static void ClearSharedCache();
 

@@ -652,6 +652,31 @@ public:
    */
   void RemoveJavaScriptMessageHandler(const std::string& exposedObjectName) override;
 
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoReadyCallback()
+   */
+  void RegisterPlaybackVideoReadyCallback(WebEnginePlaybackVideoReadyCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoStartedCallback()
+   */
+  void RegisterPlaybackVideoStartedCallback(WebEnginePlaybackVideoStartedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoFinishedCallback()
+   */
+  void RegisterPlaybackVideoFinishedCallback(WebEnginePlaybackVideoFinishedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoStoppedCallback()
+   */
+  void RegisterPlaybackVideoStoppedCallback(WebEnginePlaybackVideoStoppedCallback callback) override;
+
+  /**
+   * @copydoc Dali::WebEnginePlugin::RegisterPlaybackVideoPausedCallback()
+   */
+  void RegisterPlaybackVideoPausedCallback(WebEnginePlaybackVideoPausedCallback callback) override;
+
 private:
   static Dali::PixelData ConvertImageColorSpace(Evas_Object* image);
 
@@ -701,6 +726,11 @@ private:
   static void      OnWebAuthResponse(void* data, Evas_Object*, void*);
   static void      OnFileChooserRequested(void* data, Evas_Object*, void* request);
   static void      OnWebProcessCrashed(void* data, Evas_Object*, void*);
+  static void      OnPlaybackVideoReady(void* data, Evas_Object*, void*);
+  static void      OnPlaybackVideoStarted(void* data, Evas_Object*, void*);
+  static void      OnPlaybackVideoFinished(void* data, Evas_Object*, void*);
+  static void      OnPlaybackVideoStopped(void* data, Evas_Object*, void*);
+  static void      OnPlaybackVideoPaused(void* data, Evas_Object*, void*);
 
   void UpdateImage(tbm_surface_h buffer);
   void InitWebView(bool incognito);
@@ -764,6 +794,11 @@ private:
   WebEngineUserMediaPermissionRequestCallback mUserMediaPermissionRequestCallback;
   WebEngineDeviceConnectionChangedCallback    mDeviceConnectionChangedCallback;
   WebEngineDeviceListGetCallback              mDeviceListGetCallback;
+  WebEnginePlaybackVideoReadyCallback         mPlaybackVideoReadyCallback;
+  WebEnginePlaybackVideoStartedCallback       mPlaybackVideoStartedCallback;
+  WebEnginePlaybackVideoFinishedCallback      mPlaybackVideoFinishedCallback;
+  WebEnginePlaybackVideoStoppedCallback       mPlaybackVideoStoppedCallback;
+  WebEnginePlaybackVideoPausedCallback        mPlaybackVideoPausedCallback;
 };
 } // namespace Plugin
 } // namespace Dali
