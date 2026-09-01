@@ -24,11 +24,22 @@ if test "x$with_tizen_90_or_greater" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DOVER_TIZEN_VERSION_9"
 fi
 
+TIZEN_WAYLAND_BACKEND_INIT
+
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor])
 PKG_CHECK_MODULES(WAYLAND, libtbm)
 PKG_CHECK_MODULES(WEB_ENGINE_CHROMIUM, chromium-efl)
-PKG_CHECK_MODULES(ELEMENTARY, elementary)
-PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
+
+if test "x$use_tcore_backend" = "xyes"; then
+  PKG_CHECK_MODULES(TCORE_WL, tizen-core-wl)
+  # The tcore backend reaches chromium-efl through the WV interface, which hands
+  # back GLib containers (GList, GHashTable). chromium-efl.pc does not pull GLib
+  # in, so ask for it here rather than relying on a transitive dependency.
+  PKG_CHECK_MODULES(GLIB, glib-2.0)
+else
+  PKG_CHECK_MODULES(ELEMENTARY, elementary)
+  PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
+fi
 
 devincludepath=${includedir}
 AC_SUBST(devincludepath)

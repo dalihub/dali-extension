@@ -49,9 +49,9 @@ Source0:    %{name}-%{version}.tar.gz
 %define enable_rive_animation_view 1
 %endif
 
-# Web engine plugins depend on EFL/chromium-efl; disable until TCORE migration is ready.
+# Web engine plugins depend on EFL/chromium-efl for ECORE; wv for TCORE.
 %if "%{tizen_wayland_backend}" == "TCORE"
-%global enable_web_engine_plugin 0
+%global enable_web_engine_plugin 1
 %endif
 
 Requires(post): /sbin/ldconfig
@@ -163,7 +163,13 @@ Group:      System/Libraries
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(chromium-efl)
+%if "%{tizen_wayland_backend}" == "TCORE"
+# The tcore backend reaches chromium-efl through the WV interface, which hands
+# back GLib containers, and it uses no EFL at all.
+BuildRequires: pkgconfig(glib-2.0)
+%else
 BuildRequires: pkgconfig(elementary)
+%endif
 %endif
 
 %description web-engine-chromium-plugin

@@ -20,15 +20,16 @@
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
 
-#include <Elementary.h>
-
 #include <dali/devel-api/adaptor-framework/lifecycle-controller.h>
 #include <dali/integration-api/debug.h>
 
-#include <ewk_main.h>
+#include <wv_main.h>
+#include <wv_main_internal.h>
 
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace Dali
 {
@@ -47,18 +48,70 @@ bool WebEngineManager::IsAvailable()
 
 WebEngineManager::WebEngineManager()
 : mSlotDelegate(this),
-  mWindow(nullptr),
   mWebEngineManagerAvailable(true)
 {
   DALI_LOG_RELEASE_INFO("#WebEngineManager is created.\n");
 
-  elm_init(0, 0);
-  ewk_init();
-  mWindow = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
+  SetArguments(0, nullptr);
+
+  // WV backend: wv_init() owns the whole engine bring-up (including the
+  // offscreen canvas that wv_view_create() draws into), so this plugin needs
+  // no Ecore_Evas window of its own.
+  wv_init();
 
   Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
 
   DALI_LOG_RELEASE_INFO("#WebEngineManager is created fully.\n");
+}
+
+void WebEngineManager::SetArguments(int argc, char** argv)
+{
+  static bool isArgumentsSet = false;
+  if(isArgumentsSet)
+  {
+    return;
+  }
+  isArgumentsSet = true;
+
+  // On TCORE these two switches are required; on ECORE the engine takes its
+  // normal EFL path and neither is passed.
+  //
+  // --enable-tcore: switches chromium's UI message pump to the GLib backend,
+  // which is required because our main loop is tizen_core, not ecore_main_loop.
+  //
+  // --enable-wv-standalone: makes wv_init() skip elm_init()/ewk_init()/
+  // wv_view_init() and route wv_view_create() to the standalone WvViewImpl
+  // instead of the EWK offscreen path. The EWK path is blocked on the device
+  // tcore chromium build: its GPU thread opens a second tizen-core-wl
+  // connection, so virtualized-share eglCreateContext fails with
+  // EGL_BAD_CONTEXT (GPU path), and EflSurfaceCanvas::PresentCanvas is a
+  // NOTIMPLEMENTED stub (--disable-gpu SW path) - frames never reach
+  // "offscreen,frame,rendered" either way.
+  //
+  // The storage is static because CommandLineEfl keeps the char** we hand it
+  // and replays it into content::ContentMainParams later.
+  static std::vector<std::string> arguments;
+  static std::vector<const char*> argumentVector;
+
+  arguments.assign(argv && argc > 0 ? argv : nullptr, argv && argc > 0 ? argv + argc : nullptr);
+  if(arguments.empty())
+  {
+    arguments.emplace_back("dali-webview");
+  }
+  arguments.emplace_back("--enable-tcore");
+  arguments.emplace_back("--enable-wv-standalone");
+
+  argumentVector.reserve(arguments.size());
+  for(auto& argument : arguments)
+  {
+    argumentVector.push_back(argument.c_str());
+  }
+
+  int result = wv_set_arguments(static_cast<int>(argumentVector.size()), argumentVector.data());
+  if(result != TIZEN_ERROR_NONE)
+  {
+    DALI_LOG_ERROR("wv_set_arguments() failed with error: %d\n", result);
+  }
 }
 
 WebEngineManager::~WebEngineManager()
@@ -85,18 +138,13 @@ WebEngineManager::~WebEngineManager()
   }
 }
 
-Ecore_Evas* WebEngineManager::GetWindow()
-{
-  return mWindow;
-}
-
-void WebEngineManager::SetContext(Ewk_Context* context, bool isIncognito)
+void WebEngineManager::SetContext(wv_context_h context, bool isIncognito)
 {
   ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
   uint8_t     uintContextType = static_cast<uint8_t>(contextType);
   mWebEngineContexts[uintContextType].reset(new TizenWebEngineContext(context, isIncognito));
 
-  Ewk_Cookie_Manager* manager = ewk_context_cookie_manager_get(context);
+  wv_cookie_manager_h manager = wv_context_cookie_manager_get(context);
   mWebEngineCookieManagers[uintContextType].reset(new TizenWebEngineCookieManager(manager));
 }
 
@@ -114,14 +162,14 @@ Dali::WebEngineCookieManager* WebEngineManager::GetCookieManager(bool isIncognit
   return mWebEngineCookieManagers[uintContextType].get();
 }
 
-void WebEngineManager::Add(Evas_Object* webView, Dali::WebEnginePlugin* engine, bool isIncognito)
+void WebEngineManager::Add(wv_view_h webView, Dali::WebEnginePlugin* engine, bool isIncognito)
 {
   ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
   uint8_t     uintContextType = static_cast<uint8_t>(contextType);
   mWebEngines[uintContextType][webView] = engine;
 }
 
-void WebEngineManager::Remove(Evas_Object* webView, bool isIncognito)
+void WebEngineManager::Remove(wv_view_h webView, bool isIncognito)
 {
   ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
   uint8_t     uintContextType = static_cast<uint8_t>(contextType);
@@ -133,7 +181,7 @@ void WebEngineManager::Remove(Evas_Object* webView, bool isIncognito)
   }
 
   // when some web views are in incognito mode, and the last one would be destroyed,
-  // callbacks of ewk context need be reset here.
+  // callbacks of WV context need be reset here.
   if(isIncognito && mWebEngineContexts[uintContextType] != nullptr && table.size() == 0)
   {
     TizenWebEngineContext* context = static_cast<TizenWebEngineContext*>(mWebEngineContexts[uintContextType].get());
@@ -141,7 +189,7 @@ void WebEngineManager::Remove(Evas_Object* webView, bool isIncognito)
   }
 }
 
-Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
+Dali::WebEnginePlugin* WebEngineManager::Find(wv_view_h webView)
 {
   for(uint8_t index = 0; index < ContextTypeCount; index++)
   {
@@ -154,7 +202,7 @@ Dali::WebEnginePlugin* WebEngineManager::Find(Evas_Object* webView)
   return nullptr;
 }
 
-Evas_Object* WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
+wv_view_h WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
 {
   for(uint8_t index = 0; index < ContextTypeCount; index++)
   {
@@ -196,14 +244,11 @@ void WebEngineManager::OnTerminated()
   }
   mWebEngines = {};
 
-  // Release context and cookie manager before ewk_shutdown.
+  // Release context and cookie manager before wv_shutdown.
   mWebEngineContexts       = {};
   mWebEngineCookieManagers = {};
 
-  ecore_evas_free(mWindow);
-
-  ewk_shutdown();
-  elm_shutdown();
+  wv_shutdown();
   DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");
 }
 

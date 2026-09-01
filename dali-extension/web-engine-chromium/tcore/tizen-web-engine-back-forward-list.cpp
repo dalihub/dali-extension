@@ -18,13 +18,14 @@
 #include "tizen-web-engine-back-forward-list.h"
 #include "tizen-web-engine-back-forward-list-item.h"
 
+#include <glib.h>
 namespace Dali
 {
 namespace Plugin
 {
 
-TizenWebEngineBackForwardList::TizenWebEngineBackForwardList(Ewk_Back_Forward_List* list)
-: mEwkBackForwardList(list)
+TizenWebEngineBackForwardList::TizenWebEngineBackForwardList(wv_back_forward_list_h list)
+: mWvBackForwardList(list)
 {
 }
 
@@ -34,7 +35,7 @@ TizenWebEngineBackForwardList::~TizenWebEngineBackForwardList()
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetCurrentItem() const
 {
-  Ewk_Back_Forward_List_Item*                         item    = ewk_back_forward_list_current_item_get(mEwkBackForwardList);
+  wv_back_forward_list_item_h item    = wv_back_forward_list_current_item_get(mWvBackForwardList);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -42,7 +43,7 @@ std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardLis
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetPreviousItem() const
 {
-  Ewk_Back_Forward_List_Item*                         item    = ewk_back_forward_list_previous_item_get(mEwkBackForwardList);
+  wv_back_forward_list_item_h item    = wv_back_forward_list_previous_item_get(mWvBackForwardList);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -50,7 +51,7 @@ std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardLis
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetNextItem() const
 {
-  Ewk_Back_Forward_List_Item*                         item    = ewk_back_forward_list_next_item_get(mEwkBackForwardList);
+  wv_back_forward_list_item_h item    = wv_back_forward_list_next_item_get(mWvBackForwardList);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -58,7 +59,7 @@ std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardLis
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetItemAtIndex(uint32_t index) const
 {
-  Ewk_Back_Forward_List_Item*                         item    = ewk_back_forward_list_item_at_index_get(mEwkBackForwardList, index);
+  wv_back_forward_list_item_h item    = wv_back_forward_list_item_at_index_get(mWvBackForwardList, index);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -66,23 +67,21 @@ std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardLis
 
 uint32_t TizenWebEngineBackForwardList::GetItemCount() const
 {
-  return ewk_back_forward_list_count(mEwkBackForwardList);
+  return wv_back_forward_list_count(mWvBackForwardList);
 }
 
 std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> TizenWebEngineBackForwardList::GetBackwardItems(int limit)
 {
   std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> ret;
 
-  Eina_List* list = ewk_back_forward_list_n_back_items_copy(mEwkBackForwardList, limit);
-  Eina_List* it;
-  void*      data = NULL;
-  EINA_LIST_FOREACH(list, it, data)
+  GList* list = wv_back_forward_list_n_back_items_copy(mWvBackForwardList, limit);
+  for(GList* it = list; it != nullptr; it = it->next)
   {
-    Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem((Ewk_Back_Forward_List_Item*)(data), true);
+    Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(static_cast<wv_back_forward_list_item_h>(it->data), true);
     std::unique_ptr<Dali::WebEngineBackForwardListItem> item(webitem);
     ret.push_back(std::move(item));
   }
-  eina_list_free(list);
+  g_list_free(list);
 
   return ret;
 }
@@ -91,16 +90,14 @@ std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> TizenWebEngineB
 {
   std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> ret;
 
-  Eina_List* list = ewk_back_forward_list_n_forward_items_copy(mEwkBackForwardList, limit);
-  Eina_List* it;
-  void*      data = NULL;
-  EINA_LIST_FOREACH(list, it, data)
+  GList* list = wv_back_forward_list_n_forward_items_copy(mWvBackForwardList, limit);
+  for(GList* it = list; it != nullptr; it = it->next)
   {
-    Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem((Ewk_Back_Forward_List_Item*)(data), true);
+    Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(static_cast<wv_back_forward_list_item_h>(it->data), true);
     std::unique_ptr<Dali::WebEngineBackForwardListItem> item(webitem);
     ret.push_back(std::move(item));
   }
-  eina_list_free(list);
+  g_list_free(list);
 
   return ret;
 }

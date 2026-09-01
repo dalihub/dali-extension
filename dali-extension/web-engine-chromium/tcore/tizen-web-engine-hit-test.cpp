@@ -17,135 +17,120 @@
 
 #include "tizen-web-engine-hit-test.h"
 
+#include <dali/devel-api/adaptor-framework/image-loading-devel.h>
 #include <dali/integration-api/debug.h>
+#include <dali/public-api/adaptor-framework/pixel-buffer.h>
 
 namespace Dali
 {
 namespace Plugin
 {
 
-TizenWebEngineHitTest::TizenWebEngineHitTest(Ewk_Hit_Test* test, Evas* evas, bool needMemoryBeFreed)
-: ewkHitTest(test),
-  canvas(evas),
-  isMemoryFreedByEwk(needMemoryBeFreed)
+TizenWebEngineHitTest::TizenWebEngineHitTest(wv_hit_test_h test, bool needMemoryBeFreed)
+: wvHitTest(test),
+  isMemoryFreedByWv(needMemoryBeFreed)
 {
 }
 
 TizenWebEngineHitTest::~TizenWebEngineHitTest()
 {
-  if(isMemoryFreedByEwk)
+  if(isMemoryFreedByWv)
   {
-    ewk_hit_test_free(ewkHitTest);
+    wv_hit_test_free(wvHitTest);
   }
 }
 
 Dali::WebEngineHitTest::ResultContext TizenWebEngineHitTest::GetResultContext() const
 {
-  return static_cast<Dali::WebEngineHitTest::ResultContext>(ewk_hit_test_result_context_get(ewkHitTest));
+  return static_cast<Dali::WebEngineHitTest::ResultContext>(wv_hit_test_result_context_get(wvHitTest));
 }
 
 std::string TizenWebEngineHitTest::GetLinkUri() const
 {
-  const char* uri = ewk_hit_test_link_uri_get(ewkHitTest);
+  const char* uri = wv_hit_test_link_uri_get(wvHitTest);
   return uri ? std::string(uri) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetLinkTitle() const
 {
-  const char* title = ewk_hit_test_link_title_get(ewkHitTest);
+  const char* title = wv_hit_test_link_title_get(wvHitTest);
   return title ? std::string(title) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetLinkLabel() const
 {
-  const char* label = ewk_hit_test_link_label_get(ewkHitTest);
+  const char* label = wv_hit_test_link_label_get(wvHitTest);
   return label ? std::string(label) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetImageUri() const
 {
-  const char* uri = ewk_hit_test_image_uri_get(ewkHitTest);
+  const char* uri = wv_hit_test_image_uri_get(wvHitTest);
   return uri ? std::string(uri) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetMediaUri() const
 {
-  const char* uri = ewk_hit_test_media_uri_get(ewkHitTest);
-  return uri ? std::string(uri) : std::string();
+  // WV GAP (WV_REQUIREMENTS.md B): wv_hit_test_media_uri_get() is not declared
+  // by the target WV headers, so the media URI is reported as empty.
+  return std::string();
 }
 
 std::string TizenWebEngineHitTest::GetTagName() const
 {
-  const char* name = ewk_hit_test_tag_name_get(ewkHitTest);
+  const char* name = wv_hit_test_tag_name_get(wvHitTest);
   return name ? std::string(name) : std::string();
 }
 
 std::string TizenWebEngineHitTest::GetNodeValue() const
 {
-  const char* value = ewk_hit_test_node_value_get(ewkHitTest);
+  const char* value = wv_hit_test_node_value_get(wvHitTest);
   return value ? std::string(value) : std::string();
 }
 
 Dali::Property::Map TizenWebEngineHitTest::GetAttributes() const
 {
-  Eina_Hash* hash = ewk_hit_test_attribute_hash_get(ewkHitTest);
+  GHashTable* hash = wv_hit_test_attribute_hash_get(wvHitTest);
   attributes.Clear();
-  eina_hash_foreach(hash, &TizenWebEngineHitTest::IterateAttributes, this);
+  if(hash)
+  {
+    g_hash_table_foreach(hash, &TizenWebEngineHitTest::IterateAttributes, const_cast<TizenWebEngineHitTest*>(this));
+  }
   return attributes;
 }
 
 std::string TizenWebEngineHitTest::GetImageFileNameExtension() const
 {
-  const char* extension = ewk_hit_test_image_file_name_extension_get(ewkHitTest);
+  const char* extension = wv_hit_test_image_file_name_extension_get(wvHitTest);
   return extension ? std::string(extension) : std::string();
 }
 
 Dali::PixelData TizenWebEngineHitTest::GetImageBuffer()
 {
-  Evas_Object* image = evas_object_image_add(canvas);
-  evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
-  evas_object_image_alpha_set(image, EINA_TRUE);
-  evas_object_image_data_copy_set(image, ewk_hit_test_image_buffer_get(ewkHitTest));
-
-  // color-space is argb8888.
-  uint8_t* pixelBuffer = (uint8_t*)evas_object_image_data_get(image, false);
-  if(!pixelBuffer)
+  // The buffer holds an encoded image (its container is named by
+  // wv_hit_test_image_file_name_extension_get()), so decode it directly rather
+  // than pushing it through a canvas-backed image object.
+  auto*        buffer = static_cast<uint8_t*>(wv_hit_test_image_buffer_get(wvHitTest));
+  unsigned int length = wv_hit_test_image_buffer_length_get(wvHitTest);
+  if(!buffer || length == 0)
   {
     return Dali::PixelData();
   }
 
-  // get width/height.
-  int width = 0, height = 0;
-  evas_object_image_size_get(image, &width, &height);
-
-  uint32_t bufferSize = width * height * 4;
-
-  if(bufferSize != ewk_hit_test_image_buffer_length_get(ewkHitTest))
+  Dali::PixelBuffer pixelBuffer = Dali::LoadImageFromBuffer(buffer, length);
+  if(!pixelBuffer)
   {
-    DALI_LOG_RELEASE_INFO("size of hit test image is not correct.\n");
+    DALI_LOG_ERROR("failed to decode hit test image (%u bytes)\n", length);
+    return Dali::PixelData();
   }
 
-  uint8_t* convertedBuffer = new uint8_t[bufferSize];
-
-  // convert the color-space to rgba8888.
-  for(uint32_t i = 0; i < bufferSize; i += 4)
-  {
-    convertedBuffer[i]     = pixelBuffer[i + 1];
-    convertedBuffer[i + 1] = pixelBuffer[i + 2];
-    convertedBuffer[i + 2] = pixelBuffer[i + 3];
-    convertedBuffer[i + 3] = pixelBuffer[i];
-  }
-
-  return Dali::PixelData::New(convertedBuffer, bufferSize, width, height,
-                              Dali::Pixel::Format::RGBA8888,
-                              Dali::PixelData::ReleaseFunction::DELETE_ARRAY);
+  return Dali::PixelBuffer::Convert(pixelBuffer);
 }
 
-Eina_Bool TizenWebEngineHitTest::IterateAttributes(const Eina_Hash*, const void* key, void* data, void* fdata)
+void TizenWebEngineHitTest::IterateAttributes(gpointer key, gpointer value, gpointer userData)
 {
-  TizenWebEngineHitTest* pThis = (TizenWebEngineHitTest*)fdata;
-  pThis->attributes.Insert((const char*)key, (char*)data);
-  return true;
+  TizenWebEngineHitTest* pThis = static_cast<TizenWebEngineHitTest*>(userData);
+  pThis->attributes.Insert(static_cast<const char*>(key), static_cast<char*>(value));
 }
 
 } // namespace Plugin
