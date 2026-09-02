@@ -1173,5 +1173,25 @@ void WebEngineLwe::SetVideoHole(bool, bool)
 {
 }
 
+void WebEngineLwe::RegisterPlaybackVideoReadyCallback(WebEnginePlaybackVideoReadyCallback)
+{
+}
+
+void WebEngineLwe::RegisterPlaybackVideoStartedCallback(WebEnginePlaybackVideoStartedCallback)
+{
+}
+
+void WebEngineLwe::RegisterPlaybackVideoFinishedCallback(WebEnginePlaybackVideoFinishedCallback)
+{
+}
+
+void WebEngineLwe::RegisterPlaybackVideoStoppedCallback(WebEnginePlaybackVideoStoppedCallback)
+{
+}
+
+void WebEngineLwe::RegisterPlaybackVideoPausedCallback(WebEnginePlaybackVideoPausedCallback)
+{
+}
+
 } // namespace Plugin
 } // namespace Dali

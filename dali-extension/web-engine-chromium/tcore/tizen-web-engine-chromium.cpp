@@ -251,6 +251,11 @@ void TizenWebEngineChromium::InitWebView(bool incognito)
   evas_object_smart_callback_add(mWebView, "webauthn,response", &TizenWebEngineChromium::OnWebAuthResponse, this);
   evas_object_smart_callback_add(mWebView, "file,chooser,request", &TizenWebEngineChromium::OnFileChooserRequested, this);
   evas_object_smart_callback_add(mWebView, "webprocess,crashed", &TizenWebEngineChromium::OnWebProcessCrashed, this);
+  evas_object_smart_callback_add(mWebView, "notification,playback,ready", &TizenWebEngineChromium::OnPlaybackVideoReady, this);
+  evas_object_smart_callback_add(mWebView, "notification,playback,start", &TizenWebEngineChromium::OnPlaybackVideoStarted, this);
+  evas_object_smart_callback_add(mWebView, "notification,playback,finish", &TizenWebEngineChromium::OnPlaybackVideoFinished, this);
+  evas_object_smart_callback_add(mWebView, "notification,playback,stop", &TizenWebEngineChromium::OnPlaybackVideoStopped, this);
+  evas_object_smart_callback_add(mWebView, "notification,playback,pause", &TizenWebEngineChromium::OnPlaybackVideoPaused, this);
 
   ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
   evas_object_smart_callback_add(mWebView, "device,connection,changed", &TizenWebEngineChromium::OnDeviceConnectionChanged, this);
@@ -1157,6 +1162,31 @@ void TizenWebEngineChromium::RegisterDeviceListGetCallback(WebEngineDeviceListGe
   ewk_view_media_device_list_get(mWebView, TizenWebEngineChromium::OnDeviceListGet, this);
 }
 
+void TizenWebEngineChromium::RegisterPlaybackVideoReadyCallback(WebEnginePlaybackVideoReadyCallback callback)
+{
+  mPlaybackVideoReadyCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterPlaybackVideoStartedCallback(WebEnginePlaybackVideoStartedCallback callback)
+{
+  mPlaybackVideoStartedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterPlaybackVideoFinishedCallback(WebEnginePlaybackVideoFinishedCallback callback)
+{
+  mPlaybackVideoFinishedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterPlaybackVideoStoppedCallback(WebEnginePlaybackVideoStoppedCallback callback)
+{
+  mPlaybackVideoStoppedCallback = callback;
+}
+
+void TizenWebEngineChromium::RegisterPlaybackVideoPausedCallback(WebEnginePlaybackVideoPausedCallback callback)
+{
+  mPlaybackVideoPausedCallback = callback;
+}
+
 Dali::PixelData TizenWebEngineChromium::ConvertImageColorSpace(Evas_Object* image)
 {
   // color-space is argb8888.
@@ -1622,6 +1652,41 @@ Eina_Bool TizenWebEngineChromium::OnUserMediaPermissonRequest(Evas_Object*, Ewk_
   std::string msg = ewk_user_media_permission_request_message_get(request);
   ExecuteCallback2(pThis->mUserMediaPermissionRequestCallback, pThis->mWebUserMediaPermissionRequest, msg);
   return msg.empty() ? false : true;
+}
+
+void TizenWebEngineChromium::OnPlaybackVideoReady(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#PlaybackVideoReady.\n");
+  ExecuteCallback(pThis->mPlaybackVideoReadyCallback);
+}
+
+void TizenWebEngineChromium::OnPlaybackVideoStarted(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#PlaybackVideoStarted.\n");
+  ExecuteCallback(pThis->mPlaybackVideoStartedCallback);
+}
+
+void TizenWebEngineChromium::OnPlaybackVideoFinished(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#PlaybackVideoFinished.\n");
+  ExecuteCallback(pThis->mPlaybackVideoFinishedCallback);
+}
+
+void TizenWebEngineChromium::OnPlaybackVideoStopped(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#PlaybackVideoStopped.\n");
+  ExecuteCallback(pThis->mPlaybackVideoStoppedCallback);
+}
+
+void TizenWebEngineChromium::OnPlaybackVideoPaused(void* data, Evas_Object*, void*)
+{
+  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  DALI_LOG_RELEASE_INFO("#PlaybackVideoPaused.\n");
+  ExecuteCallback(pThis->mPlaybackVideoPausedCallback);
 }
 
 } // namespace Plugin
