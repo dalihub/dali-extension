@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <wv_context_menu_product.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -42,7 +42,7 @@ uint32_t TizenWebEngineContextMenu::GetItemCount() const
 
 std::unique_ptr<Dali::WebEngineContextMenuItem> TizenWebEngineContextMenu::GetItemAt(uint32_t index) const
 {
-  wv_context_menu_item_h item = wv_context_menu_nth_item_get(wvContextMenu, index);
+  wv_context_menu_item_h                          item = wv_context_menu_nth_item_get(wvContextMenu, index);
   std::unique_ptr<Dali::WebEngineContextMenuItem> contextMenuItem(new TizenWebEngineContextMenuItem(item));
   return contextMenuItem;
 }
@@ -55,7 +55,7 @@ std::vector<std::unique_ptr<Dali::WebEngineContextMenuItem>> TizenWebEngineConte
   {
     if(it->data)
     {
-      wv_context_menu_item_h menuItem = static_cast<wv_context_menu_item_h>(it->data);
+      wv_context_menu_item_h                          menuItem = static_cast<wv_context_menu_item_h>(it->data);
       std::unique_ptr<Dali::WebEngineContextMenuItem> webitem(new TizenWebEngineContextMenuItem(menuItem));
       contextMenuItemList.push_back(std::move(webitem));
     }
@@ -91,4 +91,4 @@ bool TizenWebEngineContextMenu::Hide()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

@@ -29,7 +29,7 @@
 // INTERNAL INCLUDES
 #include <dali-extension/vector-animation-renderer/vector-animation-event-handler.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -220,6 +220,6 @@ protected:
 
 } // namespace Plugin
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_VECTOR_ANIMATION_RENDERER_H

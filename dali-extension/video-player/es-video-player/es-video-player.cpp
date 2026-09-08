@@ -27,7 +27,7 @@
 #include <wayland-egl-tizen.h>
 #endif
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -297,7 +297,8 @@ EsVideoPlayer::EsVideoPlayer(Dali::VideoPlayerPlugin::VideoSourceDescriptor sour
 : VideoPlayerBase(syncMode, syncActor),
   mEsPlayer(ExtractEsPlayerHandle(source))
 #ifdef USE_TCORE_BACKEND
-  , mTcoreWlWindow(nullptr)
+  ,
+  mTcoreWlWindow(nullptr)
 #endif
 {
   if(mEsPlayer == nullptr)
@@ -641,8 +642,8 @@ void EsVideoPlayer::InitializeUnderlayMode(Ecore_Wl2_Window* wlWindow)
   }
   mEcoreWlWindow = wlWindow;
 
-  int                 width = 0, height = 0;
-  Ecore_Wl2_Display*  wl2Display = ecore_wl2_connected_display_get(NULL);
+  int                width = 0, height = 0;
+  Ecore_Wl2_Display* wl2Display = ecore_wl2_connected_display_get(NULL);
   ecore_wl2_display_screen_size_get(wl2Display, &width, &height);
 
   // hole-punch: make the window an opaque overlay so the video shows through the
@@ -904,4 +905,4 @@ void EsVideoPlayer::DestroyPlayer()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

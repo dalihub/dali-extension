@@ -32,7 +32,7 @@ extern "C" DALI_EXPORT_API void DestroyKeyExtensionPlugin(Dali::KeyExtensionPlug
   }
 }
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 
 KeyExtensionPlugin::KeyLookup mKeyLookupTable[] =
@@ -78,4 +78,4 @@ std::size_t KeyExtension::GetKeyLookupTableCount()
 }
 
 } //namespace Plugin
-} //namespace Dali
+} //namespace DALI_NAMESPACE

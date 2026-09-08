@@ -58,7 +58,7 @@
 
 using namespace Dali;
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -678,7 +678,7 @@ bool TizenWebEngineChromium::FeedMouseEvent(const TouchEvent& touch)
 
 bool TizenWebEngineChromium::FeedTouchEvent(const TouchEvent& touch)
 {
-  wv_touch_event_type_e type  = WV_TOUCH_EVENT_START;
+  wv_touch_event_type_e  type  = WV_TOUCH_EVENT_START;
   wv_touch_point_state_e state = WV_TOUCH_POINT_STATE_DOWN;
 
   bool fed = false;
@@ -806,10 +806,10 @@ bool TizenWebEngineChromium::SendHoverEvent(const Dali::HoverEvent& event)
 
 bool TizenWebEngineChromium::SendWheelEvent(const Dali::WheelEvent& wheel)
 {
-  bool direction = wheel.GetDirection() ? false : true;
-  int       step      = wheel.GetDelta();
-  float     x         = wheel.GetPoint().x;
-  float     y         = wheel.GetPoint().y;
+  bool  direction = wheel.GetDirection() ? false : true;
+  int   step      = wheel.GetDelta();
+  float x         = wheel.GetPoint().x;
+  float y         = wheel.GetPoint().y;
   wv_view_feed_mouse_wheel(mWebView, direction, step, x, y);
   return false;
 }
@@ -1270,7 +1270,7 @@ void TizenWebEngineChromium::OnLoadFinished(wv_view_h, void*, void* data)
 void TizenWebEngineChromium::OnLoadError(wv_view_h, void* rawError, void* data)
 {
   auto                                      pThis = static_cast<TizenWebEngineChromium*>(data);
-  wv_error_h error = static_cast<wv_error_h >(rawError);
+  wv_error_h                                error = static_cast<wv_error_h>(rawError);
   std::unique_ptr<Dali::WebEngineLoadError> loadError(new TizenWebEngineLoadError(error));
   DALI_LOG_RELEASE_INFO("#LoadError : %s\n", loadError->GetUrl().c_str());
   ExecuteCallback(pThis->mLoadErrorCallback, std::move(loadError));
@@ -1291,7 +1291,7 @@ void TizenWebEngineChromium::OnUrlChanged(wv_view_h, void* newUrl, void* data)
 void TizenWebEngineChromium::OnConsoleMessageReceived(wv_view_h, void* eventInfo, void* data)
 {
   auto                                           pThis   = static_cast<TizenWebEngineChromium*>(data);
-  wv_console_message_h message = static_cast<wv_console_message_h >(eventInfo);
+  wv_console_message_h                           message = static_cast<wv_console_message_h>(eventInfo);
   std::unique_ptr<Dali::WebEngineConsoleMessage> webConsoleMessage(new TizenWebEngineConsoleMessage(message));
   DALI_LOG_RELEASE_INFO("#ConsoleMessageReceived : %s\n", webConsoleMessage->GetSource().c_str());
   ExecuteCallback(pThis->mConsoleMessageReceivedCallback, std::move(webConsoleMessage));
@@ -1373,7 +1373,7 @@ void TizenWebEngineChromium::OnOverScrolledBottom(wv_view_h, void*, void* data)
 void TizenWebEngineChromium::OnFormRepostDecided(wv_view_h, void* eventInfo, void* data)
 {
   DALI_LOG_RELEASE_INFO("#FormRepostDecidedRequest\n");
-  auto pThis = static_cast<TizenWebEngineChromium*>(data);
+  auto                                               pThis = static_cast<TizenWebEngineChromium*>(data);
   std::unique_ptr<Dali::WebEngineFormRepostDecision> webDecisionRequest(new TizenWebEngineFormRepostDecision(eventInfo));
   ExecuteCallback(pThis->mFormRepostDecidedCallback, std::move(webDecisionRequest));
 }
@@ -1382,7 +1382,7 @@ void TizenWebEngineChromium::OnResponsePolicyDecided(wv_view_h, void* policy, vo
 {
   DALI_LOG_RELEASE_INFO("#ResponsePolicyDecided.\n");
   auto                                           pThis          = static_cast<TizenWebEngineChromium*>(data);
-  wv_policy_decision_h policyDecision = static_cast<wv_policy_decision_h >(policy);
+  wv_policy_decision_h                           policyDecision = static_cast<wv_policy_decision_h>(policy);
   std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
   ExecuteCallback(pThis->mResponsePolicyDecidedCallback, std::move(webPolicyDecision));
 }
@@ -1391,7 +1391,7 @@ void TizenWebEngineChromium::OnNavigationPolicyDecided(wv_view_h, void* policy, 
 {
   DALI_LOG_RELEASE_INFO("#NavigationPolicyDecided.\n");
   auto                                           pThis          = static_cast<TizenWebEngineChromium*>(data);
-  wv_policy_decision_h policyDecision = static_cast<wv_policy_decision_h >(policy);
+  wv_policy_decision_h                           policyDecision = static_cast<wv_policy_decision_h>(policy);
   std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
   ExecuteCallback(pThis->mNavigationPolicyDecidedCallback, std::move(webPolicyDecision));
 }
@@ -1400,7 +1400,7 @@ void TizenWebEngineChromium::OnNewWindowPolicyDecided(wv_view_h, void* policy, v
 {
   DALI_LOG_RELEASE_INFO("#NewWindowPolicyDecided.\n");
   auto                                           pThis          = static_cast<TizenWebEngineChromium*>(data);
-  wv_policy_decision_h policyDecision = static_cast<wv_policy_decision_h >(policy);
+  wv_policy_decision_h                           policyDecision = static_cast<wv_policy_decision_h>(policy);
   std::unique_ptr<Dali::WebEnginePolicyDecision> webPolicyDecision(new TizenWebEnginePolicyDecision(policyDecision));
   ExecuteCallback(pThis->mNewWindowPolicyDecidedCallback, std::move(webPolicyDecision));
 }
@@ -1425,7 +1425,7 @@ void TizenWebEngineChromium::OnCertificateConfirmed(wv_view_h, void* eventInfo, 
 {
   DALI_LOG_RELEASE_INFO("#CertificateConfirmed.\n");
   auto                                        pThis          = static_cast<TizenWebEngineChromium*>(data);
-  wv_certificate_policy_decision_h policyDecision = static_cast<wv_certificate_policy_decision_h >(eventInfo);
+  wv_certificate_policy_decision_h            policyDecision = static_cast<wv_certificate_policy_decision_h>(eventInfo);
   std::unique_ptr<Dali::WebEngineCertificate> webPolicyDecision(new TizenWebEngineCertificate(policyDecision));
   ExecuteCallback(pThis->mCertificateConfirmedCallback, std::move(webPolicyDecision));
 }
@@ -1434,7 +1434,7 @@ void TizenWebEngineChromium::OnSslCertificateChanged(wv_view_h, void* eventInfo,
 {
   DALI_LOG_RELEASE_INFO("#SslCertificateChanged.\n");
   auto                                        pThis = static_cast<TizenWebEngineChromium*>(data);
-  wv_certificate_info_h info  = static_cast<wv_certificate_info_h >(eventInfo);
+  wv_certificate_info_h                       info  = static_cast<wv_certificate_info_h>(eventInfo);
   std::unique_ptr<Dali::WebEngineCertificate> webCertiInfo(new TizenWebEngineCertificate(info));
   ExecuteCallback(pThis->mSslCertificateChangedCallback, std::move(webCertiInfo));
 }
@@ -1443,7 +1443,7 @@ void TizenWebEngineChromium::OnContextMenuShown(wv_view_h, void* eventInfo, void
 {
   DALI_LOG_RELEASE_INFO("#ContextMenuShown.\n");
   auto                                        pThis = static_cast<TizenWebEngineChromium*>(data);
-  wv_context_menu_h menu  = (wv_context_menu_h )eventInfo;
+  wv_context_menu_h                           menu  = (wv_context_menu_h)eventInfo;
   std::unique_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
   ExecuteCallback(pThis->mContextMenuShownCallback, std::move(contextMenu));
 }
@@ -1452,7 +1452,7 @@ void TizenWebEngineChromium::OnContextMenuHidden(wv_view_h, void* eventInfo, voi
 {
   DALI_LOG_RELEASE_INFO("#ContextMenuHidden.\n");
   auto                                        pThis = static_cast<TizenWebEngineChromium*>(data);
-  wv_context_menu_h menu  = (wv_context_menu_h )eventInfo;
+  wv_context_menu_h                           menu  = (wv_context_menu_h)eventInfo;
   std::unique_ptr<Dali::WebEngineContextMenu> contextMenu(new TizenWebEngineContextMenu(menu));
   ExecuteCallback(pThis->mContextMenuHiddenCallback, std::move(contextMenu));
 }
@@ -1501,8 +1501,8 @@ void TizenWebEngineChromium::OnWebAuthResponse(wv_view_h, void*, void* data)
 void TizenWebEngineChromium::OnFileChooserRequested(wv_view_h, void* request, void* data)
 {
   DALI_LOG_RELEASE_INFO("#FileChooserRequested.\n");
-  auto                                               pThis      = static_cast<TizenWebEngineChromium*>(data);
-  wv_file_chooser_request_h wvRequest = (wv_file_chooser_request_h )request;
+  auto                                               pThis     = static_cast<TizenWebEngineChromium*>(data);
+  wv_file_chooser_request_h                          wvRequest = (wv_file_chooser_request_h)request;
   std::unique_ptr<Dali::WebEngineFileChooserRequest> engineRequest(new TizenWebEngineFileChooserRequest(wvRequest));
   ExecuteCallback(pThis->mFileChooserRequestedCallback, std::move(engineRequest));
 }
@@ -1711,7 +1711,7 @@ void TizenWebEngineChromium::OnPlaybackVideoPaused(wv_view_h, void*, void* data)
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin()
 {

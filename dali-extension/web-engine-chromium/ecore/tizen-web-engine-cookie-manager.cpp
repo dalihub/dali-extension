@@ -18,7 +18,7 @@
 #include "tizen-web-engine-cookie-manager.h"
 #include <ewk_cookie_manager_product.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -79,4 +79,4 @@ void TizenWebEngineCookieManager::OnChangesWatch(void* data)
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

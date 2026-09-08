@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_RIVE_ANIMATION_VIEW_H
 
 /*
- * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 // EXTERNAL INCLUDES
 #include <dali-toolkit/public-api/controls/control.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -318,6 +318,6 @@ public: // Not intended for application developers
  */
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_RIVE_ANIMATION_VIEW_H

@@ -33,7 +33,7 @@
 #endif
 // INTERNAL INCLUDES
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -1697,4 +1697,4 @@ void TizenVideoPlayer::OnAfterStop()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

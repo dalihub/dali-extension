@@ -33,7 +33,7 @@
 
 #include <tbm_surface.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 class PixelData;
 
@@ -801,6 +801,6 @@ private:
   WebEnginePlaybackVideoPausedCallback        mPlaybackVideoPausedCallback;
 };
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif

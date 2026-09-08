@@ -50,7 +50,7 @@
 
 using namespace Dali;
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -1681,7 +1681,7 @@ void TizenWebEngineChromium::OnPlaybackVideoPaused(void* data, Evas_Object*, voi
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 extern "C" DALI_EXPORT_API Dali::WebEnginePlugin* CreateWebEnginePlugin()
 {

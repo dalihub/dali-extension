@@ -22,7 +22,7 @@
 #include <dali/public-api/adaptor-framework/pixel-buffer.h>
 // INTERNAL INCLUDES
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -47,4 +47,4 @@ bool LoadBitmapFromImage(const Dali::ImageLoader::Input& input, Dali::PixelBuffe
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

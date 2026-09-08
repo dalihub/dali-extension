@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -164,8 +164,8 @@ Dali::WebEngineCookieManager* WebEngineManager::GetCookieManager(bool isIncognit
 
 void WebEngineManager::Add(wv_view_h webView, Dali::WebEnginePlugin* engine, bool isIncognito)
 {
-  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
-  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
+  ContextType contextType               = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
+  uint8_t     uintContextType           = static_cast<uint8_t>(contextType);
   mWebEngines[uintContextType][webView] = engine;
 }
 
@@ -253,7 +253,7 @@ void WebEngineManager::OnTerminated()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 extern "C" DALI_EXPORT_API Dali::WebEngineContext* GetWebEngineContext(bool isIncognito)
 {

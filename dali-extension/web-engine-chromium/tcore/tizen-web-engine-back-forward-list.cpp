@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #include "tizen-web-engine-back-forward-list-item.h"
 
 #include <glib.h>
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -35,7 +35,7 @@ TizenWebEngineBackForwardList::~TizenWebEngineBackForwardList()
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetCurrentItem() const
 {
-  wv_back_forward_list_item_h item    = wv_back_forward_list_current_item_get(mWvBackForwardList);
+  wv_back_forward_list_item_h                         item    = wv_back_forward_list_current_item_get(mWvBackForwardList);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -43,7 +43,7 @@ std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardLis
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetPreviousItem() const
 {
-  wv_back_forward_list_item_h item    = wv_back_forward_list_previous_item_get(mWvBackForwardList);
+  wv_back_forward_list_item_h                         item    = wv_back_forward_list_previous_item_get(mWvBackForwardList);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -51,7 +51,7 @@ std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardLis
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetNextItem() const
 {
-  wv_back_forward_list_item_h item    = wv_back_forward_list_next_item_get(mWvBackForwardList);
+  wv_back_forward_list_item_h                         item    = wv_back_forward_list_next_item_get(mWvBackForwardList);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -59,7 +59,7 @@ std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardLis
 
 std::unique_ptr<Dali::WebEngineBackForwardListItem> TizenWebEngineBackForwardList::GetItemAtIndex(uint32_t index) const
 {
-  wv_back_forward_list_item_h item    = wv_back_forward_list_item_at_index_get(mWvBackForwardList, index);
+  wv_back_forward_list_item_h                         item    = wv_back_forward_list_item_at_index_get(mWvBackForwardList, index);
   Dali::WebEngineBackForwardListItem*                 webitem = new TizenWebEngineBackForwardListItem(item);
   std::unique_ptr<Dali::WebEngineBackForwardListItem> ret(webitem);
   return ret;
@@ -103,4 +103,4 @@ std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> TizenWebEngineB
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

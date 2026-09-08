@@ -37,7 +37,7 @@
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-event-handler.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -340,6 +340,6 @@ private:
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_RENDERER_H

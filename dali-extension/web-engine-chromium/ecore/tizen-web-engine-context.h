@@ -33,7 +33,7 @@
 
 struct Ewk_Context;
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -331,6 +331,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_PLUGIN_WEB_ENGINE_CONTEXT_H

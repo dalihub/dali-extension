@@ -27,7 +27,7 @@
 #include <algorithm>
 #include <thread>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -360,4 +360,4 @@ void RiveAnimationThread::SleepThread::Run()
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

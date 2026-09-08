@@ -27,7 +27,7 @@
 #include <mutex>
 #include <vector>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -37,14 +37,14 @@ public:
   WebEngineLweBackendWin();
   ~WebEngineLweBackendWin() override;
 
-  LWE::WebContainer* Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
-  LWE::WebContainer* Create(uint32_t width, uint32_t height, uint32_t argc, char** argv) override;
-  void Destroy() override;
-  void SetSize(uint32_t width, uint32_t height) override;
-  void UpdateDisplayArea(uint32_t width, uint32_t height) override;
+  LWE::WebContainer*   Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
+  LWE::WebContainer*   Create(uint32_t width, uint32_t height, uint32_t argc, char** argv) override;
+  void                 Destroy() override;
+  void                 SetSize(uint32_t width, uint32_t height) override;
+  void                 UpdateDisplayArea(uint32_t width, uint32_t height) override;
   Dali::NativeImagePtr GetNativeImage() override;
-  void SetFrameRenderedCallback(FrameRenderedCallback callback) override;
-  void DispatchToEventThread(Task task) override;
+  void                 SetFrameRenderedCallback(FrameRenderedCallback callback) override;
+  void                 DispatchToEventThread(Task task) override;
 
 private:
   void EnsureInitialized();
@@ -72,15 +72,15 @@ private:
   uint32_t             mImageWidth;
   uint32_t             mImageHeight;
 
-  std::mutex        mTaskMutex;
-  std::deque<Task>  mTasks;
-  std::atomic_bool  mAcceptTasks;
+  std::mutex       mTaskMutex;
+  std::deque<Task> mTasks;
+  std::atomic_bool mAcceptTasks;
 
   std::shared_ptr<Dali::EventThreadCallback> mEventThreadCallback;
-  FrameRenderedCallback                     mFrameRenderedCallback;
+  FrameRenderedCallback                      mFrameRenderedCallback;
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_WEB_ENGINE_LWE_BACKEND_WIN_H

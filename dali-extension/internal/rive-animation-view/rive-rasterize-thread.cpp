@@ -27,7 +27,7 @@
 #include <chrono>
 #include <thread>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -140,4 +140,4 @@ void RiveRasterizeThread::Rasterize()
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

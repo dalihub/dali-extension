@@ -36,7 +36,7 @@ extern "C" DALI_EXPORT_API void DestroyCameraPlayerPlugin(Dali::CameraPlayerPlug
     delete plugin;
   }
 }
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -344,4 +344,4 @@ void TizenCameraPlayer::PushPacket(media_packet_h packet)
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_LOAD_ERROR_H
 
 /*
- * Copyright (c) 2022 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #include <ewk_error_internal.h>
 #include <string>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -69,6 +69,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_PLUGIN_TIZEN_WEB_ENGINE_LOAD_ERROR_H

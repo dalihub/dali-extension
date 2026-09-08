@@ -25,7 +25,7 @@
 #include <memory>
 #include <mutex>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -128,6 +128,6 @@ private:
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_MANAGER_H

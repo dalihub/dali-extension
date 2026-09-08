@@ -30,7 +30,7 @@ namespace LWE
 class WebContainer;
 }
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -87,6 +87,6 @@ std::unique_ptr<WebEngineLweBackend> CreateWebEngineLweBackend();
 void ClearWebEngineLweCookies();
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_WEB_ENGINE_LWE_BACKEND_H

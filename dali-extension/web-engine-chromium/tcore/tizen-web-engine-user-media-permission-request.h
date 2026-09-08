@@ -2,7 +2,7 @@
 #define DALI_PLUGIN_TIZEN_WEB_ENGINE_USER_MEDIA_PERMISSION_REQUEST_H
 
 /*
- * Copyright (c) 2024 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-user-media-permission-request.h>
 #include <wv_user_media_internal.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -57,6 +57,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_PLUGIN_TIZEN_WEB_ENGINE_USER_MEDIA_PERMISSION_REQUEST_H

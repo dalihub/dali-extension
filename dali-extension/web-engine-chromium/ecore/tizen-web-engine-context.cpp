@@ -23,7 +23,7 @@
 #include <ewk_context_internal.h>
 #include <ewk_context_product.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -392,4 +392,4 @@ Eina_Bool TizenWebEngineContext::OnMimeOverridden(const char* url, const char* d
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

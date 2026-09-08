@@ -2,7 +2,7 @@
 #define DALI_VECTOR_ANIMATION_EVENT_HANDLER_H
 
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@
  *
  */
 
+// INTERNAL INCLUDES
+#include <dali/public-api/common/dali-namespace.h>
+
 // EXTERNAL INCLUDES
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 
 namespace Plugin
@@ -61,6 +64,6 @@ protected:
 
 } // namespace Plugin
 
-} //namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_TIZEN_VECTOR_ANIMATION_EVENT_HANDLER_H

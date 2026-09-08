@@ -18,9 +18,10 @@
  *
  */
 
+#include <dali/public-api/common/dali-namespace.h>
 #include <tizen_core_wl.h>
 
-namespace Dali::Internal::Adaptor
+namespace DALI_NAMESPACE::Internal::Adaptor
 {
 
 inline bool TcoreWlAcquireDisplay(tizen_core_wl_display_h* display)
@@ -55,6 +56,6 @@ inline void TcoreWlReleaseDisplay(tizen_core_wl_display_h display)
   }
 }
 
-} // namespace Dali::Internal::Adaptor
+} //namespace DALI_NAMESPACE::Internal::Adaptor
 
 #endif // DALI_EXTENSION_INTEGRATION_API_TIZEN_CORE_WL_DISPLAY_UTIL_H

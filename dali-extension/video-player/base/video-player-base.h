@@ -23,16 +23,16 @@
 #include <dali/devel-api/adaptor-framework/video-player-plugin.h>
 #include <dali/devel-api/adaptor-framework/video-sync-mode.h>
 #include <dali/devel-api/threading/mutex.h>
+#include <dali/public-api/adaptor-framework/native-image.h>
 #include <dali/public-api/object/any.h>
 #include <dali/public-api/object/weak-handle.h>
-#include <dali/public-api/adaptor-framework/native-image.h>
-#include <string>
-#include <memory>
-#include <queue>
 #include <deque>
 #include <functional>
+#include <memory>
+#include <queue>
+#include <string>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -349,7 +349,6 @@ protected:
    */
   void InitializeUiUpdateCallback();
 
-
   /**
    * @brief Called on the main UI thread when a UI update is triggered.
    * Subclasses should override this to perform the actual rendering update (e.g., setting native image source).
@@ -360,7 +359,9 @@ protected:
    * @brief Called to trigger continuous rendering for smooth video playback.
    * Subclasses can override this to keep rendering active.
    */
-  virtual void KeepRendering() {}
+  virtual void KeepRendering()
+  {
+  }
 
   /**
    * @brief Checks if the player is in a safe state to process commands.
@@ -527,14 +528,19 @@ protected:
    * @brief Destroys a platform-specific media packet.
    * @param[in] packet The platform-specific packet handle
    */
-  virtual void DestroyMediaPacket(void* packet) {}
+  virtual void DestroyMediaPacket(void* packet)
+  {
+  }
 
   /**
    * @brief Extracts the tbm_surface_h from a platform-specific media packet.
    * @param[in] packet The platform-specific packet handle
    * @return The surface handle as Dali::Any
    */
-  virtual Any GetSurfaceFromPacket(void* packet) { return Any(); }
+  virtual Any GetSurfaceFromPacket(void* packet)
+  {
+    return Any();
+  }
 
   /**
    * @brief Clears all pending and used packets.
@@ -542,36 +548,36 @@ protected:
   void ClearPackets();
 
   // Protected member variables accessible to subclasses
-  std::string                                         mUrl;                        ///< The video file path
-  Dali::VideoSyncMode                                 mSyncMode;                   ///< Synchronization mode
-  Dali::WeakHandle<Dali::Actor>                       mSyncActor;                  ///< Actor for synchronization
-  bool                                                mIsMuted;                    ///< Mute state
-  float                                               mVolumeLeft;                 ///< Left channel volume
-  float                                               mVolumeRight;                ///< Right channel volume
-  bool                                                mIsLooping;                  ///< Looping state
-  Dali::VideoPlayerPlugin::CodecType                  mCodecType;                  ///< Codec type
-  Dali::VideoPlayerPlugin::DisplayMode::Type          mDisplayMode;                ///< Display mode
-  Dali::VideoPlayerPlugin::DisplayRotation            mDisplayRotation;            ///< Display rotation
-  Dali::VideoPlayerPlugin::VideoPlayerSignalType      mFinishedSignal;             ///< Finished signal
-  Dali::NativeImagePtr                                mNativeImagePtr;             ///< Native image for video rendering
-  bool                                                mIsAutoRotationEnabled;      ///< Auto rotation enabled state
-  bool                                                mIsLetterBoxEnabled;         ///< Letter box enabled state
-  float                                               mInterpolationInterval;      ///< Frame interpolation interval in seconds
-  bool                                                mUseOffscreenFrameRendering; ///< Offscreen frame rendering enabled state
-  Dali::NativeImagePtr                                mPreviousFrameBuffer;        ///< Previous frame buffer for interpolation
-  Dali::NativeImagePtr                                mCurrentFrameBuffer;         ///< Current frame buffer for interpolation
-  Dali::Mutex                                         mPacketMutex;                ///< Mutex for packet operations
+  std::string                                    mUrl;                        ///< The video file path
+  Dali::VideoSyncMode                            mSyncMode;                   ///< Synchronization mode
+  Dali::WeakHandle<Dali::Actor>                  mSyncActor;                  ///< Actor for synchronization
+  bool                                           mIsMuted;                    ///< Mute state
+  float                                          mVolumeLeft;                 ///< Left channel volume
+  float                                          mVolumeRight;                ///< Right channel volume
+  bool                                           mIsLooping;                  ///< Looping state
+  Dali::VideoPlayerPlugin::CodecType             mCodecType;                  ///< Codec type
+  Dali::VideoPlayerPlugin::DisplayMode::Type     mDisplayMode;                ///< Display mode
+  Dali::VideoPlayerPlugin::DisplayRotation       mDisplayRotation;            ///< Display rotation
+  Dali::VideoPlayerPlugin::VideoPlayerSignalType mFinishedSignal;             ///< Finished signal
+  Dali::NativeImagePtr                           mNativeImagePtr;             ///< Native image for video rendering
+  bool                                           mIsAutoRotationEnabled;      ///< Auto rotation enabled state
+  bool                                           mIsLetterBoxEnabled;         ///< Letter box enabled state
+  float                                          mInterpolationInterval;      ///< Frame interpolation interval in seconds
+  bool                                           mUseOffscreenFrameRendering; ///< Offscreen frame rendering enabled state
+  Dali::NativeImagePtr                           mPreviousFrameBuffer;        ///< Previous frame buffer for interpolation
+  Dali::NativeImagePtr                           mCurrentFrameBuffer;         ///< Current frame buffer for interpolation
+  Dali::Mutex                                    mPacketMutex;                ///< Mutex for packet operations
 
-  std::queue<Command>                                 mCommandQueue;               ///< Queue for asynchronous command processing
-  Dali::Mutex                                         mCommandMutex;               ///< Mutex for command queue
-  std::unique_ptr<Dali::EventThreadCallback>          mEventCallback;              ///< Callback for UI thread updates
-  Dali::VideoPlayerPlugin::VideoPlayerEventSignalType mEventSignal;             ///< Centralized event signal
+  std::queue<Command>                                 mCommandQueue;  ///< Queue for asynchronous command processing
+  Dali::Mutex                                         mCommandMutex;  ///< Mutex for command queue
+  std::unique_ptr<Dali::EventThreadCallback>          mEventCallback; ///< Callback for UI thread updates
+  Dali::VideoPlayerPlugin::VideoPlayerEventSignalType mEventSignal;   ///< Centralized event signal
 
-  std::deque<void*>                                   mPacketQueue;                ///< Pending decoded packets
-  std::deque<void*>                                   mUsedPackets;                ///< Recently displayed packets (prevent tearing)
+  std::deque<void*> mPacketQueue; ///< Pending decoded packets
+  std::deque<void*> mUsedPackets; ///< Recently displayed packets (prevent tearing)
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_VIDEO_PLAYER_BASE_H

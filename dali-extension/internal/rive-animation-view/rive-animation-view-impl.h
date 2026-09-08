@@ -30,7 +30,7 @@
 #include <dali-extension/internal/rive-animation-view/rive-animation-manager.h>
 #include <dali-extension/internal/rive-animation-view/rive-animation-task.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -303,6 +303,6 @@ inline const Extension::Internal::RiveAnimationView& GetImplementation(const Ext
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_VIEW_H

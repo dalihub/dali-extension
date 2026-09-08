@@ -25,7 +25,7 @@
 #include <wv_context_internal.h>
 #include <wv_context_product.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -340,7 +340,7 @@ void TizenWebEngineContext::RequestIntercepted(Dali::WebEngineRequestInterceptor
   }
 }
 
-void TizenWebEngineContext::OnRequestIntercepted(wv_context_h , wv_intercept_request_h request, void* userData)
+void TizenWebEngineContext::OnRequestIntercepted(wv_context_h, wv_intercept_request_h request, void* userData)
 {
   TizenWebEngineContext*               pThis          = static_cast<TizenWebEngineContext*>(userData);
   Dali::WebEngineRequestInterceptorPtr webInterceptor = new TizenWebEngineRequestInterceptor(request);
@@ -356,7 +356,7 @@ void TizenWebEngineContext::OnSecurityOriginsAcquired(GList* origins, void* user
   {
     if(it->data)
     {
-      wv_security_origin_h securityOrigin = static_cast<wv_security_origin_h>(it->data);
+      wv_security_origin_h                           securityOrigin = static_cast<wv_security_origin_h>(it->data);
       std::unique_ptr<Dali::WebEngineSecurityOrigin> origin(new TizenWebEngineSecurityOrigin(securityOrigin));
       originsList.push_back(std::move(origin));
     }
@@ -405,4 +405,4 @@ bool TizenWebEngineContext::OnMimeOverridden(const char* url, const char* defaul
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

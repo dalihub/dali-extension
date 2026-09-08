@@ -33,7 +33,7 @@
 
 using Dali::Integration::ToDaliString;
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -583,4 +583,4 @@ void VectorAnimationRenderer::NotifyEvent()
 
 } // namespace Plugin
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

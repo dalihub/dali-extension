@@ -34,7 +34,7 @@ extern "C" DALI_EXPORT_API void DestroyImageLoaderPlugin(Dali::ImageLoaderPlugin
   }
 }
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -118,4 +118,4 @@ const Dali::ImageLoader::BitmapLoader* TizenImageLoader::BitmapLoaderLookup(cons
 
 } // namespace Plugin
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

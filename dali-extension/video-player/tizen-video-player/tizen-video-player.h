@@ -39,7 +39,7 @@
 #endif
 #include <player_internal.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -188,7 +188,10 @@ protected:
   /**
    * @copydoc Dali::VideoPlayerPlugin::IsVideoTextureSupported()
    */
-  bool IsVideoTextureSupported() override { return true; }
+  bool IsVideoTextureSupported() override
+  {
+    return true;
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::GetCodecType()
@@ -203,7 +206,10 @@ protected:
   /**
    * @copydoc Dali::VideoPlayerPlugin::GetMediaPlayer()
    */
-  Any GetMediaPlayer() override { return DoGetMediaPlayer(); }
+  Any GetMediaPlayer() override
+  {
+    return DoGetMediaPlayer();
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::StartSynchronization()
@@ -379,10 +385,10 @@ private:
   void DestroyVideoShellConstraint();
 
   // TizenVideoPlayer specific member variables (not in base class)
-  player_h                   mPlayer;               ///< Tizen MMPlayer handle
-  player_state_e             mPlayerState;          ///< Tizen player state
-  Dali::Vector4              mBackgroundColor;      ///< Current background color, which texturestream mode needs.
-  RenderingTargetType        mTargetType;           ///< Current rendering target type
+  player_h            mPlayer;          ///< Tizen MMPlayer handle
+  player_state_e      mPlayerState;     ///< Tizen player state
+  Dali::Vector4       mBackgroundColor; ///< Current background color, which texturestream mode needs.
+  RenderingTargetType mTargetType;      ///< Current rendering target type
 
   sound_stream_info_h mStreamInfo;
   sound_stream_type_e mStreamType;
@@ -394,10 +400,10 @@ private:
   Ecore_Wl2_Window*     mEcoreWlWindow;       ///< ecore native window handle
   Ecore_Wl2_Subsurface* mEcoreSubVideoWindow; ///< ecore native subsurface for synchronization with video player
 #endif
-  Constraint                    mVideoSizePropertyConstraint;
-  Constraint                    mVideoFrameBufferConstraint;
-  Constraint                    mVideoFrameBufferProgressPropertyConstraint;
-  Property::Index               mVideoFrameBufferProgressPropertyIndex;
+  Constraint      mVideoSizePropertyConstraint;
+  Constraint      mVideoFrameBufferConstraint;
+  Constraint      mVideoFrameBufferProgressPropertyConstraint;
+  Property::Index mVideoFrameBufferProgressPropertyIndex;
 
   int32_t mVideoConstraintHelperId; ///< unique id for Rotation and Ratio constraint helper
 
@@ -418,6 +424,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif

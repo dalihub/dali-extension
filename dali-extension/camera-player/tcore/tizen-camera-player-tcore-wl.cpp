@@ -21,7 +21,7 @@
 
 #include <dali/integration-api/debug.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -84,7 +84,7 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
   if(mCameraPlayerState == CAMERA_STATE_CREATED ||
      mCameraPlayerState == CAMERA_STATE_PREVIEW)
   {
-    int width = 0;
+    int width  = 0;
     int height = 0;
 
     tizen_core_wl_display_h display = nullptr;
@@ -154,4 +154,4 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

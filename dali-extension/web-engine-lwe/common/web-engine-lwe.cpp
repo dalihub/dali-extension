@@ -33,7 +33,7 @@
 
 #include <utility>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -1194,4 +1194,4 @@ void WebEngineLwe::RegisterPlaybackVideoPausedCallback(WebEnginePlaybackVideoPau
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

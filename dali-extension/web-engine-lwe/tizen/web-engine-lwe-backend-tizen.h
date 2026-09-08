@@ -27,12 +27,12 @@
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
 
+#include <pthread.h>
 #include <atomic>
 #include <cstddef>
 #include <functional>
-#include <pthread.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -42,14 +42,14 @@ public:
   WebEngineLweBackendTizen();
   ~WebEngineLweBackendTizen() override;
 
-  LWE::WebContainer* Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
-  LWE::WebContainer* Create(uint32_t width, uint32_t height, uint32_t argc, char** argv) override;
-  void Destroy() override;
-  void SetSize(uint32_t width, uint32_t height) override;
-  void UpdateDisplayArea(uint32_t width, uint32_t height) override;
+  LWE::WebContainer*   Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
+  LWE::WebContainer*   Create(uint32_t width, uint32_t height, uint32_t argc, char** argv) override;
+  void                 Destroy() override;
+  void                 SetSize(uint32_t width, uint32_t height) override;
+  void                 UpdateDisplayArea(uint32_t width, uint32_t height) override;
   Dali::NativeImagePtr GetNativeImage() override;
-  void SetFrameRenderedCallback(FrameRenderedCallback callback) override;
-  void DispatchToEventThread(Task task) override;
+  void                 SetFrameRenderedCallback(FrameRenderedCallback callback) override;
+  void                 DispatchToEventThread(Task task) override;
 
 private:
 #ifndef OVER_TIZEN_VERSION_9
@@ -106,6 +106,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_WEB_ENGINE_LWE_BACKEND_TIZEN_H

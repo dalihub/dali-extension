@@ -23,7 +23,7 @@
 #include <dali/public-api/images/pixel.h>
 #include <cstdio>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Devel
 {
@@ -56,5 +56,5 @@ bool LoadImageHeader(const Dali::ImageLoader::Input& input, unsigned int& width,
 
 } // namespace Plugin
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 #endif // DALI_TIZEN_EXTENSION_LOADER_DUMMY_H

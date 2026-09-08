@@ -20,7 +20,7 @@
 
 #include <wv_intercept_request_internal.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -134,4 +134,4 @@ void TizenWebEngineRequestInterceptor::IterateRequestHeaders(gpointer key, gpoin
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

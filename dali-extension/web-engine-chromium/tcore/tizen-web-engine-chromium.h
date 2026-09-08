@@ -34,7 +34,7 @@
 
 #include <tbm_surface.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 class PixelData;
 
@@ -681,57 +681,57 @@ public:
 private:
   static Dali::PixelData ConvertImageBuffer(wv_image_buffer_h image, bool ownsImage);
 
-  static void      OnFrameRendered(wv_view_h view, void* buffer, void* data);
-  static void      OnLoadStarted(wv_view_h view, void* eventInfo, void* data);
-  static void      OnLoadInProgress(wv_view_h view, void* eventInfo, void* data);
-  static void      OnLoadFinished(wv_view_h view, void* eventInfo, void* data);
-  static void      OnLoadError(wv_view_h view, void* rawError, void* data);
-  static void      OnUrlChanged(wv_view_h view, void* newUrl, void* data);
-  static void      OnConsoleMessageReceived(wv_view_h view, void* eventInfo, void* data);
-  static void      OnDeviceConnectionChanged(wv_view_h obj, void* info, void* data);
-  static void      OnDeviceListGet(wv_media_device_info_s* device_list, int size, void* user_data);
-  static void      OnEdgeLeft(wv_view_h view, void* eventInfo, void* data);
-  static void      OnEdgeRight(wv_view_h view, void* eventInfo, void* data);
-  static void      OnEdgeTop(wv_view_h view, void* eventInfo, void* data);
-  static void      OnEdgeBottom(wv_view_h view, void* eventInfo, void* data);
-  static void      OnOverScrolledLeft(wv_view_h view, void* eventInfo, void* data);
-  static void      OnOverScrolledRight(wv_view_h view, void* eventInfo, void* data);
-  static void      OnOverScrolledTop(wv_view_h view, void* eventInfo, void* data);
-  static void      OnOverScrolledBottom(wv_view_h view, void* eventInfo, void* data);
-  static void      OnFormRepostDecided(wv_view_h view, void* eventInfo, void* data);
-  static void      OnResponsePolicyDecided(wv_view_h view, void* policy, void* data);
-  static void      OnNavigationPolicyDecided(wv_view_h view, void* policy, void* data);
-  static void      OnNewWindowPolicyDecided(wv_view_h view, void* policy, void* data);
-  static void      OnNewWindowCreated(wv_view_h view, void* out_view, void* data);
-  static void      OnCertificateConfirmed(wv_view_h view, void* eventInfo, void* data);
-  static void      OnSslCertificateChanged(wv_view_h view, void* eventInfo, void* data);
-  static void      OnContextMenuShown(wv_view_h view, void* eventInfo, void* data);
-  static void      OnContextMenuHidden(wv_view_h view, void* eventInfo, void* data);
-  static void      OnFullscreenEntered(wv_view_h view, void* eventInfo, void* data);
-  static void      OnFullscreenExited(wv_view_h view, void* eventInfo, void* data);
-  static void      OnTextFound(wv_view_h view, void* eventInfo, void* data);
-  static void      OnAuthenticationChallenged(wv_view_h view, wv_auth_challenge_h authChallenge, void* data);
-  static void      OnJavaScriptEvaluated(wv_view_h o, const char* result, void* data);
-  static void      OnJavaScriptInjected(wv_view_h o, wv_script_message_s message);
-  static void      OnJavaScriptEntireMessageReceived(wv_view_h o, wv_script_message_s message);
-  static bool      OnJavaScriptAlert(wv_view_h o, const char* alert_text, void* data);
-  static bool      OnJavaScriptConfirm(wv_view_h o, const char* message, void* data);
-  static bool      OnJavaScriptPrompt(wv_view_h o, const char* message, const char* default_value, void* data);
-  static void      OnHitTestCreated(wv_view_h view, int x, int y, wv_hit_test_mode_e hitTestMode, wv_hit_test_h hitTest, void* data);
-  static void      OnVideoPlaying(wv_view_h view, bool isPlaying, void* data);
-  static void      OnPlainTextReceived(wv_view_h o, const char* plainText, void* data);
-  static void      OnGeolocationPermission(wv_view_h view, wv_geolocation_permission_request_h request, void* data);
-  static void      OnUserMediaPermissonRequest(wv_view_h view, wv_user_media_permission_request_h request, void* data);
-  static void      OnWebAuthDisplayQR(wv_view_h view, void* contents, void* data);
-  static void      OnWebAuthResponse(wv_view_h view, void* eventInfo, void* data);
-  static void      OnFileChooserRequested(wv_view_h view, void* request, void* data);
-  static void      OnWebProcessCrashed(wv_view_h view, void* eventInfo, void* data);
-  static void      OnScreenshotCaptured(wv_view_h view, wv_image_buffer_h image, void* data);
-  static void      OnPlaybackVideoReady(wv_view_h view, void* eventInfo, void* data);
-  static void      OnPlaybackVideoStarted(wv_view_h view, void* eventInfo, void* data);
-  static void      OnPlaybackVideoFinished(wv_view_h view, void* eventInfo, void* data);
-  static void      OnPlaybackVideoStopped(wv_view_h view, void* eventInfo, void* data);
-  static void      OnPlaybackVideoPaused(wv_view_h view, void* eventInfo, void* data);
+  static void OnFrameRendered(wv_view_h view, void* buffer, void* data);
+  static void OnLoadStarted(wv_view_h view, void* eventInfo, void* data);
+  static void OnLoadInProgress(wv_view_h view, void* eventInfo, void* data);
+  static void OnLoadFinished(wv_view_h view, void* eventInfo, void* data);
+  static void OnLoadError(wv_view_h view, void* rawError, void* data);
+  static void OnUrlChanged(wv_view_h view, void* newUrl, void* data);
+  static void OnConsoleMessageReceived(wv_view_h view, void* eventInfo, void* data);
+  static void OnDeviceConnectionChanged(wv_view_h obj, void* info, void* data);
+  static void OnDeviceListGet(wv_media_device_info_s* device_list, int size, void* user_data);
+  static void OnEdgeLeft(wv_view_h view, void* eventInfo, void* data);
+  static void OnEdgeRight(wv_view_h view, void* eventInfo, void* data);
+  static void OnEdgeTop(wv_view_h view, void* eventInfo, void* data);
+  static void OnEdgeBottom(wv_view_h view, void* eventInfo, void* data);
+  static void OnOverScrolledLeft(wv_view_h view, void* eventInfo, void* data);
+  static void OnOverScrolledRight(wv_view_h view, void* eventInfo, void* data);
+  static void OnOverScrolledTop(wv_view_h view, void* eventInfo, void* data);
+  static void OnOverScrolledBottom(wv_view_h view, void* eventInfo, void* data);
+  static void OnFormRepostDecided(wv_view_h view, void* eventInfo, void* data);
+  static void OnResponsePolicyDecided(wv_view_h view, void* policy, void* data);
+  static void OnNavigationPolicyDecided(wv_view_h view, void* policy, void* data);
+  static void OnNewWindowPolicyDecided(wv_view_h view, void* policy, void* data);
+  static void OnNewWindowCreated(wv_view_h view, void* out_view, void* data);
+  static void OnCertificateConfirmed(wv_view_h view, void* eventInfo, void* data);
+  static void OnSslCertificateChanged(wv_view_h view, void* eventInfo, void* data);
+  static void OnContextMenuShown(wv_view_h view, void* eventInfo, void* data);
+  static void OnContextMenuHidden(wv_view_h view, void* eventInfo, void* data);
+  static void OnFullscreenEntered(wv_view_h view, void* eventInfo, void* data);
+  static void OnFullscreenExited(wv_view_h view, void* eventInfo, void* data);
+  static void OnTextFound(wv_view_h view, void* eventInfo, void* data);
+  static void OnAuthenticationChallenged(wv_view_h view, wv_auth_challenge_h authChallenge, void* data);
+  static void OnJavaScriptEvaluated(wv_view_h o, const char* result, void* data);
+  static void OnJavaScriptInjected(wv_view_h o, wv_script_message_s message);
+  static void OnJavaScriptEntireMessageReceived(wv_view_h o, wv_script_message_s message);
+  static bool OnJavaScriptAlert(wv_view_h o, const char* alert_text, void* data);
+  static bool OnJavaScriptConfirm(wv_view_h o, const char* message, void* data);
+  static bool OnJavaScriptPrompt(wv_view_h o, const char* message, const char* default_value, void* data);
+  static void OnHitTestCreated(wv_view_h view, int x, int y, wv_hit_test_mode_e hitTestMode, wv_hit_test_h hitTest, void* data);
+  static void OnVideoPlaying(wv_view_h view, bool isPlaying, void* data);
+  static void OnPlainTextReceived(wv_view_h o, const char* plainText, void* data);
+  static void OnGeolocationPermission(wv_view_h view, wv_geolocation_permission_request_h request, void* data);
+  static void OnUserMediaPermissonRequest(wv_view_h view, wv_user_media_permission_request_h request, void* data);
+  static void OnWebAuthDisplayQR(wv_view_h view, void* contents, void* data);
+  static void OnWebAuthResponse(wv_view_h view, void* eventInfo, void* data);
+  static void OnFileChooserRequested(wv_view_h view, void* request, void* data);
+  static void OnWebProcessCrashed(wv_view_h view, void* eventInfo, void* data);
+  static void OnScreenshotCaptured(wv_view_h view, wv_image_buffer_h image, void* data);
+  static void OnPlaybackVideoReady(wv_view_h view, void* eventInfo, void* data);
+  static void OnPlaybackVideoStarted(wv_view_h view, void* eventInfo, void* data);
+  static void OnPlaybackVideoFinished(wv_view_h view, void* eventInfo, void* data);
+  static void OnPlaybackVideoStopped(wv_view_h view, void* eventInfo, void* data);
+  static void OnPlaybackVideoPaused(wv_view_h view, void* eventInfo, void* data);
 
   void UpdateImage(tbm_surface_h buffer);
   void InitWebView(bool incognito);
@@ -802,6 +802,6 @@ private:
   WebEnginePlaybackVideoPausedCallback        mPlaybackVideoPausedCallback;
 };
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif

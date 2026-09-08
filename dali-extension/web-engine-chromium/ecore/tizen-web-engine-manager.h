@@ -31,7 +31,7 @@
 #include <map>
 #include <memory>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 class WebEngineContext;
 class WebEngineCookieManager;
@@ -93,6 +93,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
