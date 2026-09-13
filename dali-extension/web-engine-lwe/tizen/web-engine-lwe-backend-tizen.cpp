@@ -36,7 +36,7 @@
 #include <cstring>
 #include <utility>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -67,9 +67,9 @@ private:
 #endif
 
 constexpr int               TBM_SURFACE_QUEUE_LENGTH = 3;
-PFNEGLCREATESYNCKHRPROC     gEglCreateSyncKHR         = nullptr;
-PFNEGLDESTROYSYNCKHRPROC    gEglDestroySyncKHR        = nullptr;
-PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR     = nullptr;
+PFNEGLCREATESYNCKHRPROC     gEglCreateSyncKHR        = nullptr;
+PFNEGLDESTROYSYNCKHRPROC    gEglDestroySyncKHR       = nullptr;
+PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR    = nullptr;
 
 std::string GetLanguage()
 {
@@ -165,8 +165,8 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t width, uint32_t hei
   return Create(width, height, GetLanguage(), GetTimezone());
 }
 
-LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t width,
-                                                    uint32_t height,
+LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
+                                                    uint32_t           height,
                                                     const std::string& locale,
                                                     const std::string& timezoneId)
 {
@@ -278,11 +278,11 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t width,
   mWebContainer->LoadURL("about:blank");
 #else
   mWebContainer = LWE::WebContainer::Create(mOutputWidth,
-                                             mOutputHeight,
-                                             1.0,
-                                             "",
-                                             locale.data(),
-                                             timezoneId.data());
+                                            mOutputHeight,
+                                            1.0,
+                                            "",
+                                            locale.data(),
+                                            timezoneId.data());
   DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE WebContainer");
 
   mWebContainer->RegisterPreRenderingHandler([this]() -> LWE::WebContainer::RenderInfo
@@ -308,7 +308,7 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t width,
     }
 
     {
-      MutexLocker       lock(mOutputBufferMutex);
+      MutexLocker        lock(mOutputBufferMutex);
       tbm_surface_info_s surfaceInfo;
       if(tbm_surface_map(mTbmSurface, TBM_SURF_OPTION_READ | TBM_SURF_OPTION_WRITE, &surfaceInfo) != TBM_SURFACE_ERROR_NONE)
       {
@@ -376,7 +376,7 @@ void WebEngineLweBackendTizen::Destroy()
   mOutputBuffer = nullptr;
 #endif
 
-  mLweRenderingFunction = {};
+  mLweRenderingFunction  = {};
   mLweRenderingRequested = false;
   mInImageUpdateState    = false;
   mInIdleState           = false;
@@ -407,7 +407,7 @@ void WebEngineLweBackendTizen::SetSize(uint32_t width, uint32_t height)
     mOutputStride = width * sizeof(uint32_t);
 
     tbm_surface_h previousSurface = mTbmSurface;
-    mTbmSurface                  = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+    mTbmSurface                   = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
     mNativeImage->SetSource(Dali::Any(mTbmSurface));
     if(previousSurface && tbm_surface_destroy(previousSurface) != TBM_SURFACE_ERROR_NONE)
     {
@@ -478,7 +478,7 @@ void WebEngineLweBackendTizen::InitRenderingContext()
   DALI_ASSERT_ALWAYS(eglChooseConfig(mEglDisplay, configAttributes, &mEglConfig, 1, &configCount) == EGL_TRUE && configCount > 0 && "Failed to choose EGL config");
 
   const EGLint contextAttributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-  mEglContext = eglCreateContext(mEglDisplay, mEglConfig, EGL_NO_CONTEXT, contextAttributes);
+  mEglContext                      = eglCreateContext(mEglDisplay, mEglConfig, EGL_NO_CONTEXT, contextAttributes);
   DALI_ASSERT_ALWAYS(mEglContext != EGL_NO_CONTEXT && "Failed to create EGL context");
 }
 
@@ -781,4 +781,4 @@ void ClearWebEngineLweCookies()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

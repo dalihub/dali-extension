@@ -19,7 +19,7 @@
 
 #include <dali/integration-api/debug.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -134,4 +134,4 @@ void TizenCameraPlayer::SetDisplayArea(DisplayArea area)
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

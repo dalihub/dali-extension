@@ -39,12 +39,6 @@ if test "x$use_tcore_backend" != "xyes"; then
   esac
 fi
 
-if test "x$use_tcore_backend" = "xyes"; then
-  if test "x$enable_web_engine_plugin" = "xyes"; then
-    enable_web_engine_plugin=no
-  fi
-fi
-
 AM_CONDITIONAL([USE_TCORE_BACKEND], [test x$use_tcore_backend = xyes])
 
 AC_SUBST([use_tcore_backend])

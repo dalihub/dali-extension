@@ -22,7 +22,7 @@
 #include <dali/devel-api/adaptor-framework/image-loader-plugin.h>
 #include <dali/integration-api/debug.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 
 namespace Plugin
@@ -53,6 +53,6 @@ public: // ImageLoaderPlugin overrides
 
 } // namespace Plugin
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_TIZEN_IMAGE_LOADER_PLUGIN_H

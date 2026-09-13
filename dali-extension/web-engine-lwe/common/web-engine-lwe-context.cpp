@@ -19,7 +19,7 @@
 
 #include "web-engine-lwe.h"
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -202,4 +202,4 @@ bool WebEngineLweContext::FreeUnusedMemory()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

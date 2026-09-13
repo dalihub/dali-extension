@@ -29,7 +29,7 @@
 #include <dali-extension/internal/rive-animation-view/rive-animation-task.h>
 #include <dali-extension/internal/rive-animation-view/rive-rasterize-thread.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -183,6 +183,6 @@ private:
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_THREAD_H

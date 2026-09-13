@@ -20,24 +20,24 @@
 
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-cookie-manager.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
 class WebEngineLweCookieManager : public Dali::WebEngineCookieManager
 {
 public:
-  void SetCookieAcceptPolicy(CookieAcceptPolicy policy) override;
+  void               SetCookieAcceptPolicy(CookieAcceptPolicy policy) override;
   CookieAcceptPolicy GetCookieAcceptPolicy() const override;
-  void ClearCookies() override;
-  void SetPersistentStorage(const std::string& path, CookiePersistentStorage storage) override;
-  void ChangesWatch(WebEngineCookieManagerChangesWatchCallback callback) override;
+  void               ClearCookies() override;
+  void               SetPersistentStorage(const std::string& path, CookiePersistentStorage storage) override;
+  void               ChangesWatch(WebEngineCookieManagerChangesWatchCallback callback) override;
 
 private:
   CookieAcceptPolicy mAcceptPolicy{CookieAcceptPolicy::NO_THIRD_PARTY};
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_WEB_ENGINE_LWE_COOKIE_MANAGER_H

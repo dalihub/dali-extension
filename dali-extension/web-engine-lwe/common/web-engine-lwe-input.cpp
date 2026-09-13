@@ -21,7 +21,7 @@
 
 #include <cstring>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -210,4 +210,4 @@ LWE::KeyValue ToLweKeyValue(const Dali::KeyEvent& keyEvent)
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

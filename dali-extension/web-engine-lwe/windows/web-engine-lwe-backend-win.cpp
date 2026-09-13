@@ -28,7 +28,7 @@
 
 #include <utility>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -86,31 +86,31 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width, uint32_t heigh
   return Create(width, height, "en-US", "UTC");
 }
 
-LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
-                                                  uint32_t height,
+LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t           width,
+                                                  uint32_t           height,
                                                   const std::string& locale,
                                                   const std::string& timezoneId)
 {
   EnsureInitialized();
 
-  mWidth       = width;
-  mHeight      = height;
-  mAcceptTasks = true;
+  mWidth               = width;
+  mHeight              = height;
+  mAcceptTasks         = true;
   mEventThreadCallback = std::make_shared<Dali::EventThreadCallback>(
     Dali::MakeCallback(this, &WebEngineLweBackendWin::ProcessEventTasks));
 
   mWebContainer = LWE::WebContainer::Create(width,
-                                             height,
-                                             1.0f,
-                                             "sans-serif",
-                                             locale.c_str(),
-                                             timezoneId.c_str());
+                                            height,
+                                            1.0f,
+                                            "sans-serif",
+                                            locale.c_str(),
+                                            timezoneId.c_str());
   DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE WebContainer");
 
   mWebContainer->RegisterPreRenderingHandler([this]() -> LWE::WebContainer::RenderInfo
   {
-    mRenderWidth  = mWidth.load();
-    mRenderHeight = mHeight.load();
+    mRenderWidth              = mWidth.load();
+    mRenderHeight             = mHeight.load();
     const size_t requiredSize = static_cast<size_t>(mRenderWidth) * mRenderHeight * BYTES_PER_PIXEL;
     if(mRenderBuffer.size() != requiredSize)
     {
@@ -296,4 +296,4 @@ void ClearWebEngineLweCookies()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

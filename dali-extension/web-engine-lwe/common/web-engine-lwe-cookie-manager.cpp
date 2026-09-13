@@ -19,7 +19,7 @@
 
 #include "web-engine-lwe-backend.h"
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -48,4 +48,4 @@ void WebEngineLweCookieManager::ChangesWatch(WebEngineCookieManagerChangesWatchC
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

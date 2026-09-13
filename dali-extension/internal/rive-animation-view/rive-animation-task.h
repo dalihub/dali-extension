@@ -2,7 +2,7 @@
 #define DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_TASK_H
 
 /*
- * Copyright (c) 2025 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 #include <dali-extension/devel-api/rive-animation-view/rive-animation-view.h>
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -378,6 +378,6 @@ private:
 
 } //namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_INTERNAL_RIVE_ANIMATION_TASK_H

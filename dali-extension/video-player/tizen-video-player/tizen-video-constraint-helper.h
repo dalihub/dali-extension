@@ -28,7 +28,7 @@
 #include <tbm_surface.h>
 #include <chrono>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -129,6 +129,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // __DALI_TIZEN_VIDEO_CONSTRAINT_HELPER_H__

@@ -20,7 +20,7 @@
 
 #include <ewk_intercept_request_internal.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -132,4 +132,4 @@ Eina_Bool TizenWebEngineRequestInterceptor::IterateRequestHeaders(const Eina_Has
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

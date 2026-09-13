@@ -36,7 +36,7 @@ extern "C" DALI_EXPORT_API Dali::VectorAnimationRendererPlugin* CreateVectorAnim
   return new Dali::Plugin::VectorAnimationRendererX;
 }
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -217,4 +217,4 @@ std::shared_ptr<VectorAnimationRenderer::RenderingData> VectorAnimationRendererX
 
 } // namespace Plugin
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

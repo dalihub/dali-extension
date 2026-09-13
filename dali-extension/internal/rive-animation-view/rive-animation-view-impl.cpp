@@ -34,7 +34,7 @@
 using Dali::Integration::ToPropertyValue;
 using Dali::Integration::ToStdString;
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -646,4 +646,4 @@ void RiveAnimationView::OnProcessEvents()
 
 } // namespace Internal
 } // namespace Extension
-} // namespace Dali
+} //namespace DALI_NAMESPACE

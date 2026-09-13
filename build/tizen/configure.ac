@@ -75,7 +75,6 @@ fi
 
 if test "x$with_tizen_55_or_greater" = "xyes"; then
   AC_CONFIG_SUBDIRS(vector-animation-renderer)
-  # web-engine-chromium/lwe: skipped when TCORE (see TIZEN_WAYLAND_BACKEND_INIT)
   if test "x$enable_web_engine_plugin" = "xyes"; then
     AC_CONFIG_SUBDIRS(web-engine-chromium)
     AC_CONFIG_SUBDIRS(web-engine-lwe)

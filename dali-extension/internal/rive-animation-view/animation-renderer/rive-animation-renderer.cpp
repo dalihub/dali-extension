@@ -37,7 +37,7 @@
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/animation-renderer/rive-animation-renderer-manager.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -555,4 +555,4 @@ void RiveAnimationRenderer::SetShader()
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

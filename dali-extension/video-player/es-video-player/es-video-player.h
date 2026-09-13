@@ -36,7 +36,7 @@
 #include <Ecore_Wl2.h>
 #endif
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -66,8 +66,7 @@ public:
   virtual ~EsVideoPlayer();
 
 protected:
-
-// Template Method Pattern: Primitive operations
+  // Template Method Pattern: Primitive operations
   /**
    * @copydoc Dali::Plugin::VideoPlayerBase::IsPlayerReady()
    */
@@ -167,68 +166,99 @@ protected:
   /**
    * @copydoc Dali::Plugin::VideoPlayerBase::DoSetCodecType()
    */
-  virtual void DoSetCodecType(Dali::VideoPlayerPlugin::CodecType type) override {}
+  virtual void DoSetCodecType(Dali::VideoPlayerPlugin::CodecType type) override
+  {
+  }
 
   // Override base class methods that need specific implementation
   /**
    * @copydoc Dali::VideoPlayerPlugin::IsVideoTextureSupported()
    */
-  bool IsVideoTextureSupported() override { return true; }
+  bool IsVideoTextureSupported() override
+  {
+    return true;
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::GetCodecType()
    */
-  Dali::VideoPlayerPlugin::CodecType GetCodecType() const override { return mCodecType; }
+  Dali::VideoPlayerPlugin::CodecType GetCodecType() const override
+  {
+    return mCodecType;
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::DoSetDisplayMode()
    */
-  virtual void DoSetDisplayMode(Dali::VideoPlayerPlugin::DisplayMode::Type mode) override {}
+  virtual void DoSetDisplayMode(Dali::VideoPlayerPlugin::DisplayMode::Type mode) override
+  {
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::GetDisplayMode()
    */
-  Dali::VideoPlayerPlugin::DisplayMode::Type GetDisplayMode() const override { return mDisplayMode; }
+  Dali::VideoPlayerPlugin::DisplayMode::Type GetDisplayMode() const override
+  {
+    return mDisplayMode;
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::GetMediaPlayer()
    */
-  Any GetMediaPlayer() override { return Any((void*)mEsPlayer); }
+  Any GetMediaPlayer() override
+  {
+    return Any((void*)mEsPlayer);
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::StartSynchronization()
    */
-  void StartSynchronization() override { /* EsVideoPlayer specific implementation */ }
+  void StartSynchronization() override
+  { /* EsVideoPlayer specific implementation */
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::FinishSynchronization()
    */
-  void FinishSynchronization() override { /* EsVideoPlayer specific implementation */ }
+  void FinishSynchronization() override
+  { /* EsVideoPlayer specific implementation */
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::RaiseAbove()
    */
-  void RaiseAbove(Any videoSurface) override { /* EsVideoPlayer specific implementation */ }
+  void RaiseAbove(Any videoSurface) override
+  { /* EsVideoPlayer specific implementation */
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::LowerBelow()
    */
-  void LowerBelow(Any videoSurface) override { /* EsVideoPlayer specific implementation */ }
+  void LowerBelow(Any videoSurface) override
+  { /* EsVideoPlayer specific implementation */
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::RaiseToTop()
    */
-  void RaiseToTop() override { /* EsVideoPlayer specific implementation */ }
+  void RaiseToTop() override
+  { /* EsVideoPlayer specific implementation */
+  }
 
   /**
    @copydoc Dali::VideoPlayerPlugin::LowerToBottom()
    */
-  void LowerToBottom() override { /* EsVideoPlayer specific implementation */ }
+  void LowerToBottom() override
+  { /* EsVideoPlayer specific implementation */
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::GetVideoPlayerSurface()
    */
-  Any GetVideoPlayerSurface() override { return Any(); }
+  Any GetVideoPlayerSurface() override
+  {
+    return Any();
+  }
 
   /**
    * @copydoc Dali::VideoPlayerPlugin::SceneConnection()
@@ -260,7 +290,6 @@ protected:
   virtual Any GetSurfaceFromPacket(void* packet) override;
 
 private:
-
   /**
    * @brief Logs player error messages.
    *
@@ -342,6 +371,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_VIDEO_PLAYER_ES_VIDEO_PLAYER_H

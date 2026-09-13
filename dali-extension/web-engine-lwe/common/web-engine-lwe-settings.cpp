@@ -19,7 +19,7 @@
 
 #include <stdexcept>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -368,4 +368,4 @@ void WebEngineLweSettings::EnableDragAndDrop(bool)
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

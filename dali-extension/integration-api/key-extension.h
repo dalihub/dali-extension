@@ -23,7 +23,7 @@
 #include <dali/public-api/adaptor-framework/key.h>
 #include <dali/public-api/events/key-event.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 
 /**
@@ -79,5 +79,5 @@ public:
 };
 
 } //namespace Plugin
-} //namespace Dali
+} //namespace DALI_NAMESPACE
 #endif

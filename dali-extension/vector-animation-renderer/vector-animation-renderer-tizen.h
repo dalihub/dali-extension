@@ -24,7 +24,7 @@
 // INTERNAL INCLUDES
 #include <dali-extension/vector-animation-renderer/vector-animation-renderer.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -99,6 +99,6 @@ private:
 
 } // namespace Plugin
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_TIZEN_VECTOR_ANIMATION_RENDERER_PLUGIN_H

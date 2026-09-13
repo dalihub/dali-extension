@@ -26,7 +26,7 @@
 
 using Dali::Integration::ToPropertyValue;
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -166,4 +166,4 @@ RiveAnimationView::AnimationSignalType& RiveAnimationView::AnimationFinishedSign
 
 } //namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

@@ -19,8 +19,9 @@
 #define DALI_EXTENSION_WEB_ENGINE_LWE_INPUT_H
 
 #include <LWEWebView.h>
+#include <dali/public-api/common/dali-namespace.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 class KeyEvent;
 
@@ -28,6 +29,6 @@ namespace Plugin
 {
 LWE::KeyValue ToLweKeyValue(const Dali::KeyEvent& keyEvent);
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_WEB_ENGINE_LWE_INPUT_H

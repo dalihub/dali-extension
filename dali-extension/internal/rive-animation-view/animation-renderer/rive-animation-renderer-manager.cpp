@@ -24,7 +24,7 @@
 
 #include <algorithm>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -163,4 +163,4 @@ void RiveAnimationRendererManager::OnEventTriggered()
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

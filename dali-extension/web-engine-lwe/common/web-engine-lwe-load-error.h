@@ -22,7 +22,7 @@
 
 #include <string>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -33,9 +33,9 @@ public:
   ~WebEngineLweLoadError() override = default;
 
   std::string GetUrl() const override;
-  ErrorCode GetCode() const override;
+  ErrorCode   GetCode() const override;
   std::string GetDescription() const override;
-  ErrorType GetType() const override;
+  ErrorType   GetType() const override;
 
 private:
   std::string mUrl;
@@ -44,6 +44,6 @@ private:
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_WEB_ENGINE_LWE_LOAD_ERROR_H

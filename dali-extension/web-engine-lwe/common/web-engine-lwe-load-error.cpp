@@ -19,7 +19,7 @@
 
 #include <utility>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -129,4 +129,4 @@ Dali::WebEngineLoadError::ErrorType WebEngineLweLoadError::GetType() const
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

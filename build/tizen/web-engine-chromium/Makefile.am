@@ -24,25 +24,52 @@ lib_LTLIBRARIES =
 
 lib_LTLIBRARIES += libdali2-web-engine-chromium-plugin.la
 
+if USE_TCORE_BACKEND
+libdali2_web_engine_chromium_plugin_la_SOURCES = \
+                     $(web_engine_chromium_tcore_plugin_src_files)
+else
 libdali2_web_engine_chromium_plugin_la_SOURCES = \
                      $(web_engine_chromium_ecore_plugin_src_files)
+endif
 
 libdali2_web_engine_chromium_plugin_la_DEPENDENCIES =
 
 libdali2_web_engine_chromium_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
                       $(WEB_ENGINE_CHROMIUM_CFLAGS) \
+                      -Werror -Wall
+
+if USE_TCORE_BACKEND
+libdali2_web_engine_chromium_plugin_la_CXXFLAGS += \
+                      $(TCORE_WL_CFLAGS) \
+                      $(GLIB_CFLAGS) \
+                      -I../../../dali-extension/web-engine-chromium/tcore
+else
+libdali2_web_engine_chromium_plugin_la_CXXFLAGS += \
                       $(ELEMENTARY_CFLAGS) \
                       $(ECORE_WL2_CFLAGS) \
-                      -I../../../dali-extension/web-engine-chromium/common \
-                      -Werror -Wall
+                      -I../../../dali-extension/web-engine-chromium/ecore
+endif
 
 libdali2_web_engine_chromium_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
-                      $(WEB_ENGINE_CHROMIUM_LIBS) \
+                      $(WEB_ENGINE_CHROMIUM_LIBS)
+
+if USE_TCORE_BACKEND
+libdali2_web_engine_chromium_plugin_la_LIBADD += \
+                      $(TCORE_WL_LIBS) \
+                      $(GLIB_LIBS)
+else
+libdali2_web_engine_chromium_plugin_la_LIBADD += \
+                      $(ELEMENTARY_LIBS) \
                       $(ECORE_WL2_LIBS)
+endif
 
 libdali2_web_engine_chromium_plugin_la_LDFLAGS = \
-                      -rdynamic \
+                      -rdynamic
+
+if !USE_TCORE_BACKEND
+libdali2_web_engine_chromium_plugin_la_LDFLAGS += \
                       -lelementary
+endif

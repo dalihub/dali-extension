@@ -17,7 +17,7 @@
 
 #include "web-engine-lwe-back-forward-list.h"
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -58,4 +58,4 @@ std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> WebEngineLweBac
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

@@ -23,7 +23,7 @@
 #include <tbm_surface_internal.h>
 #include <chrono>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -160,4 +160,4 @@ float VideoConstraintHelper::UpdateInterpolationFactor()
 }
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE

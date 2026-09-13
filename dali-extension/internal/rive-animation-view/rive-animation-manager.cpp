@@ -26,7 +26,7 @@
 // INTERNAL INCLUDES
 #include <dali-extension/internal/rive-animation-view/rive-animation-thread.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Extension
 {
@@ -150,4 +150,4 @@ void RiveAnimationManager::Process(bool postProcessor)
 
 } // namespace Extension
 
-} // namespace Dali
+} //namespace DALI_NAMESPACE

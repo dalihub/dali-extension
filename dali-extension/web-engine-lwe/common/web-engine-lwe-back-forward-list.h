@@ -20,7 +20,7 @@
 
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-back-forward-list.h>
 
-namespace Dali
+namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
@@ -30,16 +30,16 @@ namespace Plugin
 class WebEngineLweBackForwardList : public Dali::WebEngineBackForwardList
 {
 public:
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetCurrentItem() const override;
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetPreviousItem() const override;
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetNextItem() const override;
-  std::unique_ptr<Dali::WebEngineBackForwardListItem> GetItemAtIndex(uint32_t index) const override;
-  uint32_t GetItemCount() const override;
+  std::unique_ptr<Dali::WebEngineBackForwardListItem>              GetCurrentItem() const override;
+  std::unique_ptr<Dali::WebEngineBackForwardListItem>              GetPreviousItem() const override;
+  std::unique_ptr<Dali::WebEngineBackForwardListItem>              GetNextItem() const override;
+  std::unique_ptr<Dali::WebEngineBackForwardListItem>              GetItemAtIndex(uint32_t index) const override;
+  uint32_t                                                         GetItemCount() const override;
   std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetBackwardItems(int limit) override;
   std::vector<std::unique_ptr<Dali::WebEngineBackForwardListItem>> GetForwardItems(int limit) override;
 };
 
 } // namespace Plugin
-} // namespace Dali
+} //namespace DALI_NAMESPACE
 
 #endif // DALI_EXTENSION_WEB_ENGINE_LWE_BACK_FORWARD_LIST_H
