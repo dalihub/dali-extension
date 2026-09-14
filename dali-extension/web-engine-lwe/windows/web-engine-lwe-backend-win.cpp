@@ -16,6 +16,7 @@
  */
 
 #include "web-engine-lwe-backend-win.h"
+#include "web-engine-lwe-angle-renderer.h"
 
 #include <LWEWebView.h>
 
@@ -34,15 +35,11 @@ namespace Plugin
 {
 namespace
 {
-constexpr Dali::Pixel::Format RENDER_BUFFER_PIXEL_FORMAT = Dali::Pixel::BGRA8888;
+constexpr Dali::Pixel::Format RENDER_BUFFER_PIXEL_FORMAT = Dali::Pixel::RGBA8888;
 }
 
 WebEngineLweBackendWin::WebEngineLweBackendWin()
 : mWebContainer(nullptr),
-  mWidth(0u),
-  mHeight(0u),
-  mRenderWidth(0u),
-  mRenderHeight(0u),
   mReadyWidth(0u),
   mReadyHeight(0u),
   mFrameUploadPending(false),
@@ -86,68 +83,99 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width, uint32_t heigh
   return Create(width, height, "en-US", "UTC");
 }
 
-LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t           width,
-                                                  uint32_t           height,
-                                                  const std::string& locale,
-                                                  const std::string& timezoneId)
+LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
+  uint32_t height,
+  const std::string& locale,
+  const std::string& timezoneId)
 {
   EnsureInitialized();
 
-  mWidth               = width;
-  mHeight              = height;
-  mAcceptTasks         = true;
+  mAcceptTasks = true;
   mEventThreadCallback = std::make_shared<Dali::EventThreadCallback>(
     Dali::MakeCallback(this, &WebEngineLweBackendWin::ProcessEventTasks));
 
-  mWebContainer = LWE::WebContainer::Create(width,
-                                            height,
-                                            1.0f,
-                                            "sans-serif",
-                                            locale.c_str(),
-                                            timezoneId.c_str());
-  DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE WebContainer");
-
-  mWebContainer->RegisterPreRenderingHandler([this]() -> LWE::WebContainer::RenderInfo
+  mRenderer = std::make_unique<WebEngineLweAngleRenderer>();
+  mRenderer->SetFrameCallback(
+    [this](std::vector<uint8_t>&& pixels, uint32_t frameWidth, uint32_t frameHeight)
   {
-    mRenderWidth              = mWidth.load();
-    mRenderHeight             = mHeight.load();
-    const size_t requiredSize = static_cast<size_t>(mRenderWidth) * mRenderHeight * BYTES_PER_PIXEL;
-    if(mRenderBuffer.size() != requiredSize)
-    {
-      mRenderBuffer.assign(requiredSize, 0u);
-    }
-
-    LWE::WebContainer::RenderInfo renderInfo;
-    renderInfo.updatedBufferAddress = mRenderBuffer.data();
-    renderInfo.bufferStride         = static_cast<size_t>(mRenderWidth) * BYTES_PER_PIXEL;
-    return renderInfo;
+    HandleFrame(std::move(pixels), frameWidth, frameHeight);
   });
+  DALI_ASSERT_ALWAYS(mRenderer->Initialize(width, height) && "Failed to initialize LWE ANGLE renderer");
 
-  mWebContainer->RegisterOnRenderedHandler(
-    [this](LWE::WebContainer*, const LWE::WebContainer::RenderResult&)
+  WebEngineLweAngleRenderer* renderer = mRenderer.get();
+  LWE::WebContainer::RendererGLConfiguration configuration;
+  configuration.onMakeCurrent = [renderer](LWE::WebContainer*)
   {
-    bool requestUpload = false;
+    // LWE's callback cannot report failure; do not let it draw with a stale
+    // surface or another view's context after an EGL failure.
+    DALI_ASSERT_ALWAYS(renderer->MakeCurrent() && "Failed to make LWE ANGLE context current");
+  };
+  configuration.onSwapBuffers = [renderer](LWE::WebContainer*, bool)
+  {
+    if(!renderer->SwapBuffers())
     {
-      std::lock_guard<std::mutex> lock(mFrameMutex);
-      mReadyBuffer = mRenderBuffer;
-      mReadyWidth  = mRenderWidth;
-      mReadyHeight = mRenderHeight;
-      if(!mFrameUploadPending)
-      {
-        mFrameUploadPending = true;
-        requestUpload       = true;
-      }
+      DALI_LOG_ERROR("WebEngineLwe: failed to capture ANGLE frame\n");
     }
-    if(requestUpload)
-    {
-      DispatchToEventThread([this]()
-      {
-        UploadFrame();
-      });
-    }
-  });
+  };
+  configuration.onCreateSharedContext = [renderer](LWE::WebContainer*) -> uintptr_t
+  {
+    return renderer->CreateSharedContext();
+  };
+  configuration.onDestroyContext = [renderer](LWE::WebContainer*, uintptr_t context)
+  {
+    return renderer->DestroyContext(context);
+  };
+  configuration.onClearCurrentContext = [renderer](LWE::WebContainer*)
+  {
+    return renderer->ClearCurrentContext();
+  };
+  configuration.onMakeCurrentWithContext = [renderer](LWE::WebContainer*, uintptr_t context)
+  {
+    return renderer->MakeCurrentWithContext(context);
+  };
+  configuration.onGetProcAddress = [renderer](LWE::WebContainer*, const char* name)
+  {
+    return renderer->GetProcAddress(name);
+  };
+  configuration.onIsSupportedExtension = [renderer](LWE::WebContainer*, const char* extension)
+  {
+    return renderer->IsSupportedExtension(extension);
+  };
+
+  const LWE::WebContainer::WebContainerArguments arguments = {
+    width,
+    height,
+    1.0f,
+    "sans-serif",
+    locale.c_str(),
+    timezoneId.c_str()};
+  mWebContainer = LWE::WebContainer::CreateGL(arguments, configuration);
+  DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE OpenGL WebContainer");
 
   return mWebContainer;
+}
+
+void WebEngineLweBackendWin::HandleFrame(std::vector<uint8_t>&& pixels, uint32_t width, uint32_t height)
+{
+  bool requestUpload = false;
+  {
+    std::lock_guard<std::mutex> lock(mFrameMutex);
+    mReadyBuffer = std::move(pixels);
+    mReadyWidth  = width;
+    mReadyHeight = height;
+    if(!mFrameUploadPending)
+    {
+      mFrameUploadPending = true;
+      requestUpload       = true;
+    }
+  }
+  if(requestUpload)
+  {
+    DispatchToEventThread([this]()
+    {
+      UploadFrame();
+    });
+  }
 }
 
 void WebEngineLweBackendWin::Destroy()
@@ -158,6 +186,7 @@ void WebEngineLweBackendWin::Destroy()
     mWebContainer->Destroy();
     mWebContainer = nullptr;
   }
+  mRenderer.reset();
 
   {
     std::lock_guard<std::mutex> lock(mTaskMutex);
@@ -172,15 +201,14 @@ void WebEngineLweBackendWin::Destroy()
     mReadyHeight        = 0u;
     mFrameUploadPending = false;
   }
-  mRenderBuffer.clear();
-  mRenderWidth  = 0u;
-  mRenderHeight = 0u;
 }
 
 void WebEngineLweBackendWin::SetSize(uint32_t width, uint32_t height)
 {
-  mWidth  = width;
-  mHeight = height;
+  if(mRenderer)
+  {
+    mRenderer->Resize(width, height);
+  }
   if(mWebContainer)
   {
     mWebContainer->ResizeTo(width, height);
