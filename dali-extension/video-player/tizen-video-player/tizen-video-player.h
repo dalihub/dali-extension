@@ -34,6 +34,8 @@
 #endif
 #ifdef USE_TCORE_BACKEND
 #include <tizen_core_wl.h>
+#include <tizen-core-wl/tizen_core_wl_subsurface.h>
+#include <tizen-core-wl/tizen_core_wl_video_shell.h>
 #else
 #include <Ecore_Wl2.h>
 #endif
