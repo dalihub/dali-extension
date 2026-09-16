@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(dali2-core CONFIG REQUIRED)
 find_package(dali2-adaptor CONFIG REQUIRED)
+find_package(unofficial-angle CONFIG REQUIRED)
 find_path(LWE_INCLUDE_DIR NAMES LWEWebView.h REQUIRED)
 find_library(STARFISH_LIBRARY NAMES Starfish REQUIRED)
-find_file(STARFISH_RUNTIME NAMES Starfish.dll REQUIRED)
 
 set(PLUGIN_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../dali-extension/web-engine-lwe")
 set(PLUGIN_COMMON_DIR "${PLUGIN_ROOT_DIR}/common")
@@ -24,6 +24,7 @@ add_library(${PROJECT_NAME} SHARED
   ${PLUGIN_COMMON_DIR}/web-engine-lwe-plugin.cpp
   ${PLUGIN_COMMON_DIR}/web-engine-lwe-settings.cpp
   ${PLUGIN_WINDOWS_DIR}/web-engine-lwe-backend-win.cpp
+  ${PLUGIN_WINDOWS_DIR}/web-engine-lwe-angle-renderer.cpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -42,7 +43,36 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   dali2-adaptor::dali2-adaptor
   dali2-core::dali2-core
   ${STARFISH_LIBRARY}
+  gdi32
+  unofficial::angle::libEGL
+  unofficial::angle::libGLESv2
+  user32
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-install(FILES "${STARFISH_RUNTIME}" DESTINATION bin)
+
+# Use the same configuration-specific ANGLE DLLs as DALi and the Starfish SDK.
+install(FILES
+  "$<TARGET_FILE:unofficial::angle::libEGL>"
+  "$<TARGET_FILE:unofficial::angle::libGLESv2>"
+  DESTINATION bin
+)
+
+option(DALI_LWE_BUILD_RENDERER_TESTS "Build the ANGLE renderer smoke test" OFF)
+if(DALI_LWE_BUILD_RENDERER_TESTS)
+  enable_testing()
+  add_executable(lwe-angle-renderer-test
+    tests/angle-renderer-test.cpp
+    ${PLUGIN_WINDOWS_DIR}/web-engine-lwe-angle-renderer.cpp
+  )
+  target_include_directories(lwe-angle-renderer-test PRIVATE ${PLUGIN_WINDOWS_DIR})
+  target_compile_options(lwe-angle-renderer-test PRIVATE /W3 /vmg /utf-8)
+  target_link_libraries(lwe-angle-renderer-test PRIVATE
+    dali2-core::dali2-core
+    unofficial::angle::libEGL
+    unofficial::angle::libGLESv2
+    gdi32
+    user32
+  )
+  add_test(NAME lwe-angle-renderer COMMAND lwe-angle-renderer-test)
+endif()
