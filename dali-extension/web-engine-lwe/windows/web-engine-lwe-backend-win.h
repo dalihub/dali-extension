@@ -24,6 +24,7 @@
 
 #include <atomic>
 #include <deque>
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -31,6 +32,8 @@ namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
+class WebEngineLweAngleRenderer;
+
 class WebEngineLweBackendWin : public WebEngineLweBackend
 {
 public:
@@ -48,6 +51,7 @@ public:
 
 private:
   void EnsureInitialized();
+  void HandleFrame(std::vector<uint8_t>&& pixels, uint32_t width, uint32_t height);
   void ProcessEventTasks();
   void UploadFrame();
 
@@ -56,11 +60,7 @@ private:
 
   LWE::WebContainer* mWebContainer;
 
-  std::atomic<uint32_t> mWidth;
-  std::atomic<uint32_t> mHeight;
-  uint32_t              mRenderWidth;
-  uint32_t              mRenderHeight;
-  std::vector<uint8_t>  mRenderBuffer;
+  std::unique_ptr<WebEngineLweAngleRenderer> mRenderer;
 
   std::mutex           mFrameMutex;
   std::vector<uint8_t> mReadyBuffer;
