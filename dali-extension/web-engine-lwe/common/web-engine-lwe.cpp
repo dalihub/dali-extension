@@ -995,6 +995,20 @@ void WebEngineLwe::RegisterGeolocationPermissionCallback(GeolocationPermissionCa
 void WebEngineLwe::UpdateDisplayArea(Dali::BoundsInteger displayArea)
 {
   DALI_ASSERT_ALWAYS(mWebContainer);
+
+  // BoundsInteger uses signed dimensions, while the backend and LWE accept
+  // unsigned values. Do not let a transient negative actor size turn into a
+  // multi-gigapixel resize through integer conversion.
+  if(displayArea.width <= 0 || displayArea.height <= 0)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: ignored invalid display area (%d,%d) %dx%d\n",
+                   displayArea.x,
+                   displayArea.y,
+                   displayArea.width,
+                   displayArea.height);
+    return;
+  }
+
   mBackend->UpdateDisplayArea(static_cast<uint32_t>(displayArea.width), static_cast<uint32_t>(displayArea.height));
 }
 
