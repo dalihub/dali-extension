@@ -31,6 +31,10 @@ if($EnvironmentConfiguration -and $EnvironmentConfiguration -ne $Configuration)
 }
 $SdkRoot = $env:DALI_WINDOWS_SDK_ROOT
 $InstallPrefix = $env:DALI_PREFIX
+if(-not $VcpkgRoot)
+{
+  $VcpkgRoot = $env:VCPKG_ROOT
+}
 $Context = New-DaliBuildContext `
   -WindowsDependenciesRoot $WindowsDependenciesRoot `
   -VcpkgRoot $VcpkgRoot `
