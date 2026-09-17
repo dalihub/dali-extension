@@ -29,7 +29,7 @@
 
 #include <mutex>
 
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
 #include <wayland-egl-tizen.h>
 #endif
 // INTERNAL INCLUDES
@@ -269,7 +269,7 @@ int LogPlayerError(int error)
 
 const char* const VIDEO_PLAYER_SIZE_NAME("videoPlayerSize");
 
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
 struct BufferCommitData
 {
   tizen_core_wl_video_shell_surface_wrapper_h tcoreVideoShellSurfaceWrapper;
@@ -428,7 +428,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::Actor actor, Dali::VideoSyncMode syncMo
   mIsMovedHandle(false),
   mIsSceneConnected(false),
   mIsExternalPlayer(false),
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   mTcoreVideoShellSurface(nullptr),
 #endif
   mVideoShellSizePropertyIndex(Property::INVALID_INDEX)
@@ -449,7 +449,7 @@ TizenVideoPlayer::TizenVideoPlayer(Dali::VideoPlayerPlugin::VideoSourceDescripto
   mIsMovedHandle(false),
   mIsSceneConnected(false),
   mIsExternalPlayer(true),
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   mTcoreVideoShellSurface(nullptr),
 #endif
   mVideoShellSizePropertyIndex(Property::INVALID_INDEX)
@@ -480,7 +480,7 @@ TizenVideoPlayer::~TizenVideoPlayer()
     mTcoreSubVideoWindow = nullptr;
   }
 
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   if(mTcoreVideoShellSurface)
   {
     tizen_core_wl_video_shell_surface_destroy(mTcoreVideoShellSurface);
@@ -627,7 +627,7 @@ void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImagePtr nativeIm
 
 void TizenVideoPlayer::InitializeVideoShell(tizen_core_wl_window_h tcoreWlWindow)
 {
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   if(mTcoreWlWindow != tcoreWlWindow)
   {
     mTcoreWlWindow = tcoreWlWindow;
@@ -662,7 +662,7 @@ void TizenVideoPlayer::InitializeVideoShell(tizen_core_wl_window_h tcoreWlWindow
 
 void TizenVideoPlayer::SetTcoreDisplayForUnderlay()
 {
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   if(mSyncMode == Dali::VideoSyncMode::ENABLED && mTcoreVideoShellSurface)
   {
     const char* videoShellHandle = nullptr;
@@ -1058,7 +1058,7 @@ void TizenVideoPlayer::FinishSynchronization()
 
 void TizenVideoPlayer::CreateVideoShellConstraint()
 {
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   DALI_LOG_RELEASE_INFO("Create Video Shell Constraint\n");
   if(mVideoShellSizePropertyIndex == Property::INVALID_INDEX)
   {
@@ -1109,7 +1109,7 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
 
 void TizenVideoPlayer::DestroyVideoShellConstraint()
 {
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   DALI_LOG_RELEASE_INFO("Destroy VideoShell Constraint: %d\n", mVideoShellSizePropertyIndex);
   if(mVideoShellSizePropertyIndex != Property::INVALID_INDEX)
   {

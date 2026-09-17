@@ -24,6 +24,10 @@ if test "x$with_tizen_90_or_greater" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DOVER_TIZEN_VERSION_9"
 fi
 
+if test "x$with_tizen_11_or_greater" = "xyes"; then
+  DALI_CFLAGS="$DALI_CFLAGS -DOVER_TIZEN_VERSION_11"
+fi
+
 TIZEN_WAYLAND_BACKEND_INIT
 
 PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor])
