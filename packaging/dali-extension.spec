@@ -8,7 +8,7 @@
 Name:       dali2-extension
 Summary:    The DALi Tizen Extensions
 Version:    2.5.39
-Release:    2
+Release:    3
 Group:      System/Libraries
 License:    Apache-2.0 and FSFAP
 URL:        https://review.tizen.org/git/?p=platform/core/uifw/dali-extensions.git;a=summary
@@ -32,6 +32,10 @@ Source0:    %{name}-%{version}.tar.gz
 
 %if 0%{?tizen_version_major} >= 9
 %define tizen_90_or_greater 1
+%endif
+
+%if 0%{?tizen_version_major} >= 11
+%define tizen_11_or_greater 1
 %endif
 
 # Tizen Wayland backend: ECORE or TCORE. Example: gbs build ... --define "tizen_wayland_backend TCORE"
@@ -324,6 +328,9 @@ popd
 %endif
 %if 0%{?tizen_90_or_greater}
            --with-tizen-90-or-greater \
+%endif
+%if 0%{?tizen_11_or_greater}
+           --with-tizen-11-or-greater \
 %endif
 %if 0%{?enable_web_engine_plugin} == 1
            --enable-web-engine-plugin \

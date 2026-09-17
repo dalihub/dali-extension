@@ -780,6 +780,7 @@ bool TizenWebEngineChromium::SendKeyEvent(const Dali::KeyEvent& keyEvent)
   wvKeyEvent.string    = keyEvent.GetKeyString().CStr();
   wvKeyEvent.key_code  = keyEvent.GetKeyCode();
   wvKeyEvent.modifiers = ToWvModifiers(keyEvent.GetKeyModifier());
+  wvKeyEvent.device_name = keyEvent.GetDeviceName().CStr();
 
   wv_view_send_key_event(mWebView, &wvKeyEvent, keyEvent.GetState() == Dali::KeyEvent::DOWN ? 1 : 0);
   return false;
@@ -916,9 +917,10 @@ Devel::Accessibility::Address TizenWebEngineChromium::GetAccessibilityAddress()
 
   std::string_view plugId;
 
-  // WV GAP (WV_REQUIREMENTS.md D-2): wv_view_data_get() is not declared by the
-  // target WV headers, so the AT-SPI plug ID cannot be read back from the view
-  // and the parse below always fails, yielding an empty address.
+  if(auto* data = static_cast<const char*>(wv_view_get_data(mWebView, plugIdKey)))
+  {
+    plugId = {data};
+  }
 
   // We expect plugId to be of the form ":1.23:/org/a11y/atspi/accessible/root"
   auto pos = plugId.rfind(':');
@@ -973,7 +975,7 @@ void TizenWebEngineChromium::GetPlainTextAsynchronously(PlainTextReceivedCallbac
 
 void TizenWebEngineChromium::WebAuthenticationCancel()
 {
-#ifdef OVER_TIZEN_VERSION_9
+#ifdef OVER_TIZEN_VERSION_11
   wv_view_webauthn_cancel(mWebView);
 #endif
 }
@@ -1000,10 +1002,10 @@ void TizenWebEngineChromium::UpdateDisplayArea(Dali::BoundsInteger displayArea)
   // Size was changed. Destroy previous native image, and create new one.
   ResetDaliImageSource();
 
-  // WV GAP (WV_REQUIREMENTS.md D-3): wv_view_move() and wv_view_geometry_set()
-  // are not declared by the target WV headers, so only the size is updated and
-  // the view's origin stays where it was created.
+  // SetSize() updates mWidth/mHeight, which UpdateImage() compares against the
+  // incoming tbm_surface. Without it every rendered frame is dropped.
   SetSize(displayArea.width, displayArea.height);
+  wv_view_geometry_set(mWebView, displayArea.x, displayArea.y, displayArea.width, displayArea.height);
 }
 
 void TizenWebEngineChromium::EnableVideoHole(bool enabled)
@@ -1633,17 +1635,13 @@ void TizenWebEngineChromium::OnPlainTextReceived(wv_view_h o, const char* plainT
   ExecuteCallback(pThis->mPlainTextReceivedCallback, resultText);
 }
 
-void TizenWebEngineChromium::OnGeolocationPermission(wv_view_h, wv_geolocation_permission_request_h request, void* data)
+bool TizenWebEngineChromium::OnGeolocationPermission(wv_view_h, wv_geolocation_permission_request_h request, void* data)
 {
   auto                       pThis          = static_cast<TizenWebEngineChromium*>(data);
   const wv_security_origin_h securityOrigin = wv_geolocation_permission_request_origin_get(request);
   std::string                host           = wv_security_origin_host_get(securityOrigin);
   std::string                protocol       = wv_security_origin_protocol_get(securityOrigin);
-  // WV GAP (WV_REQUIREMENTS.md D-4): wv_view_geolocation_permission_cb returns
-  // void and WV exposes no counterpart to ewk_geolocation_permission_reply(),
-  // so the application's allow/deny answer cannot be handed back to the engine
-  // and the request falls back to Chromium's default handling.
-  ExecuteCallbackReturn<bool>(pThis->mGeolocationPermissionCallback, host, protocol);
+  return ExecuteCallbackReturn<bool>(pThis->mGeolocationPermissionCallback, host, protocol);
 }
 
 void TizenWebEngineChromium::OnUserMediaPermissonRequest(wv_view_h, wv_user_media_permission_request_h request, void* data)
