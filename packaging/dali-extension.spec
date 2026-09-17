@@ -34,6 +34,10 @@ Source0:    %{name}-%{version}.tar.gz
 %define tizen_90_or_greater 1
 %endif
 
+%if 0%{?tizen_version_major} >= 11
+%define tizen_11_or_greater 1
+%endif
+
 # Tizen Wayland backend: ECORE or TCORE. Example: gbs build ... --define "tizen_wayland_backend TCORE"
 # Default ECORE until tcore backend is ready. Tizen < 11: always ECORE (TCORE override ignored).
 %{!?tizen_wayland_backend: %global tizen_wayland_backend ECORE}
@@ -324,6 +328,9 @@ popd
 %endif
 %if 0%{?tizen_90_or_greater}
            --with-tizen-90-or-greater \
+%endif
+%if 0%{?tizen_11_or_greater}
+           --with-tizen-11-or-greater \
 %endif
 %if 0%{?enable_web_engine_plugin} == 1
            --enable-web-engine-plugin \

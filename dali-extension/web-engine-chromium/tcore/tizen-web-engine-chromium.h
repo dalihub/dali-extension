@@ -720,7 +720,7 @@ private:
   static void OnHitTestCreated(wv_view_h view, int x, int y, wv_hit_test_mode_e hitTestMode, wv_hit_test_h hitTest, void* data);
   static void OnVideoPlaying(wv_view_h view, bool isPlaying, void* data);
   static void OnPlainTextReceived(wv_view_h o, const char* plainText, void* data);
-  static void OnGeolocationPermission(wv_view_h view, wv_geolocation_permission_request_h request, void* data);
+  static bool OnGeolocationPermission(wv_view_h view, wv_geolocation_permission_request_h request, void* data);
   static void OnUserMediaPermissonRequest(wv_view_h view, wv_user_media_permission_request_h request, void* data);
   static void OnWebAuthDisplayQR(wv_view_h view, void* contents, void* data);
   static void OnWebAuthResponse(wv_view_h view, void* eventInfo, void* data);

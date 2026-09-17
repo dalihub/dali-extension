@@ -96,10 +96,7 @@ std::string TizenWebEngineContext::GetProxyUri() const
 
 void TizenWebEngineContext::SetProxyBypassRule(const std::string& proxy, const std::string& bypass)
 {
-  // WV GAP (WV_REQUIREMENTS.md A-2): wv_context_proxy_set() takes no bypass
-  // rule, so only the proxy URI is applied and every host goes through the
-  // proxy. Restore the two-argument call once WV adds the bypass parameter.
-  wv_context_proxy_set(mWvContext, proxy.c_str());
+  wv_context_proxy_set(mWvContext, proxy.c_str(), bypass.c_str());
 }
 
 std::string TizenWebEngineContext::GetProxyBypassRule() const
@@ -376,11 +373,23 @@ void TizenWebEngineContext::OnFormPasswordsAcquired(GList* list, void* userData)
   TizenWebEngineContext*                                             pThis = static_cast<TizenWebEngineContext*>(userData);
   std::vector<std::unique_ptr<Dali::WebEngineContext::PasswordData>> passwordDataList;
 
-  // WV GAP (WV_REQUIREMENTS.md D-1): wv_context_form_password_data_list_get()
-  // hands back a bare GList* whose element type WV does not expose, so `url`
-  // and `useFingerprint` cannot be read from the entries. Report an empty list
-  // until wv_password_data_s exists; restore the walk over `list` then.
-  (void)list;
+  for(GList* l = list; l; l = l->next)
+  {
+    if(l->data)
+    {
+      // WvPasswordData is defined in chromium-efl/wv_context.cc: { char* url, bool use_fingerprint }
+      struct WvPasswordData
+      {
+        char* url;
+        bool  use_fingerprint;
+      };
+      WvPasswordData*                                   wvPassword = static_cast<WvPasswordData*>(l->data);
+      std::unique_ptr<Dali::WebEngineContext::PasswordData> passwordData(new Dali::WebEngineContext::PasswordData());
+      passwordData->url            = wvPassword->url;
+      passwordData->useFingerprint = wvPassword->use_fingerprint;
+      passwordDataList.push_back(std::move(passwordData));
+    }
+  }
 
   pThis->mWebFormPasswordAcquiredCallback(passwordDataList);
 }
