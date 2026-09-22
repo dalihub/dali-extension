@@ -40,7 +40,7 @@ KeyExtensionPlugin::KeyLookup mKeyLookupTable[] =
     // more than one key name can be assigned to a single key code
 };
 
-bool IsExtensionKey(const Dali::KeyEvent& keyEvent, Dali::EXTENSION_KEY daliKey)
+bool IsExtensionKey(const Dali::KeyEvent& keyEvent, Dali::ExtensionKey daliKey)
 {
   int key = -200000;
 
