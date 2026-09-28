@@ -27,6 +27,8 @@
 #include <dali/public-api/images/pixel.h>
 #include <dali/public-api/signals/callback.h>
 
+#include <algorithm>
+#include <cstdint>
 #include <utility>
 
 namespace DALI_NAMESPACE
@@ -36,6 +38,29 @@ namespace Plugin
 namespace
 {
 constexpr Dali::Pixel::Format RENDER_BUFFER_PIXEL_FORMAT = Dali::Pixel::RGBA8888;
+constexpr uint32_t SAFE_INITIAL_WEB_VIEW_WIDTH = 1920u;
+constexpr uint32_t SAFE_INITIAL_WEB_VIEW_HEIGHT = 1080u;
+
+// LWE's mask rendering allocates width * height * 4 byte CPU buffers. These
+// limits keep malformed WebView geometry from exhausting the process before
+// Starfish can render a frame. They still allow an 8K-by-8K WebView.
+constexpr uint32_t MAX_WEB_VIEW_DIMENSION = 8192u;
+constexpr uint64_t MAX_WEB_VIEW_PIXELS = 64ull * 1024ull * 1024ull;
+
+bool IsSupportedWebViewSize(uint32_t width, uint32_t height)
+{
+  if(width == 0u || height == 0u)
+  {
+    return false;
+  }
+
+  if(width > MAX_WEB_VIEW_DIMENSION || height > MAX_WEB_VIEW_DIMENSION)
+  {
+    return false;
+  }
+
+  return static_cast<uint64_t>(width) * height <= MAX_WEB_VIEW_PIXELS;
+}
 }
 
 WebEngineLweBackendWin::WebEngineLweBackendWin()
@@ -88,6 +113,11 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
   const std::string& locale,
   const std::string& timezoneId)
 {
+  // LWE can produce invalid mask geometry when content is loaded in a very
+  // small viewport before layout supplies the WebView's final display area.
+  const uint32_t initialWidth = std::max(width, SAFE_INITIAL_WEB_VIEW_WIDTH);
+  const uint32_t initialHeight = std::max(height, SAFE_INITIAL_WEB_VIEW_HEIGHT);
+
   EnsureInitialized();
 
   mAcceptTasks = true;
@@ -100,7 +130,7 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
   {
     HandleFrame(std::move(pixels), frameWidth, frameHeight);
   });
-  DALI_ASSERT_ALWAYS(mRenderer->Initialize(width, height) && "Failed to initialize LWE ANGLE renderer");
+  DALI_ASSERT_ALWAYS(mRenderer->Initialize(initialWidth, initialHeight) && "Failed to initialize LWE ANGLE renderer");
 
   WebEngineLweAngleRenderer* renderer = mRenderer.get();
   LWE::WebContainer::RendererGLConfiguration configuration;
@@ -143,12 +173,13 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
   };
 
   const LWE::WebContainer::WebContainerArguments arguments = {
-    width,
-    height,
+    initialWidth,
+    initialHeight,
     1.0f,
     "sans-serif",
     locale.c_str(),
     timezoneId.c_str()};
+
   mWebContainer = LWE::WebContainer::CreateGL(arguments, configuration);
   DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE OpenGL WebContainer");
 
@@ -205,6 +236,17 @@ void WebEngineLweBackendWin::Destroy()
 
 void WebEngineLweBackendWin::SetSize(uint32_t width, uint32_t height)
 {
+  if(!IsSupportedWebViewSize(width, height))
+  {
+    DALI_LOG_ERROR("WebEngineLwe: ignored unsupported resize %ux%u (maximum %ux%u, %llu pixels)\n",
+                   width,
+                   height,
+                   MAX_WEB_VIEW_DIMENSION,
+                   MAX_WEB_VIEW_DIMENSION,
+                   static_cast<unsigned long long>(MAX_WEB_VIEW_PIXELS));
+    return;
+  }
+
   if(mRenderer)
   {
     mRenderer->Resize(width, height);

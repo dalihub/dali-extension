@@ -51,6 +51,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
+if(MSVC)
+  install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}>
+    DESTINATION bin
+    CONFIGURATIONS Debug
+  )
+endif()
+
 # Use the same configuration-specific ANGLE DLLs as DALi and the Starfish SDK.
 install(FILES
   "$<TARGET_FILE:unofficial::angle::libEGL>"

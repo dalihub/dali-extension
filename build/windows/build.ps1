@@ -133,12 +133,17 @@ Invoke-DaliCMakeProject `
   -Jobs $Jobs
 
 $InstalledPlugin = Join-Path $Context.InstallPrefix "bin\dali2-web-engine-lwe-plugin.dll"
-Assert-DaliPaths -Paths @(
+$InstalledRuntimePaths = @(
   $InstalledPlugin,
   $InstalledStarfish,
   (Join-Path $Context.InstallPrefix "bin\libEGL.dll"),
   (Join-Path $Context.InstallPrefix "bin\libGLESv2.dll")
-) -Description "Installed LWE ANGLE runtime"
+)
+if($Configuration -eq "Debug")
+{
+  $InstalledRuntimePaths += (Join-Path $Context.InstallPrefix "bin\dali2-web-engine-lwe-plugin.pdb")
+}
+Assert-DaliPaths -Paths $InstalledRuntimePaths -Description "Installed LWE ANGLE runtime"
 Write-Host "`nLWE web-engine plugin ($Configuration) installed in $InstalledPlugin" -ForegroundColor Green
 
 if($RendererTests)
