@@ -270,7 +270,7 @@ ICU plugin to use an International Components for Unicode for Dali
 # Build
 ##############################
 %build
-PREFIX+="/usr"
+PREFIX="${PREFIX}/usr"
 # GBS qemu-user builds use a host liblto_plugin.so (ELFCLASS64) via /emul;
 # disable the linker plugin so configure/make link tests succeed on armv7l.
 # -fno-use-linker-plugin is GCC-only; clang does not support it and errors
@@ -279,39 +279,40 @@ PREFIX+="/usr"
 if echo "${CC:-gcc}" | grep -q "clang"; then
   : # clang: skip -fno-use-linker-plugin
 else
-  CFLAGS+=" -fno-use-linker-plugin"
-  CXXFLAGS+=" -fno-use-linker-plugin"
+  CFLAGS="$CFLAGS -fno-use-linker-plugin"
+  CXXFLAGS="$CXXFLAGS -fno-use-linker-plugin"
 fi
-CXXFLAGS+=" -Wall -g -Os -fPIC -fvisibility-inlines-hidden -fdata-sections -ffunction-sections -DGL_GLEXT_PROTOTYPES"
-LDFLAGS+=" -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic-functions "
+CXXFLAGS="$CXXFLAGS -Wall -g -Os -fPIC -fvisibility-inlines-hidden -fdata-sections -ffunction-sections -DGL_GLEXT_PROTOTYPES"
+LDFLAGS="$LDFLAGS -Wl,--rpath=%{_libdir} -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic-functions "
 
 %if 0%{?tizen_50_or_greater}
 %if "%{tizen_wayland_backend}" == "TCORE"
-CFLAGS+=" -DUSE_TCORE_BACKEND"
-CXXFLAGS+=" -DUSE_TCORE_BACKEND"
+CFLAGS="$CFLAGS  -DUSE_TCORE_BACKEND"
+CXXFLAGS="$CXXFLAGS  -DUSE_TCORE_BACKEND"
 %else
-CFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
-CXXFLAGS+=" -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
+CFLAGS="$CFLAGS  -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
+CXXFLAGS="$CXXFLAGS  -DECORE_WL2 -DEFL_BETA_API_SUPPORT"
 %endif
 %endif
 
 %if "%{?profile}" == "tv"
-CFLAGS+=" -DOS_TIZEN_TV"
-CXXFLAGS+=" -DOS_TIZEN_TV"
+CFLAGS="$CFLAGS  -DOS_TIZEN_TV"
+CXXFLAGS="$CXXFLAGS  -DOS_TIZEN_TV"
 %endif
 
 %if "%{vd_asan}" == "1" || "%{asan}" == "1"
-CFLAGS+=" -fsanitize=address"
-CXXFLAGS+=" -fsanitize=address"
-LDFLAGS+=" -fsanitize=address"
+CFLAGS="$CFLAGS  -fsanitize=address"
+CXXFLAGS="$CXXFLAGS  -fsanitize=address"
+LDFLAGS="$LDFLAGS  -fsanitize=address"
 %endif
 
 libtoolize --force
 cd %{_builddir}/%{name}-%{version}/build/tizen
 autoreconf --install
-pushd dali-extension
+_saved_dir=$(pwd)
+cd dali-extension
 autoreconf --install
-popd
+cd "$_saved_dir"
 
 %configure --prefix=$PREFIX \
 %if 0%{?enable_debug}
@@ -399,9 +400,10 @@ exit 0
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %post web-engine-chromium-plugin
-pushd %{_libdir}
+_saved_dir=$(pwd)
+cd %{_libdir}
 ln -sf libdali2-web-engine-chromium-plugin.so libdali2-web-engine-plugin.so
-popd
+cd "$_saved_dir"
 /sbin/ldconfig
 exit 0
 %endif
