@@ -30,19 +30,28 @@ namespace DALI_NAMESPACE
  * @brief Enumeration for mapping keyboard and mouse button event keycodes to extension codes.
  * @SINCE_1_2.43
  */
-enum EXTENSION_KEY
+enum ExtensionKey
 {
 };
 
 /**
- * @brief Checks if a key event is for a specific extension DALI KEY.
+ * @brief The former name of Dali::ExtensionKey.
+ * @DEPRECATED_2_5.41 Use Dali::ExtensionKey instead.
+ * @note This keeps existing source compiling only. A binary built against the former name has to
+ *   be rebuilt regardless, because the name of the enumeration is part of the signature of
+ *   IsExtensionKey().
+ */
+using EXTENSION_KEY = ExtensionKey;
+
+/**
+ * @brief Checks if a key event is for a specific Dali::ExtensionKey.
  *
  * @SINCE_1_2.43
  * @param keyEvent reference to a keyEvent structure
  * @param daliKey Dali extension key enum
  * @return true if the key is matched, @c false if not
  */
-DALI_IMPORT_API bool IsExtensionKey(const Dali::KeyEvent& keyEvent, Dali::EXTENSION_KEY daliKey);
+DALI_IMPORT_API bool IsExtensionKey(const Dali::KeyEvent& keyEvent, Dali::ExtensionKey daliKey);
 
 namespace Plugin
 {

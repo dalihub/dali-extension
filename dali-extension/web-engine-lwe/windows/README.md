@@ -54,8 +54,9 @@ already exist, and the SDK and `dali-env` copies of `Starfish.dll` must match.
 
 The resulting `dali2-web-engine-lwe-plugin.dll` is installed in
 `<workspace>\dali-env\bin` together with the matching `Starfish.dll`. Debug
-and Release builds use only the corresponding `WindowsDependenciesSDK\debug`
-or `WindowsDependenciesSDK\release` tree.
+builds also install `dali2-web-engine-lwe-plugin.pdb` in the same directory.
+Debug and Release builds use only the corresponding
+`WindowsDependenciesSDK\debug` or `WindowsDependenciesSDK\release` tree.
 
 To build and run the ANGLE renderer smoke test as well:
 
