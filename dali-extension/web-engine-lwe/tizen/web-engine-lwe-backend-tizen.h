@@ -64,6 +64,7 @@ private:
   void TryUpdateImage(bool needsSync);
   void PrepareLweRendering();
   void OnIdle();
+  void TryReleaseIdleSurface();
   void OnActive();
   void OnFirstRender();
   void UpdateImage(tbm_surface_h image);
@@ -99,6 +100,7 @@ private:
   std::atomic_bool      mLweRenderingRequested;
   std::atomic_bool      mInImageUpdateState;
   std::atomic_bool      mInIdleState;
+  std::atomic_bool      mIdleReleasePending;
   std::atomic_bool      mFirstRenderEnded;
   std::atomic_bool      mDestroying;
 

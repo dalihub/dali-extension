@@ -125,6 +125,7 @@ WebEngineLweBackendTizen::WebEngineLweBackendTizen()
   mLweRenderingRequested(false),
   mInImageUpdateState(false),
   mInIdleState(false),
+  mIdleReleasePending(false),
   mFirstRenderEnded(false),
   mDestroying(false)
 {
@@ -174,6 +175,7 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
   mLweRenderingRequested = false;
   mInImageUpdateState    = false;
   mInIdleState           = false;
+  mIdleReleasePending    = false;
   mFirstRenderEnded      = false;
 
 #ifndef OVER_TIZEN_VERSION_9
@@ -262,6 +264,8 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
   mWebContainer->RegisterSetNeedsRenderingCallback(
     [this](LWE::WebContainer*, const std::function<void()>& render)
   {
+    // A new rendering request supersedes any deferred idle release.
+    mIdleReleasePending = false;
     if(!mLweRenderingFunction)
     {
       mLweRenderingFunction = render;
@@ -380,6 +384,7 @@ void WebEngineLweBackendTizen::Destroy()
   mLweRenderingRequested = false;
   mInImageUpdateState    = false;
   mInIdleState           = false;
+  mIdleReleasePending    = false;
   mFirstRenderEnded      = false;
 
   if(mIdleTbmSurface)
@@ -591,6 +596,13 @@ void WebEngineLweBackendTizen::TryRendering()
   {
     if(mLweRenderingFunction)
     {
+      // Image delivery unbinds the context; restore it before rendering.
+      if(eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext) == EGL_FALSE)
+      {
+        DALI_LOG_ERROR("WebEngineLwe: eglMakeCurrent before rendering failed: %d\n", static_cast<int>(eglGetError()));
+        mLweRenderingRequested = false;
+        return;
+      }
       mLweRenderingFunction();
     }
   }
@@ -664,6 +676,7 @@ void WebEngineLweBackendTizen::TryUpdateImage(bool needsSync)
     {
       UpdateImage(mLastDrawnTbmSurface);
       mInImageUpdateState = false;
+      TryReleaseIdleSurface();
       return;
     }
     DALI_LOG_ERROR("WebEngineLwe: failed to acquire TBM surface\n");
@@ -699,6 +712,21 @@ void WebEngineLweBackendTizen::PrepareLweRendering()
 
 void WebEngineLweBackendTizen::OnIdle()
 {
+  mIdleReleasePending = true;
+  TryReleaseIdleSurface();
+}
+
+void WebEngineLweBackendTizen::TryReleaseIdleSurface()
+{
+  // LWE idle notifications and rendering retries run on the LWE event loop.
+  // Idle does not imply that the external image update has completed.
+  if(mDestroying || !mWebContainer || !mIdleReleasePending ||
+     mLweRenderingRequested || mInImageUpdateState)
+  {
+    return;
+  }
+
+  mIdleReleasePending = false;
   if(mInIdleState.exchange(true))
   {
     return;
