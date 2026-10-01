@@ -6,7 +6,7 @@ DALI_SHADER_VERSION_FILE="${DALI_SHADER_VERSION_PATH}/${FILE_NAME}"
 DALI_SHADER_CACHE_VERSION_PATH=/home/owner/.cache/dali_common_caches/
 DALI_SHADER_CACHE_VERSION_FILE="${DALI_SHADER_CACHE_VERSION_PATH}/${FILE_NAME}"
 
-function get_dali_shader_version(){
+get_dali_shader_version(){
     if [ -e ${DALI_SHADER_VERSION_FILE} ]
     then
         _dali_shader_version=`cat ${DALI_SHADER_VERSION_FILE}`".version"
@@ -17,7 +17,7 @@ function get_dali_shader_version(){
     eval "$1='${_dali_shader_version}'"
 }
 
-function get_dali_shader_cache_version(){
+get_dali_shader_cache_version(){
      if [ -e ${DALI_SHADER_CACHE_VERSION_FILE} ]
      then
          _dali_shader_cache_version=`cat ${DALI_SHADER_CACHE_VERSION_FILE}`".version"
