@@ -286,13 +286,16 @@ void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<st
 
 void TizenWebEngineContext::RegisterJsPluginMimeTypes(const std::vector<std::string>& mimeTypes)
 {
-  GList* list = nullptr;
-  for(std::vector<std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); ++it)
-  {
-    list = g_list_append(list, g_strdup(it->c_str()));
-  }
-  wv_context_register_jsplugin_mime_types(mWvContext, list);
-  g_list_free_full(list, g_free);
+  // ewk_context_register_jsplugin_mime_types is not supported.
+  // So, wv_context_register_jsplugin_mime_types is not existed.
+
+  // GList* list = nullptr;
+  // for(std::vector<std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); ++it)
+  // {
+  //   list = g_list_append(list, g_strdup(it->c_str()));
+  // }
+  // wv_context_register_jsplugin_mime_types(mWvContext, list);
+  // g_list_free_full(list, g_free);
 }
 
 bool TizenWebEngineContext::DeleteAllApplicationCache()
