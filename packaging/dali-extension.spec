@@ -38,11 +38,18 @@ Source0:    %{name}-%{version}.tar.gz
 %define tizen_11_or_greater 1
 %endif
 
-# Tizen Wayland backend: ECORE or TCORE. Example: gbs build ... --define "tizen_wayland_backend TCORE"
-# Default ECORE until tcore backend is ready. Tizen < 11: always ECORE (TCORE override ignored).
-%{!?tizen_wayland_backend: %global tizen_wayland_backend ECORE}
-%if 0%{?tizen_version_major} < 11
+# BUILD_TCORE_ENABLE: 0 (default) = ECORE, 1 = TCORE, for Tizen 11 only.
+# Example: gbs build ... --define "BUILD_TCORE_ENABLE 1"
+# Resolve the backend here for both dependencies and build options.
+%{!?BUILD_TCORE_ENABLE:%global BUILD_TCORE_ENABLE 0}
 %global tizen_wayland_backend ECORE
+%if 0%{?tizen_version_major} == 11
+%if "%{BUILD_TCORE_ENABLE}" != "0" && "%{BUILD_TCORE_ENABLE}" != "1"
+%{error:BUILD_TCORE_ENABLE must be 0 or 1}
+%endif
+%if "%{BUILD_TCORE_ENABLE}" == "1"
+%global tizen_wayland_backend TCORE
+%endif
 %endif
 
 %if %{undefined NO_WEB_FRAMEWORK}
