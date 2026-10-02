@@ -513,6 +513,11 @@ Dali::NativeImagePtr WebEngineLwe::GetNativeImage()
   return mBackend->GetNativeImage();
 }
 
+Dali::NativeImageInterfacePtr WebEngineLwe::GetNativeImageInterface()
+{
+  return mBackend->GetNativeImageInterface();
+}
+
 void WebEngineLwe::ChangeOrientation(int)
 {
 }
