@@ -23,18 +23,17 @@
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/adaptor-framework/native-image.h>
-#include <dali/public-api/adaptor-framework/window.h>
 #include <dali/public-api/object/any.h>
 #include <dali/public-api/signals/callback.h>
 
 #include <tbm_dummy_display.h>
-#include <tbm_surface_internal.h>
-#include <unistd.h>
 #include <vconf/vconf.h>
 
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <mutex>
+#include <unordered_map>
 #include <utility>
 
 namespace DALI_NAMESPACE
@@ -68,13 +67,27 @@ private:
 #endif
 
 constexpr int               TBM_SURFACE_QUEUE_LENGTH = 3;
-// Upper bound on waiting for DALi to report that a replaced surface is no
-// longer read. Only reached when no visible window renders, e.g. while the
-// application is being hidden.
-constexpr uint32_t          RETIRED_SURFACE_TIMEOUT_MS = 100u;
 PFNEGLCREATESYNCKHRPROC     gEglCreateSyncKHR        = nullptr;
 PFNEGLDESTROYSYNCKHRPROC    gEglDestroySyncKHR       = nullptr;
 PFNEGLCLIENTWAITSYNCKHRPROC gEglClientWaitSyncKHR    = nullptr;
+
+// DALi's render thread releases buffers, and a queue can outlive the backend
+// that registered for its release notification (the WebView's visual holds the
+// queue until it is replaced). The notification carries an id rather than the
+// backend, and an id found here is still registered.
+std::mutex                                                gReleaseNotifierMutex;
+std::unordered_map<uintptr_t, Dali::EventThreadCallback*> gReleaseNotifiers;
+uintptr_t                                                 gNextReleaseNotifierId = 1u;
+
+void OnTbmSurfaceDequeuable(tbm_surface_queue_h, void* data)
+{
+  std::lock_guard<std::mutex> lock(gReleaseNotifierMutex);
+  auto                        iter = gReleaseNotifiers.find(reinterpret_cast<uintptr_t>(data));
+  if(iter != gReleaseNotifiers.end())
+  {
+    iter->second->Trigger();
+  }
+}
 
 std::string GetLanguage()
 {
@@ -123,15 +136,10 @@ WebEngineLweBackendTizen::WebEngineLweBackendTizen()
   mEglConfig(nullptr),
   mEglSurface(EGL_NO_SURFACE),
   mEglContext(EGL_NO_CONTEXT),
-  mEglSync(nullptr),
   mTbmQueue(nullptr),
-  mLastDrawnTbmSurface(nullptr),
-  mIdleTbmSurface(nullptr),
-  mRetiredFrameId(0),
-  mAliveToken(std::make_shared<bool>(true)),
-  mRenderingWaitsForRetiredSurface(false),
+  mReleaseNotifierId(0u),
+  mRenderingWaitsForBuffer(false),
   mLweRenderingRequested(false),
-  mInImageUpdateState(false),
   mInIdleState(false),
   mIdleReleasePending(false),
   mDestroying(false)
@@ -178,17 +186,18 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
                                                     const std::string& locale,
                                                     const std::string& timezoneId)
 {
-  mDestroying            = false;
-  mLweRenderingRequested = false;
-  mInImageUpdateState    = false;
-  mInIdleState           = false;
-  mIdleReleasePending    = false;
+  mDestroying              = false;
+  mLweRenderingRequested   = false;
+  mInIdleState             = false;
+  mIdleReleasePending      = false;
+  mRenderingWaitsForBuffer = false;
 
-  mRenderingWaitsForRetiredSurface = false;
-  if(!mRetiredSurfaceTimer)
+  if(!mBufferReleasedTrigger)
   {
-    mRetiredSurfaceTimer = Dali::Timer::New(RETIRED_SURFACE_TIMEOUT_MS);
-    mRetiredSurfaceTimer.TickSignal().Connect(this, &WebEngineLweBackendTizen::OnRetiredSurfaceTimeout);
+    mBufferReleasedTrigger = std::make_unique<Dali::EventThreadCallback>(Dali::MakeCallback(this, &WebEngineLweBackendTizen::OnBufferReleased));
+    std::lock_guard<std::mutex> lock(gReleaseNotifierMutex);
+    mReleaseNotifierId                    = gNextReleaseNotifierId++;
+    gReleaseNotifiers[mReleaseNotifierId] = mBufferReleasedTrigger.get();
   }
 
 #ifndef OVER_TIZEN_VERSION_9
@@ -234,16 +243,23 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
       DALI_LOG_ERROR("WebEngineLwe: eglMakeCurrent failed: %d\n", static_cast<int>(eglGetError()));
     }
   };
-  configuration.onSwapBuffers = [this](LWE::WebContainer*, bool mayNeedSync)
+  configuration.onSwapBuffers = [this](LWE::WebContainer*, bool)
   {
+    // eglSwapBuffers() hands the buffer to the queue, where DALi's render
+    // thread may acquire it at once; let the GPU finish it first.
+    EGLSyncKHR sync = gEglCreateSyncKHR ? gEglCreateSyncKHR(mEglDisplay, EGL_SYNC_FENCE_KHR, nullptr) : EGL_NO_SYNC_KHR;
+    if(sync != EGL_NO_SYNC_KHR)
+    {
+      gEglClientWaitSyncKHR(mEglDisplay, sync, EGL_SYNC_FLUSH_COMMANDS_BIT_KHR, EGL_FOREVER_KHR);
+      gEglDestroySyncKHR(mEglDisplay, sync);
+    }
     if(!eglSwapBuffers(mEglDisplay, mEglSurface))
     {
       DALI_LOG_ERROR("WebEngineLwe: eglSwapBuffers failed: %d\n", static_cast<int>(eglGetError()));
     }
-    mEglSync = gEglCreateSyncKHR ? gEglCreateSyncKHR(mEglDisplay, EGL_SYNC_FENCE_KHR, nullptr) : nullptr;
     eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     mLweRenderingRequested = false;
-    TryUpdateImage(mayNeedSync);
+    OnFrameSwapped();
   };
   configuration.onCreateSharedContext = [this](LWE::WebContainer*) -> uintptr_t
   {
@@ -379,6 +395,16 @@ void WebEngineLweBackendTizen::Destroy()
     mWebContainer = nullptr;
   }
   DestroyRenderingContext();
+  ResetImageQueue();
+  if(mBufferReleasedTrigger)
+  {
+    {
+      std::lock_guard<std::mutex> lock(gReleaseNotifierMutex);
+      gReleaseNotifiers.erase(mReleaseNotifierId);
+    }
+    mBufferReleasedTrigger.reset();
+    mReleaseNotifierId = 0u;
+  }
 
 #ifndef OVER_TIZEN_VERSION_9
   if(mTbmSurface)
@@ -393,30 +419,11 @@ void WebEngineLweBackendTizen::Destroy()
   mOutputBuffer = nullptr;
 #endif
 
-  mLweRenderingFunction  = {};
-  mLweRenderingRequested = false;
-  mInImageUpdateState    = false;
-  mInIdleState           = false;
-  mIdleReleasePending    = false;
-
-  // The queue is gone, so the retired surfaces only hold their own reference.
-  // Their pending frame callbacks find nothing left to release.
-  for(auto& retired : mRetiredSurfaces)
-  {
-    tbm_surface_internal_unref(retired.surface);
-  }
-  mRetiredSurfaces.clear();
-  mRenderingWaitsForRetiredSurface = false;
-  if(mRetiredSurfaceTimer)
-  {
-    mRetiredSurfaceTimer.Stop();
-  }
-
-  if(mIdleTbmSurface)
-  {
-    tbm_surface_internal_unref(mIdleTbmSurface);
-    mIdleTbmSurface = nullptr;
-  }
+  mLweRenderingFunction    = {};
+  mLweRenderingRequested   = false;
+  mInIdleState             = false;
+  mIdleReleasePending      = false;
+  mRenderingWaitsForBuffer = false;
 
   mDestroying = false;
 }
@@ -453,12 +460,31 @@ void WebEngineLweBackendTizen::SetSize(uint32_t width, uint32_t height)
 
 void WebEngineLweBackendTizen::UpdateDisplayArea(uint32_t width, uint32_t height)
 {
+#ifdef OVER_TIZEN_VERSION_9
+  // The WebView replaces its visual with the image it gets after this, so the
+  // next frame goes to a new queue. The old visual keeps the old queue alive
+  // and shows its last frame until then.
+  DestroyRenderingSurface();
+  ResetImageQueue();
+#else
   mNativeImage = Dali::NativeImage::New(0u, 0u, Dali::NativeImage::COLOR_DEPTH_DEFAULT);
+#endif
   SetSize(width, height);
 }
 
 Dali::NativeImagePtr WebEngineLweBackendTizen::GetNativeImage()
 {
+  return mNativeImage;
+}
+
+Dali::NativeImageInterfacePtr WebEngineLweBackendTizen::GetNativeImageInterface()
+{
+#ifdef OVER_TIZEN_VERSION_9
+  if(mImageQueue)
+  {
+    return mImageQueue;
+  }
+#endif
   return mNativeImage;
 }
 
@@ -518,14 +544,6 @@ void WebEngineLweBackendTizen::DestroyRenderingContext()
 
   if(mEglDisplay != EGL_NO_DISPLAY)
   {
-    if(mEglSync)
-    {
-      if(gEglDestroySyncKHR)
-      {
-        gEglDestroySyncKHR(mEglDisplay, mEglSync);
-      }
-      mEglSync = nullptr;
-    }
     if(mEglContext != EGL_NO_CONTEXT)
     {
       eglDestroyContext(mEglDisplay, mEglContext);
@@ -549,12 +567,20 @@ void WebEngineLweBackendTizen::InitRenderingSurface()
     return;
   }
 
-  mTbmQueue = tbm_surface_queue_create(TBM_SURFACE_QUEUE_LENGTH,
-                                       std::max(mWebContainer->Width(), static_cast<size_t>(1u)),
-                                       std::max(mWebContainer->Height(), static_cast<size_t>(1u)),
-                                       TBM_FORMAT_BGRA8888,
-                                       TBM_BO_DEFAULT);
-  DALI_ASSERT_ALWAYS(mTbmQueue && "Failed to create TBM surface queue");
+  const uint32_t width  = static_cast<uint32_t>(std::max(mWebContainer->Width(), static_cast<size_t>(1u)));
+  const uint32_t height = static_cast<uint32_t>(std::max(mWebContainer->Height(), static_cast<size_t>(1u)));
+  if(!mImageQueue)
+  {
+    mImageQueue = Dali::NativeImageQueue::New(TBM_SURFACE_QUEUE_LENGTH, width, height, Dali::NativeImageQueue::ColorFormat::BGRA8888);
+    mTbmQueue   = Dali::AnyCast<tbm_surface_queue_h>(mImageQueue->GetNativeImageQueue());
+    DALI_ASSERT_ALWAYS(mTbmQueue && "Failed to create the LWE native image queue");
+    tbm_surface_queue_add_dequeuable_cb(mTbmQueue, OnTbmSurfaceDequeuable, reinterpret_cast<void*>(mReleaseNotifierId));
+  }
+  else if(static_cast<uint32_t>(tbm_surface_queue_get_width(mTbmQueue)) != width ||
+          static_cast<uint32_t>(tbm_surface_queue_get_height(mTbmQueue)) != height)
+  {
+    mImageQueue->SetSize(width, height);
+  }
 
   mEglSurface = eglCreateWindowSurface(mEglDisplay,
                                        mEglConfig,
@@ -570,39 +596,35 @@ void WebEngineLweBackendTizen::DestroyRenderingSurface()
     eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   }
 
-  if(mLastDrawnTbmSurface)
-  {
-    tbm_surface_internal_ref(mLastDrawnTbmSurface);
-    if(mIdleTbmSurface)
-    {
-      tbm_surface_internal_unref(mIdleTbmSurface);
-    }
-    mIdleTbmSurface      = mLastDrawnTbmSurface;
-    mLastDrawnTbmSurface = nullptr;
-  }
-
-  // Surfaces DALi may still be reading outlive the queue through the reference
-  // RetireSurface() took; they are only unreferenced once DALi is done.
-  for(auto& retired : mRetiredSurfaces)
-  {
-    if(retired.queue == mTbmQueue)
-    {
-      retired.queue = nullptr;
-    }
-  }
-  mRenderingWaitsForRetiredSurface = false;
-
   if(mEglSurface != EGL_NO_SURFACE)
   {
     eglDestroySurface(mEglDisplay, mEglSurface);
     mEglSurface = EGL_NO_SURFACE;
   }
 
+  // A render waiting for this surface's queue would never be resumed once the
+  // queue is replaced; retry it against the next surface.
+  if(mRenderingWaitsForBuffer)
+  {
+    mRenderingWaitsForBuffer = false;
+    if(!mDestroying && mWebContainer)
+    {
+      mWebContainer->AddIdleCallback([](void* data)
+      {
+        static_cast<WebEngineLweBackendTizen*>(data)->TryRendering();
+      }, this);
+    }
+  }
+}
+
+void WebEngineLweBackendTizen::ResetImageQueue()
+{
   if(mTbmQueue)
   {
-    tbm_surface_queue_destroy(mTbmQueue);
+    tbm_surface_queue_remove_dequeuable_cb(mTbmQueue, OnTbmSurfaceDequeuable, reinterpret_cast<void*>(mReleaseNotifierId));
     mTbmQueue = nullptr;
   }
+  mImageQueue.Reset();
 }
 
 void WebEngineLweBackendTizen::TryRendering()
@@ -621,140 +643,61 @@ void WebEngineLweBackendTizen::TryRendering()
   InitRenderingSurface();
   OnActive();
 
-  unsigned waitCount = 0u;
-  while(!tbm_surface_queue_can_dequeue(mTbmQueue, 0) && waitCount < 10u)
+  if(!tbm_surface_queue_can_dequeue(mTbmQueue, 0))
   {
-    usleep(100u);
-    ++waitCount;
+    // Every free buffer is still DALi's; resume once it releases one.
+    mRenderingWaitsForBuffer = true;
+    return;
   }
 
-  if(tbm_surface_queue_can_dequeue(mTbmQueue, 0))
+  if(mLweRenderingFunction)
   {
-    if(mLweRenderingFunction)
+    // Image delivery unbinds the context; restore it before rendering.
+    if(eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext) == EGL_FALSE)
     {
-      // Image delivery unbinds the context; restore it before rendering.
-      if(eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext) == EGL_FALSE)
-      {
-        DALI_LOG_ERROR("WebEngineLwe: eglMakeCurrent before rendering failed: %d\n", static_cast<int>(eglGetError()));
-        mLweRenderingRequested = false;
-        return;
-      }
-      mLweRenderingFunction();
+      DALI_LOG_ERROR("WebEngineLwe: eglMakeCurrent before rendering failed: %d\n", static_cast<int>(eglGetError()));
+      mLweRenderingRequested = false;
+      return;
     }
-  }
-  else if(HasRetiredSurfaceOf(mTbmQueue))
-  {
-    // The free buffers are the ones DALi may still be reading. Resume once it
-    // reports them released instead of rendering over them.
-    mRenderingWaitsForRetiredSurface = true;
-  }
-  else
-  {
-    mWebContainer->AddIdleCallback([](void* data)
-    {
-      static_cast<WebEngineLweBackendTizen*>(data)->TryRendering();
-    }, this);
+    mLweRenderingFunction();
   }
 }
 
-void WebEngineLweBackendTizen::TryUpdateImage(bool needsSync)
+void WebEngineLweBackendTizen::OnBufferReleased()
+{
+  if(mDestroying || !mWebContainer || !mRenderingWaitsForBuffer)
+  {
+    return;
+  }
+  mRenderingWaitsForBuffer = false;
+  mWebContainer->AddIdleCallback([](void* data)
+  {
+    static_cast<WebEngineLweBackendTizen*>(data)->TryRendering();
+  }, this);
+}
+
+void WebEngineLweBackendTizen::OnFrameSwapped()
 {
   if(mDestroying || !mWebContainer)
   {
     return;
   }
 
-  mInImageUpdateState = true;
-  if(!eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
+  if(Dali::Adaptor::IsAvailable())
   {
-    DALI_LOG_ERROR("WebEngineLwe: eglMakeCurrent failed: %d\n", static_cast<int>(eglGetError()));
+    Dali::Adaptor::Get().RequestProcessEventsAndUpdate();
   }
-
-  if(mEglSync && gEglClientWaitSyncKHR)
+  if(mFrameRenderedCallback)
   {
-    const auto state = gEglClientWaitSyncKHR(mEglDisplay,
-                                             mEglSync,
-                                             0,
-                                             needsSync ? EGL_FOREVER_KHR : 1000u * 1000u);
-    if(state == EGL_TIMEOUT_EXPIRED_KHR)
-    {
-      eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-      mWebContainer->AddIdleCallback([](void* data)
-      {
-        static_cast<WebEngineLweBackendTizen*>(data)->TryUpdateImage(false);
-      }, this);
-      return;
-    }
-    if(gEglDestroySyncKHR)
-    {
-      gEglDestroySyncKHR(mEglDisplay, mEglSync);
-    }
-    mEglSync = nullptr;
+    mFrameRenderedCallback();
   }
-
-  eglMakeCurrent(mEglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
-  unsigned waitCount = 0u;
-  while(!tbm_surface_queue_can_acquire(mTbmQueue, 0) && waitCount < 10u)
-  {
-    usleep(100u);
-    ++waitCount;
-  }
-
-  if(tbm_surface_queue_can_acquire(mTbmQueue, 0))
-  {
-    tbm_surface_h acquired = nullptr;
-    if(tbm_surface_queue_acquire(mTbmQueue, &acquired) == TBM_SURFACE_QUEUE_ERROR_NONE)
-    {
-      if(UpdateImage(acquired))
-      {
-        // SetSource() only takes effect in a later DALi frame, and DALi's
-        // render thread may still be sampling the surface it replaces. Hand
-        // that surface back only once DALi has rendered past it; releasing
-        // it here let LWE render over a buffer still on screen.
-        if(mLastDrawnTbmSurface)
-        {
-          tbm_surface_internal_ref(mLastDrawnTbmSurface);
-          RetireSurface(mLastDrawnTbmSurface, mTbmQueue);
-        }
-        mLastDrawnTbmSurface = acquired;
-        if(mIdleTbmSurface)
-        {
-          RetireSurface(mIdleTbmSurface, nullptr);
-          mIdleTbmSurface = nullptr;
-        }
-      }
-      else
-      {
-        // Never shown, so nothing reads it.
-        tbm_surface_queue_release(mTbmQueue, acquired);
-      }
-      mInImageUpdateState = false;
-      TryReleaseIdleSurface();
-      return;
-    }
-    DALI_LOG_ERROR("WebEngineLwe: failed to acquire TBM surface\n");
-  }
-
-  mWebContainer->AddIdleCallback([](void* data)
-  {
-    static_cast<WebEngineLweBackendTizen*>(data)->TryUpdateImage(false);
-  }, this);
+  TryReleaseIdleSurface();
 }
 
 void WebEngineLweBackendTizen::PrepareLweRendering()
 {
   if(mDestroying || !mWebContainer)
   {
-    return;
-  }
-
-  if(mInImageUpdateState)
-  {
-    mWebContainer->AddIdleCallback([](void* data)
-    {
-      static_cast<WebEngineLweBackendTizen*>(data)->PrepareLweRendering();
-    }, this);
     return;
   }
 
@@ -773,9 +716,8 @@ void WebEngineLweBackendTizen::OnIdle()
 void WebEngineLweBackendTizen::TryReleaseIdleSurface()
 {
   // LWE idle notifications and rendering retries run on the LWE event loop.
-  // Idle does not imply that the external image update has completed.
-  if(mDestroying || !mWebContainer || !mIdleReleasePending ||
-     mLweRenderingRequested || mInImageUpdateState)
+  // Idle does not imply that the last frame has been handed to DALi.
+  if(mDestroying || !mWebContainer || !mIdleReleasePending || mLweRenderingRequested)
   {
     return;
   }
@@ -786,17 +728,17 @@ void WebEngineLweBackendTizen::TryReleaseIdleSurface()
     return;
   }
 
-  if(mLastDrawnTbmSurface)
-  {
-    tbm_surface_internal_ref(mLastDrawnTbmSurface);
-    if(mIdleTbmSurface)
-    {
-      tbm_surface_internal_unref(mIdleTbmSurface);
-    }
-    mIdleTbmSurface      = mLastDrawnTbmSurface;
-    mLastDrawnTbmSurface = nullptr;
-  }
+  // DALi keeps showing the buffer it holds; the rest of the queue is freed
+  // the next time it renders the WebView.
   DestroyRenderingSurface();
+  if(mImageQueue)
+  {
+    mImageQueue->FreeReleasedBuffers();
+    if(Dali::Adaptor::IsAvailable())
+    {
+      Dali::Adaptor::Get().RequestProcessEventsAndUpdate();
+    }
+  }
 }
 
 void WebEngineLweBackendTizen::OnActive()
@@ -808,128 +750,6 @@ void WebEngineLweBackendTizen::OnActive()
   InitRenderingSurface();
 }
 
-void WebEngineLweBackendTizen::RetireSurface(tbm_surface_h surface, tbm_surface_queue_h queue)
-{
-  // Takes over one reference of the surface from the caller.
-  Dali::WindowContainer windows;
-  if(Dali::Adaptor::IsAvailable())
-  {
-    windows = Dali::Adaptor::Get().GetWindows();
-  }
-
-  RetiredSurface retired{surface, queue, ++mRetiredFrameId, 0u, std::chrono::steady_clock::now()};
-  std::weak_ptr<bool> alive = mAliveToken;
-  for(auto& window : windows)
-  {
-    if(!window.IsVisible())
-    {
-      continue;
-    }
-    ++retired.pendingWindowCount;
-    auto onRendered = [this, alive](int32_t frameId)
-    {
-      if(!alive.expired())
-      {
-        OnRetiredSurfaceRendered(frameId);
-      }
-    };
-    window.AddFrameRenderedCallback(new Dali::CallbackFunctor1<decltype(onRendered), int32_t>(onRendered), retired.frameId);
-  }
-
-  mRetiredSurfaces.push_back(retired);
-  if(retired.pendingWindowCount == 0u)
-  {
-    // No window renders, so nothing reads the surface any more.
-    ReleaseRetiredSurfaces();
-  }
-  else if(mRetiredSurfaceTimer && !mRetiredSurfaceTimer.IsRunning())
-  {
-    mRetiredSurfaceTimer.Start();
-  }
-}
-
-void WebEngineLweBackendTizen::OnRetiredSurfaceRendered(int32_t frameId)
-{
-  for(auto& retired : mRetiredSurfaces)
-  {
-    if(retired.frameId == frameId && retired.pendingWindowCount > 0u)
-    {
-      --retired.pendingWindowCount;
-      break;
-    }
-  }
-  ReleaseRetiredSurfaces();
-}
-
-bool WebEngineLweBackendTizen::OnRetiredSurfaceTimeout()
-{
-  if(mRetiredSurfaces.empty())
-  {
-    return false;
-  }
-  // A window that stops rendering never reports its frame; do not let that
-  // stall LWE for good.
-  const auto expired = std::chrono::steady_clock::now() - std::chrono::milliseconds(RETIRED_SURFACE_TIMEOUT_MS);
-  for(auto& retired : mRetiredSurfaces)
-  {
-    if(retired.retiredTime > expired)
-    {
-      break;
-    }
-    if(retired.pendingWindowCount > 0u)
-    {
-      DALI_LOG_ERROR("WebEngineLwe: no frame rendered for %d ms, releasing a retired surface\n", static_cast<int>(RETIRED_SURFACE_TIMEOUT_MS));
-      retired.pendingWindowCount = 0u;
-    }
-  }
-  ReleaseRetiredSurfaces();
-  return !mRetiredSurfaces.empty();
-}
-
-void WebEngineLweBackendTizen::ReleaseRetiredSurfaces()
-{
-  // A later frame being rendered implies the earlier ones were, so surfaces
-  // are released in the order they were retired.
-  bool released = false;
-  while(!mRetiredSurfaces.empty() && mRetiredSurfaces.front().pendingWindowCount == 0u)
-  {
-    RetiredSurface retired = mRetiredSurfaces.front();
-    mRetiredSurfaces.erase(mRetiredSurfaces.begin());
-    if(retired.queue && retired.queue == mTbmQueue)
-    {
-      tbm_surface_queue_release(mTbmQueue, retired.surface);
-      released = true;
-    }
-    tbm_surface_internal_unref(retired.surface);
-  }
-
-  if(mRetiredSurfaces.empty() && mRetiredSurfaceTimer)
-  {
-    mRetiredSurfaceTimer.Stop();
-  }
-
-  if(released && mRenderingWaitsForRetiredSurface && mWebContainer)
-  {
-    mRenderingWaitsForRetiredSurface = false;
-    mWebContainer->AddIdleCallback([](void* data)
-    {
-      static_cast<WebEngineLweBackendTizen*>(data)->TryRendering();
-    }, this);
-  }
-}
-
-bool WebEngineLweBackendTizen::HasRetiredSurfaceOf(tbm_surface_queue_h queue) const
-{
-  for(const auto& retired : mRetiredSurfaces)
-  {
-    if(retired.queue && retired.queue == queue)
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
 #ifndef OVER_TIZEN_VERSION_9
 void WebEngineLweBackendTizen::LegacyUpdateBuffer()
 {
@@ -937,23 +757,22 @@ void WebEngineLweBackendTizen::LegacyUpdateBuffer()
 }
 #endif
 
-bool WebEngineLweBackendTizen::UpdateImage(tbm_surface_h image)
+#ifndef OVER_TIZEN_VERSION_9
+void WebEngineLweBackendTizen::UpdateImage(tbm_surface_h image)
 {
   if(!mWebContainer || !image)
   {
-    return false;
+    return;
   }
 
   if(static_cast<int>(mWebContainer->Width()) != tbm_surface_get_width(image) ||
      static_cast<int>(mWebContainer->Height()) != tbm_surface_get_height(image))
   {
     DALI_LOG_DEBUG_INFO("WebEngineLwe: image and WebContainer sizes do not match\n");
-    return false;
+    return;
   }
 
-#ifndef OVER_TIZEN_VERSION_9
   MutexLocker lock(mOutputBufferMutex);
-#endif
   mNativeImage->SetSource(Dali::Any(image));
   if(Dali::Adaptor::IsAvailable())
   {
@@ -963,8 +782,8 @@ bool WebEngineLweBackendTizen::UpdateImage(tbm_surface_h image)
   {
     mFrameRenderedCallback();
   }
-  return true;
 }
+#endif
 
 std::unique_ptr<WebEngineLweBackend> CreateWebEngineLweBackend()
 {
