@@ -58,7 +58,6 @@ public:
   std::string                             GetTitle() const override;
   Dali::PixelData                         GetFavicon() const override;
   Dali::NativeImagePtr                    GetNativeImage() override;
-  Dali::NativeImageInterfacePtr           GetNativeImageInterface() override;
   void                                    ChangeOrientation(int orientation) override;
   std::string                             GetUrl() const override;
   void                                    LoadHtmlString(const std::string& htmlString) override;
