@@ -833,7 +833,8 @@ Any TizenVideoPlayer::GetSurfaceFromPacket(void* packet)
 void TizenVideoPlayer::DestroyPlayer()
 {
   DALI_LOG_RELEASE_INFO("TizenVideoPlayer DestroyPlayer\n");
-  if(mIsExternalPlayer)
+  // A moved handle may already have been destroyed by its new owner.
+  if(mIsExternalPlayer && !mIsMovedHandle)
   {
     if(mPlayer && mNativeImagePtr)
     {
@@ -866,7 +867,7 @@ void TizenVideoPlayer::DestroyPlayer()
     return;
   }
 
-  if(mPlayer)
+  if(mPlayer && !mIsMovedHandle)
   { // If user take the handle, user must be responsible for its destruction.
     if(mPlayerState != PLAYER_STATE_NONE)
     {
