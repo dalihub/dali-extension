@@ -67,15 +67,6 @@ public:
 
   virtual Dali::NativeImagePtr GetNativeImage() = 0;
 
-  /**
-   * The image the WebView renders. A backend that renders through a native
-   * image queue returns the queue so DALi acquires and releases its buffers.
-   */
-  virtual Dali::NativeImageInterfacePtr GetNativeImageInterface()
-  {
-    return GetNativeImage();
-  }
-
   virtual void SetFrameRenderedCallback(FrameRenderedCallback callback) = 0;
 
   /**
