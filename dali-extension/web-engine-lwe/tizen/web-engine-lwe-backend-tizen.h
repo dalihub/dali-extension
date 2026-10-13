@@ -21,6 +21,8 @@
 #include "../common/web-engine-lwe-backend.h"
 
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
+#include <dali/public-api/adaptor-framework/timer.h>
+#include <dali/public-api/signals/connection-tracker.h>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -29,14 +31,17 @@
 
 #include <pthread.h>
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <functional>
+#include <memory>
+#include <vector>
 
 namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
-class WebEngineLweBackendTizen : public WebEngineLweBackend
+class WebEngineLweBackendTizen : public WebEngineLweBackend, public Dali::ConnectionTracker
 {
 public:
   WebEngineLweBackendTizen();
@@ -66,10 +71,29 @@ private:
   void OnIdle();
   void TryReleaseIdleSurface();
   void OnActive();
-  void OnFirstRender();
-  void UpdateImage(tbm_surface_h image);
+  bool UpdateImage(tbm_surface_h image);
+  void RetireSurface(tbm_surface_h surface, tbm_surface_queue_h queue);
+  void OnRetiredSurfaceRendered(int32_t frameId);
+  bool OnRetiredSurfaceTimeout();
+  void ReleaseRetiredSurfaces();
+  bool HasRetiredSurfaceOf(tbm_surface_queue_h queue) const;
 
 private:
+  /**
+   * A surface DALi was showing until a newer one replaced it. DALi's render
+   * thread can still be sampling it, so it goes back to the queue (or, for a
+   * surface of a queue already destroyed, is unreferenced) only once every
+   * visible window reports a frame rendered after the replacement.
+   */
+  struct RetiredSurface
+  {
+    tbm_surface_h                         surface;
+    tbm_surface_queue_h                   queue; ///< Queue to release the surface to; nullptr once that queue is destroyed
+    int32_t                               frameId;
+    uint32_t                              pendingWindowCount;
+    std::chrono::steady_clock::time_point retiredTime;
+  };
+
 #ifndef OVER_TIZEN_VERSION_9
   size_t   mOutputWidth;
   size_t   mOutputHeight;
@@ -96,12 +120,17 @@ private:
   tbm_surface_h       mLastDrawnTbmSurface;
   tbm_surface_h       mIdleTbmSurface;
 
+  std::vector<RetiredSurface> mRetiredSurfaces;
+  int32_t                     mRetiredFrameId;
+  Dali::Timer                 mRetiredSurfaceTimer;
+  std::shared_ptr<bool>       mAliveToken;
+  bool                        mRenderingWaitsForRetiredSurface;
+
   std::function<void()> mLweRenderingFunction;
   std::atomic_bool      mLweRenderingRequested;
   std::atomic_bool      mInImageUpdateState;
   std::atomic_bool      mInIdleState;
   std::atomic_bool      mIdleReleasePending;
-  std::atomic_bool      mFirstRenderEnded;
   std::atomic_bool      mDestroying;
 
   FrameRenderedCallback mFrameRenderedCallback;
