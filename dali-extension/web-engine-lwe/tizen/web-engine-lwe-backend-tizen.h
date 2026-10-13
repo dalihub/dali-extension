@@ -21,6 +21,7 @@
 #include "../common/web-engine-lwe-backend.h"
 
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
+#include <dali/devel-api/adaptor-framework/native-image-queue.h>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -30,7 +31,9 @@
 #include <pthread.h>
 #include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <memory>
 
 namespace DALI_NAMESPACE
 {
@@ -47,7 +50,8 @@ public:
   void                 Destroy() override;
   void                 SetSize(uint32_t width, uint32_t height) override;
   void                 UpdateDisplayArea(uint32_t width, uint32_t height) override;
-  Dali::NativeImagePtr GetNativeImage() override;
+  Dali::NativeImagePtr          GetNativeImage() override;
+  Dali::NativeImageInterfacePtr GetNativeImageInterface() override;
   void                 SetFrameRenderedCallback(FrameRenderedCallback callback) override;
   void                 DispatchToEventThread(Task task) override;
 
@@ -61,13 +65,16 @@ private:
   void InitRenderingSurface();
   void DestroyRenderingSurface();
   void TryRendering();
-  void TryUpdateImage(bool needsSync);
   void PrepareLweRendering();
   void OnIdle();
   void TryReleaseIdleSurface();
   void OnActive();
-  void OnFirstRender();
+  void OnFrameSwapped();
+  void ResetImageQueue();
+  void OnBufferReleased();
+#ifndef OVER_TIZEN_VERSION_9
   void UpdateImage(tbm_surface_h image);
+#endif
 
 private:
 #ifndef OVER_TIZEN_VERSION_9
@@ -90,18 +97,20 @@ private:
   EGLConfig            mEglConfig;
   EGLSurface           mEglSurface;
   EGLContext           mEglContext;
-  EGLSyncKHR           mEglSync;
 
-  tbm_surface_queue_h mTbmQueue;
-  tbm_surface_h       mLastDrawnTbmSurface;
-  tbm_surface_h       mIdleTbmSurface;
+  // DALi owns the queue LWE renders into: it acquires the newest buffer when
+  // it renders the WebView and releases the one it replaces only after that
+  // frame, so LWE never renders over a buffer still on screen.
+  Dali::NativeImageQueuePtr                  mImageQueue;
+  tbm_surface_queue_h                        mTbmQueue;
+  uintptr_t                                  mReleaseNotifierId;
+  std::unique_ptr<Dali::EventThreadCallback> mBufferReleasedTrigger;
+  bool                                       mRenderingWaitsForBuffer;
 
   std::function<void()> mLweRenderingFunction;
   std::atomic_bool      mLweRenderingRequested;
-  std::atomic_bool      mInImageUpdateState;
   std::atomic_bool      mInIdleState;
   std::atomic_bool      mIdleReleasePending;
-  std::atomic_bool      mFirstRenderEnded;
   std::atomic_bool      mDestroying;
 
   FrameRenderedCallback mFrameRenderedCallback;
