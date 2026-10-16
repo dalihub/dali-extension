@@ -68,6 +68,7 @@ void* DefaultProfile()
 }
 void* CreateProfile(bool, const char*)
 {
+  // Not implemented: LWE has no independent named/incognito profile or injected-bundle connection.
   DALI_LOG_ERROR("LWE does not support independent named contexts, incognito or injected bundles\n");
   return nullptr;
 }
@@ -86,8 +87,13 @@ bool CreateView(WebEnginePlugin* plugin, void* profile, uint32_t width, uint32_t
 {
   return profile == &Runtime() && Runtime().available && static_cast<WebEngineLwe*>(plugin)->CreateDefaultView(width, height);
 }
+WebEngineDirectRenderingSessionPtr CreateDirectRenderingView(WebEnginePlugin*, void*, uint32_t, uint32_t)
+{
+  // Not implemented: the native backend has no profile-aware external-target rendering connection.
+  return {};
+}
 const WebEngineProfileApi profileApi{1, sizeof(WebEngineProfileApi), StoreArguments, ReadArguments, InitializeWebEngineLwe,
-  DefaultProfile, CreateProfile, DestroyProfile, ProfileContext, ProfileCookies, CreateView};
+  DefaultProfile, CreateProfile, DestroyProfile, ProfileContext, ProfileCookies, CreateView, CreateDirectRenderingView};
 }
 
 bool InitializeWebEngineLwe()

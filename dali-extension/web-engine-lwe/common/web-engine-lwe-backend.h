@@ -52,6 +52,7 @@ public:
 
   virtual ~WebEngineLweBackend() = default;
 
+  /** Returns nullptr on creation failure. Destroy() must remain safe afterward. */
   virtual LWE::WebContainer* Create(uint32_t           width,
                                     uint32_t           height,
                                     const std::string& locale,
@@ -62,6 +63,7 @@ public:
                                     uint32_t argc,
                                     char**   argv) = 0;
 
+  /** Releases partial initialization as well as a live container; repeatable. */
   virtual void Destroy() = 0;
 
   virtual void SetSize(uint32_t width, uint32_t height) = 0;

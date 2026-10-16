@@ -233,7 +233,11 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
   mOutputBuffer = nullptr;
 #endif
 
-  InitRenderingContext();
+  if(!InitRenderingContext())
+  {
+    Destroy();
+    return nullptr;
+  }
 
   if(!InitializeWebEngineLwe())
   {
@@ -308,7 +312,19 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
   };
 
   mWebContainer = LWE::WebContainer::CreateGL(arguments, configuration);
-  DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE GL WebContainer");
+  if(!mWebContainer)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to create LWE GL WebContainer\n");
+    Destroy();
+    return nullptr;
+  }
+  // Establish the requested output size before reporting initialization success.
+  // CreateGL may not expose its final size until SetSize below.
+  if(!InitRenderingSurface(width, height))
+  {
+    Destroy();
+    return nullptr;
+  }
   mWebContainer->RegisterSetNeedsRenderingCallback(
     [this](LWE::WebContainer*, const std::function<void()>& render)
   {
@@ -335,7 +351,12 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
                                             "",
                                             locale.data(),
                                             timezoneId.data());
-  DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE WebContainer");
+  if(!mWebContainer)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to create LWE WebContainer\n");
+    Destroy();
+    return nullptr;
+  }
 
   mWebContainer->RegisterPreRenderingHandler([this]() -> LWE::WebContainer::RenderInfo
   {
@@ -394,7 +415,18 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
     mUpdateBufferTrigger.Trigger();
   });
 
+  if(!mNativeImage)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to create native image\n");
+    Destroy();
+    return nullptr;
+  }
   SetSize(width, height);
+  if(!mTbmSurface || !mOutputBuffer)
+  {
+    Destroy();
+    return nullptr;
+  }
 #endif
 
   return mWebContainer;
@@ -402,11 +434,7 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
 
 void WebEngineLweBackendTizen::Destroy()
 {
-  if(!mWebContainer && mEglDisplay == EGL_NO_DISPLAY)
-  {
-    return;
-  }
-
+  // Notifier and native display allocation can precede both of these handles.
   mDestroying = true;
   if(mWebContainer)
   {
@@ -458,21 +486,32 @@ void WebEngineLweBackendTizen::SetSize(uint32_t width, uint32_t height)
 #ifndef OVER_TIZEN_VERSION_9
   if(mOutputWidth != width || mOutputHeight != height || !mTbmSurface)
   {
-    mOutputWidth  = width;
+    auto* buffer = static_cast<uint8_t*>(malloc(static_cast<size_t>(width) * height * sizeof(uint32_t)));
+    if(!buffer)
+    {
+      DALI_LOG_ERROR("WebEngineLwe: failed to allocate output buffer\n");
+      return;
+    }
+    tbm_surface_h surface = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+    if(!surface)
+    {
+      free(buffer);
+      DALI_LOG_ERROR("WebEngineLwe: failed to create output TBM surface\n");
+      return;
+    }
+
+    mOutputWidth = width;
     mOutputHeight = height;
     mOutputStride = width * sizeof(uint32_t);
-
     tbm_surface_h previousSurface = mTbmSurface;
-    mTbmSurface                   = tbm_surface_create(width, height, TBM_FORMAT_ARGB8888);
+    mTbmSurface = surface;
     mNativeImage->SetSource(Dali::Any(mTbmSurface));
     if(previousSurface && tbm_surface_destroy(previousSurface) != TBM_SURFACE_ERROR_NONE)
     {
       DALI_LOG_ERROR("WebEngineLwe: failed to destroy previous tbm_surface\n");
     }
-
-    auto* previousBuffer = mOutputBuffer;
-    mOutputBuffer        = static_cast<uint8_t*>(malloc(mOutputWidth * mOutputHeight * sizeof(uint32_t)));
-    free(previousBuffer);
+    free(mOutputBuffer);
+    mOutputBuffer = buffer;
   }
 #endif
 }
@@ -520,22 +559,38 @@ void WebEngineLweBackendTizen::DispatchToEventThread(Task task)
   }
 }
 
-void WebEngineLweBackendTizen::InitRenderingContext()
+bool WebEngineLweBackendTizen::InitRenderingContext()
 {
-  if(mNativeDisplay)
+  if(mEglContext != EGL_NO_CONTEXT)
   {
-    return;
+    return true;
   }
 
   mNativeDisplay = reinterpret_cast<EGLNativeDisplayType>(tbm_dummy_display_create());
-  DALI_ASSERT_ALWAYS(mNativeDisplay && "Failed to create TBM dummy display");
+  if(!mNativeDisplay)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to create TBM dummy display\n");
+    return false;
+  }
 
   mEglDisplay = eglGetDisplay(mNativeDisplay);
-  DALI_ASSERT_ALWAYS(mEglDisplay != EGL_NO_DISPLAY && "Failed to get EGL display");
-  DALI_ASSERT_ALWAYS(eglInitialize(mEglDisplay, nullptr, nullptr) == EGL_TRUE && "Failed to initialize EGL");
+  if(mEglDisplay == EGL_NO_DISPLAY)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to get EGL display\n");
+    return false;
+  }
+  if(eglInitialize(mEglDisplay, nullptr, nullptr) != EGL_TRUE)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to initialize EGL\n");
+    return false;
+  }
 
   EGLint configCount = 0;
-  DALI_ASSERT_ALWAYS(eglGetConfigs(mEglDisplay, nullptr, 0, &configCount) == EGL_TRUE && "Failed to query EGL configs");
+  if(eglGetConfigs(mEglDisplay, nullptr, 0, &configCount) != EGL_TRUE)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to query EGL configs\n");
+    return false;
+  }
 
   const EGLint configAttributes[] = {
     EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
@@ -550,11 +605,20 @@ void WebEngineLweBackendTizen::InitRenderingContext()
     EGL_SAMPLES, 4,
     EGL_NONE};
 
-  DALI_ASSERT_ALWAYS(eglChooseConfig(mEglDisplay, configAttributes, &mEglConfig, 1, &configCount) == EGL_TRUE && configCount > 0 && "Failed to choose EGL config");
+  if(eglChooseConfig(mEglDisplay, configAttributes, &mEglConfig, 1, &configCount) != EGL_TRUE || configCount <= 0)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to choose EGL config\n");
+    return false;
+  }
 
   const EGLint contextAttributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
   mEglContext                      = eglCreateContext(mEglDisplay, mEglConfig, EGL_NO_CONTEXT, contextAttributes);
-  DALI_ASSERT_ALWAYS(mEglContext != EGL_NO_CONTEXT && "Failed to create EGL context");
+  if(mEglContext == EGL_NO_CONTEXT)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to create EGL context\n");
+    return false;
+  }
+  return true;
 }
 
 void WebEngineLweBackendTizen::DestroyRenderingContext()
@@ -579,20 +643,34 @@ void WebEngineLweBackendTizen::DestroyRenderingContext()
   }
 }
 
-void WebEngineLweBackendTizen::InitRenderingSurface()
+bool WebEngineLweBackendTizen::InitRenderingSurface(uint32_t requestedWidth, uint32_t requestedHeight)
 {
-  if(mEglSurface != EGL_NO_SURFACE || !mWebContainer)
+  if(mEglSurface != EGL_NO_SURFACE)
   {
-    return;
+    return true;
+  }
+  if(!mWebContainer)
+  {
+    return false;
   }
 
-  const uint32_t width  = static_cast<uint32_t>(std::max(mWebContainer->Width(), static_cast<size_t>(1u)));
-  const uint32_t height = static_cast<uint32_t>(std::max(mWebContainer->Height(), static_cast<size_t>(1u)));
+  const uint32_t width  = static_cast<uint32_t>(std::max(requestedWidth ? static_cast<size_t>(requestedWidth) : mWebContainer->Width(), static_cast<size_t>(1u)));
+  const uint32_t height = static_cast<uint32_t>(std::max(requestedHeight ? static_cast<size_t>(requestedHeight) : mWebContainer->Height(), static_cast<size_t>(1u)));
   if(!mImageQueue)
   {
     mImageQueue = Dali::NativeImageQueue::New(TBM_SURFACE_QUEUE_LENGTH, width, height, Dali::NativeImageQueue::ColorFormat::BGRA8888);
-    mTbmQueue   = Dali::AnyCast<tbm_surface_queue_h>(mImageQueue->GetNativeImageQueue());
-    DALI_ASSERT_ALWAYS(mTbmQueue && "Failed to create the LWE native image queue");
+    if(!mImageQueue)
+    {
+      DALI_LOG_ERROR("WebEngineLwe: failed to create native image queue\n");
+      return false;
+    }
+    mTbmQueue = Dali::AnyCast<tbm_surface_queue_h>(mImageQueue->GetNativeImageQueue());
+    if(!mTbmQueue)
+    {
+      mImageQueue.Reset();
+      DALI_LOG_ERROR("WebEngineLwe: native image queue has no TBM queue\n");
+      return false;
+    }
     tbm_surface_queue_add_dequeuable_cb(mTbmQueue, OnTbmSurfaceDequeuable, reinterpret_cast<void*>(mReleaseNotifierId));
   }
   else if(static_cast<uint32_t>(tbm_surface_queue_get_width(mTbmQueue)) != width ||
@@ -605,7 +683,12 @@ void WebEngineLweBackendTizen::InitRenderingSurface()
                                        mEglConfig,
                                        reinterpret_cast<EGLNativeWindowType>(mTbmQueue),
                                        nullptr);
-  DALI_ASSERT_ALWAYS(mEglSurface != EGL_NO_SURFACE && "Failed to create EGL window surface");
+  if(mEglSurface == EGL_NO_SURFACE)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to create EGL window surface\n");
+    return false;
+  }
+  return true;
 }
 
 void WebEngineLweBackendTizen::DestroyRenderingSurface()
@@ -659,7 +742,11 @@ void WebEngineLweBackendTizen::TryRendering()
   {
     DestroyRenderingSurface();
   }
-  InitRenderingSurface();
+  if(!InitRenderingSurface())
+  {
+    mLweRenderingRequested = false;
+    return;
+  }
   OnActive();
 
   if(!tbm_surface_queue_can_dequeue(mTbmQueue, 0))

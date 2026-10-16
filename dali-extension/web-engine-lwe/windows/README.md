@@ -71,3 +71,14 @@ build script selects their runtime paths. This test does not exercise LWE page
 rendering or DALi's final upload. Also verify a page containing text, images,
 Canvas/WebGL, resize the WebView, and repeatedly open/close multiple WebViews in
 a DALi application using the ANGLE-enabled Starfish SDK.
+
+The optional `DALI_LWE_BUILD_INITIALIZATION_TESTS=ON` CMake option builds
+`lwe-initialization-failure-test`. Run it with
+`ctest --test-dir <build-directory> -C Debug -R lwe-initialization-failure --output-on-failure`.
+It injects a backend that allocates resources and then returns no container,
+checking false returns from native-image initialization, cleanup of partial
+resources and frame callbacks, retry, legacy Create, and repeated Destroy.
+It links the real common plugin implementation and requires the Windows LWE SDK
+to build, but does not start a web engine or graphics context during the test.
+This test does not cover actual ANGLE/TBM allocation failures; those require
+platform testing.

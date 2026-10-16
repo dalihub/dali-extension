@@ -60,9 +60,9 @@ private:
   void LegacyUpdateBuffer();
 #endif
 
-  void InitRenderingContext();
+  bool InitRenderingContext();
   void DestroyRenderingContext();
-  void InitRenderingSurface();
+  bool InitRenderingSurface(uint32_t width = 0u, uint32_t height = 0u);
   void DestroyRenderingSurface();
   void TryRendering();
   void PrepareLweRendering();

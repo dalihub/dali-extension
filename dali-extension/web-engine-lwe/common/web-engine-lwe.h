@@ -42,6 +42,8 @@ class WebEngineLwe : public Dali::WebEnginePlugin
 public:
   bool CreateDefaultView(uint32_t width, uint32_t height);
   static void DestroyAllViews();
+  bool InitializeNativeImageRendering(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
+  WebEngineDirectRenderingSessionPtr InitializeDirectRendering(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
   explicit WebEngineLwe(std::unique_ptr<WebEngineLweBackend> backend);
   ~WebEngineLwe() override;
 
@@ -179,7 +181,7 @@ public:
   static void ClearSharedCache();
 
 private:
-  void CompleteCreate(LWE::WebContainer* webContainer);
+  bool CompleteCreate(LWE::WebContainer* webContainer);
   void RegisterEngineCallbacks();
   void DispatchToEventThread(WebEngineLweBackend::Task task);
   void UpdateNavigationState(bool canGoBack, bool canGoForward);
