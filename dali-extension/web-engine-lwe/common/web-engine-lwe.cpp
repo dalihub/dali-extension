@@ -913,14 +913,20 @@ void WebEngineLwe::SetCursorThemeName(const std::string)
 
 void WebEngineLwe::SetPageZoomFactor(float zoomFactor)
 {
+#ifdef OVER_TIZEN_VERSION_9
   DALI_ASSERT_ALWAYS(mWebContainer);
   mWebContainer->SetDevicePixelRatio(zoomFactor);
+#endif
 }
 
 float WebEngineLwe::GetPageZoomFactor() const
 {
+#ifdef OVER_TIZEN_VERSION_9
   DALI_ASSERT_ALWAYS(mWebContainer);
   return mWebContainer->GetDevicePixelRatio();
+#else
+  return 1.0f;
+#endif
 }
 
 void WebEngineLwe::SetTextZoomFactor(float)
