@@ -821,7 +821,11 @@ void TizenWebEngineChromium::SetFocus(bool focused)
 
 bool TizenWebEngineChromium::SetImePositionAndAlignment(Dali::Vector2 position, int alignment)
 {
+#ifdef OVER_TIZEN_VERSION_9
   return ewk_view_ime_position_align_set(mWebView, position.x, position.y, (Ewk_Ime_Position_Align)alignment);
+#else
+  return false;
+#endif
 }
 
 void TizenWebEngineChromium::SetCursorThemeName(const std::string themeName)
