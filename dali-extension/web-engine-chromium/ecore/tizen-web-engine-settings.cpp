@@ -272,12 +272,18 @@ bool TizenWebEngineSettings::IsExtraFeatureEnabled(const std::string& feature) c
 
 void TizenWebEngineSettings::SetImeStyle(int style)
 {
+#ifdef OVER_TIZEN_VERSION_9
   ewk_settings_ime_style_set(ewkSettings, (Ewk_Ime_Style)style);
+#endif
 }
 
 int TizenWebEngineSettings::GetImeStyle() const
 {
+#ifdef OVER_TIZEN_VERSION_9
   return (int)ewk_settings_ime_style_get(ewkSettings);
+#else
+  return 0;
+#endif
 }
 
 void TizenWebEngineSettings::SetDefaultAudioInputDevice(const std::string& deviceId) const

@@ -274,11 +274,15 @@ void WebEngineLweSettings::SetExtraFeature(const std::string& feature, bool enab
   }
   else if(feature == "showLoadFailMsg" || feature == "--show-fps")
   {
+#ifdef OVER_TIZEN_VERSION_9
     mSettings.UpdateSetting(feature, enable ? "true" : "false");
+#endif
   }
   else
   {
+#ifdef OVER_TIZEN_VERSION_9
     mSettings.UpdateSetting(feature, enable ? "True" : "False");
+#endif
   }
   Apply();
 }
@@ -306,8 +310,12 @@ bool WebEngineLweSettings::IsExtraFeatureEnabled(const std::string& feature) con
     return mSettings.UseExternalPopup();
   }
 
+#ifdef OVER_TIZEN_VERSION_9
   const std::string value = mSettings.GetSetting(feature);
   return value == "True" || value == "true";
+#else
+  return false;
+#endif
 }
 
 bool WebEngineLweSettings::SetExtraFeatureValue(const std::string& feature, const std::string& value)
@@ -332,9 +340,13 @@ bool WebEngineLweSettings::SetExtraFeatureValue(const std::string& feature, cons
     return true;
   }
 
+#ifdef OVER_TIZEN_VERSION_9
   mSettings.UpdateSetting(feature, value);
   Apply();
   return true;
+#else
+  return false;
+#endif
 }
 
 std::string WebEngineLweSettings::GetExtraFeatureValue(const std::string& feature) const
@@ -347,7 +359,11 @@ std::string WebEngineLweSettings::GetExtraFeatureValue(const std::string& featur
   {
     return std::to_string(mSettings.NeedsDownScaleImageResourceLargerThan());
   }
+#ifdef OVER_TIZEN_VERSION_9
   return mSettings.GetSetting(feature);
+#else
+  return std::string();
+#endif
 }
 
 void WebEngineLweSettings::SetImeStyle(int)
