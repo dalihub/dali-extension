@@ -30,7 +30,7 @@ fi
 
 TIZEN_WAYLAND_BACKEND_INIT
 
-PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor])
+PKG_CHECK_MODULES([DALI], [dali3-core dali3-adaptor])
 PKG_CHECK_MODULES(WAYLAND, libtbm)
 PKG_CHECK_MODULES(WEB_ENGINE_CHROMIUM, chromium-efl)
 
