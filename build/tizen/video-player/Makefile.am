@@ -22,19 +22,19 @@ include ../../../dali-extension/video-player/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-video-player-plugin.la
+lib_LTLIBRARIES += libdali3-video-player-plugin.la
 
 if USE_TCORE_BACKEND
-libdali2_video_player_plugin_la_SOURCES = \
+libdali3_video_player_plugin_la_SOURCES = \
                      $(video_player_tcore_wl_plugin_src_files)
 else
-libdali2_video_player_plugin_la_SOURCES = \
+libdali3_video_player_plugin_la_SOURCES = \
                      $(video_player_ecore_wl2_plugin_src_files)
 endif
 
-libdali2_video_player_plugin_la_DEPENDENCIES =
+libdali3_video_player_plugin_la_DEPENDENCIES =
 
-libdali2_video_player_plugin_la_CXXFLAGS = \
+libdali3_video_player_plugin_la_CXXFLAGS = \
                       $(DLOG_CFLAGS) \
                       $(DALI_CFLAGS) \
                       $(CAPI_MEDIA_PLAYER_CFLAGS) \
@@ -43,18 +43,18 @@ libdali2_video_player_plugin_la_CXXFLAGS = \
                       -Werror -Wall
 
 if USE_TCORE_BACKEND
-libdali2_video_player_plugin_la_CXXFLAGS+= $(TCORE_WL_CFLAGS) \
+libdali3_video_player_plugin_la_CXXFLAGS+= $(TCORE_WL_CFLAGS) \
                       -I../../../dali-extension/video-player/base \
                       -I../../../dali-extension/video-player/tizen-video-player \
                       -I../../../dali-extension/video-player/es-video-player
 else
-libdali2_video_player_plugin_la_CXXFLAGS+= $(ECORE_WL2_CFLAGS) \
+libdali3_video_player_plugin_la_CXXFLAGS+= $(ECORE_WL2_CFLAGS) \
                       -I../../../dali-extension/video-player/base \
                       -I../../../dali-extension/video-player/tizen-video-player \
                       -I../../../dali-extension/video-player/es-video-player
 endif
 
-libdali2_video_player_plugin_la_LIBADD = \
+libdali3_video_player_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
                       $(CAPI_MEDIA_PLAYER_LIBS) \
@@ -62,10 +62,10 @@ libdali2_video_player_plugin_la_LIBADD = \
                       $(ESPLUSPLAYER_LIBS)
 
 if USE_TCORE_BACKEND
-libdali2_video_player_plugin_la_LIBADD+= $(TCORE_WL_LIBS)
+libdali3_video_player_plugin_la_LIBADD+= $(TCORE_WL_LIBS)
 else
-libdali2_video_player_plugin_la_LIBADD+= $(ECORE_WL2_LIBS)
+libdali3_video_player_plugin_la_LIBADD+= $(ECORE_WL2_LIBS)
 endif
 
-libdali2_video_player_plugin_la_LDFLAGS = \
+libdali3_video_player_plugin_la_LDFLAGS = \
                       -rdynamic

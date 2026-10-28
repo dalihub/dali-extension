@@ -1,3 +1,7 @@
+# dali2 is the same code built a second time under the dali2 name, for
+# applications that still use it. To drop it, remove the "with dali2" blocks.
+%bcond_without dali2
+
 # NOTES
 # This spec file is used to build DALi Extensions
 #
@@ -5,7 +9,7 @@
 # performing a gbs build ( use gbs build -v to see it download location) E.g.
 # http://download.tizen.org/snapshots/tizen/tv/tizen-tv/repos/arm-wayland/packages/repodata/xxxx-build.conf.gz
 
-Name:       dali2-extension
+Name:       dali3-extension
 Summary:    The DALi Tizen Extensions
 Version:    2.5.45
 Release:    1
@@ -69,13 +73,20 @@ Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
 BuildRequires:  pkgconfig
+BuildRequires:  pkgconfig(dali3-core)
+BuildRequires:  pkgconfig(dali3-adaptor)
+BuildRequires:  dali3-integration-devel
+BuildRequires:  dali3-adaptor-integration-devel
+BuildRequires:  pkgconfig(dlog)
+
+BuildRequires:  pkgconfig(dali3-adaptor-integration)
+%if %{with dali2}
 BuildRequires:  pkgconfig(dali2-core)
 BuildRequires:  pkgconfig(dali2-adaptor)
 BuildRequires:  dali2-integration-devel
 BuildRequires:  dali2-adaptor-integration-devel
-BuildRequires:  pkgconfig(dlog)
-
 BuildRequires:  pkgconfig(dali2-adaptor-integration)
+%endif
 %if "%{tizen_wayland_backend}" == "TCORE"
 BuildRequires:  pkgconfig(tizen-core-wl)
 %else
@@ -83,8 +94,12 @@ BuildRequires:  pkgconfig(ecore-wl2)
 %endif
 
 %if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
+BuildRequires:  pkgconfig(dali3-toolkit)
+BuildRequires:  dali3-toolkit-integration-devel
+%if %{with dali2}
 BuildRequires:  pkgconfig(dali2-toolkit)
 BuildRequires:  dali2-toolkit-integration-devel
+%endif
 BuildRequires:  pkgconfig(thorvg)
 BuildRequires:  pkgconfig(rive_tizen)
 %endif
@@ -150,6 +165,7 @@ VideoPlayer plugin to play a video file for Dali
 # Dali CameraPlayer Plugin
 ##############################
 
+%if 0%{?tizen_65_or_greater}
 %package camera-player-plugin
 Summary:    Plugin to play a camera file for Dali
 Group:      System/Libraries
@@ -163,6 +179,7 @@ BuildRequires:  pkgconfig(ecore-wl2)
 
 %description camera-player-plugin
 CameraPlayer plugin to play a camera file for Dali
+%endif
 
 ##############################
 # Dali Web Engine chromium Plugin
@@ -234,7 +251,7 @@ Web Engine LWE(Light-weight Web Engine) plugin to support WebView for Dali
 %package rive-animation-view
 Summary:    Plugin to render a rive animation
 Group:      System/Libraries
-Requires: dali2-extension-rive-animation-view = %{version}-%{release}
+Requires: dali3-extension-rive-animation-view = %{version}-%{release}
 
 %description rive-animation-view
 Plugin to render a rive animation
@@ -242,7 +259,7 @@ Plugin to render a rive animation
 %package rive-animation-view-devel
 Summary: Development components for rive animation view
 Group: System/Libraries
-Requires: dali2-extension-rive-animation-view = %{version}-%{release}
+Requires: dali3-extension-rive-animation-view = %{version}-%{release}
 
 %description rive-animation-view-devel
 Header & package configuration of rive-animation-view
@@ -252,6 +269,7 @@ Header & package configuration of rive-animation-view
 # Dali ICU Plugin
 ##############################
 
+%if 0%{?tizen_65_or_greater}
 %package icu-plugin
 Summary:    Plugin to use an International Components for Unicode for Dali
 Group:      System/Libraries
@@ -260,6 +278,107 @@ BuildRequires: pkgconfig(icu-uc)
 
 %description icu-plugin
 ICU plugin to use an International Components for Unicode for Dali
+%endif
+
+%if %{with dali2}
+##############################
+# dali2
+##############################
+%package -n dali2-extension
+Summary:    The DALi Tizen Extensions
+Group:      System/Libraries
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+
+%description -n dali2-extension
+dali-extension - the same code as %{name}, under the dali2 name
+
+%package -n dali2-extension-devel
+Summary:    Development components for the DALi Extension
+Group:      Development/Building
+Requires:   dali2-extension = %{version}-%{release}
+
+%description -n dali2-extension-devel
+Development components for the DALi Tizen Extensions - public headers and package configs
+
+%package -n dali2-extension-key-extension
+Summary:    Plugin to support extension keys for Dali
+Group:      System/Libraries
+
+%description -n dali2-extension-key-extension
+Plugin to support extension keys for Dali
+
+%package -n dali2-extension-video-player-plugin
+Summary:    Plugin to play a video file for Dali
+Group:      System/Libraries
+
+%description -n dali2-extension-video-player-plugin
+VideoPlayer plugin to play a video file for Dali
+
+%if 0%{?tizen_65_or_greater}
+%package -n dali2-extension-camera-player-plugin
+Summary:    Plugin to play a camera file for Dali
+Group:      System/Libraries
+
+%description -n dali2-extension-camera-player-plugin
+CameraPlayer plugin to play a camera file for Dali
+%endif
+
+%package -n dali2-extension-web-engine-chromium-plugin
+Summary:    Plugin to support WebView for Dali
+Group:      System/Libraries
+
+%description -n dali2-extension-web-engine-chromium-plugin
+Web Engine chromium plugin to support WebView for Dali
+
+%package -n dali2-extension-image-loader-plugin
+Summary:    Plugin to image loading for Dali
+Group:      System/Libraries
+
+%description -n dali2-extension-image-loader-plugin
+Image Loader plugin to image loading file for Dali
+
+%package -n dali2-extension-vector-animation-renderer-plugin
+Summary:    Plugin to render a vector animation
+Group:      System/Libraries
+
+%description -n dali2-extension-vector-animation-renderer-plugin
+Plugin to render a vector animation
+
+%package -n dali2-extension-web-engine-lwe-plugin
+Summary:    Plugin to support WebView for Dali
+Group:      System/Libraries
+
+%description -n dali2-extension-web-engine-lwe-plugin
+Web Engine LWE(Light-weight Web Engine) plugin to support WebView for Dali
+
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
+%package -n dali2-extension-rive-animation-view
+Summary:    Plugin to render a rive animation
+Group:      System/Libraries
+Requires: dali2-extension-rive-animation-view = %{version}-%{release}
+
+%description -n dali2-extension-rive-animation-view
+Plugin to render a rive animation
+
+%package -n dali2-extension-rive-animation-view-devel
+Summary: Development components for rive animation view
+Group: System/Libraries
+Requires: dali2-extension-rive-animation-view = %{version}-%{release}
+
+%description -n dali2-extension-rive-animation-view-devel
+Header & package configuration of rive-animation-view
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%package -n dali2-extension-icu-plugin
+Summary:    Plugin to use an International Components for Unicode for Dali
+Group:      System/Libraries
+
+%description -n dali2-extension-icu-plugin
+ICU plugin to use an International Components for Unicode for Dali
+%endif
+%endif
 
 ##############################
 # Preparation
@@ -273,10 +392,23 @@ ICU plugin to use an International Components for Unicode for Dali
 %define dali_data_ro_dir         %TZ_SYS_RO_SHARE/dali/
 %define dev_include_path %{_includedir}
 
+%if %{with dali2}
+%define dali2_src_dir %{_builddir}/%{name}-%{version}/_build/dali2
+%endif
+
 ##############################
 # Build
 ##############################
 %build
+%if %{with dali2}
+# The autotools build runs in the source tree and names its libraries in
+# Makefile.am, so dali2 is built in a pristine copy of the tree whose build
+# files have the dali3 names switched to dali2.
+mkdir -p %{dali2_src_dir}
+tar --exclude=./_build -cf - . | tar -xf - -C %{dali2_src_dir}
+find %{dali2_src_dir}/build/tizen \( -name configure.ac -o -name Makefile.am -o -name '*.pc.in' \) -exec sed -i 's/dali3/dali2/g' {} +
+%endif
+
 PREFIX="${PREFIX}/usr"
 # GBS qemu-user builds use a host liblto_plugin.so (ELFCLASS64) via /emul;
 # disable the linker plugin so configure/make link tests succeed on armv7l.
@@ -356,6 +488,53 @@ cd "$_saved_dir"
 
 make %{?jobs:-j%jobs}
 
+%if %{with dali2}
+# Keep the steps and options the same as dali3 above.
+cd %{dali2_src_dir}
+libtoolize --force
+cd build/tizen
+autoreconf --install
+_saved_dir=$(pwd)
+cd dali-extension
+autoreconf --install
+cd "$_saved_dir"
+
+%configure --prefix=$PREFIX \
+%if 0%{?enable_debug}
+           --enable-debug \
+%endif
+%if 0%{?tizen_50_or_greater}
+           --with-tizen-50-or-greater \
+%endif
+%if 0%{?tizen_55_or_greater}
+           --with-tizen-55-or-greater \
+%endif
+%if 0%{?tizen_65_or_greater}
+           --with-tizen-65-or-greater \
+%endif
+%if 0%{?tizen_90_or_greater}
+           --with-tizen-90-or-greater \
+%endif
+%if 0%{?tizen_11_or_greater}
+           --with-tizen-11-or-greater \
+%endif
+%if 0%{?enable_web_engine_plugin} == 1
+           --enable-web-engine-plugin \
+%endif
+%if 0%{?enable_image_loader}
+           --enable-imageloader-extension \
+%endif
+%if 0%{?enable_rive_animation_view} == 1
+           --enable-rive-animation-view \
+%else
+           --disable-rive-animation-view \
+%endif
+           --with-tizen-wayland-backend=%{tizen_wayland_backend} \
+           --enable-keyextension
+
+make %{?jobs:-j%jobs}
+%endif
+
 ##############################
 # Installation
 ##############################
@@ -379,6 +558,11 @@ install -m 0644 scripts/dali-shader-conf.sh %{buildroot}%{_sysconfdir}/profile.d
 cd build/tizen
 %make_install DALI_DATA_RW_DIR="%{dali_data_rw_dir}" DALI_DATA_RO_DIR="%{dali_data_ro_dir}"
 
+%if %{with dali2}
+cd %{dali2_src_dir}/build/tizen
+%make_install DALI_DATA_RW_DIR="%{dali_data_rw_dir}" DALI_DATA_RO_DIR="%{dali_data_ro_dir}"
+%endif
+
 %pre
 exit 0
 
@@ -397,19 +581,23 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%if 0%{?tizen_65_or_greater}
 %post camera-player-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
+%if 0%{?tizen_65_or_greater}
 %post icu-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %post web-engine-chromium-plugin
 _saved_dir=$(pwd)
 cd %{_libdir}
-ln -sf libdali2-web-engine-chromium-plugin.so libdali2-web-engine-plugin.so
+ln -sf libdali3-web-engine-chromium-plugin.so libdali3-web-engine-plugin.so
 cd "$_saved_dir"
 /sbin/ldconfig
 exit 0
@@ -460,13 +648,17 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%if 0%{?tizen_65_or_greater}
 %postun camera-player-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
+%if 0%{?tizen_65_or_greater}
 %postun icu-plugin
 /sbin/ldconfig
 exit 0
+%endif
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %postun web-engine-chromium-plugin
@@ -498,6 +690,120 @@ exit 0
 exit 0
 %endif
 
+%if %{with dali2}
+%post -n dali2-extension
+/sbin/ldconfig
+exit 0
+
+%post -n dali2-extension-key-extension
+/sbin/ldconfig
+exit 0
+
+%post -n dali2-extension-video-player-plugin
+/sbin/ldconfig
+exit 0
+
+%if 0%{?tizen_65_or_greater}
+%post -n dali2-extension-camera-player-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%post -n dali2-extension-icu-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%post -n dali2-extension-web-engine-chromium-plugin
+_saved_dir=$(pwd)
+cd %{_libdir}
+ln -sf libdali2-web-engine-chromium-plugin.so libdali2-web-engine-plugin.so
+cd "$_saved_dir"
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?enable_image_loader}
+%post -n dali2-extension-image-loader-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_55_or_greater}
+%post -n dali2-extension-vector-animation-renderer-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
+%post -n dali2-extension-rive-animation-view
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%post -n dali2-extension-web-engine-lwe-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%postun -n dali2-extension
+/sbin/ldconfig
+exit 0
+
+%postun -n dali2-extension-key-extension
+/sbin/ldconfig
+exit 0
+
+%postun -n dali2-extension-video-player-plugin
+/sbin/ldconfig
+exit 0
+
+%if 0%{?tizen_65_or_greater}
+%postun -n dali2-extension-camera-player-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%postun -n dali2-extension-icu-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%postun -n dali2-extension-web-engine-chromium-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?enable_image_loader}
+%postun -n dali2-extension-image-loader-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_55_or_greater}
+%postun -n dali2-extension-vector-animation-renderer-plugin
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
+%postun -n dali2-extension-rive-animation-view
+/sbin/ldconfig
+exit 0
+%endif
+
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%postun -n dali2-extension-web-engine-lwe-plugin
+/sbin/ldconfig
+exit 0
+%endif
+%endif
+
 ##############################
 # Files in Binary Packages
 ##############################
@@ -512,25 +818,25 @@ exit 0
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/dali-extension/*
-%{_libdir}/pkgconfig/dali2-extension.pc
+%{_libdir}/pkgconfig/dali3-extension.pc
 
 %files key-extension
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-key-extension.so*
+%{_libdir}/libdali3-key-extension.so*
 %license LICENSE
 
 %files video-player-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-video-player-plugin.so*
+%{_libdir}/libdali3-video-player-plugin.so*
 %license LICENSE
 
 %if 0%{?tizen_65_or_greater}
 %files camera-player-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-camera-player-plugin.so*
+%{_libdir}/libdali3-camera-player-plugin.so*
 %license LICENSE
 %endif
 
@@ -538,7 +844,7 @@ exit 0
 %files icu-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-icu-plugin.so*
+%{_libdir}/libdali3-icu-plugin.so*
 %license LICENSE
 %endif
 
@@ -546,7 +852,7 @@ exit 0
 %files web-engine-chromium-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-web-engine-chromium-plugin.so*
+%{_libdir}/libdali3-web-engine-chromium-plugin.so*
 %license LICENSE
 %endif
 
@@ -554,7 +860,7 @@ exit 0
 %files image-loader-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-image-loader-plugin.so*
+%{_libdir}/libdali3-image-loader-plugin.so*
 %license LICENSE
 %endif
 
@@ -562,7 +868,7 @@ exit 0
 %files vector-animation-renderer-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-vector-animation-renderer-plugin.so*
+%{_libdir}/libdali3-vector-animation-renderer-plugin.so*
 %license LICENSE
 %endif
 
@@ -570,19 +876,108 @@ exit 0
 %files rive-animation-view
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdali2-extension-rive-animation-view.so*
+%{_libdir}/libdali3-extension-rive-animation-view.so*
 %license LICENSE
 
 %files rive-animation-view-devel
 %defattr(-,root,root,-)
 %{_includedir}/dali-extension/devel-api/rive-animation-view/*
-%{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
+%{_libdir}/pkgconfig/dali3-extension-rive-animation-view.pc
 %endif
 
 %if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
 %files web-engine-lwe-plugin
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
+%{_libdir}/libdali3-web-engine-lwe-plugin.so*
+%license LICENSE
+%endif
+
+%if %{with dali2}
+# Both builds install the same headers, and the profile scripts are installed
+# once, so dali2 shares them with dali3.
+%files -n dali2-extension
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_sysconfdir}/profile.d/dali.sh
+%{_sysconfdir}/profile.d/dali-shader-conf.sh
+%license LICENSE
+
+%files -n dali2-extension-devel
+%defattr(-,root,root,-)
+%{_includedir}/dali-extension/*
+%{_libdir}/pkgconfig/dali2-extension.pc
+
+%files -n dali2-extension-key-extension
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-key-extension.so*
+%license LICENSE
+
+%files -n dali2-extension-video-player-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-video-player-plugin.so*
+%license LICENSE
+
+%if 0%{?tizen_65_or_greater}
+%files -n dali2-extension-camera-player-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-camera-player-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_65_or_greater}
+%files -n dali2-extension-icu-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-icu-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%files -n dali2-extension-web-engine-chromium-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-web-engine-chromium-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?enable_image_loader}
+%files -n dali2-extension-image-loader-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-image-loader-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_55_or_greater}
+%files -n dali2-extension-vector-animation-renderer-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-vector-animation-renderer-plugin.so*
+%license LICENSE
+%endif
+
+%if 0%{?tizen_65_or_greater} && 0%{?enable_rive_animation_view} == 1
+%files -n dali2-extension-rive-animation-view
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-extension-rive-animation-view.so*
+%license LICENSE
+
+%files -n dali2-extension-rive-animation-view-devel
+%defattr(-,root,root,-)
+%{_includedir}/dali-extension/devel-api/rive-animation-view/*
+%{_libdir}/pkgconfig/dali2-extension-rive-animation-view.pc
+%endif
+
+%if 0%{?tizen_55_or_greater} && 0%{?enable_web_engine_plugin} == 1
+%files -n dali2-extension-web-engine-lwe-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
 %{_libdir}/libdali2-web-engine-lwe-plugin.so*
 %license LICENSE
+%endif
 %endif

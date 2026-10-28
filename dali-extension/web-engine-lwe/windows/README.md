@@ -52,9 +52,9 @@ cache.
 When installation is skipped, all required headers, libraries and DLLs must
 already exist, and the SDK and `dali-env` copies of `Starfish.dll` must match.
 
-The resulting `dali2-web-engine-lwe-plugin.dll` is installed in
+The resulting `dali3-web-engine-lwe-plugin.dll` is installed in
 `<workspace>\dali-env\bin` together with the matching `Starfish.dll`. Debug
-builds also install `dali2-web-engine-lwe-plugin.pdb` in the same directory.
+builds also install `dali3-web-engine-lwe-plugin.pdb` in the same directory.
 Debug and Release builds use only the corresponding
 `WindowsDependenciesSDK\debug` or `WindowsDependenciesSDK\release` tree.
 

@@ -64,7 +64,7 @@ AC_ARG_ENABLE([rive-animation-view],
               [enable_rive_animation_view=$enableval],
               [enable_rive_animation_view=yes])
 
-PKG_CHECK_MODULES([DALI], [dali2-core dali2-adaptor])
+PKG_CHECK_MODULES([DALI], [dali3-core dali3-adaptor])
 
 AM_CONDITIONAL([USE_RIVE_ANIMATION_VIEW],
                [test "x$with_tizen_65_or_greater" = "xyes" &&
@@ -102,8 +102,8 @@ AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([
 Makefile
-dali2-extension.pc
-dali2-extension-rive-animation-view.pc
+dali3-extension.pc:dali-extension.pc.in
+dali3-extension-rive-animation-view.pc:dali-extension-rive-animation-view.pc.in
 ])
 
 AC_OUTPUT
