@@ -6,6 +6,6 @@ includedir=@devincludepath@
 Name: DALi extension
 Description: The DALi extension Libaray
 Version: @DALI_EXTENSION_VERSION@
-Requires: dali3-adaptor
-Libs: -L${libdir}
+Requires: dali2-adaptor
+Libs: -L${libdir} -ldali2-extension
 Cflags: -I${includedir}/dali-extension

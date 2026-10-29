@@ -19,6 +19,6 @@
 extension_src_dir = ../../../dali-extension
 
 #install headers
-dali3_extensiondir = $(devincludepath)/dali-extension
-dali3_extension_HEADERS = ../../../dali-extension/dali-extension.h
+dali2_extensiondir = $(devincludepath)/dali-extension
+dali2_extension_HEADERS = ../../../dali-extension/dali-extension.h
 
