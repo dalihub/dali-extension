@@ -17,9 +17,9 @@
 
 #include "web-engine-lwe-egl-renderer.h"
 
-#include <X11/Xlib.h>
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
+#include <X11/Xlib.h>
 #include <dali/integration-api/debug.h>
 
 #include <algorithm>
@@ -61,7 +61,7 @@ private:
   EGLContext mContext;
   EGLSurface mDraw;
   EGLSurface mRead;
-  EGLenum mApi;
+  EGLenum    mApi;
 };
 } // unnamed namespace
 
@@ -139,11 +139,11 @@ void WebEngineLweEglRenderer::destroyDisplay()
     }
     eglTerminate(mDisplay);
   }
-  mDisplay = EGL_NO_DISPLAY;
-  mContext = EGL_NO_CONTEXT;
-  mSurface = EGL_NO_SURFACE;
-  mConfig = nullptr;
-  mSurfaceWidth = 0u;
+  mDisplay       = EGL_NO_DISPLAY;
+  mContext       = EGL_NO_CONTEXT;
+  mSurface       = EGL_NO_SURFACE;
+  mConfig        = nullptr;
+  mSurfaceWidth  = 0u;
   mSurfaceHeight = 0u;
   mExtensions.clear();
 }
@@ -155,7 +155,7 @@ void WebEngineLweEglRenderer::shutdown()
   destroyDisplay();
   if(mNativeDisplay)
   {
-    XCloseDisplay(mNativeDisplay);
+    XCloseDisplay(reinterpret_cast<Display*>(mNativeDisplay));
     mNativeDisplay = nullptr;
   }
 }
@@ -178,8 +178,8 @@ EGLContext WebEngineLweEglRenderer::createContext(EGLContext shareContext)
 
 bool WebEngineLweEglRenderer::updateSurface()
 {
-  const uint64_t size = mRequestedSize.load();
-  const uint32_t width = std::max(static_cast<uint32_t>(size >> 32u), 1u);
+  const uint64_t size   = mRequestedSize.load();
+  const uint32_t width  = std::max(static_cast<uint32_t>(size >> 32u), 1u);
   const uint32_t height = std::max(static_cast<uint32_t>(size), 1u);
   if(mSurface != EGL_NO_SURFACE && width == mSurfaceWidth && height == mSurfaceHeight)
   {
@@ -192,7 +192,7 @@ bool WebEngineLweEglRenderer::updateSurface()
   }
 
   const EGLint attributes[] = {EGL_WIDTH, static_cast<EGLint>(width), EGL_HEIGHT, static_cast<EGLint>(height), EGL_NONE};
-  EGLSurface surface = eglCreatePbufferSurface(mDisplay, mConfig, attributes);
+  EGLSurface   surface      = eglCreatePbufferSurface(mDisplay, mConfig, attributes);
   if(surface == EGL_NO_SURFACE)
   {
     return false;
@@ -206,8 +206,8 @@ bool WebEngineLweEglRenderer::updateSurface()
   {
     eglDestroySurface(mDisplay, mSurface);
   }
-  mSurface = surface;
-  mSurfaceWidth = width;
+  mSurface       = surface;
+  mSurfaceWidth  = width;
   mSurfaceHeight = height;
   return true;
 }
@@ -285,8 +285,8 @@ bool WebEngineLweEglRenderer::isSupportedExtension(const char* extension) const
   {
     return false;
   }
-  const size_t length = std::strlen(extension);
-  size_t position = 0u;
+  const size_t length   = std::strlen(extension);
+  size_t       position = 0u;
   while((position = mExtensions.find(extension, position)) != std::string::npos)
   {
     const size_t end = position + length;
@@ -306,19 +306,19 @@ bool WebEngineLweEglRenderer::captureFrame()
   {
     return true;
   }
-  const uint32_t width = mSurfaceWidth;
-  const uint32_t height = mSurfaceHeight;
+  const uint32_t   width           = mSurfaceWidth;
+  const uint32_t   height          = mSurfaceHeight;
   constexpr size_t BYTES_PER_PIXEL = 4u;
   if(width == 0u || height == 0u ||
      static_cast<size_t>(width) > std::numeric_limits<size_t>::max() / BYTES_PER_PIXEL / height)
   {
     return false;
   }
-  const size_t stride = static_cast<size_t>(width) * BYTES_PER_PIXEL;
+  const size_t         stride = static_cast<size_t>(width) * BYTES_PER_PIXEL;
   std::vector<uint8_t> pixels(stride * height);
   // LWE may leave an offscreen FBO bound. Capture the EGL surface, then restore
   // GL state so the compositor's cached state still matches the driver.
-  GLint framebuffer = 0;
+  GLint framebuffer   = 0;
   GLint packAlignment = 4;
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
   glGetIntegerv(GL_PACK_ALIGNMENT, &packAlignment);
@@ -338,7 +338,7 @@ bool WebEngineLweEglRenderer::captureFrame()
   }
   for(uint32_t row = 0u; row < height / 2u; ++row)
   {
-    const size_t top = static_cast<size_t>(row) * stride;
+    const size_t top    = static_cast<size_t>(row) * stride;
     const size_t bottom = static_cast<size_t>(height - row - 1u) * stride;
     std::swap_ranges(pixels.begin() + top, pixels.begin() + top + stride, pixels.begin() + bottom);
   }

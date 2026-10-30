@@ -1,12 +1,17 @@
 cmake_minimum_required(VERSION 3.16)
-project(dali2-web-engine-lwe-plugin LANGUAGES CXX)
+
+project(dali${DALI_API_MAJOR}-web-engine-lwe-plugin LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+message(STATUS "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
+message(STATUS "CFLAGS: ${CMAKE_C_FLAGS}")
+message(STATUS "LDFLAGS: ${CMAKE_SHARED_LINKER_FLAGS}")
+
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
-pkg_check_modules(DALI REQUIRED IMPORTED_TARGET dali2-core dali2-adaptor)
+pkg_check_modules(DALI REQUIRED IMPORTED_TARGET dali${DALI_API_MAJOR}-core dali${DALI_API_MAJOR}-adaptor)
 pkg_check_modules(EGL REQUIRED IMPORTED_TARGET egl glesv2 x11)
 find_path(LWE_INCLUDE_DIR LWEWebView.h DOC "Directory containing the Starfish LWEWebView.h header")
 find_library(LWE_LIBRARY NAMES lightweight-web-engine Starfish DOC "Path to the Starfish public API shared library")

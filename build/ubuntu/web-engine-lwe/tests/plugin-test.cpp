@@ -15,26 +15,26 @@
  *
  */
 
-#include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
-#include <dali/public-api/adaptor-framework/application.h>
-#include <dali/public-api/adaptor-framework/timer.h>
 #include <LWEWebView.h>
+#include <dali/devel-api/adaptor-framework/application.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
+#include <dali/public-api/adaptor-framework/timer.h>
 
-#include "web-engine-lwe-egl-renderer.h"
 #include <GLES2/gl2.h>
+#include "web-engine-lwe-egl-renderer.h"
 
 #include <cstdio>
 #include <memory>
 #include <stdexcept>
 
 extern "C" Dali::WebEnginePlugin* CreateWebEnginePlugin();
-extern "C" void DestroyWebEnginePlugin(Dali::WebEnginePlugin* plugin);
+extern "C" void                   DestroyWebEnginePlugin(Dali::WebEnginePlugin* plugin);
 
 namespace
 {
 using PluginPtr = std::unique_ptr<Dali::WebEnginePlugin, decltype(&DestroyWebEnginePlugin)>;
 
-const char* RED_PAGE = "<!doctype html><html><head><title>Ubuntu LWE</title></head><body style='margin:0;background:#ff0000'></body></html>";
+const char* RED_PAGE  = "<!doctype html><html><head><title>Ubuntu LWE</title></head><body style='margin:0;background:#ff0000'></body></html>";
 const char* BLUE_PAGE = "<!doctype html><html><body style='margin:0;background:#0000ff'></body></html>";
 
 class PluginTest : public Dali::ConnectionTracker
@@ -74,8 +74,10 @@ private:
     }
     mFirst.reset(CreateWebEnginePlugin());
     mSecond.reset(CreateWebEnginePlugin());
-    mFirst->RegisterFrameRenderedCallback([this]() { ++mFrames; });
-    mSecond->RegisterFrameRenderedCallback([this]() { ++mFrames; });
+    mFirst->RegisterFrameRenderedCallback([this]()
+    { ++mFrames; });
+    mSecond->RegisterFrameRenderedCallback([this]()
+    { ++mFrames; });
     mFirst->Create(640, 480, "en-US", "UTC");
     mFirst->SetSize(321, 241);
     mFirst->LoadHtmlString(RED_PAGE);
@@ -98,7 +100,7 @@ private:
     {
       throw std::runtime_error("Could not bind EGL probe");
     }
-    GLuint texture = 0;
+    GLuint texture     = 0;
     GLuint framebuffer = 0;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -109,7 +111,7 @@ private:
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-    uint8_t pixel[4]{};
+    uint8_t    pixel[4]{};
     const bool complete = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
     if(complete)
     {
@@ -186,22 +188,22 @@ private:
     return true;
   }
 
-  Dali::Application& mApplication;
-  Dali::Timer mTimer;
-  PluginPtr mFirst{nullptr, DestroyWebEnginePlugin};
-  PluginPtr mSecond{nullptr, DestroyWebEnginePlugin};
+  Dali::Application&                    mApplication;
+  Dali::Timer                           mTimer;
+  PluginPtr                             mFirst{nullptr, DestroyWebEnginePlugin};
+  PluginPtr                             mSecond{nullptr, DestroyWebEnginePlugin};
   Dali::Plugin::WebEngineLweEglRenderer mProbe;
-  int mStage{0};
-  int mResult{1};
-  unsigned int mTicks{0};
-  unsigned int mFrames{0};
+  int                                   mStage{0};
+  int                                   mResult{1};
+  unsigned int                          mTicks{0};
+  unsigned int                          mFrames{0};
 };
 } // namespace
 
 int main(int argc, char** argv)
 {
   Dali::Application application = Dali::Application::New(&argc, &argv);
-  PluginTest test(application);
+  PluginTest        test(application);
   application.MainLoop();
   return test.result();
 }
