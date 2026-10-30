@@ -42,11 +42,11 @@ $ConfigurationName = $Configuration.ToLowerInvariant()
 $ConfigurationRoot = Join-Path $Context.SdkRoot $ConfigurationName
 $SdkStarfishRuntime = Join-Path $ConfigurationRoot "bin\Starfish.dll"
 $InstalledStarfish = Join-Path $Context.InstallPrefix "bin\Starfish.dll"
-$CorePackage = Join-Path $Context.InstallPrefix "share\dali2-core"
-$AdaptorPackage = Join-Path $Context.InstallPrefix "share\dali2-adaptor"
+$CorePackage = Join-Path $Context.InstallPrefix "share\dali3-core"
+$AdaptorPackage = Join-Path $Context.InstallPrefix "share\dali3-adaptor"
 Assert-DaliPaths -Paths @(
-  (Join-Path $CorePackage "dali2-core-config.cmake"),
-  (Join-Path $AdaptorPackage "dali2-adaptor-config.cmake")
+  (Join-Path $CorePackage "dali3-core-config.cmake"),
+  (Join-Path $AdaptorPackage "dali3-adaptor-config.cmake")
 ) -Description "DALi package; build dali-core and dali-adaptor first"
 $RequiredStarfishPaths = @(
   (Join-Path $ConfigurationRoot "include\LWEWebView.h"),
@@ -114,8 +114,8 @@ if(Test-Path -LiteralPath $LWEConfigFile)
 
 $Arguments = (Get-DaliCommonCMakeArguments -Context $Context -Configuration $Configuration) + @(
   "-DDALI_LWE_BUILD_RENDERER_TESTS=$($RendererTests.IsPresent)",
-  "-Ddali2-core_DIR=$CorePackage",
-  "-Ddali2-adaptor_DIR=$AdaptorPackage",
+  "-Ddali3-core_DIR=$CorePackage",
+  "-Ddali3-adaptor_DIR=$AdaptorPackage",
   "-DLWE_INCLUDE_DIR=$(Join-Path $ConfigurationRoot 'include')",
   "-DSTARFISH_LIBRARY=$(Join-Path $ConfigurationRoot 'lib\Starfish.lib')"
 )
@@ -128,7 +128,7 @@ Invoke-DaliCMakeProject `
   -Clean:$Clean `
   -Jobs $Jobs
 
-$InstalledPlugin = Join-Path $Context.InstallPrefix "bin\dali2-web-engine-lwe-plugin.dll"
+$InstalledPlugin = Join-Path $Context.InstallPrefix "bin\dali3-web-engine-lwe-plugin.dll"
 $InstalledRuntimePaths = @(
   $InstalledPlugin,
   $InstalledStarfish,
@@ -137,7 +137,7 @@ $InstalledRuntimePaths = @(
 )
 if($Configuration -eq "Debug")
 {
-  $InstalledRuntimePaths += (Join-Path $Context.InstallPrefix "bin\dali2-web-engine-lwe-plugin.pdb")
+  $InstalledRuntimePaths += (Join-Path $Context.InstallPrefix "bin\dali3-web-engine-lwe-plugin.pdb")
 }
 Assert-DaliPaths -Paths $InstalledRuntimePaths -Description "Installed LWE ANGLE runtime"
 Write-Host "`nLWE web-engine plugin ($Configuration) installed in $InstalledPlugin" -ForegroundColor Green

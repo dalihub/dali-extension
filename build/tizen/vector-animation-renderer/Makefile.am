@@ -22,23 +22,23 @@ include ../../../dali-extension/vector-animation-renderer/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-vector-animation-renderer-plugin.la
+lib_LTLIBRARIES += libdali3-vector-animation-renderer-plugin.la
 
-libdali2_vector_animation_renderer_plugin_la_SOURCES = \
+libdali3_vector_animation_renderer_plugin_la_SOURCES = \
                      $(vector_animation_renderer_plugin_src_files)
 
-libdali2_vector_animation_renderer_plugin_la_DEPENDENCIES =
+libdali3_vector_animation_renderer_plugin_la_DEPENDENCIES =
 
-libdali2_vector_animation_renderer_plugin_la_CXXFLAGS = \
+libdali3_vector_animation_renderer_plugin_la_CXXFLAGS = \
                       -I../../../ \
                       $(DALI_CFLAGS) \
                       $(RLOTTIE_CFLAGS) \
                       -Werror -Wall
 
-libdali2_vector_animation_renderer_plugin_la_LIBADD = \
+libdali3_vector_animation_renderer_plugin_la_LIBADD = \
                       $(DALI_LIBS) \
                       $(RLOTTIE_LIBS)
 
-libdali2_vector_animation_renderer_plugin_la_LDFLAGS = \
+libdali3_vector_animation_renderer_plugin_la_LDFLAGS = \
                       -rdynamic
 
