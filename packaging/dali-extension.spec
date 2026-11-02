@@ -162,6 +162,22 @@ BuildRequires: pkgconfig(wayland-egl)
 VideoPlayer plugin to play a video file for Dali
 
 ##############################
+# Dali MediaFrameSource Plugin
+##############################
+
+%if 0%{?tizen_11_or_greater}
+%package media-frame-source-plugin
+Summary: MMFW frame source bridge for DALi MediaView
+Group: System/Libraries
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+BuildRequires: pkgconfig(capi-media-tool)
+BuildRequires: pkgconfig(libtbm)
+%description media-frame-source-plugin
+Optional common media_frame_source bridge for Toolkit and Ui MediaView.
+%endif
+
+##############################
 # Dali CameraPlayer Plugin
 ##############################
 
@@ -314,6 +330,17 @@ Group:      System/Libraries
 
 %description -n dali2-extension-video-player-plugin
 VideoPlayer plugin to play a video file for Dali
+
+%if 0%{?tizen_11_or_greater}
+%package -n dali2-extension-media-frame-source-plugin
+Summary: MMFW frame source bridge for DALi MediaView
+Group: System/Libraries
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+
+%description -n dali2-extension-media-frame-source-plugin
+Optional common media_frame_source bridge for Toolkit and Ui MediaView.
+%endif
 
 %if 0%{?tizen_65_or_greater}
 %package -n dali2-extension-camera-player-plugin
@@ -581,6 +608,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%if 0%{?tizen_11_or_greater}
+%post media-frame-source-plugin -p /sbin/ldconfig
+%endif
+
 %if 0%{?tizen_65_or_greater}
 %post camera-player-plugin
 /sbin/ldconfig
@@ -648,6 +679,10 @@ exit 0
 /sbin/ldconfig
 exit 0
 
+%if 0%{?tizen_11_or_greater}
+%postun media-frame-source-plugin -p /sbin/ldconfig
+%endif
+
 %if 0%{?tizen_65_or_greater}
 %postun camera-player-plugin
 /sbin/ldconfig
@@ -702,6 +737,10 @@ exit 0
 %post -n dali2-extension-video-player-plugin
 /sbin/ldconfig
 exit 0
+
+%if 0%{?tizen_11_or_greater}
+%post -n dali2-extension-media-frame-source-plugin -p /sbin/ldconfig
+%endif
 
 %if 0%{?tizen_65_or_greater}
 %post -n dali2-extension-camera-player-plugin
@@ -760,6 +799,10 @@ exit 0
 %postun -n dali2-extension-video-player-plugin
 /sbin/ldconfig
 exit 0
+
+%if 0%{?tizen_11_or_greater}
+%postun -n dali2-extension-media-frame-source-plugin -p /sbin/ldconfig
+%endif
 
 %if 0%{?tizen_65_or_greater}
 %postun -n dali2-extension-camera-player-plugin
@@ -978,6 +1021,23 @@ exit 0
 %manifest dali-extension.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libdali2-web-engine-lwe-plugin.so*
+%license LICENSE
+%endif
+
+%endif
+
+%if 0%{?tizen_11_or_greater}
+%files media-frame-source-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali3-media-frame-source-plugin.so*
+%license LICENSE
+
+%if %{with dali2}
+%files -n dali2-extension-media-frame-source-plugin
+%manifest dali-extension.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdali2-media-frame-source-plugin.so*
 %license LICENSE
 %endif
 %endif

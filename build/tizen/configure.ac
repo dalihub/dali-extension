@@ -95,6 +95,10 @@ if test "x$with_tizen_65_or_greater" = "xyes"; then
   fi
 fi
 
+if test "x$with_tizen_11_or_greater" = "xyes"; then
+  AC_CONFIG_SUBDIRS(media-frame-source)
+fi
+
 AC_CONFIG_SUBDIRS(dali-extension)
 
 devincludepath=${includedir}
