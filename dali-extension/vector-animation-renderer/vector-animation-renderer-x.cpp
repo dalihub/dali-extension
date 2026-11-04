@@ -19,8 +19,8 @@
 #include <dali-extension/vector-animation-renderer/vector-animation-renderer-x.h>
 
 // EXTERNAL INCLUDES
-#include <dali/devel-api/adaptor-framework/pixel-buffer-devel.h>
 #include <dali/devel-api/common/hash.h>
+#include <dali/devel-api/images/pixel-buffer-devel.h>
 #include <dali/devel-api/rendering/texture-devel.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/object/property-array.h>

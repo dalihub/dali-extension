@@ -20,7 +20,7 @@ if test "x$enable_debug" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
 fi
 
-PKG_CHECK_MODULES(DALI_ADAPTOR_INTEGRATION, dali2-adaptor-integration)
+PKG_CHECK_MODULES(DALI_ADAPTOR_INTEGRATION, dali3-adaptor-integration)
 
 TIZEN_WAYLAND_BACKEND_INIT
 

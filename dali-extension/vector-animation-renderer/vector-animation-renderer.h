@@ -22,7 +22,7 @@
 #include <dali/devel-api/adaptor-framework/vector-animation-renderer-plugin.h>
 #include <dali/devel-api/common/vector-wrapper.h>
 #include <dali/devel-api/threading/mutex.h>
-#include <dali/public-api/adaptor-framework/pixel-buffer.h>
+#include <dali/public-api/images/pixel-buffer.h>
 #include <rlottie.h>
 #include <memory>
 

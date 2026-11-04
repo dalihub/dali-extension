@@ -19,7 +19,7 @@
 #include "loader-dummy.h"
 
 #include <dali/integration-api/debug.h>
-#include <dali/public-api/adaptor-framework/pixel-buffer.h>
+#include <dali/public-api/images/pixel-buffer.h>
 // INTERNAL INCLUDES
 
 namespace DALI_NAMESPACE

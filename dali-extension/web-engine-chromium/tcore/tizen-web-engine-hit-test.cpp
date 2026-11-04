@@ -19,7 +19,7 @@
 
 #include <dali/devel-api/adaptor-framework/image-loading-devel.h>
 #include <dali/integration-api/debug.h>
-#include <dali/public-api/adaptor-framework/pixel-buffer.h>
+#include <dali/public-api/images/pixel-buffer.h>
 
 namespace DALI_NAMESPACE
 {
