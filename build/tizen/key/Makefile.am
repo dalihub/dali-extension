@@ -23,26 +23,26 @@ include ../../../dali-extension/integration-api/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-key-extension.la
+lib_LTLIBRARIES += libdali3-key-extension.la
 
 # key extension
-libdali2_key_extension_la_SOURCES = \
+libdali3_key_extension_la_SOURCES = \
 			$(key_extension_src_files)
 
-libdali2_key_extension_la_DEPENDENCIES =
+libdali3_key_extension_la_DEPENDENCIES =
 
-libdali2_key_extension_la_CXXFLAGS = \
+libdali3_key_extension_la_CXXFLAGS = \
 			-I../../../dali-extension/ \
 			-I../../../dali-extension/integration-api \
 			$(DLOG_CFLAGS) \
 			$(DALI_CFLAGS) \
 			-Werror -Wall
 
-libdali2_key_extension_la_LIBADD = \
+libdali3_key_extension_la_LIBADD = \
 			$(DLOG_LIBS)
 
-libdali2_key_extension_la_LDFLAGS = \
+libdali3_key_extension_la_LDFLAGS = \
 			-rdynamic
 
-libdali2_key_extensiondir = $(devincludepath)/dali-extension/integration-api
-libdali2_key_extension_HEADERS = $(key_extension_header_files)
+libdali3_key_extensiondir = $(devincludepath)/dali-extension/integration-api
+libdali3_key_extension_HEADERS = $(key_extension_header_files)

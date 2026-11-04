@@ -22,22 +22,22 @@ include ../../../dali-extension/web-engine-lwe/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-web-engine-lwe-plugin.la
+lib_LTLIBRARIES += libdali3-web-engine-lwe-plugin.la
 
-libdali2_web_engine_lwe_plugin_la_SOURCES = \
+libdali3_web_engine_lwe_plugin_la_SOURCES = \
                      $(web_engine_lwe_tizen_plugin_src_files)
 
-libdali2_web_engine_lwe_plugin_la_DEPENDENCIES =
+libdali3_web_engine_lwe_plugin_la_DEPENDENCIES =
 
-libdali2_web_engine_lwe_plugin_la_CXXFLAGS = \
+libdali3_web_engine_lwe_plugin_la_CXXFLAGS = \
                       $(DALI_CFLAGS) \
                       $(WEB_ENGINE_LWE_CFLAGS) \
                       -Werror -Wall
 
-libdali2_web_engine_lwe_plugin_la_LIBADD = \
+libdali3_web_engine_lwe_plugin_la_LIBADD = \
                       $(DALI_LIBS) \
                       $(WEB_ENGINE_LWE_LIBS)
 
-libdali2_web_engine_lwe_plugin_la_LDFLAGS = \
+libdali3_web_engine_lwe_plugin_la_LDFLAGS = \
                       -rdynamic
 

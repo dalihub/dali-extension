@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021 Samsung Electronics Co., Ltd.
+# Copyright (c) 2026 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,15 +24,15 @@ include ../../../dali-extension/internal/rive-animation-view/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-extension-rive-animation-view.la
+lib_LTLIBRARIES += libdali3-extension-rive-animation-view.la
 
-libdali2_extension_rive_animation_view_la_SOURCES = \
+libdali3_extension_rive_animation_view_la_SOURCES = \
             $(rive_animation_view_devel_src_files) \
             $(rive_animation_view_internal_src_files)
 
-libdali2_extension_rive_animation_view_la_DEPENDENCIES =
+libdali3_extension_rive_animation_view_la_DEPENDENCIES =
 
-libdali2_extension_rive_animation_view_la_CXXFLAGS = \
+libdali3_extension_rive_animation_view_la_CXXFLAGS = \
             -I$(includedir)/rive \
             -DEFL_BETA_API_SUPPORT \
             -I../../../ \
@@ -44,17 +44,17 @@ libdali2_extension_rive_animation_view_la_CXXFLAGS = \
             $(THORVG_CFLAGS) \
             $(RIVE_TIZEN_CFLAGS)
 
-libdali2_extension_rive_animation_view_la_LIBADD = \
+libdali3_extension_rive_animation_view_la_LIBADD = \
             $(DLOG_LIBS) \
             $(DALI_LIBS) \
             $(DALI_ADAPTOR_INTEGRATION_LIBS) \
             $(THORVG_LIBS) \
             $(RIVE_TIZEN_LIBS)
 
-libdali2_extension_rive_animation_view_la_LDFLAGS = \
+libdali3_extension_rive_animation_view_la_LDFLAGS = \
             -rdynamic
 
 #install headers
 
-dali2_extension_rive_animation_viewdir = $(devincludepath)/dali-extension/devel-api/rive-animation-view
-dali2_extension_rive_animation_view_HEADERS = $(rive_animation_view_devel_header_files)
+dali3_extension_rive_animation_viewdir = $(devincludepath)/dali-extension/devel-api/rive-animation-view
+dali3_extension_rive_animation_view_HEADERS = $(rive_animation_view_devel_header_files)

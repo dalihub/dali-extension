@@ -23,27 +23,27 @@ include ../../../dali-extension/image-loader/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-image-loader-plugin.la
+lib_LTLIBRARIES += libdali3-image-loader-plugin.la
 
-libdali2_image_loader_plugin_la_includes =
+libdali3_image_loader_plugin_la_includes =
 
-libdali2_image_loader_plugin_la_SOURCES = \
+libdali3_image_loader_plugin_la_SOURCES = \
                      $(image_loader_plugin_src_files)
 
-libdali2_image_loader_plugin_la_DEPENDENCIES =
+libdali3_image_loader_plugin_la_DEPENDENCIES =
 
-libdali2_image_loader_plugin_la_CXXFLAGS = \
+libdali3_image_loader_plugin_la_CXXFLAGS = \
                       $(DLOG_CFLAGS) \
                       $(DALI_CFLAGS) \
                       -Werror -Wall
 
-libdali2_image_loader_plugin_la_CXXFLAGS+= \
+libdali3_image_loader_plugin_la_CXXFLAGS+= \
                       -I../../../dali-extension/image-loader
 
-libdali2_image_loader_plugin_la_LIBADD = \
+libdali3_image_loader_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS)
 
-libdali2_image_loader_plugin_la_LDFLAGS = \
+libdali3_image_loader_plugin_la_LDFLAGS = \
                       -rdynamic
 endif

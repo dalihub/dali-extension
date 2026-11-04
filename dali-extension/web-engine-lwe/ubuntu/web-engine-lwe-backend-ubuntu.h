@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2026 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#pragma once
+
+#include "../common/web-engine-lwe-backend.h"
+
+#include <dali/devel-api/adaptor-framework/event-thread-callback.h>
+
+#include <atomic>
+#include <deque>
+#include <memory>
+#include <mutex>
+#include <vector>
+
+namespace DALI_NAMESPACE
+{
+namespace Plugin
+{
+class WebEngineLweEglRenderer;
+
+class WebEngineLweBackendUbuntu : public WebEngineLweBackend
+{
+public:
+  WebEngineLweBackendUbuntu();
+  ~WebEngineLweBackendUbuntu() override;
+
+  LWE::WebContainer* Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
+  LWE::WebContainer* Create(uint32_t width, uint32_t height, uint32_t argc, char** argv) override;
+  void Destroy() override;
+  void SetSize(uint32_t width, uint32_t height) override;
+  void UpdateDisplayArea(uint32_t width, uint32_t height) override;
+  Dali::NativeImagePtr GetNativeImage() override;
+  Dali::NativeImageInterfacePtr GetNativeImageInterface() override;
+  void SetFrameRenderedCallback(FrameRenderedCallback callback) override;
+  void DispatchToEventThread(Task task) override;
+
+private:
+  void ensureInitialized();
+  void handleFrame(std::vector<uint8_t>&& pixels, uint32_t width, uint32_t height);
+  void processEventTasks();
+  void uploadFrame();
+
+private:
+  static constexpr uint32_t BYTES_PER_PIXEL = 4u;
+
+  LWE::WebContainer* mWebContainer;
+
+  std::unique_ptr<WebEngineLweEglRenderer> mRenderer;
+
+  std::mutex mFrameMutex;
+  std::vector<uint8_t> mReadyBuffer;
+  uint32_t mReadyWidth;
+  uint32_t mReadyHeight;
+  bool mFrameUploadPending;
+
+  Dali::NativeImageInterfacePtr mNativeImage;
+  uint32_t mImageWidth;
+  uint32_t mImageHeight;
+
+  std::mutex mTaskMutex;
+  std::deque<Task> mTasks;
+  std::atomic_bool mAcceptTasks;
+  std::shared_ptr<std::atomic_bool> mTaskGeneration;
+
+  std::shared_ptr<Dali::EventThreadCallback> mEventThreadCallback;
+  FrameRenderedCallback mFrameRenderedCallback;
+};
+
+} // namespace Plugin
+} //namespace DALI_NAMESPACE

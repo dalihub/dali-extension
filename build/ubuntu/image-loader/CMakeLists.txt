@@ -1,4 +1,4 @@
-SET(name "dali2-image-loader-plugin")
+SET(name "dali${DALI_API_MAJOR}-image-loader-plugin")
 
 SET(CMAKE_C_STANDARD 99)
 SET(CMAKE_CXX_STANDARD 17)
@@ -14,9 +14,9 @@ ENDIF()
 
 IF( ENABLE_PKG_CONFIGURE )
   FIND_PACKAGE( PkgConfig REQUIRED )
-  PKG_CHECK_MODULES(DALICORE REQUIRED dali2-core)
-  PKG_CHECK_MODULES(DALIADAPTOR REQUIRED dali2-adaptor)
-  PKG_CHECK_MODULES(DALITOOLKIT REQUIRED dali2-toolkit)
+  PKG_CHECK_MODULES(DALICORE REQUIRED ${core_name})
+  PKG_CHECK_MODULES(DALIADAPTOR REQUIRED ${adaptor_name})
+  PKG_CHECK_MODULES(DALITOOLKIT REQUIRED ${toolkit_name})
 ENDIF()
 
 # Deployment folder should come from spec file or command line:

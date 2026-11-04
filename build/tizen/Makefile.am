@@ -17,8 +17,8 @@
 SUBDIRS = ${subdirs}
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = dali2-extension.pc
+pkgconfig_DATA = dali3-extension.pc
 
 if USE_RIVE_ANIMATION_VIEW
-pkgconfig_DATA += dali2-extension-rive-animation-view.pc
+pkgconfig_DATA += dali3-extension-rive-animation-view.pc
 endif

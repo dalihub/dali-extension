@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021 Samsung Electronics Co., Ltd.
+# Copyright (c) 2026 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,42 +22,42 @@ include ../../../dali-extension/camera-player/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-camera-player-plugin.la
+lib_LTLIBRARIES += libdali3-camera-player-plugin.la
 
 if USE_TCORE_BACKEND
-libdali2_camera_player_plugin_la_SOURCES = \
+libdali3_camera_player_plugin_la_SOURCES = \
                      $(camera_player_tcore_wl_plugin_src_files)
 else
-libdali2_camera_player_plugin_la_SOURCES = \
+libdali3_camera_player_plugin_la_SOURCES = \
                      $(camera_player_ecore_wl_plugin_src_files)
 endif
 
-libdali2_camera_player_plugin_la_DEPENDENCIES =
+libdali3_camera_player_plugin_la_DEPENDENCIES =
 
-libdali2_camera_player_plugin_la_CXXFLAGS = \
+libdali3_camera_player_plugin_la_CXXFLAGS = \
                       $(DLOG_CFLAGS) \
                       $(DALI_CFLAGS) \
                       $(CAPI_MEDIA_CAMERA_CFLAGS) \
                       -Werror -Wall
 
 if USE_TCORE_BACKEND
-libdali2_camera_player_plugin_la_CXXFLAGS+= $(TCORE_WL_CFLAGS) \
+libdali3_camera_player_plugin_la_CXXFLAGS+= $(TCORE_WL_CFLAGS) \
                       -I../../../dali-extension/camera-player
 else
-libdali2_camera_player_plugin_la_CXXFLAGS+= $(ECORE_WL2_CFLAGS) \
+libdali3_camera_player_plugin_la_CXXFLAGS+= $(ECORE_WL2_CFLAGS) \
                       -I../../../dali-extension/camera-player
 endif
 
-libdali2_camera_player_plugin_la_LIBADD = \
+libdali3_camera_player_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
                       $(CAPI_MEDIA_CAMERA_LIBS)
 
 if USE_TCORE_BACKEND
-libdali2_camera_player_plugin_la_LIBADD+= $(TCORE_WL_LIBS)
+libdali3_camera_player_plugin_la_LIBADD+= $(TCORE_WL_LIBS)
 else
-libdali2_camera_player_plugin_la_LIBADD+= $(ECORE_WL2_LIBS)
+libdali3_camera_player_plugin_la_LIBADD+= $(ECORE_WL2_LIBS)
 endif
 
-libdali2_camera_player_plugin_la_LDFLAGS = \
+libdali3_camera_player_plugin_la_LDFLAGS = \
                       -rdynamic

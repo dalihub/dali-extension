@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2025 Samsung Electronics Co., Ltd.
+# Copyright (c) 2026 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,29 +22,29 @@ include ../../../dali-extension/icu/file.list
 
 lib_LTLIBRARIES =
 
-lib_LTLIBRARIES += libdali2-icu-plugin.la
+lib_LTLIBRARIES += libdali3-icu-plugin.la
 
-libdali2_icu_plugin_la_includes =
+libdali3_icu_plugin_la_includes =
 
-libdali2_icu_plugin_la_SOURCES = \
+libdali3_icu_plugin_la_SOURCES = \
                      $(icu_plugin_src_files)
 
-libdali2_icu_plugin_la_DEPENDENCIES =
+libdali3_icu_plugin_la_DEPENDENCIES =
 
-libdali2_icu_plugin_la_CXXFLAGS = \
+libdali3_icu_plugin_la_CXXFLAGS = \
                       $(DLOG_CFLAGS) \
                       $(DALI_CFLAGS) \
                       $(ICU_CFLAGS) \
                       -Werror -Wall
 
-libdali2_icu_plugin_la_CXXFLAGS+= \
+libdali3_icu_plugin_la_CXXFLAGS+= \
                       -I../../../dali-extension/icu
 
-libdali2_icu_plugin_la_LIBADD = \
+libdali3_icu_plugin_la_LIBADD = \
                       $(DLOG_LIBS) \
                       $(DALI_LIBS) \
                       $(ICU_LIBS)
 
-libdali2_icu_plugin_la_LDFLAGS = \
+libdali3_icu_plugin_la_LDFLAGS = \
                       -rdynamic
 
