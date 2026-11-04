@@ -400,8 +400,6 @@ ICU plugin to use an International Components for Unicode for Dali
 # Build
 ##############################
 %build
-# TODO: temporary fix => will remove after included in gcc_warning_sr_pkgs list in build.conf
-%{?gcc_unforce_options:%gcc_unforce_options}
 %if %{with dali2}
 # The autotools build runs in the source tree and names its libraries in
 # Makefile.am, so dali2 is built in a pristine copy of the tree whose build
