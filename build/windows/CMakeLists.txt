@@ -1,20 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
-# API major version (Not DALi release version). It also names the plugin
-# (dali<major>-web-engine-lwe-plugin) and selects dali<major>-core and -adaptor.
-if(NOT DALI_API_MAJOR)
-  set(DALI_API_MAJOR 3)
-endif()
-set(core_name "dali${DALI_API_MAJOR}-core")
-set(adaptor_name "dali${DALI_API_MAJOR}-adaptor")
-
-project(dali${DALI_API_MAJOR}-web-engine-lwe-plugin-win LANGUAGES CXX)
+project(dali2-web-engine-lwe-plugin-win LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(${core_name} CONFIG REQUIRED)
-find_package(${adaptor_name} CONFIG REQUIRED)
+find_package(dali2-core CONFIG REQUIRED)
+find_package(dali2-adaptor CONFIG REQUIRED)
 find_package(unofficial-angle CONFIG REQUIRED)
 find_path(LWE_INCLUDE_DIR NAMES LWEWebView.h REQUIRED)
 find_library(STARFISH_LIBRARY NAMES Starfish REQUIRED)
@@ -36,7 +28,7 @@ add_library(${PROJECT_NAME} SHARED
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  OUTPUT_NAME "dali${DALI_API_MAJOR}-web-engine-lwe-plugin"
+  OUTPUT_NAME "dali2-web-engine-lwe-plugin"
   PREFIX ""
 )
 
@@ -48,8 +40,8 @@ target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${LWE_INCLUDE_DIR})
 target_compile_options(${PROJECT_NAME} PRIVATE /W3 /vmg /utf-8 /wd4251 /wd4275)
 target_compile_definitions(${PROJECT_NAME} PRIVATE __restrict__=__restrict)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  ${adaptor_name}::${adaptor_name}
-  ${core_name}::${core_name}
+  dali2-adaptor::dali2-adaptor
+  dali2-core::dali2-core
   ${STARFISH_LIBRARY}
   gdi32
   unofficial::angle::libEGL
@@ -83,7 +75,7 @@ if(DALI_LWE_BUILD_RENDERER_TESTS)
   target_include_directories(lwe-angle-renderer-test PRIVATE ${PLUGIN_WINDOWS_DIR})
   target_compile_options(lwe-angle-renderer-test PRIVATE /W3 /vmg /utf-8)
   target_link_libraries(lwe-angle-renderer-test PRIVATE
-    ${core_name}::${core_name}
+    dali2-core::dali2-core
     unofficial::angle::libEGL
     unofficial::angle::libGLESv2
     gdi32
