@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 # API major version (Not DALi release version). It also names the plugin
 # (dali<major>-web-engine-lwe-plugin) and selects dali<major>-core and -adaptor.
 if(NOT DALI_API_MAJOR)
-  set(DALI_API_MAJOR 3)
+  set(DALI_API_MAJOR 2)
 endif()
 set(core_name "dali${DALI_API_MAJOR}-core")
 set(adaptor_name "dali${DALI_API_MAJOR}-adaptor")
