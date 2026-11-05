@@ -25,6 +25,7 @@
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/constraint-integ.h>
 #include <dali/integration-api/debug.h>
+#include <glib.h>
 #include <system_info.h>
 
 #include <mutex>
@@ -669,11 +670,11 @@ void TizenVideoPlayer::SetTcoreDisplayForUnderlay()
     tizen_core_wl_video_shell_surface_get_handle(mTcoreVideoShellSurface, &videoShellHandle);
     if(videoShellHandle)
     {
-      int error = player_set_tcore_display(mPlayer, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI, const_cast<void*>(static_cast<const void*>(videoShellHandle)));
+      int error = player_set_display(mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY_SYNC_UI2, const_cast<void*>(static_cast<const void*>(videoShellHandle)));
       int ret   = LogPlayerError(error);
       if(ret)
       {
-        DALI_LOG_ERROR("SetTcoreDisplayForUnderlay, player_set_tcore_display(OVERLAY_SYNC_UI) is failed\n");
+        DALI_LOG_ERROR("SetTcoreDisplayForUnderlay, player_set_display(OVERLAY_SYNC_UI2) is failed\n");
       }
       return;
     }
@@ -681,11 +682,11 @@ void TizenVideoPlayer::SetTcoreDisplayForUnderlay()
   }
 #endif
 
-  int error = player_set_tcore_display(mPlayer, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY, static_cast<void*>(mTcoreWlWindow));
+  int error = player_set_display(mPlayer, PLAYER_DISPLAY_TYPE_OVERLAY2, static_cast<void*>(mTcoreWlWindow));
   int ret   = LogPlayerError(error);
   if(ret)
   {
-    DALI_LOG_ERROR("SetTcoreDisplayForUnderlay, player_set_tcore_display(OVERLAY) is failed\n");
+    DALI_LOG_ERROR("SetTcoreDisplayForUnderlay, player_set_display(OVERLAY2) is failed\n");
   }
 }
 
@@ -705,42 +706,37 @@ void TizenVideoPlayer::InitializeUnderlayMode(tizen_core_wl_window_h tcoreWlWind
     if(mPlayerState != PLAYER_STATE_IDLE)
     {
       DALI_LOG_ERROR("External player must be IDLE to bind display (state=%d). Attach the view before player_prepare().\n", mPlayerState);
+      return;
     }
 
-    if(mPlayerState == PLAYER_STATE_IDLE ||
-       mPlayerState == PLAYER_STATE_READY ||
-       mPlayerState == PLAYER_STATE_PLAYING ||
-       mPlayerState == PLAYER_STATE_PAUSED)
+    if(!mTcoreWlWindow)
     {
-      if(!mTcoreWlWindow)
-      {
-        DALI_LOG_ERROR("InitializeUnderlayMode, failed to get window handle\n");
-        return;
-      }
-      tizen_core_wl_window_set_alpha(mTcoreWlWindow, false);
+      DALI_LOG_ERROR("InitializeUnderlayMode, failed to get window handle\n");
+      return;
+    }
+    tizen_core_wl_window_set_alpha(mTcoreWlWindow, false);
 
-      error = player_set_display_mode(mPlayer, PLAYER_DISPLAY_MODE_DST_ROI);
-      ret   = LogPlayerError(error);
-      if(ret)
-      {
-        DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_mode() is failed\n");
-      }
+    error = player_set_display_mode(mPlayer, PLAYER_DISPLAY_MODE_DST_ROI);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_mode() is failed\n");
+    }
 
-      error = player_set_display_roi_area(mPlayer, 0, 0, 1, 1);
-      ret   = LogPlayerError(error);
-      if(ret)
-      {
-        DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_roi_area() is failed\n");
-      }
+    error = player_set_display_roi_area(mPlayer, 0, 0, 1, 1);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_roi_area() is failed\n");
+    }
 
-      SetTcoreDisplayForUnderlay();
+    SetTcoreDisplayForUnderlay();
 
-      error = player_set_display_visible(mPlayer, true);
-      ret   = LogPlayerError(error);
-      if(ret)
-      {
-        DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_visible() is failed\n");
-      }
+    error = player_set_display_visible(mPlayer, true);
+    ret   = LogPlayerError(error);
+    if(ret)
+    {
+      DALI_LOG_ERROR("InitializeUnderlayMode, player_set_display_visible() is failed\n");
     }
     return;
   }

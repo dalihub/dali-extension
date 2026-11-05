@@ -38,8 +38,8 @@
 #include <tizen-core-wl/tizen_core_wl_video_shell.h>
 #else
 #include <Ecore_Wl2.h>
-#endif
 #include <player_internal.h>
+#endif
 
 namespace DALI_NAMESPACE
 {
@@ -364,9 +364,9 @@ private:
    * @brief Binds the player's tcore display for underlay rendering.
    *
    * When sync mode is enabled and a video shell surface has been created, binds via
-   * PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI using the shell surface's handle string so the
+   * PLAYER_DISPLAY_TYPE_OVERLAY_SYNC_UI2 using the shell surface's handle string so the
    * player's video plane stays synchronized with UI frame commits (see VideoShellSyncConstraint).
-   * Otherwise falls back to the plain window-bound PLAYER_DISPLAY_TYPE_TCORE_OVERLAY.
+   * Otherwise falls back to the plain window-bound PLAYER_DISPLAY_TYPE_OVERLAY2.
    */
   void SetTcoreDisplayForUnderlay();
 #endif
