@@ -91,46 +91,9 @@ static GMainContext* GetTizenGlibContext()
 static void EmitPlaybackFinishedSignal(void* user_data)
 {
   TizenVideoPlayer* player = static_cast<TizenVideoPlayer*>(user_data);
-
-  if(player == NULL)
+  if(player)
   {
-    DALI_LOG_ERROR("Decoded callback got Null pointer as user_data.\n");
-    return;
-  }
-
-  if(!player->FinishedSignal().Empty() || !player->EventSignal().Empty())
-  {
-    DALI_LOG_ERROR("EmitPlaybackFinishedSignal.\n");
-
-    // This function is invoked on the main thread from MMFW.
-    // So the FinishedSignal has to be posted to UIThread when UIThread is enabled.
-    // If not, it causes an assertion in the timer.
-    // The timer has to run on the same thread as the adaptor's
-    GMainContext* context = GetTizenGlibContext();
-    if(context)
-    {
-      GSource* source = g_idle_source_new();
-      g_source_set_callback(
-        source,
-        [](gpointer userData) -> gboolean
-      {
-        auto* player = static_cast<TizenVideoPlayer*>(userData);
-        player->TriggerUiUpdate();
-        player->EmitFinishedSignal();
-        player->Stop();
-        return G_SOURCE_REMOVE;
-      },
-        player,
-        nullptr);
-      g_source_attach(source, context);
-      g_source_unref(source);
-    }
-    else
-    {
-      player->TriggerUiUpdate();
-      player->EmitFinishedSignal();
-      player->Stop();
-    }
+    player->OnPlaybackFinished();
   }
 }
 
@@ -342,7 +305,7 @@ public:
 
     bufferCommitData->tcoreVideoShellSurfaceWrapper = mTcoreVideoShellSurfaceWrapper;
     bufferCommitData->x                             = area.x;
-    bufferCommitData->y                             = area.x;
+    bufferCommitData->y                             = area.y;
     bufferCommitData->width                         = area.width;
     bufferCommitData->height                        = area.height;
 
@@ -502,9 +465,91 @@ void TizenVideoPlayer::GetPlayerState(player_state_e* state) const
   }
 }
 
+void TizenVideoPlayer::OnPlaybackFinished()
+{
+  if(mPlaybackFinishedSource || (FinishedSignal().Empty() && EventSignal().Empty()))
+  {
+    return;
+  }
+
+  // MMPlayer delivers completion on its main context, which can differ from the UI context.
+  GMainContext* context = GetTizenGlibContext();
+  if(context)
+  {
+    mPlaybackFinishedSource = g_idle_source_new();
+    g_source_set_callback(
+      mPlaybackFinishedSource,
+      [](gpointer userData) -> gboolean
+    {
+      auto*    player                 = static_cast<TizenVideoPlayer*>(userData);
+      GSource* source                 = player->mPlaybackFinishedSource;
+      player->mPlaybackFinishedSource = nullptr;
+      g_source_unref(source);
+      player->TriggerUiUpdate();
+      player->EmitFinishedSignal();
+      player->Stop();
+      return G_SOURCE_REMOVE;
+    },
+      this,
+      nullptr);
+    g_source_attach(mPlaybackFinishedSource, context);
+  }
+  else
+  {
+    TriggerUiUpdate();
+    EmitFinishedSignal();
+    Stop();
+  }
+}
+
+bool TizenVideoPlayer::UnregisterPlayerCallbacks()
+{
+  if(mVideoFrameCallbackRegistered)
+  {
+    player_state_e state;
+    GetPlayerState(&state);
+    if(state != PLAYER_STATE_READY && state != PLAYER_STATE_IDLE)
+    {
+      DALI_LOG_ERROR("Stop the player and wait for READY before releasing its NativeImage view (state=%d).\n", state);
+      return false;
+    }
+    int error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
+    if(LogPlayerError(error))
+    {
+      DALI_LOG_ERROR("UnregisterPlayerCallbacks, decoded callback could not be unregistered\n");
+      return false;
+    }
+    mVideoFrameCallbackRegistered = false;
+  }
+
+  if(mCompletedCallbackRegistered)
+  {
+    int error = player_unset_completed_cb(mPlayer);
+    if(LogPlayerError(error))
+    {
+      DALI_LOG_ERROR("UnregisterPlayerCallbacks, completed callback could not be unregistered\n");
+      return false;
+    }
+    mCompletedCallbackRegistered = false;
+  }
+
+  if(mPlaybackFinishedSource)
+  {
+    g_source_destroy(mPlaybackFinishedSource);
+    g_source_unref(mPlaybackFinishedSource);
+    mPlaybackFinishedSource = nullptr;
+  }
+  mEventCallback.reset();
+  return true;
+}
+
 void TizenVideoPlayer::SetRenderingTarget(Any target)
 {
   DestroyPlayer();
+  if(mVideoFrameCallbackRegistered || mCompletedCallbackRegistered)
+  {
+    return;
+  }
 
   mNativeImagePtr = NULL;
 
@@ -563,15 +608,17 @@ void TizenVideoPlayer::InitializeTextureStreamMode(Dali::NativeImagePtr nativeIm
 
   if(mPlayerState == PLAYER_STATE_IDLE)
   {
-    error = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
-    ret   = LogPlayerError(error);
+    error                        = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
+    mCompletedCallbackRegistered = (error == PLAYER_ERROR_NONE);
+    ret                          = LogPlayerError(error);
     if(ret)
     {
       DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_completed_cb() is failed\n");
     }
 
-    error = player_set_media_packet_video_frame_decoded_cb(mPlayer, MediaPacketVideoDecodedCb, this);
-    ret   = LogPlayerError(error);
+    error                         = player_set_media_packet_video_frame_decoded_cb(mPlayer, MediaPacketVideoDecodedCb, this);
+    mVideoFrameCallbackRegistered = (error == PLAYER_ERROR_NONE);
+    ret                           = LogPlayerError(error);
     if(ret)
     {
       DALI_LOG_ERROR("InitializeTextureStreamMode, player_set_media_packet_video_frame_decoded_cb() is failed\n");
@@ -754,8 +801,9 @@ void TizenVideoPlayer::InitializeUnderlayMode(tizen_core_wl_window_h tcoreWlWind
   GetPlayerState(&mPlayerState);
   if(mPlayerState == PLAYER_STATE_IDLE)
   {
-    error = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
-    ret   = LogPlayerError(error);
+    error                        = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
+    mCompletedCallbackRegistered = (error == PLAYER_ERROR_NONE);
+    ret                          = LogPlayerError(error);
     if(ret)
     {
       DALI_LOG_ERROR("InitializeUnderlayMode, player_set_completed_cb() is failed\n");
@@ -848,103 +896,65 @@ Any TizenVideoPlayer::GetSurfaceFromPacket(void* packet)
 void TizenVideoPlayer::DestroyPlayer()
 {
   DALI_LOG_RELEASE_INFO("TizenVideoPlayer DestroyPlayer\n");
-  // A moved handle may already have been destroyed by its new owner.
-  if(mIsExternalPlayer && !mIsMovedHandle)
-  {
-    // MMPlayer external player cleanup
-    if(mPlayer && mNativeImagePtr)
-    {
-      player_state_e state;
-      GetPlayerState(&state);
-      if(state == PLAYER_STATE_PLAYING || state == PLAYER_STATE_PAUSED)
-      {
-        int error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
-        int ret   = LogPlayerError(error);
-        if(ret)
-        {
-          DALI_LOG_ERROR("DestroyPlayer, player_unset_media_packet_video_frame_decoded_cb() is failed\n");
-        }
-      }
-    }
 
-    if(mStreamInfo != NULL)
-    {
-      int error = sound_manager_destroy_stream_information(mStreamInfo);
-      int ret   = LogPlayerError(error);
-      if(ret)
-      {
-        DALI_LOG_ERROR("DestroyPlayer, sound_manager_destroy_stream_information() is failed\n");
-      }
-    }
-
-    mPlayerState = PLAYER_STATE_NONE;
-    mStreamInfo  = NULL;
-    ClearPackets();
-    return;
-  }
-
+  // A transferred handle may already have been destroyed by its new owner.
   if(mPlayer && !mIsMovedHandle)
-  { // If user take the handle, user must be responsible for its destruction.
-    if(mPlayerState != PLAYER_STATE_NONE)
+  {
+    GetPlayerState(&mPlayerState);
+    if(!mIsExternalPlayer &&
+       (mPlayerState == PLAYER_STATE_PLAYING || mPlayerState == PLAYER_STATE_PAUSED))
     {
+      DoStop();
       GetPlayerState(&mPlayerState);
+    }
 
-      if(mPlayerState != PLAYER_STATE_IDLE)
+    if(!UnregisterPlayerCallbacks())
+    {
+      return;
+    }
+    // MMPlayer requires every decoded packet to be returned before unprepare.
+    ClearPackets();
+
+    if(!mIsExternalPlayer)
+    {
+      if(mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE)
       {
-        if(mNativeImagePtr)
-        {
-          player_state_e state;
-          GetPlayerState(&state);
-          if(state == PLAYER_STATE_PLAYING || state == PLAYER_STATE_PAUSED)
-          {
-            int error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
-            int ret   = LogPlayerError(error);
-            if(ret)
-            {
-              DALI_LOG_ERROR("DestroyPlayer, player_unset_media_packet_video_frame_decoded_cb() is failed\n");
-            }
-          }
-        }
-
-        Stop();
-
         int error = player_unprepare(mPlayer);
-        int ret   = LogPlayerError(error);
-        if(ret)
+        if(LogPlayerError(error))
         {
           DALI_LOG_ERROR("DestroyPlayer, player_unprepare() is failed\n");
         }
       }
-
-      if(!mIsMovedHandle && !mIsExternalPlayer)
+      int error = player_destroy(mPlayer);
+      if(LogPlayerError(error))
       {
-        int error = player_destroy(mPlayer);
-        int ret   = LogPlayerError(error);
-        if(ret)
-        {
-          DALI_LOG_ERROR("DestroyPlayer, player_destroy() is failed\n");
-        }
+        DALI_LOG_ERROR("DestroyPlayer, player_destroy() is failed\n");
       }
+      mPlayer = nullptr;
     }
   }
+  else
+  {
+    if(mPlaybackFinishedSource)
+    {
+      g_source_destroy(mPlaybackFinishedSource);
+      g_source_unref(mPlaybackFinishedSource);
+      mPlaybackFinishedSource = nullptr;
+    }
+    mEventCallback.reset();
+    ClearPackets();
+  }
 
-  if(mStreamInfo != NULL)
+  if(mStreamInfo != nullptr)
   {
     int error = sound_manager_destroy_stream_information(mStreamInfo);
-    int ret   = LogPlayerError(error);
-    if(ret)
+    if(LogPlayerError(error))
     {
       DALI_LOG_ERROR("DestroyPlayer, sound_manager_destroy_stream_information() is failed\n");
     }
   }
-
   mPlayerState = PLAYER_STATE_NONE;
-  mStreamInfo  = NULL;
-  if(!mIsMovedHandle && !mIsExternalPlayer)
-  {
-    mPlayer = NULL;
-  }
-  ClearPackets();
+  mStreamInfo  = nullptr;
 }
 
 void TizenVideoPlayer::DoSetCodecType(Dali::VideoPlayerPlugin::CodecType type)
@@ -1479,32 +1489,40 @@ void TizenVideoPlayer::DoSetUrl(const std::string& url)
 
   if(mPlayerState != PLAYER_STATE_NONE && mPlayerState != PLAYER_STATE_IDLE)
   {
-    if(mNativeImagePtr)
+    DoStop();
+    if(!UnregisterPlayerCallbacks())
     {
-      error = player_unset_media_packet_video_frame_decoded_cb(mPlayer);
-      ret   = LogPlayerError(error);
-      if(ret)
-      {
-        DALI_LOG_ERROR("DoSetUrl, player_unset_media_packet_video_frame_decoded_cb() is failed\n");
-      }
+      return;
     }
-
-    DoStop(); // Use DoStop instead of Stop
+    ClearPackets();
 
     error = player_unprepare(mPlayer);
     ret   = LogPlayerError(error);
     if(ret)
     {
       DALI_LOG_ERROR("DoSetUrl, player_unprepare() is failed\n");
+      return;
+    }
+
+    error                        = player_set_completed_cb(mPlayer, EmitPlaybackFinishedSignal, this);
+    mCompletedCallbackRegistered = (error == PLAYER_ERROR_NONE);
+    if(LogPlayerError(error))
+    {
+      DALI_LOG_ERROR("DoSetUrl, completed callback could not be registered\n");
     }
 
     if(mNativeImagePtr)
     {
-      error = player_set_media_packet_video_frame_decoded_cb(mPlayer, MediaPacketVideoDecodedCb, this);
-      ret   = LogPlayerError(error);
+      error                         = player_set_media_packet_video_frame_decoded_cb(mPlayer, MediaPacketVideoDecodedCb, this);
+      mVideoFrameCallbackRegistered = (error == PLAYER_ERROR_NONE);
+      ret                           = LogPlayerError(error);
       if(ret)
       {
         DALI_LOG_ERROR("DoSetUrl, player_set_media_packet_video_frame_decoded_cb() is failed\n");
+      }
+      if(mVideoFrameCallbackRegistered)
+      {
+        InitializeUiUpdateCallback();
       }
     }
     else
@@ -1676,6 +1694,10 @@ void TizenVideoPlayer::DoSetDisplayArea(DisplayArea area)
 void TizenVideoPlayer::DoInitializeTextureStreamMode(Dali::NativeImagePtr nativeImagePtr)
 {
   DestroyPlayer();
+  if(mVideoFrameCallbackRegistered || mCompletedCallbackRegistered)
+  {
+    return;
+  }
   if(mSyncMode == Dali::VideoSyncMode::ENABLED)
   {
     DestroyVideoShellConstraint();
@@ -1688,7 +1710,7 @@ void TizenVideoPlayer::DoInitializeTextureStreamMode(Dali::NativeImagePtr native
 
 Any TizenVideoPlayer::DoGetMediaPlayer()
 {
-  mIsMovedHandle = true;
+  mIsMovedHandle = !mIsExternalPlayer;
   return Any((void*)mPlayer);
 }
 
