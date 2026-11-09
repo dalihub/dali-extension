@@ -20,6 +20,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-request-interceptor.h>
+#include <dali/public-api/common/intrusive-ptr.h>
 
 #include <Evas.h>
 
@@ -44,14 +45,12 @@ class TizenWebEngineRequestInterceptor final : public Dali::WebEngineRequestInte
 {
 public:
   /**
-   * @brief Constructor.
+   * @brief Creates a reference-counted implementation.
    */
-  TizenWebEngineRequestInterceptor(Ewk_Intercept_Request*);
-
-  /**
-   * @brief Destructor.
-   */
-  virtual ~TizenWebEngineRequestInterceptor() final;
+  static Dali::IntrusivePtr<TizenWebEngineRequestInterceptor> New(Ewk_Intercept_Request* argument0)
+  {
+    return Dali::IntrusivePtr<TizenWebEngineRequestInterceptor>(new TizenWebEngineRequestInterceptor(argument0));
+  }
 
   /**
    * @copydoc Dali::WebEngineRequestInterceptor::GetWebEngine()
@@ -107,6 +106,17 @@ public:
    * @copydoc Dali::WebEngineRequestInterceptor::WriteResponseChunk()
    */
   bool WriteResponseChunk(const int8_t* chunk, uint32_t length) override;
+
+protected:
+  /**
+   * @brief Constructor.
+   */
+  TizenWebEngineRequestInterceptor(Ewk_Intercept_Request*);
+
+  /**
+   * @brief Destructor.
+   */
+  virtual ~TizenWebEngineRequestInterceptor() final;
 
 private:
   /**

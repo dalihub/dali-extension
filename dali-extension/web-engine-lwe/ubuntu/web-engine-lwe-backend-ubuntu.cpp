@@ -19,12 +19,12 @@
 #include <LWEWebView.h>
 
 #include <dali/devel-api/adaptor-framework/application-devel.h>
-#include "web-engine-lwe-buffer-image.h"
 #include <dali/integration-api/adaptor-framework/adaptor.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/adaptor-framework/native-image.h>
 #include <dali/public-api/images/pixel.h>
 #include <dali/public-api/signals/callback.h>
+#include "web-engine-lwe-buffer-image.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -39,14 +39,14 @@ namespace Plugin
 {
 namespace
 {
-constexpr uint32_t SAFE_INITIAL_WEB_VIEW_WIDTH = 1920u;
+constexpr uint32_t SAFE_INITIAL_WEB_VIEW_WIDTH  = 1920u;
 constexpr uint32_t SAFE_INITIAL_WEB_VIEW_HEIGHT = 1080u;
 
 // LWE's mask rendering allocates width * height * 4 byte CPU buffers. These
 // limits keep malformed WebView geometry from exhausting the process before
 // Starfish can render a frame. They still allow an 8K-by-8K WebView.
 constexpr uint32_t MAX_WEB_VIEW_DIMENSION = 8192u;
-constexpr uint64_t MAX_WEB_VIEW_PIXELS = 64ull * 1024ull * 1024ull;
+constexpr uint64_t MAX_WEB_VIEW_PIXELS    = 64ull * 1024ull * 1024ull;
 
 bool isSupportedWebViewSize(uint32_t width, uint32_t height)
 {
@@ -62,7 +62,7 @@ bool isSupportedWebViewSize(uint32_t width, uint32_t height)
 
   return static_cast<uint64_t>(width) * height <= MAX_WEB_VIEW_PIXELS;
 }
-}
+} //namespace
 
 WebEngineLweBackendUbuntu::WebEngineLweBackendUbuntu()
 : mWebContainer(nullptr),
@@ -108,10 +108,10 @@ LWE::WebContainer* WebEngineLweBackendUbuntu::Create(uint32_t width, uint32_t he
   return Create(width, height, "en-US", "UTC");
 }
 
-LWE::WebContainer* WebEngineLweBackendUbuntu::Create(uint32_t width,
-  uint32_t height,
-  const std::string& locale,
-  const std::string& timezoneId)
+LWE::WebContainer* WebEngineLweBackendUbuntu::Create(uint32_t           width,
+                                                     uint32_t           height,
+                                                     const std::string& locale,
+                                                     const std::string& timezoneId)
 {
   if(width > MAX_WEB_VIEW_DIMENSION || height > MAX_WEB_VIEW_DIMENSION ||
      static_cast<uint64_t>(width) * height > MAX_WEB_VIEW_PIXELS)
@@ -123,13 +123,13 @@ LWE::WebContainer* WebEngineLweBackendUbuntu::Create(uint32_t width,
   Destroy();
   // LWE can produce invalid mask geometry when content is loaded in a very
   // small viewport before layout supplies the WebView's final display area.
-  const uint32_t initialWidth = std::max(width, SAFE_INITIAL_WEB_VIEW_WIDTH);
+  const uint32_t initialWidth  = std::max(width, SAFE_INITIAL_WEB_VIEW_WIDTH);
   const uint32_t initialHeight = std::max(height, SAFE_INITIAL_WEB_VIEW_HEIGHT);
 
   ensureInitialized();
 
-  mTaskGeneration = std::make_shared<std::atomic_bool>(true);
-  mAcceptTasks = true;
+  mTaskGeneration      = std::make_shared<std::atomic_bool>(true);
+  mAcceptTasks         = true;
   mEventThreadCallback = std::make_shared<Dali::EventThreadCallback>(
     Dali::MakeCallback(this, &WebEngineLweBackendUbuntu::processEventTasks));
 
@@ -145,7 +145,7 @@ LWE::WebContainer* WebEngineLweBackendUbuntu::Create(uint32_t width,
     return nullptr;
   }
 
-  WebEngineLweEglRenderer* renderer = mRenderer.get();
+  WebEngineLweEglRenderer*                   renderer = mRenderer.get();
   LWE::WebContainer::RendererGLConfiguration configuration;
   configuration.onMakeCurrent = [renderer](LWE::WebContainer*)
   {
@@ -210,12 +210,12 @@ void WebEngineLweBackendUbuntu::handleFrame(std::vector<uint8_t>&& pixels, uint3
   {
     std::lock_guard<std::mutex> lock(mFrameMutex);
     mReadyBuffer = std::move(pixels);
-    mReadyWidth = width;
+    mReadyWidth  = width;
     mReadyHeight = height;
     if(!mFrameUploadPending)
     {
       mFrameUploadPending = true;
-      requestUpload = true;
+      requestUpload       = true;
     }
   }
   if(requestUpload)
@@ -250,12 +250,12 @@ void WebEngineLweBackendUbuntu::Destroy()
   {
     std::lock_guard<std::mutex> lock(mFrameMutex);
     mReadyBuffer.clear();
-    mReadyWidth = 0u;
-    mReadyHeight = 0u;
+    mReadyWidth         = 0u;
+    mReadyHeight        = 0u;
     mFrameUploadPending = false;
   }
   mNativeImage.Reset();
-  mImageWidth = 0u;
+  mImageWidth  = 0u;
   mImageHeight = 0u;
 }
 
@@ -329,8 +329,8 @@ void WebEngineLweBackendUbuntu::processEventTasks()
 {
   // A callback may destroy or recreate the owning WebView. Keep only local
   // state after invoking it, and cancel the remaining tasks of that generation.
-  auto generation = mTaskGeneration;
-  auto eventThreadCallback = mEventThreadCallback;
+  auto             generation          = mTaskGeneration;
+  auto             eventThreadCallback = mEventThreadCallback;
   std::deque<Task> tasks;
   {
     std::lock_guard<std::mutex> lock(mTaskMutex);
@@ -353,11 +353,11 @@ void WebEngineLweBackendUbuntu::processEventTasks()
 void WebEngineLweBackendUbuntu::uploadFrame()
 {
   std::vector<uint8_t> pixels;
-  uint32_t width = 0u;
-  uint32_t height = 0u;
+  uint32_t             width  = 0u;
+  uint32_t             height = 0u;
   {
     std::lock_guard<std::mutex> lock(mFrameMutex);
-    width = mReadyWidth;
+    width  = mReadyWidth;
     height = mReadyHeight;
     pixels.swap(mReadyBuffer);
     mFrameUploadPending = false;
@@ -370,8 +370,8 @@ void WebEngineLweBackendUbuntu::uploadFrame()
 
   if(!mNativeImage || mImageWidth != width || mImageHeight != height)
   {
-    mNativeImage = new WebEngineLweBufferImage(width, height);
-    mImageWidth = width;
+    mNativeImage = WebEngineLweBufferImage::New(width, height);
+    mImageWidth  = width;
     mImageHeight = height;
   }
 
