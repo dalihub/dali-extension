@@ -11,7 +11,7 @@
 
 Name:       dali3-extension
 Summary:    The DALi Tizen Extensions
-Version:    2.5.46
+Version:    3.0.0
 Release:    1
 Group:      System/Libraries
 License:    Apache-2.0 and FSFAP

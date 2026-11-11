@@ -328,7 +328,7 @@ private:
    * synchronized with UI frame commits (see VideoShellSyncConstraint).
    *
    * NOTE: esplusplayer_capi has no equivalent to MMPlayer's
-   * PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI, so binding the player's actual display to
+   * PLAYER_DISPLAY_TYPE_OVERLAY_SYNC_UI2, so binding the player's actual display to
    * this shell surface's handle is not currently possible. The shell surface and
    * constraint are created so the mechanism is ready if/when such an API is added, but
    * they do not yet visibly affect playback.

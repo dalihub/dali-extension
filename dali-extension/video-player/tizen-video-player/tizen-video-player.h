@@ -24,6 +24,7 @@
 
 // EXTERNAL INCLUDES
 #include <dali/public-api/animation/constraints.h>
+#include <glib.h>
 #include <player.h>
 #include <list>
 #include <string>
@@ -33,13 +34,13 @@
 #define HAVE_WAYLAND
 #endif
 #ifdef USE_TCORE_BACKEND
-#include <tizen_core_wl.h>
 #include <tizen-core-wl/tizen_core_wl_subsurface.h>
 #include <tizen-core-wl/tizen_core_wl_video_shell.h>
+#include <tizen_core_wl.h>
 #else
 #include <Ecore_Wl2.h>
-#endif
 #include <player_internal.h>
+#endif
 
 namespace DALI_NAMESPACE
 {
@@ -80,6 +81,11 @@ public:
    * @SINCE_1_1.38
    */
   virtual ~TizenVideoPlayer();
+
+  /**
+   * @brief Delivers the player's completion notification on the UI context.
+   */
+  void OnPlaybackFinished();
 
 protected:
   virtual bool IsPlayerReady() override;
@@ -364,9 +370,9 @@ private:
    * @brief Binds the player's tcore display for underlay rendering.
    *
    * When sync mode is enabled and a video shell surface has been created, binds via
-   * PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI using the shell surface's handle string so the
+   * PLAYER_DISPLAY_TYPE_OVERLAY_SYNC_UI2 using the shell surface's handle string so the
    * player's video plane stays synchronized with UI frame commits (see VideoShellSyncConstraint).
-   * Otherwise falls back to the plain window-bound PLAYER_DISPLAY_TYPE_TCORE_OVERLAY.
+   * Otherwise falls back to the plain window-bound PLAYER_DISPLAY_TYPE_OVERLAY2.
    */
   void SetTcoreDisplayForUnderlay();
 #endif
@@ -375,6 +381,12 @@ private:
    * @brief Destroys player handle
    */
   void DestroyPlayer();
+
+  /**
+   * @brief Unregisters this plugin's callbacks in READY or IDLE and cancels queued notifications.
+   * @return True if all registered callbacks were unregistered.
+   */
+  bool UnregisterPlayerCallbacks();
 
   /**
    * @brief Create Video Shell Constraint for synchronization
@@ -409,9 +421,12 @@ private:
 
   int32_t mVideoConstraintHelperId; ///< unique id for Rotation and Ratio constraint helper
 
-  bool mIsMovedHandle; ///< the flag for moved the handle
-  bool mIsSceneConnected;
-  bool mIsExternalPlayer; ///< indicates if the player handle was externally injected
+  bool     mIsMovedHandle; ///< the flag for moved the handle
+  bool     mIsSceneConnected;
+  bool     mIsExternalPlayer; ///< indicates if the player handle was externally injected
+  bool     mVideoFrameCallbackRegistered{false};
+  bool     mCompletedCallbackRegistered{false};
+  GSource* mPlaybackFinishedSource{nullptr}; ///< Owned reference to a pending completion notification.
 
 #ifdef OVER_TIZEN_VERSION_9
 #ifdef USE_TCORE_BACKEND
