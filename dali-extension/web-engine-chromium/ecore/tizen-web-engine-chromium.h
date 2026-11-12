@@ -19,6 +19,7 @@
  */
 
 // EXTERNAL INCLUDES
+#include "tizen-web-engine-manager.h"
 #include <Evas.h>
 
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
@@ -45,6 +46,8 @@ namespace Plugin
 class TizenWebEngineChromium : public Dali::WebEnginePlugin
 {
 public:
+  bool CreateWithProfile(uint32_t width, uint32_t height, WebEngineManager::ProfilePtr profile);
+
   /**
    * @brief Constructor.
    */
@@ -733,7 +736,8 @@ private:
   static void      OnPlaybackVideoPaused(void* data, Evas_Object*, void*);
 
   void UpdateImage(tbm_surface_h buffer);
-  void InitWebView(bool incognito);
+  void InitWebView();
+  WebEngineManager::ProfilePtr mProfile;
   bool FeedMouseEvent(const TouchEvent& touch);
   bool FeedTouchEvent(const TouchEvent& touch);
 

@@ -16,29 +16,44 @@
  */
 
 #include "tizen-web-engine-manager.h"
-
 #include "tizen-web-engine-context.h"
 #include "tizen-web-engine-cookie-manager.h"
-
+#include "tizen-web-engine-chromium.h"
+#include "../../web-engine-common/web-engine-arguments.h"
 #include <dali/devel-api/adaptor-framework/lifecycle-controller.h>
 #include <dali/integration-api/debug.h>
-
+#include <algorithm>
 #include <wv_main.h>
 #include <wv_main_internal.h>
-
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <vector>
+#include <wv_context_internal.h>
 
 namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
+namespace
+{
+WebEngineArguments& Arguments()
+{
+  static WebEngineArguments arguments;
+  return arguments;
+}
+}
+
 WebEngineManager& WebEngineManager::Get()
 {
   static WebEngineManager instance;
   return instance;
+}
+
+WebEngineManager::WebEngineManager()
+: mSlotDelegate(this)
+{
+}
+
+WebEngineManager::~WebEngineManager()
+{
+  OnTerminated();
 }
 
 bool WebEngineManager::IsAvailable()
@@ -46,172 +61,146 @@ bool WebEngineManager::IsAvailable()
   return Get().mWebEngineManagerAvailable;
 }
 
-WebEngineManager::WebEngineManager()
-: mSlotDelegate(this),
-  mWebEngineManagerAvailable(true)
+bool WebEngineManager::Initialize()
 {
-  DALI_LOG_RELEASE_INFO("#WebEngineManager is created.\n");
-
-  SetArguments(0, nullptr);
-
-  // WV backend: wv_init() owns the whole engine bring-up (including the
-  // offscreen canvas that wv_view_create() draws into), so this plugin needs
-  // no Ecore_Evas window of its own.
-  wv_init();
-
+  auto& arguments = Arguments();
+  if(arguments.started)
+  {
+    return mWebEngineManagerAvailable;
+  }
+  arguments.started = true;
+  arguments.PrepareNative(true);
+  if(wv_set_arguments(arguments.Count(), arguments.ConstData()) != 0)
+  {
+    DALI_LOG_ERROR("wv_set_arguments failed\n");
+    return false;
+  }
+  if(wv_init() <= 0)
+  {
+    return false;
+  }
+  mWebEngineManagerAvailable = true;
+  arguments.succeeded = true;
   Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
-
-  DALI_LOG_RELEASE_INFO("#WebEngineManager is created fully.\n");
+  return true;
 }
 
-void WebEngineManager::SetArguments(int argc, char** argv)
+WebEngineManager::Profile::Profile(wv_context_h nativeContext, bool privateMode, bool ownsContext)
+: context(nativeContext), incognito(privateMode), owned(ownsContext)
 {
-  static bool isArgumentsSet = false;
-  if(isArgumentsSet)
-  {
-    return;
-  }
-  isArgumentsSet = true;
-
-  // On TCORE these two switches are required; on ECORE the engine takes its
-  // normal EFL path and neither is passed.
-  //
-  // --enable-tcore: switches chromium's UI message pump to the GLib backend,
-  // which is required because our main loop is tizen_core, not ecore_main_loop.
-  //
-  // --enable-wv-standalone: makes wv_init() skip elm_init()/ewk_init()/
-  // wv_view_init() and route wv_view_create() to the standalone WvViewImpl
-  // instead of the EWK offscreen path. The EWK path is blocked on the device
-  // tcore chromium build: its GPU thread opens a second tizen-core-wl
-  // connection, so virtualized-share eglCreateContext fails with
-  // EGL_BAD_CONTEXT (GPU path), and EflSurfaceCanvas::PresentCanvas is a
-  // NOTIMPLEMENTED stub (--disable-gpu SW path) - frames never reach
-  // "offscreen,frame,rendered" either way.
-  //
-  // The storage is static because CommandLineEfl keeps the char** we hand it
-  // and replays it into content::ContentMainParams later.
-  static std::vector<std::string> arguments;
-  static std::vector<const char*> argumentVector;
-
-  arguments.assign(argv && argc > 0 ? argv : nullptr, argv && argc > 0 ? argv + argc : nullptr);
-  if(arguments.empty())
-  {
-    arguments.emplace_back("dali-webview");
-  }
-  arguments.emplace_back("--enable-tcore");
-  arguments.emplace_back("--enable-wv-standalone");
-
-  argumentVector.reserve(arguments.size());
-  for(auto& argument : arguments)
-  {
-    argumentVector.push_back(argument.c_str());
-  }
-
-  int result = wv_set_arguments(static_cast<int>(argumentVector.size()), argumentVector.data());
-  if(result != TIZEN_ERROR_NONE)
-  {
-    DALI_LOG_ERROR("wv_set_arguments() failed with error: %d\n", result);
-  }
+  wrapper.reset(new TizenWebEngineContext(context));
+  cookies.reset(new TizenWebEngineCookieManager(wv_context_cookie_manager_get(context)));
+  wv_context_max_refresh_rate_set(context, 60);
 }
 
-WebEngineManager::~WebEngineManager()
+WebEngineManager::Profile::~Profile()
 {
-  if(mWebEngineManagerAvailable)
+  Release();
+}
+
+void WebEngineManager::Profile::Release()
+{
+  // Wrappers unregister callbacks before releasing the native context.
+  wrapper.reset();
+  cookies.reset();
+  if(context && owned)
   {
-    try
-    {
-      // Call OnTerminated directly.
-      OnTerminated();
-    }
-    catch(std::bad_weak_ptr const& ex)
-    {
-      DALI_LOG_ERROR("WebEngineManager::~WebEngineManager() - std::bad_weak_ptr caught: %s\n", ex.what());
-    }
-    catch(std::system_error const& ex)
-    {
-      DALI_LOG_ERROR("WebEngineManager::~WebEngineManager() - std::system_error caught: %s\n", ex.what());
-    }
-    catch(std::invalid_argument const& ex)
-    {
-      DALI_LOG_RELEASE_INFO("Failed to destroy web engine:%s!\n", ex.what());
-    }
+    wv_context_unref(context);
   }
+  context = nullptr;
 }
 
-void WebEngineManager::SetContext(wv_context_h context, bool isIncognito)
+WebEngineManager::ProfilePtr WebEngineManager::GetDefaultProfile()
 {
-  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
-  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
-  mWebEngineContexts[uintContextType].reset(new TizenWebEngineContext(context, isIncognito));
-
-  wv_cookie_manager_h manager = wv_context_cookie_manager_get(context);
-  mWebEngineCookieManagers[uintContextType].reset(new TizenWebEngineCookieManager(manager));
-}
-
-Dali::WebEngineContext* WebEngineManager::GetContext(bool isIncognito)
-{
-  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
-  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
-  return mWebEngineContexts[uintContextType].get();
-}
-
-Dali::WebEngineCookieManager* WebEngineManager::GetCookieManager(bool isIncognito)
-{
-  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
-  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
-  return mWebEngineCookieManagers[uintContextType].get();
-}
-
-void WebEngineManager::Add(wv_view_h webView, Dali::WebEnginePlugin* engine, bool isIncognito)
-{
-  ContextType contextType               = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
-  uint8_t     uintContextType           = static_cast<uint8_t>(contextType);
-  mWebEngines[uintContextType][webView] = engine;
-}
-
-void WebEngineManager::Remove(wv_view_h webView, bool isIncognito)
-{
-  ContextType contextType     = isIncognito ? ContextType::INCOGNITO : ContextType::NORMAL;
-  uint8_t     uintContextType = static_cast<uint8_t>(contextType);
-  auto&       table           = mWebEngines[uintContextType];
-  auto        iter            = table.find(webView);
-  if(iter != table.end())
+  if(!Initialize())
   {
-    table.erase(iter);
+    return {};
   }
-
-  // when some web views are in incognito mode, and the last one would be destroyed,
-  // callbacks of WV context need be reset here.
-  if(isIncognito && mWebEngineContexts[uintContextType] != nullptr && table.size() == 0)
+  if(auto profile = mDefaultProfile.lock())
   {
-    TizenWebEngineContext* context = static_cast<TizenWebEngineContext*>(mWebEngineContexts[uintContextType].get());
-    context->UnregisterContextCallbacks();
+    return profile;
   }
+  auto context = wv_context_default_get();
+  if(!context)
+  {
+    return {};
+  }
+  auto profile = std::make_shared<Profile>(context, false, false);
+  mDefaultProfile = profile;
+  TrackProfile(profile);
+  return profile;
 }
 
-Dali::WebEnginePlugin* WebEngineManager::Find(wv_view_h webView)
+WebEngineManager::ProfilePtr WebEngineManager::CreateProfile(bool incognito, const char* bundlePath)
 {
-  for(uint8_t index = 0; index < ContextTypeCount; index++)
+  if(!Initialize())
   {
-    auto iter = mWebEngines[index].find(webView);
-    if(iter != mWebEngines[index].end())
-    {
-      return iter->second;
-    }
+    return {};
   }
-  return nullptr;
+  const char* path = bundlePath ? bundlePath : "";
+  auto context = incognito ? wv_context_new_with_injected_bundle_path_in_incognito_mode(path)
+                           : wv_context_new_with_injected_bundle_path(path);
+  if(!context)
+  {
+    DALI_LOG_ERROR("Native profile creation failed\n");
+    return {};
+  }
+  auto profile = std::make_shared<Profile>(context, incognito, true);
+  TrackProfile(profile);
+  return profile;
+}
+
+void WebEngineManager::TrackProfile(const ProfilePtr& profile)
+{
+  mProfiles.erase(std::remove_if(mProfiles.begin(), mProfiles.end(), [](const std::weak_ptr<Profile>& item)
+  {
+    return item.expired();
+  }), mProfiles.end());
+  mProfiles.emplace_back(profile);
+}
+
+Dali::WebEngineContext* WebEngineManager::GetContext(bool incognito)
+{
+  if(incognito || !Initialize())
+  {
+    return nullptr;
+  }
+  mLegacyDefaultProfile = GetDefaultProfile();
+  return mLegacyDefaultProfile ? mLegacyDefaultProfile->wrapper.get() : nullptr;
+}
+
+Dali::WebEngineCookieManager* WebEngineManager::GetCookieManager(bool incognito)
+{
+  if(!GetContext(incognito))
+  {
+    return nullptr;
+  }
+  return mLegacyDefaultProfile->cookies.get();
+}
+
+void WebEngineManager::Add(wv_view_h view, Dali::WebEnginePlugin* engine)
+{
+  mWebEngines[view] = engine;
+}
+
+void WebEngineManager::Remove(wv_view_h view)
+{
+  mWebEngines.erase(view);
+}
+
+Dali::WebEnginePlugin* WebEngineManager::Find(wv_view_h view)
+{
+  auto found = mWebEngines.find(view);
+  return found == mWebEngines.end() ? nullptr : found->second;
 }
 
 wv_view_h WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
 {
-  for(uint8_t index = 0; index < ContextTypeCount; index++)
+  for(const auto& entry : mWebEngines)
   {
-    for(auto it = mWebEngines[index].begin(); it != mWebEngines[index].end(); it++)
+    if(entry.second == plugin)
     {
-      if(it->second == plugin)
-      {
-        return it->first;
-      }
+      return entry.first;
     }
   }
   return nullptr;
@@ -219,48 +208,89 @@ wv_view_h WebEngineManager::Find(Dali::WebEnginePlugin* plugin)
 
 void WebEngineManager::OnTerminated()
 {
-  // Ignore duplicated termination
-  if(DALI_UNLIKELY(!mWebEngineManagerAvailable))
+  if(!mWebEngineManagerAvailable)
   {
     return;
   }
-  DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed.\n");
-
-  // App is terminated. Now web engine is not available any more.
   mWebEngineManagerAvailable = false;
-
-  for(uint8_t index = 0; index < ContextTypeCount; index++)
+  // Destruction callbacks may also remove another view. Always consume the
+  // current registry rather than keeping raw pointers in a snapshot.
+  while(!mWebEngines.empty())
   {
-    for(auto it = mWebEngines[index].begin(); it != mWebEngines[index].end(); it++)
-    {
-      // Destroy WebEngine
-      auto webEnginePlugin = it->second;
-      if(webEnginePlugin)
-      {
-        webEnginePlugin->Destroy();
-      }
-    }
-    mWebEngines[index].clear();
+    auto* plugin = mWebEngines.begin()->second;
+    mWebEngines.erase(mWebEngines.begin());
+    plugin->Destroy();
   }
-  mWebEngines = {};
-
-  // Release context and cookie manager before wv_shutdown.
-  mWebEngineContexts       = {};
-  mWebEngineCookieManagers = {};
-
+  for(auto& weak : mProfiles)
+  {
+    if(auto profile = weak.lock())
+    {
+      profile->Release();
+    }
+  }
+  mProfiles.clear();
+  mLegacyDefaultProfile.reset();
   wv_shutdown();
-  DALI_LOG_RELEASE_INFO("#WebEngineManager is destroyed fully.\n");
 }
 
+namespace
+{
+using ProfilePtr = WebEngineManager::ProfilePtr;
+WebEngineArgumentsResult StoreArguments(uint32_t argc, const char* const* argv)
+{
+  return Arguments().Store(argc, argv);
+}
+void ReadArguments(uint32_t* argc, const char* const** argv)
+{
+  Arguments().Read(argc, argv);
+}
+bool InitializeEngine()
+{
+  return WebEngineManager::Get().Initialize();
+}
+void* DefaultProfile()
+{
+  auto profile = WebEngineManager::Get().GetDefaultProfile();
+  return profile ? new ProfilePtr(std::move(profile)) : nullptr;
+}
+void* CreateProfile(bool incognito, const char* path)
+{
+  auto profile = WebEngineManager::Get().CreateProfile(incognito, path);
+  return profile ? new ProfilePtr(std::move(profile)) : nullptr;
+}
+void DestroyProfile(void* token)
+{
+  delete static_cast<ProfilePtr*>(token);
+}
+WebEngineContext* ProfileContext(void* token)
+{
+  return (*static_cast<ProfilePtr*>(token))->wrapper.get();
+}
+WebEngineCookieManager* ProfileCookies(void* token)
+{
+  return (*static_cast<ProfilePtr*>(token))->cookies.get();
+}
+bool CreateView(WebEnginePlugin* plugin, void* token, uint32_t width, uint32_t height)
+{
+  return static_cast<TizenWebEngineChromium*>(plugin)->CreateWithProfile(width, height, *static_cast<ProfilePtr*>(token));
+}
+const WebEngineProfileApi profileApi{1, sizeof(WebEngineProfileApi), StoreArguments, ReadArguments, InitializeEngine,
+  DefaultProfile, CreateProfile, DestroyProfile, ProfileContext, ProfileCookies, CreateView};
+}
 } // namespace Plugin
-} //namespace DALI_NAMESPACE
+} // namespace DALI_NAMESPACE
 
-extern "C" DALI_EXPORT_API Dali::WebEngineContext* GetWebEngineContext(bool isIncognito)
+extern "C" DALI_EXPORT_API const Dali::WebEngineProfileApi* GetWebEngineProfileApi(uint32_t version)
 {
-  return Dali::Plugin::WebEngineManager::Get().GetContext(isIncognito);
+  return version == 1 ? &Dali::Plugin::profileApi : nullptr;
 }
 
-extern "C" DALI_EXPORT_API Dali::WebEngineCookieManager* GetWebEngineCookieManager(bool isIncognito)
+extern "C" DALI_EXPORT_API Dali::WebEngineContext* GetWebEngineContext(bool incognito)
 {
-  return Dali::Plugin::WebEngineManager::Get().GetCookieManager(isIncognito);
+  return Dali::Plugin::WebEngineManager::Get().GetContext(incognito);
+}
+
+extern "C" DALI_EXPORT_API Dali::WebEngineCookieManager* GetWebEngineCookieManager(bool incognito)
+{
+  return Dali::Plugin::WebEngineManager::Get().GetCookieManager(incognito);
 }

@@ -1,5 +1,4 @@
-#ifndef DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
-#define DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
+#pragma once
 
 /*
  * Copyright (c) 2026 Samsung Electronics Co., Ltd.
@@ -18,81 +17,58 @@
  *
  */
 
-// EXTERNAL INCLUDES
-#include <Ecore_Evas.h>
-#include <Evas.h>
-
-#include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-profile.h>
 #include <dali/public-api/signals/slot-delegate.h>
-
-#include <ewk_context.h>
-
-#include <array>
 #include <map>
 #include <memory>
-
+#include <vector>
+#include <Ecore_Evas.h>
+#include <ewk_context.h>
 namespace DALI_NAMESPACE
 {
-class WebEngineContext;
-class WebEngineCookieManager;
-
 namespace Plugin
 {
-/**
- * @brief A class for managing multiple web views
- */
 class WebEngineManager
 {
 public:
+  struct Profile
+  {
+    Profile(Ewk_Context* context, bool incognito, bool owned);
+    ~Profile();
+    void Release();
+    Ewk_Context* context;
+    bool incognito;
+    bool owned;
+    std::unique_ptr<WebEngineContext> wrapper;
+    std::unique_ptr<WebEngineCookieManager> cookies;
+  };
+  using ProfilePtr = std::shared_ptr<Profile>;
+
   static WebEngineManager& Get();
-
   static bool IsAvailable();
-
-  WebEngineManager(WebEngineManager const&) = delete;
-
-  void operator=(WebEngineManager const&) = delete;
-
-  Ecore_Evas* GetWindow();
-
-  void SetContext(Ewk_Context* context, bool isIncognito);
-
-  Dali::WebEngineContext* GetContext(bool isIncognito = false);
-
-  Dali::WebEngineCookieManager* GetCookieManager(bool isIncognito = false);
-
-  void Add(Evas_Object* webView, Dali::WebEnginePlugin* engine, bool isIncognito);
-
-  void Remove(Evas_Object* webView, bool isIncognito);
-
-  Dali::WebEnginePlugin* Find(Evas_Object* o);
-
+  bool Initialize();
+  ProfilePtr GetDefaultProfile();
+  ProfilePtr CreateProfile(bool incognito, const char* bundlePath);
+  Dali::WebEngineContext* GetContext(bool incognito = false);
+  Dali::WebEngineCookieManager* GetCookieManager(bool incognito = false);
+  void Add(Evas_Object* view, Dali::WebEnginePlugin* engine);
+  void Remove(Evas_Object* view);
+  Dali::WebEnginePlugin* Find(Evas_Object* view);
   Evas_Object* Find(Dali::WebEnginePlugin* plugin);
+  Ecore_Evas* GetWindow();
 
 private:
   WebEngineManager();
-
   ~WebEngineManager();
-
   void OnTerminated();
-
-  enum class ContextType
-  {
-    NORMAL = 0,
-    INCOGNITO,
-    TYPE_COUNT,
-  };
-
-  static constexpr uint8_t ContextTypeCount = static_cast<uint8_t>(ContextType::TYPE_COUNT);
-
-  SlotDelegate<WebEngineManager>                                               mSlotDelegate;
-  std::array<std::unique_ptr<WebEngineContext>, ContextTypeCount>              mWebEngineContexts;
-  std::array<std::unique_ptr<WebEngineCookieManager>, ContextTypeCount>        mWebEngineCookieManagers;
-  std::array<std::map<Evas_Object*, Dali::WebEnginePlugin*>, ContextTypeCount> mWebEngines;
-  Ecore_Evas*                                                                  mWindow;
-  bool                                                                         mWebEngineManagerAvailable;
+  void TrackProfile(const ProfilePtr& profile);
+  SlotDelegate<WebEngineManager> mSlotDelegate;
+  std::map<Evas_Object*, Dali::WebEnginePlugin*> mWebEngines;
+  std::vector<std::weak_ptr<Profile>> mProfiles;
+  std::weak_ptr<Profile> mDefaultProfile;
+  ProfilePtr mLegacyDefaultProfile;
+  bool mWebEngineManagerAvailable = false;
+  Ecore_Evas* mWindow = nullptr;
 };
-
 } // namespace Plugin
-} //namespace DALI_NAMESPACE
-
-#endif // DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
+} // namespace DALI_NAMESPACE

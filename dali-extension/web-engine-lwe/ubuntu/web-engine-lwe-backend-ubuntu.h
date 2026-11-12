@@ -50,7 +50,6 @@ public:
   void DispatchToEventThread(Task task) override;
 
 private:
-  void ensureInitialized();
   void handleFrame(std::vector<uint8_t>&& pixels, uint32_t width, uint32_t height);
   void processEventTasks();
   void uploadFrame();

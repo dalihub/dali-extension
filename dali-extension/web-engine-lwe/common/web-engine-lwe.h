@@ -40,6 +40,8 @@ class WebEngineLweBackForwardList;
 class WebEngineLwe : public Dali::WebEnginePlugin
 {
 public:
+  bool CreateDefaultView(uint32_t width, uint32_t height);
+  static void DestroyAllViews();
   explicit WebEngineLwe(std::unique_ptr<WebEngineLweBackend> backend);
   ~WebEngineLwe() override;
 

@@ -19,6 +19,7 @@
  */
 
 // EXTERNAL INCLUDES
+#include "tizen-web-engine-manager.h"
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
 #include <dali/public-api/events/hover-event.h>
 #include <dali/public-api/images/native-image-interface.h>
@@ -46,6 +47,8 @@ namespace Plugin
 class TizenWebEngineChromium : public Dali::WebEnginePlugin
 {
 public:
+  bool CreateWithProfile(uint32_t width, uint32_t height, WebEngineManager::ProfilePtr profile);
+
   /**
    * @brief Constructor.
    */
@@ -734,7 +737,8 @@ private:
   static void OnPlaybackVideoPaused(wv_view_h view, void* eventInfo, void* data);
 
   void UpdateImage(tbm_surface_h buffer);
-  void InitWebView(bool incognito);
+  void InitWebView();
+  WebEngineManager::ProfilePtr mProfile;
   bool FeedMouseEvent(const TouchEvent& touch);
   bool FeedTouchEvent(const TouchEvent& touch);
 

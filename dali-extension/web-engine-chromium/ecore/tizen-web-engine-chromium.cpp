@@ -141,71 +141,41 @@ TizenWebEngineChromium::~TizenWebEngineChromium()
   Destroy();
 }
 
-void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneID)
+void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::string&, const std::string&)
 {
-  // Check if web engine is available and make sure that web engine is initialized.
-  if(!WebEngineManager::IsAvailable())
-  {
-    DALI_LOG_ERROR("Web engine has been terminated in current process.");
-    return;
-  }
-
-  mWidth  = width;
-  mHeight = height;
-  InitWebView(false);
-  WebEngineManager::Get().Add(mWebView, this, false);
+  CreateWithProfile(width, height, WebEngineManager::Get().GetDefaultProfile());
 }
 
-void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
+void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, uint32_t, char**)
 {
-  // This API must be called at first.
-  // And it must be called only once in current process.
-  static bool isAlreadyCalled = false;
-  if(!isAlreadyCalled)
-  {
-    ewk_set_arguments(argc, argv);
-    isAlreadyCalled = true;
-  }
-
-  // Check if web engine is available and make sure that web engine is initialized.
-  if(!WebEngineManager::IsAvailable())
-  {
-    DALI_LOG_ERROR("Web engine has been terminated in current process.");
-    return;
-  }
-
-  bool incognito = false;
-  for(uint32_t idx = 0; idx < argc; ++idx)
-  {
-    if(strstr(argv[idx], "--incognito"))
-    {
-      incognito = true;
-      break;
-    }
-  }
-
-  mWidth  = width;
-  mHeight = height;
-  InitWebView(incognito);
-  WebEngineManager::Get().Add(mWebView, this, incognito);
+  Create(width, height, "", "");
 }
 
-void TizenWebEngineChromium::InitWebView(bool incognito)
+bool TizenWebEngineChromium::CreateWithProfile(uint32_t width, uint32_t height, WebEngineManager::ProfilePtr profile)
 {
-  mIsIncognito         = incognito;
-  Ewk_Context* context = nullptr;
-  if(mIsIncognito)
+  if(!WebEngineManager::IsAvailable() || !profile || !profile->context)
   {
-    mWebView = ewk_view_add_in_incognito_mode(ecore_evas_get(WebEngineManager::Get().GetWindow()));
-    context  = ewk_view_context_get(mWebView);
+    return false;
   }
-  else
+  Destroy();
+  mProfile = std::move(profile);
+  mIsIncognito = mProfile->incognito;
+  mWidth = width;
+  mHeight = height;
+  mWebView = ewk_view_add_with_context(ecore_evas_get(WebEngineManager::Get().GetWindow()), mProfile->context);
+  if(!mWebView)
   {
-    context  = ewk_context_default_get();
-    mWebView = ewk_view_add(ecore_evas_get(WebEngineManager::Get().GetWindow()));
+    DALI_LOG_ERROR("Native view creation with profile failed\n");
+    mProfile.reset();
+    return false;
   }
-  WebEngineManager::Get().SetContext(context, mIsIncognito);
-  ewk_context_max_refresh_rate_set(context, 60);
+  InitWebView();
+  WebEngineManager::Get().Add(mWebView, this);
+  return true;
+}
+
+void TizenWebEngineChromium::InitWebView()
+{
   ewk_view_offscreen_rendering_enabled_set(mWebView, true);
 
   Ecore_Wl2_Window* win = AnyCast<Ecore_Wl2_Window*>(Adaptor::Get().GetNativeWindowHandle());
@@ -269,13 +239,19 @@ void TizenWebEngineChromium::Destroy()
 {
   mJavaScriptInjectedCallbacks.clear();
 
-  if(WebEngineManager::IsAvailable() && mWebView != nullptr)
+  if(mWebView != nullptr)
   {
-    WebEngineManager::Get().Remove(mWebView, mIsIncognito);
+    WebEngineManager::Get().Remove(mWebView);
   }
 
-  evas_object_del(mWebView);
-  mWebView = nullptr;
+  if(mWebView)
+  {
+    evas_object_del(mWebView);
+    mWebView = nullptr;
+  }
+  mWebEngineSettings.reset();
+  mWebEngineBackForwardList.reset();
+  mProfile.reset();
 }
 
 bool TizenWebEngineChromium::IsIncognito() const

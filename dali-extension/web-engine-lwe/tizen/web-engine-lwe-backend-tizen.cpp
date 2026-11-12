@@ -157,8 +157,12 @@ WebEngineLweBackendTizen::~WebEngineLweBackendTizen()
 #endif
 }
 
-LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
+bool InitializeWebEngineLweBackend(uint32_t argc, char** argv)
 {
+  if(LWE::LWE::IsInitialized())
+  {
+    return true;
+  }
 #ifdef OVER_TIZEN_VERSION_9
   for(uint32_t index = 0u; index < argc; ++index)
   {
@@ -178,6 +182,28 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t width, uint32_t hei
   (void)argc;
   (void)argv;
 #endif
+  if(!LWE::LWE::IsInitialized())
+  {
+    const std::string dataPath = Dali::DevelApplication::GetDataPath();
+#ifdef OVER_TIZEN_VERSION_9
+    LWE::LWE::Initialize((dataPath + "/StarFishStorage").c_str());
+#else
+    LWE::LWE::Initialize((dataPath + DB_NAME_LOCAL_STORAGE).c_str(),
+                         (dataPath + DB_NAME_COOKIES).c_str(),
+                         (dataPath + DB_NAME_CACHE).c_str());
+#endif
+  }
+  return LWE::LWE::IsInitialized();
+}
+
+LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
+{
+  (void)argc;
+  (void)argv;
+  if(!InitializeWebEngineLwe())
+  {
+    return nullptr;
+  }
   return Create(width, height, GetLanguage(), GetTimezone());
 }
 
@@ -209,16 +235,9 @@ LWE::WebContainer* WebEngineLweBackendTizen::Create(uint32_t           width,
 
   InitRenderingContext();
 
-  if(!LWE::LWE::IsInitialized())
+  if(!InitializeWebEngineLwe())
   {
-    const std::string dataPath = Dali::DevelApplication::GetDataPath();
-#ifdef OVER_TIZEN_VERSION_9
-    LWE::LWE::Initialize((dataPath + "/StarFishStorage").c_str());
-#else
-    LWE::LWE::Initialize((dataPath + DB_NAME_LOCAL_STORAGE).c_str(),
-                         (dataPath + DB_NAME_COOKIES).c_str(),
-                         (dataPath + DB_NAME_CACHE).c_str());
-#endif
+    return nullptr;
   }
 
   gEglCreateSyncKHR     = reinterpret_cast<PFNEGLCREATESYNCKHRPROC>(eglGetProcAddress("eglCreateSyncKHR"));

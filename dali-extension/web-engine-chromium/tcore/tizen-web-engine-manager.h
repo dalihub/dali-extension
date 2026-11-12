@@ -1,5 +1,4 @@
-#ifndef DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
-#define DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
+#pragma once
 
 /*
  * Copyright (c) 2026 Samsung Electronics Co., Ltd.
@@ -18,89 +17,56 @@
  *
  */
 
-// EXTERNAL INCLUDES
-
-#include <dali/devel-api/adaptor-framework/web-engine/web-engine-plugin.h>
+#include <dali/devel-api/adaptor-framework/web-engine/web-engine-profile.h>
 #include <dali/public-api/signals/slot-delegate.h>
-
-#include <wv_context.h>
-
-#include <array>
 #include <map>
 #include <memory>
-
+#include <vector>
+#include <wv_context.h>
+#include <wv_view.h>
 namespace DALI_NAMESPACE
 {
-class WebEngineContext;
-class WebEngineCookieManager;
-
 namespace Plugin
 {
-/**
- * @brief A class for managing multiple web views
- */
 class WebEngineManager
 {
 public:
+  struct Profile
+  {
+    Profile(wv_context_h context, bool incognito, bool owned);
+    ~Profile();
+    void Release();
+    wv_context_h context;
+    bool incognito;
+    bool owned;
+    std::unique_ptr<WebEngineContext> wrapper;
+    std::unique_ptr<WebEngineCookieManager> cookies;
+  };
+  using ProfilePtr = std::shared_ptr<Profile>;
+
   static WebEngineManager& Get();
-
   static bool IsAvailable();
-
-  /**
-   * @brief Hands chromium its command line, with the tcore switches appended.
-   *
-   * base::CommandLine can only be initialised once per process and the first
-   * caller wins, so every path that wants to pass arguments must come through
-   * here - otherwise an application's own argv would land first and silently
-   * drop the tcore switches. Subsequent calls are ignored.
-   *
-   * @param[in] argc The application's argument count (0 when it has none)
-   * @param[in] argv The application's argument vector (may be nullptr)
-   */
-  static void SetArguments(int argc, char** argv);
-
-  WebEngineManager(WebEngineManager const&) = delete;
-
-  void operator=(WebEngineManager const&) = delete;
-
-  void SetContext(wv_context_h context, bool isIncognito);
-
-  Dali::WebEngineContext* GetContext(bool isIncognito = false);
-
-  Dali::WebEngineCookieManager* GetCookieManager(bool isIncognito = false);
-
-  void Add(wv_view_h webView, Dali::WebEnginePlugin* engine, bool isIncognito);
-
-  void Remove(wv_view_h webView, bool isIncognito);
-
-  Dali::WebEnginePlugin* Find(wv_view_h o);
-
+  bool Initialize();
+  ProfilePtr GetDefaultProfile();
+  ProfilePtr CreateProfile(bool incognito, const char* bundlePath);
+  Dali::WebEngineContext* GetContext(bool incognito = false);
+  Dali::WebEngineCookieManager* GetCookieManager(bool incognito = false);
+  void Add(wv_view_h view, Dali::WebEnginePlugin* engine);
+  void Remove(wv_view_h view);
+  Dali::WebEnginePlugin* Find(wv_view_h view);
   wv_view_h Find(Dali::WebEnginePlugin* plugin);
 
 private:
   WebEngineManager();
-
   ~WebEngineManager();
-
   void OnTerminated();
-
-  enum class ContextType
-  {
-    NORMAL = 0,
-    INCOGNITO,
-    TYPE_COUNT,
-  };
-
-  static constexpr uint8_t ContextTypeCount = static_cast<uint8_t>(ContextType::TYPE_COUNT);
-
-  SlotDelegate<WebEngineManager>                                            mSlotDelegate;
-  std::array<std::unique_ptr<WebEngineContext>, ContextTypeCount>           mWebEngineContexts;
-  std::array<std::unique_ptr<WebEngineCookieManager>, ContextTypeCount>     mWebEngineCookieManagers;
-  std::array<std::map<wv_view_h, Dali::WebEnginePlugin*>, ContextTypeCount> mWebEngines;
-  bool                                                                      mWebEngineManagerAvailable;
+  void TrackProfile(const ProfilePtr& profile);
+  SlotDelegate<WebEngineManager> mSlotDelegate;
+  std::map<wv_view_h, Dali::WebEnginePlugin*> mWebEngines;
+  std::vector<std::weak_ptr<Profile>> mProfiles;
+  std::weak_ptr<Profile> mDefaultProfile;
+  ProfilePtr mLegacyDefaultProfile;
+  bool mWebEngineManagerAvailable = false;
 };
-
 } // namespace Plugin
-} //namespace DALI_NAMESPACE
-
-#endif // DALI_PLUGIN_TIZEN_WEB_ENGINE_MANAGER_H
+} // namespace DALI_NAMESPACE

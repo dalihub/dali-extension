@@ -45,25 +45,20 @@ std::string SerializeOrigin(TizenWebEngineSecurityOrigin& origin)
 }
 } // namespace
 
-TizenWebEngineContext::TizenWebEngineContext(wv_context_h context, bool isIncognito)
+TizenWebEngineContext::TizenWebEngineContext(wv_context_h context)
 : mWebSecurityOriginAcquiredCallback(nullptr),
   mWebStorageUsageAcquiredCallback(nullptr),
   mWebFormPasswordAcquiredCallback(nullptr),
   mWebDownloadStartedCallback(nullptr),
   mWebMimeOverriddenCallback(nullptr),
   mWebRequestInterceptedCallback(nullptr),
-  mWvContext(context),
-  mIsIncognito(isIncognito)
+  mWvContext(context)
 {
 }
 
 TizenWebEngineContext::~TizenWebEngineContext()
 {
-  // In non-incognito mode, context callbacks can be reset here.
-  if(!mIsIncognito)
-  {
-    UnregisterContextCallbacks();
-  }
+  UnregisterContextCallbacks();
 }
 
 void TizenWebEngineContext::UnregisterContextCallbacks()

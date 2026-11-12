@@ -80,11 +80,11 @@ WebEngineLweBackendUbuntu::~WebEngineLweBackendUbuntu()
   Destroy();
 }
 
-void WebEngineLweBackendUbuntu::ensureInitialized()
+bool InitializeWebEngineLweBackend(uint32_t, char**)
 {
   if(LWE::LWE::IsInitialized())
   {
-    return;
+    return true;
   }
 
   std::string storagePath = Dali::DevelApplication::GetDataPath();
@@ -101,6 +101,7 @@ void WebEngineLweBackendUbuntu::ensureInitialized()
   // Isolate LWE's GLib context from DALi's event loop. Notify DALi through
   // EventThreadCallback; no DALi handle is mutated on the LWE thread.
   LWE::LWE::Initialize(storagePath.c_str(), LWE::InitializeOption::PreferSeparateThread);
+  return LWE::LWE::IsInitialized();
 }
 
 LWE::WebContainer* WebEngineLweBackendUbuntu::Create(uint32_t width, uint32_t height, uint32_t, char**)
@@ -126,7 +127,10 @@ LWE::WebContainer* WebEngineLweBackendUbuntu::Create(uint32_t           width,
   const uint32_t initialWidth  = std::max(width, SAFE_INITIAL_WEB_VIEW_WIDTH);
   const uint32_t initialHeight = std::max(height, SAFE_INITIAL_WEB_VIEW_HEIGHT);
 
-  ensureInitialized();
+  if(!InitializeWebEngineLwe())
+  {
+    return nullptr;
+  }
 
   mTaskGeneration      = std::make_shared<std::atomic_bool>(true);
   mAcceptTasks         = true;

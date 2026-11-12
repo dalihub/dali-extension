@@ -311,6 +311,35 @@ WebEngineLwe::~WebEngineLwe()
   Destroy();
 }
 
+bool WebEngineLwe::CreateDefaultView(uint32_t width, uint32_t height)
+{
+  if(!InitializeWebEngineLwe())
+  {
+    return false;
+  }
+  // The platform overload supplies its established locale/timezone defaults.
+  Create(width, height, 0, nullptr);
+  return mWebContainer != nullptr;
+}
+
+void WebEngineLwe::DestroyAllViews()
+{
+  for(;;)
+  {
+    WebEngineLwe* instance;
+    {
+      std::lock_guard<std::mutex> lock(sLiveInstancesMutex);
+      if(sLiveInstances.empty())
+      {
+        return;
+      }
+      instance = *sLiveInstances.begin();
+      sLiveInstances.erase(sLiveInstances.begin());
+    }
+    instance->Destroy();
+  }
+}
+
 void WebEngineLwe::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
 {
   Destroy();
@@ -333,7 +362,11 @@ void WebEngineLwe::Create(uint32_t width, uint32_t height, uint32_t argc, char**
 
 void WebEngineLwe::CompleteCreate(LWE::WebContainer* webContainer)
 {
-  DALI_ASSERT_ALWAYS(webContainer && "Failed to create LWE WebContainer");
+  if(!webContainer)
+  {
+    DALI_LOG_ERROR("Failed to create LWE WebContainer\n");
+    return;
+  }
 
   mWebContainer      = webContainer;
   mWebEngineSettings = std::make_unique<WebEngineLweSettings>(mWebContainer);

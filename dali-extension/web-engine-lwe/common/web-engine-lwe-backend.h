@@ -34,6 +34,9 @@ namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
+bool InitializeWebEngineLweBackend(uint32_t argc, char** argv);
+bool InitializeWebEngineLwe();
+
 /**
  * Platform boundary for the LWE plugin.
  *

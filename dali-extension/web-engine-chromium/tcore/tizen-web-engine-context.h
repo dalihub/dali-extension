@@ -44,7 +44,7 @@ public:
   /**
    * @brief Constructor.
    */
-  TizenWebEngineContext(wv_context_h context, bool isIncognito);
+  explicit TizenWebEngineContext(wv_context_h context);
 
   /**
    * @brief Destructor.
@@ -325,7 +325,6 @@ private:
   WebEngineMimeOverriddenCallback         mWebMimeOverriddenCallback;
   WebEngineRequestInterceptedCallback     mWebRequestInterceptedCallback;
   wv_context_h                            mWvContext;
-  bool                                    mIsIncognito;
 };
 
 } // namespace Plugin

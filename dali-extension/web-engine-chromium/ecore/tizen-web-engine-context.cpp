@@ -28,25 +28,20 @@ namespace DALI_NAMESPACE
 namespace Plugin
 {
 
-TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context, bool isIncognito)
+TizenWebEngineContext::TizenWebEngineContext(Ewk_Context* context)
 : mWebSecurityOriginAcquiredCallback(nullptr),
   mWebStorageUsageAcquiredCallback(nullptr),
   mWebFormPasswordAcquiredCallback(nullptr),
   mWebDownloadStartedCallback(nullptr),
   mWebMimeOverriddenCallback(nullptr),
   mWebRequestInterceptedCallback(nullptr),
-  mEwkContext(context),
-  mIsIncognito(isIncognito)
+  mEwkContext(context)
 {
 }
 
 TizenWebEngineContext::~TizenWebEngineContext()
 {
-  // In non-incognito mode, context callbacks can be reset here.
-  if(!mIsIncognito)
-  {
-    UnregisterContextCallbacks();
-  }
+  UnregisterContextCallbacks();
 }
 
 void TizenWebEngineContext::UnregisterContextCallbacks()

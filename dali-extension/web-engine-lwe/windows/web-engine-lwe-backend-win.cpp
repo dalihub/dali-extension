@@ -79,11 +79,11 @@ WebEngineLweBackendWin::~WebEngineLweBackendWin()
   Destroy();
 }
 
-void WebEngineLweBackendWin::EnsureInitialized()
+bool InitializeWebEngineLweBackend(uint32_t, char**)
 {
   if(LWE::LWE::IsInitialized())
   {
-    return;
+    return true;
   }
 
   std::string storagePath = Dali::DevelApplication::GetDataPath();
@@ -101,6 +101,7 @@ void WebEngineLweBackendWin::EnsureInitialized()
   // messages. LWE therefore owns a separate thread and all DALi work is
   // marshalled back through EventThreadCallback.
   LWE::LWE::Initialize(storagePath.c_str(), LWE::InitializeOption::PreferSeparateThread);
+  return LWE::LWE::IsInitialized();
 }
 
 LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width, uint32_t height, uint32_t, char**)
@@ -118,7 +119,10 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
   const uint32_t initialWidth = std::max(width, SAFE_INITIAL_WEB_VIEW_WIDTH);
   const uint32_t initialHeight = std::max(height, SAFE_INITIAL_WEB_VIEW_HEIGHT);
 
-  EnsureInitialized();
+  if(!InitializeWebEngineLwe())
+  {
+    return nullptr;
+  }
 
   mAcceptTasks = true;
   mEventThreadCallback = std::make_shared<Dali::EventThreadCallback>(

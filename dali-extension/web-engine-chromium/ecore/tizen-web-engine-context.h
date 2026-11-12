@@ -46,7 +46,7 @@ public:
   /**
    * @brief Constructor.
    */
-  TizenWebEngineContext(Ewk_Context*, bool isIncognito);
+  explicit TizenWebEngineContext(Ewk_Context* context);
 
   /**
    * @brief Destructor.
@@ -327,7 +327,6 @@ private:
   WebEngineMimeOverriddenCallback         mWebMimeOverriddenCallback;
   WebEngineRequestInterceptedCallback     mWebRequestInterceptedCallback;
   Ewk_Context*                            mEwkContext;
-  bool                                    mIsIncognito;
 };
 
 } // namespace Plugin
