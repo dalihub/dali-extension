@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/images/native-image-interface.h>
 
 #include <cstdint>
@@ -31,31 +32,43 @@ namespace Plugin
 class WebEngineLweBufferImage : public Dali::NativeImageInterface
 {
 public:
-  WebEngineLweBufferImage(uint32_t width, uint32_t height);
+  /**
+   * @brief Creates a reference-counted implementation.
+   */
+  static Dali::IntrusivePtr<WebEngineLweBufferImage> New(uint32_t width, uint32_t height)
+  {
+    return Dali::IntrusivePtr<WebEngineLweBufferImage>(new WebEngineLweBufferImage(width, height));
+  }
+
   void setFrame(std::vector<uint8_t>&& pixels);
 
-  bool CreateResource() override;
-  void DestroyResource() override;
-  uint32_t TargetTexture() override;
+  bool                 CreateResource() override;
+  void                 DestroyResource() override;
+  uint32_t             TargetTexture() override;
   PrepareTextureResult PrepareTexture() override;
-  uint32_t GetWidth() const override;
-  uint32_t GetHeight() const override;
-  bool RequiresBlending() const override;
-  int GetTextureTarget() const override;
-  bool ApplyNativeFragmentShader(Dali::String&, int) override;
-  const char* GetCustomSamplerTypename() const override;
-  Dali::Any GetNativeImageHandle() const override;
-  bool SourceChanged() const override;
+  uint32_t             GetWidth() const override;
+  uint32_t             GetHeight() const override;
+  bool                 RequiresBlending() const override;
+  int                  GetTextureTarget() const override;
+  bool                 ApplyNativeFragmentShader(Dali::String&, int) override;
+  const char*          GetCustomSamplerTypename() const override;
+  Dali::Any            GetNativeImageHandle() const override;
+  bool                 SourceChanged() const override;
   Dali::Rect<uint32_t> GetUpdatedArea() override;
-  void PostRender() override;
+  void                 PostRender() override;
+  bool                 IsAlphaPreMultiplied() const override;
+
+protected:
+  WebEngineLweBufferImage(uint32_t width, uint32_t height);
+  ~WebEngineLweBufferImage() override = default;
 
 private:
-  const uint32_t mWidth;
-  const uint32_t mHeight;
-  mutable std::mutex mMutex;
+  const uint32_t       mWidth;
+  const uint32_t       mHeight;
+  mutable std::mutex   mMutex;
   std::vector<uint8_t> mPixels;
-  bool mChanged{true};
-  uint32_t mTexture{0u};
+  bool                 mChanged{true};
+  uint32_t             mTexture{0u};
 };
 } // namespace Plugin
 } // namespace DALI_NAMESPACE

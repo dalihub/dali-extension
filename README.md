@@ -21,6 +21,11 @@ make install -j
 <br/>
 
 ## Build & Install
+
+The Ubuntu build takes `-DDALI_LEGACY_ALIASES=ON` to also install the DALi 2.x
+plugin names as links to the dali3 files (see "Install layout and the DALi 2.x
+names" in the dali-core README).
+
 ```sh
 cd build/ubuntu
 cmake -DCMAKE_INSTALL_PREFIX=$DESKTOP_PREFIX

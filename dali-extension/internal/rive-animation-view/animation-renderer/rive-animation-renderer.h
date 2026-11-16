@@ -24,6 +24,7 @@
 #include <dali/devel-api/threading/mutex.h>
 #include <dali/integration-api/debug.h> ///< note : Debug::DebugPriority::DEBUG can be removed due to <rive/rive_types.hpp>.
 #include <dali/public-api/common/dali-vector.h>
+#include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/rendering/renderer.h>
 #include <tbm_surface.h>
 #include <tbm_surface_queue.h>
@@ -58,14 +59,12 @@ public:
   using UploadCompletedSignalType = Signal<void()>;
 
   /**
-   * @brief Constructor.
+   * @brief Creates a reference-counted implementation.
    */
-  RiveAnimationRenderer();
-
-  /**
-   * @brief Destructor.
-   */
-  virtual ~RiveAnimationRenderer();
+  static Dali::IntrusivePtr<RiveAnimationRenderer> New()
+  {
+    return Dali::IntrusivePtr<RiveAnimationRenderer>(new RiveAnimationRenderer());
+  }
 
   /**
    * @brief Loads the animation file.
@@ -259,6 +258,17 @@ public:
    */
   UploadCompletedSignalType& UploadCompletedSignal();
 
+protected:
+  /**
+   * @brief Constructor.
+   */
+  RiveAnimationRenderer();
+
+  /**
+   * @brief Destructor.
+   */
+  virtual ~RiveAnimationRenderer();
+
 protected: // Implementation of RiveAnimationRendererEventHandler
   /**
    * @copydoc Dali::Plugin::RiveAnimationRendererEventHandler::NotifyEvent()
@@ -284,6 +294,9 @@ private:
     bool                                           enable;
     float                                          elapsed;
   };
+
+  RiveAnimationRenderer(const RiveAnimationRenderer&)            = delete;
+  RiveAnimationRenderer& operator=(const RiveAnimationRenderer&) = delete;
 
   /**
    * @brief Set shader for NativeImageQueue with custom sampler type and prefix.

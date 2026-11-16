@@ -320,7 +320,7 @@ void TizenWebEngineContext::RequestIntercepted(Dali::WebEngineRequestInterceptor
 void TizenWebEngineContext::OnRequestIntercepted(Ewk_Context*, Ewk_Intercept_Request* request, void* userData)
 {
   TizenWebEngineContext*               pThis          = static_cast<TizenWebEngineContext*>(userData);
-  Dali::WebEngineRequestInterceptorPtr webInterceptor = new TizenWebEngineRequestInterceptor(request);
+  Dali::WebEngineRequestInterceptorPtr webInterceptor = TizenWebEngineRequestInterceptor::New(request);
   pThis->RequestIntercepted(webInterceptor);
 }
 

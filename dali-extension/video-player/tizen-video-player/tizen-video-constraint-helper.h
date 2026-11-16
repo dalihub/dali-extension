@@ -105,6 +105,9 @@ public:
   float UpdateInterpolationFactor();
 
 private:
+  VideoConstraintHelper(const VideoConstraintHelper&)            = delete;
+  VideoConstraintHelper& operator=(const VideoConstraintHelper&) = delete;
+
   VideoConstraintHelper();
 
   virtual ~VideoConstraintHelper();

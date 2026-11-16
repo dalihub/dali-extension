@@ -16,6 +16,10 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
+# The headers live under the versioned include directory (include/dali3),
+# which only pkg-config knows; the default include path no longer finds them.
+PKG_CHECK_MODULES([DALI], [dali3-core dali3-adaptor])
+
 if test "x$enable_debug" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
 fi
@@ -28,7 +32,11 @@ AC_ARG_ENABLE([keyextension],
 
 AM_CONDITIONAL([USE_KEY_EXTENSION], [test x$enable_keyextension = xyes])
 
-devincludepath=${includedir}
+# The API major is in the package names (dali3-*). The headers install under
+# include/dali<major>, beside a DALi 2.x that may be built from different
+# code; the spec adds the 2.x name as a link when dali2 aliases are enabled.
+dali_api_major=3
+devincludepath=${includedir}/dali${dali_api_major}
 AC_SUBST(devincludepath)
 AC_SUBST(DALI_CFLAGS)
 

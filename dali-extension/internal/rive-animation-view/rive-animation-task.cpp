@@ -44,7 +44,7 @@ Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, fa
 
 RiveAnimationTask::RiveAnimationTask()
 : mUrl(),
-  mVectorRenderer(new RiveAnimationRenderer()),
+  mVectorRenderer(RiveAnimationRenderer::New()),
   mAnimationData(),
   mRiveAnimationThread(RiveAnimationManager::GetInstance().GetRiveAnimationThread()),
   mConditionalWait(),
