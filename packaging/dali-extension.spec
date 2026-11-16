@@ -427,6 +427,10 @@ ICU plugin to use an International Components for Unicode for Dali
 # Build
 ##############################
 %build
+# Keep shadow diagnostics enabled independently of the build server policy.
+export CFLAGS="${CFLAGS:-%optflags} -Werror=shadow"
+export CXXFLAGS="${CXXFLAGS:-%optflags} -Werror=shadow"
+
 %if %{with dali2}
 # The autotools build runs in the source tree and names its libraries in
 # Makefile.am, so dali2 is built in a pristine copy of the tree whose build
