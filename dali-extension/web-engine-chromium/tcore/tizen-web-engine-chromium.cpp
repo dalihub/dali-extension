@@ -534,7 +534,9 @@ void TizenWebEngineChromium::ClearHistory()
 
 void TizenWebEngineChromium::ClearAllTilesResources()
 {
-  wv_view_clear_all_tiles_resources(mWebView);
+  // TODO: wv_view_clear_all_tiles_resources() is not declared in the web view
+  // API yet. Enable it when the API is available.
+  // wv_view_clear_all_tiles_resources(mWebView);
 }
 
 std::string TizenWebEngineChromium::GetUserAgent() const
