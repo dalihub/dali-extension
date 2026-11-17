@@ -28,7 +28,9 @@
 #include <glib.h>
 #include <system_info.h>
 
+#include <memory>
 #include <mutex>
+#include <new>
 
 #ifdef OVER_TIZEN_VERSION_11
 #include <wayland-egl-tizen.h>
@@ -39,6 +41,21 @@ namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
+#ifdef OVER_TIZEN_VERSION_11
+/**
+ * @brief State shared by the player (event thread) and the EGL window pre-commit callback (render side).
+ *
+ * The wrapper sends requests on proxy wrappers of the video shell surface objects, so it must not be
+ * used once the surface is destroyed. Every use and the destruction are serialized by the mutex, and
+ * the wrapper is set to nullptr on destruction so that an already queued callback becomes a no-op.
+ */
+struct VideoShellSyncState
+{
+  std::mutex                                  mutex;
+  tizen_core_wl_video_shell_surface_wrapper_h wrapper{nullptr};
+};
+#endif
+
 namespace
 {
 const char* TIZEN_GLIB_CONTEXT_ENV = "TIZEN_GLIB_CONTEXT";
@@ -236,37 +253,52 @@ const char* const VIDEO_PLAYER_SIZE_NAME("videoPlayerSize");
 #ifdef OVER_TIZEN_VERSION_11
 struct BufferCommitData
 {
-  tizen_core_wl_video_shell_surface_wrapper_h tcoreVideoShellSurfaceWrapper;
-  int32_t                                     x;
-  int32_t                                     y;
-  int32_t                                     width;
-  int32_t                                     height;
+  std::shared_ptr<VideoShellSyncState> syncState; ///< Keeps the shared state alive until this callback has run
+  int32_t                              x;
+  int32_t                              y;
+  int32_t                              width;
+  int32_t                              height;
 };
 
 static void eglWindowBufferPreCommit(void* data)
 {
-  struct BufferCommitData* bufferCommitData = (struct BufferCommitData*)data;
-  if(!bufferCommitData)
+  // The callback is registered with ONCE, so this is the only user of the data: release it here.
+  std::unique_ptr<BufferCommitData> bufferCommitData(static_cast<BufferCommitData*>(data));
+  if(!bufferCommitData || !bufferCommitData->syncState)
   {
     DALI_LOG_ERROR("user data is nullptrs\n");
     return;
   }
-  DALI_LOG_RELEASE_INFO("eglWindowBufferPreCommit: wrapper: %p\n", bufferCommitData);
-  tizen_core_wl_video_shell_surface_wrapper_update_geometry(bufferCommitData->tcoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
-  tizen_core_wl_video_shell_surface_wrapper_commit(bufferCommitData->tcoreVideoShellSurfaceWrapper);
+
+  // Held for the whole wrapper use, so that the event thread cannot destroy the wrapper
+  // (and then the video shell surface) in the middle of these requests.
+  std::scoped_lock lock(bufferCommitData->syncState->mutex);
+
+  tizen_core_wl_video_shell_surface_wrapper_h wrapper = bufferCommitData->syncState->wrapper;
+  if(!wrapper)
+  {
+    // The video shell was torn down after this callback had been queued.
+    // Its wayland objects are gone, so any request would be a protocol error (invalid object).
+    DALI_LOG_RELEASE_INFO("eglWindowBufferPreCommit: video shell wrapper is already destroyed, skip\n");
+    return;
+  }
+
+  DALI_LOG_RELEASE_INFO("eglWindowBufferPreCommit: wrapper: %p\n", wrapper);
+  tizen_core_wl_video_shell_surface_wrapper_update_geometry(wrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
+  tizen_core_wl_video_shell_surface_wrapper_commit(wrapper);
 }
 
 struct VideoShellSyncConstraint
 {
 public:
-  VideoShellSyncConstraint(tizen_core_wl_video_shell_surface_wrapper_h tcoreVideoShellSurfaceWrapper, Dali::Window window, int screenWidth, int screenHeight)
+  VideoShellSyncConstraint(std::shared_ptr<VideoShellSyncState> syncState, Dali::Window window, int screenWidth, int screenHeight)
   {
-    mWindow                        = window;
-    mTcoreVideoShellSurfaceWrapper = tcoreVideoShellSurfaceWrapper;
+    mWindow    = window;
+    mSyncState = std::move(syncState);
 
     mHalfScreenWidth  = static_cast<float>(screenWidth) / 2;
     mHalfScreenHeight = static_cast<float>(screenHeight) / 2;
-    DALI_LOG_RELEASE_INFO("create videoShell constraint: mTcoreVideoShellSurfaceWrapper %p\n", mTcoreVideoShellSurfaceWrapper);
+    DALI_LOG_RELEASE_INFO("create videoShell constraint: sync state %p\n", mSyncState.get());
   }
 
   void operator()(Vector3& current, const PropertyInputContainer& inputs)
@@ -296,30 +328,41 @@ public:
     area.width  = actorSize.x;
     area.height = actorSize.y;
 
-    struct BufferCommitData* bufferCommitData = (struct BufferCommitData*)calloc(1, sizeof(struct BufferCommitData));
+    // A removed constraint can still be applied until the update side processes the removal.
+    // Do not queue a callback for a video shell that is already torn down.
+    {
+      std::scoped_lock lock(mSyncState->mutex);
+      if(!mSyncState->wrapper)
+      {
+        return;
+      }
+    }
+
+    // Owned by eglWindowBufferPreCommit(), which deletes it.
+    BufferCommitData* bufferCommitData = new(std::nothrow) BufferCommitData();
     if(!bufferCommitData)
     {
-      DALI_LOG_ERROR("Fail to calloc for BufferCommitData!!");
+      DALI_LOG_ERROR("Fail to allocate BufferCommitData!!");
       return;
     }
 
-    bufferCommitData->tcoreVideoShellSurfaceWrapper = mTcoreVideoShellSurfaceWrapper;
-    bufferCommitData->x                             = area.x;
-    bufferCommitData->y                             = area.y;
-    bufferCommitData->width                         = area.width;
-    bufferCommitData->height                        = area.height;
+    bufferCommitData->syncState = mSyncState;
+    bufferCommitData->x         = area.x;
+    bufferCommitData->y         = area.y;
+    bufferCommitData->width     = area.width;
+    bufferCommitData->height    = area.height;
 
-    DALI_LOG_DEBUG_INFO("Setup the eglWindow PreCommit Callback with wrapper : %p, (%d,%d)(%d x %d)\n", bufferCommitData->tcoreVideoShellSurfaceWrapper, bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
+    DALI_LOG_DEBUG_INFO("Setup the eglWindow PreCommit Callback with sync state : %p, (%d,%d)(%d x %d)\n", mSyncState.get(), bufferCommitData->x, bufferCommitData->y, bufferCommitData->width, bufferCommitData->height);
 
     // callback option 0 : Once, 1 : continuos
     wl_egl_window_tizen_set_pre_commit_callback(eglWindowBuffer, eglWindowBufferPreCommit, bufferCommitData, ONCE);
   }
 
 private:
-  Dali::Window                                mWindow;
-  tizen_core_wl_video_shell_surface_wrapper_h mTcoreVideoShellSurfaceWrapper;
-  float                                       mHalfScreenWidth;
-  float                                       mHalfScreenHeight;
+  Dali::Window                         mWindow;
+  std::shared_ptr<VideoShellSyncState> mSyncState;
+  float                                mHalfScreenWidth;
+  float                                mHalfScreenHeight;
 };
 #endif
 
@@ -445,6 +488,8 @@ TizenVideoPlayer::~TizenVideoPlayer()
   }
 
 #ifdef OVER_TIZEN_VERSION_11
+  // The wrapper must be destroyed before the video shell surface.
+  DestroyVideoShellSurfaceWrapper();
   if(mTcoreVideoShellSurface)
   {
     tizen_core_wl_video_shell_surface_destroy(mTcoreVideoShellSurface);
@@ -682,7 +727,10 @@ void TizenVideoPlayer::InitializeVideoShell(tizen_core_wl_window_h tcoreWlWindow
     // check previous video subsurface and destroy
     if(mTcoreVideoShellSurface)
     {
+      // The wrapper must be destroyed before the video shell surface.
+      DestroyVideoShellSurfaceWrapper();
       tizen_core_wl_video_shell_surface_destroy(mTcoreVideoShellSurface);
+      mTcoreVideoShellSurface = nullptr;
     }
 
     // Create tcore video shell surface
@@ -1092,9 +1140,21 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
       int screenY = 0;
       tizen_core_wl_screen_get_geometry(screen, &screenX, &screenY, &width, &height);
 
-      Window                                      window                        = Window::Get(syncActor);
+      Window window = Window::Get(syncActor);
+
+      // Release the previous wrapper, if any, before creating a new one.
+      DestroyVideoShellSurfaceWrapper();
+
       tizen_core_wl_video_shell_surface_wrapper_h tcoreVideoShellSurfaceWrapper = nullptr;
       tizen_core_wl_video_shell_surface_wrapper_create(mTcoreVideoShellSurface, &tcoreVideoShellSurfaceWrapper);
+      if(!tcoreVideoShellSurfaceWrapper)
+      {
+        // The constraint is still created; it does nothing while the wrapper is nullptr.
+        DALI_LOG_ERROR("CreateVideoShellConstraint, tizen_core_wl_video_shell_surface_wrapper_create() is failed\n");
+      }
+
+      mVideoShellSyncState          = std::make_shared<VideoShellSyncState>();
+      mVideoShellSyncState->wrapper = tcoreVideoShellSurfaceWrapper;
 
       const char* videoShellHandle = nullptr;
       tizen_core_wl_video_shell_surface_get_handle(mTcoreVideoShellSurface, &videoShellHandle);
@@ -1102,7 +1162,7 @@ void TizenVideoPlayer::CreateVideoShellConstraint()
 
       mVideoShellSizePropertyConstraint = Constraint::New<Vector3>(syncActor,
                                                                    mVideoShellSizePropertyIndex,
-                                                                   VideoShellSyncConstraint(tcoreVideoShellSurfaceWrapper, window, width, height));
+                                                                   VideoShellSyncConstraint(mVideoShellSyncState, window, width, height));
 
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::SIZE));
       mVideoShellSizePropertyConstraint.AddSource(LocalSource(Actor::Property::WORLD_SCALE));
@@ -1123,8 +1183,32 @@ void TizenVideoPlayer::DestroyVideoShellConstraint()
     mVideoShellSizePropertyConstraint.Remove();
     mVideoShellSizePropertyIndex = Property::INVALID_INDEX;
   }
+  // A pre-commit callback may already be queued on an EGL window buffer and cannot be cancelled.
+  // Invalidating the wrapper here turns it into a no-op before the video shell surface goes away.
+  DestroyVideoShellSurfaceWrapper();
 #else
   DALI_LOG_ERROR("Video Shell Constraint NOT SUPPORT THIS TIZEN VERSION!\n");
+#endif
+}
+
+void TizenVideoPlayer::DestroyVideoShellSurfaceWrapper()
+{
+#ifdef OVER_TIZEN_VERSION_11
+  if(mVideoShellSyncState)
+  {
+    {
+      // Waits for a pre-commit callback that is using the wrapper right now.
+      std::scoped_lock lock(mVideoShellSyncState->mutex);
+      if(mVideoShellSyncState->wrapper)
+      {
+        DALI_LOG_RELEASE_INFO("Destroy VideoShell surface wrapper: %p\n", mVideoShellSyncState->wrapper);
+        tizen_core_wl_video_shell_surface_wrapper_destroy(mVideoShellSyncState->wrapper);
+        mVideoShellSyncState->wrapper = nullptr;
+      }
+    }
+    // Queued callbacks and the constraint functor keep their own references.
+    mVideoShellSyncState.reset();
+  }
 #endif
 }
 
