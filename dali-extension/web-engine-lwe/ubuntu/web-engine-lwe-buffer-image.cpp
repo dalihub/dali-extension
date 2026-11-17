@@ -37,7 +37,7 @@ void WebEngineLweBufferImage::setFrame(std::vector<uint8_t>&& pixels)
     return;
   }
   std::lock_guard<std::mutex> lock(mMutex);
-  mPixels = std::move(pixels);
+  mPixels  = std::move(pixels);
   mChanged = true;
 }
 
@@ -61,7 +61,7 @@ uint32_t WebEngineLweBufferImage::TargetTexture()
   // DALi has bound its texture here. It owns the texture name and its lifetime.
   // Keep the latest CPU frame for resource recreation after context loss.
   std::lock_guard<std::mutex> lock(mMutex);
-  GLint texture = 0;
+  GLint                       texture = 0;
   glGetIntegerv(GL_TEXTURE_BINDING_2D, &texture);
   const bool allocated = mTexture == static_cast<uint32_t>(texture) && texture != 0;
   if((!mChanged && allocated) || mPixels.empty())
@@ -144,6 +144,11 @@ Dali::Rect<uint32_t> WebEngineLweBufferImage::GetUpdatedArea()
 
 void WebEngineLweBufferImage::PostRender()
 {
+}
+
+bool WebEngineLweBufferImage::IsAlphaPreMultiplied() const
+{
+  return true;
 }
 } // namespace Plugin
 } // namespace DALI_NAMESPACE

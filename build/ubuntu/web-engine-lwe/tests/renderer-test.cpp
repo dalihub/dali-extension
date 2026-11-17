@@ -64,7 +64,7 @@ void checkFrame(Renderer& renderer, uint32_t width, uint32_t height)
   glPixelStorei(GL_PACK_ALIGNMENT, 8);
   require(renderer.swapBuffers(), "Frame capture failed");
   renderer.setFrameCallback({});
-  GLint binding = 0;
+  GLint binding   = 0;
   GLint alignment = 0;
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &binding);
   glGetIntegerv(GL_PACK_ALIGNMENT, &alignment);
@@ -77,18 +77,18 @@ void checkFrame(Renderer& renderer, uint32_t width, uint32_t height)
     for(uint32_t column = 0; column < width; ++column)
     {
       const size_t offset = (static_cast<size_t>(row) * width + column) * 4u;
-      const bool red = row < height - height / 2;
+      const bool   red    = row < height - height / 2;
       require(pixels[offset] == (red ? 255 : 0) && pixels[offset + 1] == 0 &&
-              pixels[offset + 2] == (red ? 0 : 255) && pixels[offset + 3] == 255,
+                pixels[offset + 2] == (red ? 0 : 255) && pixels[offset + 3] == 255,
               "RGBA color or top-down row order is wrong");
     }
   }
 }
 void checkBufferUpload()
 {
-  Dali::IntrusivePtr<Dali::Plugin::WebEngineLweBufferImage> image(new Dali::Plugin::WebEngineLweBufferImage(3, 5));
-  GLuint texture = 0;
-  GLuint framebuffer = 0;
+  Dali::IntrusivePtr<Dali::Plugin::WebEngineLweBufferImage> image(Dali::Plugin::WebEngineLweBufferImage::New(3, 5));
+  GLuint                                                    texture     = 0;
+  GLuint                                                    framebuffer = 0;
   glGenTextures(1, &texture);
   glGenFramebuffers(1, &framebuffer);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -159,7 +159,7 @@ int main()
 
     const EGLDisplay display = eglGetCurrentDisplay();
     const EGLContext context = eglGetCurrentContext();
-    Renderer invalid;
+    Renderer         invalid;
     require(!invalid.initialize(UINT32_MAX, 1), "Oversized surface unexpectedly succeeded");
     require(eglGetCurrentDisplay() == display && eglGetCurrentContext() == context,
             "Failed initialization changed another renderer's current context");
@@ -204,7 +204,7 @@ int main()
     checkFrame(first, 2, 2);
     require(first.clearCurrentContext(), "Could not release context for render thread");
     std::exception_ptr workerError;
-    std::thread worker([&]()
+    std::thread        worker([&]()
     {
       try
       {

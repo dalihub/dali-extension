@@ -114,7 +114,7 @@ Debug::Filter* gRiveAnimationLogFilter = Debug::Filter::New(Debug::NoLogging, fa
 
 RiveAnimationView::RiveAnimationView()
 : ControlImpl(ControlBehaviour(CONTROL_BEHAVIOUR_DEFAULT)),
-  mRiveAnimationTask(new RiveAnimationTask())
+  mRiveAnimationTask(RiveAnimationTask::New())
 {
 }
 

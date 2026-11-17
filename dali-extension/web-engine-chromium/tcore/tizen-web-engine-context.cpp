@@ -343,7 +343,7 @@ void TizenWebEngineContext::RequestIntercepted(Dali::WebEngineRequestInterceptor
 void TizenWebEngineContext::OnRequestIntercepted(wv_context_h, wv_intercept_request_h request, void* userData)
 {
   TizenWebEngineContext*               pThis          = static_cast<TizenWebEngineContext*>(userData);
-  Dali::WebEngineRequestInterceptorPtr webInterceptor = new TizenWebEngineRequestInterceptor(request);
+  Dali::WebEngineRequestInterceptorPtr webInterceptor = TizenWebEngineRequestInterceptor::New(request);
   pThis->RequestIntercepted(webInterceptor);
 }
 
@@ -386,7 +386,7 @@ void TizenWebEngineContext::OnFormPasswordsAcquired(GList* list, void* userData)
         char* url;
         bool  use_fingerprint;
       };
-      WvPasswordData*                                   wvPassword = static_cast<WvPasswordData*>(l->data);
+      WvPasswordData*                                       wvPassword = static_cast<WvPasswordData*>(l->data);
       std::unique_ptr<Dali::WebEngineContext::PasswordData> passwordData(new Dali::WebEngineContext::PasswordData());
       passwordData->url            = wvPassword->url;
       passwordData->useFingerprint = wvPassword->use_fingerprint;

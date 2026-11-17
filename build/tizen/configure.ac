@@ -101,7 +101,11 @@ fi
 
 AC_CONFIG_SUBDIRS(dali-extension)
 
-devincludepath=${includedir}
+# The API major is in the package names (dali3-*). The headers install under
+# include/dali<major>, beside a DALi 2.x that may be built from different
+# code; the spec adds the 2.x name as a link when dali2 aliases are enabled.
+dali_api_major=3
+devincludepath=${includedir}/dali${dali_api_major}
 AC_SUBST(devincludepath)
 
 AC_CONFIG_FILES([

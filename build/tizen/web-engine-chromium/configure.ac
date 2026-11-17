@@ -16,6 +16,11 @@ LT_INIT
 DALI_EXTENSION_VERSION=dali_version
 AC_SUBST(DALI_EXTENSION_VERSION)
 
+# Before any DALI_CFLAGS assignment: pkg.m4 skips pkg-config when the
+# variable is already set, and the headers live under include/dali<major>,
+# which only pkg-config knows.
+PKG_CHECK_MODULES([DALI], [dali3-core dali3-adaptor])
+
 if test "x$enable_debug" = "xyes"; then
   DALI_CFLAGS="$DALI_CFLAGS -DDEBUG_ENABLED"
 fi
@@ -30,7 +35,6 @@ fi
 
 TIZEN_WAYLAND_BACKEND_INIT
 
-PKG_CHECK_MODULES([DALI], [dali3-core dali3-adaptor])
 PKG_CHECK_MODULES(WAYLAND, libtbm)
 PKG_CHECK_MODULES(WEB_ENGINE_CHROMIUM, chromium-efl)
 
@@ -45,7 +49,11 @@ else
   PKG_CHECK_MODULES(ECORE_WL2, ecore-wl2)
 fi
 
-devincludepath=${includedir}
+# The API major is in the package names (dali3-*). The headers install under
+# include/dali<major>, beside a DALi 2.x that may be built from different
+# code; the spec adds the 2.x name as a link when dali2 aliases are enabled.
+dali_api_major=3
+devincludepath=${includedir}/dali${dali_api_major}
 AC_SUBST(devincludepath)
 AC_SUBST(DALI_CFLAGS)
 

@@ -4,19 +4,25 @@ IF(POLICY CMP0177)
   CMAKE_POLICY(SET CMP0177 NEW) # install() DESTINATION paths are normalized.
 ENDIF()
 
-# API major version (Not DALi release version). It also names the plugins
+# API major version (Not DALi release version). It names the plugins
 # (dali<major>-*-plugin) and selects dali<major>-core, -adaptor and -toolkit.
-IF(NOT DALI_API_MAJOR)
-  SET(DALI_API_MAJOR 3)
-ENDIF()
+# The 2.x names are available as links through DALI_LEGACY_ALIASES (see
+# dali-legacy-aliases.cmake).
+SET(DALI_API_MAJOR 3)
 SET(name "dali${DALI_API_MAJOR}-extension")
 SET(core_name "dali${DALI_API_MAJOR}-core")
 SET(adaptor_name "dali${DALI_API_MAJOR}-adaptor")
 SET(toolkit_name "dali${DALI_API_MAJOR}-toolkit")
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/dali-legacy-aliases.cmake)
 
 SET(CMAKE_C_STANDARD 99)
 SET(CMAKE_CXX_STANDARD 17)
 PROJECT(${name})
+# Enable shadow errors for GNU builds; validate other compilers separately.
+IF(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  ADD_COMPILE_OPTIONS(-Werror=shadow)
+ENDIF()
+
 SET(PKG_NAME ${name})
 
 OPTION(ENABLE_DEBUG         "Enable Debug"  OFF)

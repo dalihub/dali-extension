@@ -145,6 +145,9 @@ ELSE()
   INSTALL( TARGETS ${name} DESTINATION ${LIB_DIR} )
 ENDIF()
 
+# DALi 2.x name as a link to the file above (DALI_LEGACY_ALIASES=ON only).
+dali_legacy_library_alias(${name} dali2-vector-animation-renderer-plugin)
+
 # Configuration Messages
 MESSAGE( STATUS "Configuration:\n" )
 MESSAGE( STATUS "Prefix:                " ${PREFIX} )

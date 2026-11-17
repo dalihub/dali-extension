@@ -20,6 +20,7 @@
 // EXTERNAL INCLUDES
 #include <dali/devel-api/adaptor-framework/event-thread-callback.h>
 #include <dali/devel-api/threading/conditional-wait.h>
+#include <dali/public-api/common/intrusive-ptr.h>
 #include <dali/public-api/object/property-array.h>
 #include <chrono>
 #include <memory>
@@ -117,14 +118,12 @@ public:
   };
 
   /**
-   * @brief Constructor.
+   * @brief Creates a reference-counted implementation.
    */
-  RiveAnimationTask();
-
-  /**
-   * @brief Destructor.
-   */
-  ~RiveAnimationTask() override;
+  static Dali::IntrusivePtr<RiveAnimationTask> New()
+  {
+    return Dali::IntrusivePtr<RiveAnimationTask>(new RiveAnimationTask());
+  }
 
   /**
    * @brief Finalizes the task.
@@ -241,6 +240,17 @@ public:
    */
   bool FireState(const std::string& stateMachineName, const std::string& inputName);
 
+protected:
+  /**
+   * @brief Constructor.
+   */
+  RiveAnimationTask();
+
+  /**
+   * @brief Destructor.
+   */
+  ~RiveAnimationTask() override;
+
 private:
   /**
    * @brief Play the rive animation.
@@ -333,11 +343,7 @@ private:
    * @brief Applies the animation data set by the main thread.
    */
   void ApplyAnimationData();
-
-  // Undefined
-  RiveAnimationTask(const RiveAnimationTask& task) = delete;
-
-  // Undefined
+  RiveAnimationTask(const RiveAnimationTask& task)            = delete;
   RiveAnimationTask& operator=(const RiveAnimationTask& task) = delete;
 
 private:

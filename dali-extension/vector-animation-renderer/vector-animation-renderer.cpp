@@ -89,7 +89,7 @@ void VectorAnimationRenderer::Finalize()
   mRenderer.Reset();
 
   {
-    Dali::Mutex::ScopedLock lock(mRenderingDataMutex);
+    Dali::Mutex::ScopedLock renderingDataLock(mRenderingDataMutex);
 
     mPreparedRenderingData.reset();
     ClearPreviousRenderingData();
