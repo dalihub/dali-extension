@@ -27,6 +27,7 @@
 #include <glib.h>
 #include <player.h>
 #include <list>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -46,6 +47,10 @@ namespace DALI_NAMESPACE
 {
 namespace Plugin
 {
+#ifdef USE_TCORE_BACKEND
+struct VideoShellSyncState; ///< Defined in tizen-video-player-tcore-wl.cpp
+#endif
+
 /**
  * @brief Implementation of the Tizen video player class which has Tizen platform dependency.
  * @SINCE_1_1.38
@@ -398,6 +403,16 @@ private:
    */
   void DestroyVideoShellConstraint();
 
+#ifdef USE_TCORE_BACKEND
+  /**
+   * @brief Destroys the video shell surface wrapper used by the pre-commit callback.
+   *
+   * Must be called before the video shell surface is destroyed. A pre-commit callback that is
+   * already queued becomes a no-op afterwards.
+   */
+  void DestroyVideoShellSurfaceWrapper();
+#endif
+
   // TizenVideoPlayer specific member variables (not in base class)
   player_h            mPlayer;          ///< Tizen MMPlayer handle
   player_state_e      mPlayerState;     ///< Tizen player state
@@ -434,6 +449,9 @@ private:
 #else
   Ecore_Wl2_VideoShell_Surface* mEcoreVideoShellSurface;
 #endif
+#endif
+#ifdef USE_TCORE_BACKEND
+  std::shared_ptr<VideoShellSyncState> mVideoShellSyncState; ///< Wrapper state shared with the EGL window pre-commit callback
 #endif
   Constraint                                mVideoShellSizePropertyConstraint;
   Property::Index                           mVideoShellSizePropertyIndex;
