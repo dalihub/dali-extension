@@ -16,12 +16,12 @@
  */
 
 #include "web-engine-lwe-backend-win.h"
+#include <dali/devel-api/adaptor-framework/native-image-devel.h>
 #include "web-engine-lwe-angle-renderer.h"
 
 #include <LWEWebView.h>
 
 #include <dali/devel-api/adaptor-framework/application-devel.h>
-#include <dali/devel-api/adaptor-framework/native-image-devel.h>
 #include <dali/integration-api/debug.h>
 #include <dali/public-api/adaptor-framework/native-image.h>
 #include <dali/public-api/images/pixel.h>
