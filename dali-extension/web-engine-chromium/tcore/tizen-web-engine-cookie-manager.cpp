@@ -25,14 +25,14 @@ namespace Plugin
 
 TizenWebEngineCookieManager::TizenWebEngineCookieManager(wv_cookie_manager_h manager)
 : mWvCookieManager(manager),
-  mCookieAcceptancePolicy(WV_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY),
-  mWebChangesWatchCallback(nullptr)
+  mCookieAcceptancePolicy(WV_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
 {
 }
 
 TizenWebEngineCookieManager::~TizenWebEngineCookieManager()
 {
-  wv_cookie_manager_changes_watch(mWvCookieManager, nullptr, nullptr);
+  mClosing = true;
+  ChangesWatch({});
 }
 
 void TizenWebEngineCookieManager::SetCookieAcceptPolicy(Dali::WebEngineCookieManager::CookieAcceptPolicy policy)
@@ -58,24 +58,34 @@ void TizenWebEngineCookieManager::ClearCookies()
 
 void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback)
 {
-  mWebChangesWatchCallback = callback;
-  if(mWebChangesWatchCallback)
+  if(mClosing && callback)
   {
-    wv_cookie_manager_changes_watch(mWvCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, this);
+    return;
   }
-  else
+  const bool wasWatching = mChangesWatch.Data() != nullptr;
+  mChangesWatch.Set(std::move(callback));
+  if(mChangesWatch.Data())
+  {
+    if(!wasWatching)
+    {
+      wv_cookie_manager_changes_watch(mWvCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, mChangesWatch.Data());
+    }
+  }
+  else if(wasWatching)
   {
     wv_cookie_manager_changes_watch(mWvCookieManager, nullptr, nullptr);
   }
 }
 
-void TizenWebEngineCookieManager::OnChangesWatch(void*, void* data)
+void TizenWebEngineCookieManager::OnChangesWatch(void* data, void*)
 {
-  TizenWebEngineCookieManager* pThis = static_cast<TizenWebEngineCookieManager*>(data);
-  if(pThis->mWebChangesWatchCallback)
-  {
-    pThis->mWebChangesWatchCallback();
-  }
+  // chromium-efl ddd1009452ea: wv_cookie_manager_changes_watch() casts the
+  // two-argument WV callback to the legacy one-argument EWK/internal callback.
+  // CookieStoreManager::OnCookieChange() passes only registered user data in
+  // the FIRST argument; no event info or second argument is supplied.
+  // Treat the first argument as user data and never read the second argument.
+  // Revisit this workaround if the engine adopts the declared two-arg WV ABI.
+  WebEngineCookieWatch::Dispatch(data);
 }
 
 } // namespace Plugin

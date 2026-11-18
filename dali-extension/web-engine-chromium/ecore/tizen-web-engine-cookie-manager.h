@@ -22,6 +22,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-cookie-manager.h>
 #include <ewk_cookie_manager.h>
 #include <string>
+#include "../../web-engine-common/web-engine-cookie-watch.h"
 
 namespace DALI_NAMESPACE
 {
@@ -79,7 +80,8 @@ private:
 private:
   Ewk_Cookie_Manager*                                                      mEwkCookieManager;
   Ewk_Cookie_Accept_Policy                                                 mCookieAcceptancePolicy;
-  Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback mWebChangesWatchCallback;
+  bool mClosing{false};
+  WebEngineCookieWatch mChangesWatch;
 };
 
 } // namespace Plugin

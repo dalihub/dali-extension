@@ -201,6 +201,41 @@ void TizenWebEngineContext::RegisterRequestInterceptedCallback(Dali::WebEngineCo
   }
 }
 
+bool TizenWebEngineContext::SetMaxRefreshRate(int32_t rate)
+{
+  if(!mEwkContext || rate < 1 || rate > 60)
+  {
+    return false;
+  }
+  ewk_context_max_refresh_rate_set(mEwkContext, rate);
+  return true;
+}
+
+bool TizenWebEngineContext::SetCacheEnabled(bool enabled)
+{
+  return ewk_context_cache_disabled_set(mEwkContext, !enabled);
+}
+
+bool TizenWebEngineContext::SetCertificatePath(const std::string& path)
+{
+  return ewk_context_certificate_file_set(mEwkContext, path.c_str());
+}
+
+bool TizenWebEngineContext::RequestDeleteAllWebStorage()
+{
+  return ewk_context_web_storage_delete_all(mEwkContext);
+}
+
+void TizenWebEngineContext::SetTimeOffset(double offset)
+{
+  ewk_context_time_offset_set(mEwkContext, offset);
+}
+
+void TizenWebEngineContext::SetTimeZoneOffset(double zoneOffset, double daylightSavingTime)
+{
+  ewk_context_timezone_offset_set(mEwkContext, zoneOffset, daylightSavingTime);
+}
+
 void TizenWebEngineContext::EnableCache(bool cacheEnabled)
 {
   ewk_context_cache_disabled_set(mEwkContext, !cacheEnabled);
@@ -253,6 +288,7 @@ void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<st
   {
     list = eina_list_append(list, (*it).c_str());
   }
+  // EWK copies scheme strings during the call; only list nodes are owned here.
   ewk_context_register_url_schemes_as_cors_enabled(mEwkContext, list);
   eina_list_free(list);
 }

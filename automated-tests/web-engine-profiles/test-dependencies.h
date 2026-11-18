@@ -36,6 +36,8 @@ struct Context
 inline Context defaultContext;
 inline int ownedContexts = 0;
 inline int unrefs = 0;
+inline int refreshRate = 0;
+inline int refreshRateCalls = 0;
 inline bool shutdown = false;
 inline std::vector<int> events;
 inline Context* CreateContext()
@@ -146,11 +148,14 @@ inline wv_context_h wv_context_cookie_manager_get(wv_context_h context)
 {
   return context;
 }
-inline void ewk_context_max_refresh_rate_set(Ewk_Context*, int)
+inline void ewk_context_max_refresh_rate_set(Ewk_Context*, int rate)
 {
+  Test::refreshRate = rate;
+  ++Test::refreshRateCalls;
 }
-inline void wv_context_max_refresh_rate_set(wv_context_h, int)
+inline void wv_context_max_refresh_rate_set(wv_context_h context, int rate)
 {
+  ewk_context_max_refresh_rate_set(context, rate);
 }
 
 namespace Dali
@@ -158,6 +163,7 @@ namespace Dali
 class WebEngineContext
 {
 public:
+  virtual void RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes) = 0;
   virtual ~WebEngineContext() = default;
 };
 class WebEngineCookieManager
@@ -233,6 +239,11 @@ public:
   explicit TizenWebEngineContext(Test::Context* context) : context(context)
   {
     ++context->wrappers;
+  }
+  std::vector<std::string> registeredSchemes;
+  void RegisterUrlSchemesAsCorsEnabled(const std::vector<std::string>& schemes) override
+  {
+    registeredSchemes = schemes;
   }
   ~TizenWebEngineContext() override
   {

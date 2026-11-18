@@ -40,9 +40,16 @@ namespace Plugin
 /**
  * @brief A class TizenWebEngineContext for context of chromium.
  */
-class TizenWebEngineContext : public Dali::WebEngineContext
+class TizenWebEngineContext : public Dali::WebEngineContext, public Dali::WebEngineContextConfiguration
 {
 public:
+  bool SetCacheEnabled(bool enabled) override;
+  bool SetCertificatePath(const std::string& path) override;
+  bool RequestDeleteAllWebStorage() override;
+  void SetTimeOffset(double offset) override;
+  void SetTimeZoneOffset(double zoneOffset, double daylightSavingTime) override;
+  bool SetMaxRefreshRate(int32_t rate) override;
+
   /**
    * @brief Constructor.
    */

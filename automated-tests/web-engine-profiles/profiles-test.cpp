@@ -49,6 +49,20 @@ int main()
   assert(api->createDirectRenderingView);
   assert(!api->createDirectRenderingView(nullptr, nullptr, 10, 10));
   auto& manager = Manager::Get();
+  // Native refresh-rate setters affect the whole process, not one context.
+  // Exercise production profile creation around an explicit native setting.
+  {
+    auto first = manager.CreateProfile(false, "");
+    assert(first && Test::refreshRate == 60 && Test::refreshRateCalls == 1);
+    ewk_context_max_refresh_rate_set(first->context, 30);
+    auto second = manager.CreateProfile(false, "");
+    auto privateProfile = manager.CreateProfile(true, "");
+    auto defaultProfile = manager.GetDefaultProfile();
+    assert(second && privateProfile && defaultProfile);
+    assert(manager.Initialize());
+    assert(Test::refreshRate == 30 && Test::refreshRateCalls == 2);
+  }
+  const auto initialUnrefs = Test::unrefs;
   // Default-only applications must not retain every expired control block.
   for(int i = 0; i < 1000; ++i)
   {
@@ -59,7 +73,7 @@ int main()
     std::weak_ptr<Manager::Profile> weak = profile;
     profile.reset();
     assert(weak.expired());
-    assert(Test::defaultContext.wrappers == 0 && Test::unrefs == 0);
+    assert(Test::defaultContext.wrappers == 0 && Test::unrefs == initialUnrefs);
   }
   auto retained = manager.CreateProfile(true, "bundle");
   auto* native = retained->context;
@@ -83,6 +97,7 @@ int main()
     assert(profile.use_count() == 1);
     assert(defaultProfile.use_count() == 1 && Test::defaultContext.wrappers == 2);
   }
+  assert(Test::refreshRate == 30 && Test::refreshRateCalls == 2);
   assert(Test::ownedContexts == 1);
   assert(defaultProfile == manager.GetDefaultProfile());
   auto viewProfile = manager.CreateProfile(false, "");

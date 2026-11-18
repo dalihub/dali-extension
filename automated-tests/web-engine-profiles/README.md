@@ -20,3 +20,9 @@ size, immediate destruction after the last strong owner, borrowed default
 contexts, and view/context/engine shutdown order with profiles surviving shutdown.
 Assertions remain enabled in Release builds. Registry inspection is test-only;
 no product accessor or reset API is added.
+
+Refresh-rate regression coverage models the native process-wide setting: engine
+initialization selects 60 FPS once; after an explicit 30 FPS request, creating
+named, incognito and default profiles, recreating expired profiles and repeated
+initialization must preserve 30 FPS. The explicit request goes through the runtime
+plugin table to the native test double; actual engine behavior is not exercised.

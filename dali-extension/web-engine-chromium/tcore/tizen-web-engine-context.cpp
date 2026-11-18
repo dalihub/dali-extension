@@ -221,6 +221,41 @@ void TizenWebEngineContext::RegisterRequestInterceptedCallback(Dali::WebEngineCo
   }
 }
 
+bool TizenWebEngineContext::SetMaxRefreshRate(int32_t rate)
+{
+  if(!mWvContext || rate < 1 || rate > 60)
+  {
+    return false;
+  }
+  wv_context_max_refresh_rate_set(mWvContext, rate);
+  return true;
+}
+
+bool TizenWebEngineContext::SetCacheEnabled(bool enabled)
+{
+  return wv_context_cache_disabled_set(mWvContext, !enabled);
+}
+
+bool TizenWebEngineContext::SetCertificatePath(const std::string& path)
+{
+  return wv_context_certificate_file_set(mWvContext, path.c_str());
+}
+
+bool TizenWebEngineContext::RequestDeleteAllWebStorage()
+{
+  return wv_context_web_storage_delete_all(mWvContext);
+}
+
+void TizenWebEngineContext::SetTimeOffset(double offset)
+{
+  wv_context_time_offset_set(mWvContext, offset);
+}
+
+void TizenWebEngineContext::SetTimeZoneOffset(double zoneOffset, double daylightSavingTime)
+{
+  wv_context_timezone_offset_set(mWvContext, zoneOffset, daylightSavingTime);
+}
+
 void TizenWebEngineContext::EnableCache(bool cacheEnabled)
 {
   wv_context_cache_disabled_set(mWvContext, !cacheEnabled);
@@ -271,8 +306,8 @@ void TizenWebEngineContext::RegisterUrlSchemesAsCorsEnabled(const std::vector<st
   GList* list = nullptr;
   for(std::vector<std::string>::const_iterator it = schemes.begin(); it != schemes.end(); ++it)
   {
-    // Duplicated: WV does not document whether it copies the strings or keeps
-    // the pointers, and the caller's vector is not ours to outlive.
+    // WV copies scheme strings during the call; release the temporary list
+    // and its duplicated strings after registration.
     list = g_list_append(list, g_strdup(it->c_str()));
   }
   wv_context_register_url_schemes_as_cors_enabled(mWvContext, list);

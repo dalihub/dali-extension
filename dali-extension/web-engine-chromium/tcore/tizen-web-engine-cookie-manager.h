@@ -22,6 +22,7 @@
 #include <dali/devel-api/adaptor-framework/web-engine/web-engine-cookie-manager.h>
 #include <wv_cookie_manager.h>
 #include <string>
+#include "../../web-engine-common/web-engine-cookie-watch.h"
 
 namespace DALI_NAMESPACE
 {
@@ -74,12 +75,13 @@ private:
    *
    * @param[in] data Data for callback
    */
-  static void OnChangesWatch(void* eventInfo, void* data);
+  static void OnChangesWatch(void* data, void* unused);
 
 private:
   wv_cookie_manager_h                                                      mWvCookieManager;
   wv_cookie_accept_policy_e                                                mCookieAcceptancePolicy;
-  Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback mWebChangesWatchCallback;
+  bool mClosing{false};
+  WebEngineCookieWatch mChangesWatch;
 };
 
 } // namespace Plugin

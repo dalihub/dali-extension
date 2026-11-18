@@ -25,14 +25,14 @@ namespace Plugin
 
 TizenWebEngineCookieManager::TizenWebEngineCookieManager(Ewk_Cookie_Manager* manager)
 : mEwkCookieManager(manager),
-  mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY),
-  mWebChangesWatchCallback(nullptr)
+  mCookieAcceptancePolicy(EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY)
 {
 }
 
 TizenWebEngineCookieManager::~TizenWebEngineCookieManager()
 {
-  ewk_cookie_manager_changes_watch(mEwkCookieManager, nullptr, nullptr);
+  mClosing = true;
+  ChangesWatch({});
 }
 
 void TizenWebEngineCookieManager::SetCookieAcceptPolicy(Dali::WebEngineCookieManager::CookieAcceptPolicy policy)
@@ -58,12 +58,20 @@ void TizenWebEngineCookieManager::ClearCookies()
 
 void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::WebEngineCookieManagerChangesWatchCallback callback)
 {
-  mWebChangesWatchCallback = callback;
-  if(mWebChangesWatchCallback)
+  if(mClosing && callback)
   {
-    ewk_cookie_manager_changes_watch(mEwkCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, this);
+    return;
   }
-  else
+  const bool wasWatching = mChangesWatch.Data() != nullptr;
+  mChangesWatch.Set(std::move(callback));
+  if(mChangesWatch.Data())
+  {
+    if(!wasWatching)
+    {
+      ewk_cookie_manager_changes_watch(mEwkCookieManager, &TizenWebEngineCookieManager::OnChangesWatch, mChangesWatch.Data());
+    }
+  }
+  else if(wasWatching)
   {
     ewk_cookie_manager_changes_watch(mEwkCookieManager, nullptr, nullptr);
   }
@@ -71,11 +79,7 @@ void TizenWebEngineCookieManager::ChangesWatch(Dali::WebEngineCookieManager::Web
 
 void TizenWebEngineCookieManager::OnChangesWatch(void* data)
 {
-  TizenWebEngineCookieManager* pThis = static_cast<TizenWebEngineCookieManager*>(data);
-  if(pThis->mWebChangesWatchCallback)
-  {
-    pThis->mWebChangesWatchCallback();
-  }
+  WebEngineCookieWatch::Dispatch(data);
 }
 
 } // namespace Plugin

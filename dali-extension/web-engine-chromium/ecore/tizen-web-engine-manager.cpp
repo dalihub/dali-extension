@@ -88,6 +88,18 @@ bool WebEngineManager::Initialize()
     elm_shutdown();
     return false;
   }
+  auto defaultContext = ewk_context_default_get();
+  if(!defaultContext)
+  {
+    ecore_evas_free(mWindow);
+    mWindow = nullptr;
+    ewk_shutdown();
+    elm_shutdown();
+    return false;
+  }
+  // The refresh-rate limit is process-wide. Initialize it once so creating
+  // another profile cannot overwrite an explicitly configured limit.
+  ewk_context_max_refresh_rate_set(defaultContext, 60);
   mWebEngineManagerAvailable = true;
   arguments.succeeded = true;
   Dali::LifecycleController::Get().TerminateSignal().Connect(mSlotDelegate, &WebEngineManager::OnTerminated);
@@ -99,7 +111,6 @@ WebEngineManager::Profile::Profile(Ewk_Context* nativeContext, bool privateMode,
 {
   wrapper.reset(new TizenWebEngineContext(context));
   cookies.reset(new TizenWebEngineCookieManager(ewk_context_cookie_manager_get(context)));
-  ewk_context_max_refresh_rate_set(context, 60);
 }
 
 WebEngineManager::Profile::~Profile()
