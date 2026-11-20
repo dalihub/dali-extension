@@ -98,7 +98,7 @@ bool TizenWebEngineRequestInterceptor::AddResponseHeaders(const Dali::Property::
   for(uint32_t i = 0; i < count; i++)
   {
     Dali::Property::Key key = headers.GetKeyAt(i);
-    if(key.type == Dali::Property::Key::STRING)
+    if(key.type == Dali::Property::Key::Type::STRING)
     {
       String value;
       if(headers.GetValue(i).Get(value))
