@@ -141,7 +141,23 @@ TizenWebEngineChromium::~TizenWebEngineChromium()
   Destroy();
 }
 
-void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::string&, const std::string&)
+bool TizenWebEngineChromium::InitializeNativeImageRendering(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
+{
+  if(mWebView)
+  {
+    return false;
+  }
+  Create(width, height, locale, timezoneId);
+  return mWebView != nullptr;
+}
+
+WebEngineDirectRenderingSessionPtr TizenWebEngineChromium::InitializeDirectRendering(uint32_t, uint32_t, const std::string&, const std::string&)
+{
+  // Not implemented: the native backend has no external-target rendering connection.
+  return {};
+}
+
+void TizenWebEngineChromium::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneID)
 {
   CreateWithProfile(width, height, WebEngineManager::Get().GetDefaultProfile());
 }

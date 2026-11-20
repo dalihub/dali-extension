@@ -291,8 +291,13 @@ bool CreateView(WebEnginePlugin* plugin, void* token, uint32_t width, uint32_t h
 {
   return static_cast<TizenWebEngineChromium*>(plugin)->CreateWithProfile(width, height, *static_cast<ProfilePtr*>(token));
 }
+WebEngineDirectRenderingSessionPtr CreateDirectRenderingView(WebEnginePlugin*, void*, uint32_t, uint32_t)
+{
+  // Not implemented: the native backend has no profile-aware external-target rendering connection.
+  return {};
+}
 const WebEngineProfileApi profileApi{1, sizeof(WebEngineProfileApi), StoreArguments, ReadArguments, InitializeEngine,
-  DefaultProfile, CreateProfile, DestroyProfile, ProfileContext, ProfileCookies, CreateView};
+  DefaultProfile, CreateProfile, DestroyProfile, ProfileContext, ProfileCookies, CreateView, CreateDirectRenderingView};
 }
 } // namespace Plugin
 } // namespace DALI_NAMESPACE

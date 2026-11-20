@@ -178,6 +178,8 @@ enum class WebEngineArgumentsResult
   ALREADY_INITIALIZED,
   BACKEND_UNAVAILABLE
 };
+class WebEngineDirectRenderingSession;
+using WebEngineDirectRenderingSessionPtr = std::shared_ptr<WebEngineDirectRenderingSession>;
 struct WebEngineProfileApi
 {
   uint32_t version;
@@ -191,6 +193,7 @@ struct WebEngineProfileApi
   WebEngineContext* (*getContext)(void*);
   WebEngineCookieManager* (*getCookieManager)(void*);
   bool (*createView)(WebEnginePlugin*, void*, uint32_t, uint32_t);
+  WebEngineDirectRenderingSessionPtr (*createDirectRenderingView)(WebEnginePlugin*, void*, uint32_t, uint32_t);
 };
 template<class T> class SlotDelegate
 {

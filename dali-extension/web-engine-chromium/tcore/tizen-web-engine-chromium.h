@@ -48,7 +48,8 @@ class TizenWebEngineChromium : public Dali::WebEnginePlugin
 {
 public:
   bool CreateWithProfile(uint32_t width, uint32_t height, WebEngineManager::ProfilePtr profile);
-
+  bool InitializeNativeImageRendering(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
+  WebEngineDirectRenderingSessionPtr InitializeDirectRendering(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId) override;
   /**
    * @brief Constructor.
    */

@@ -44,6 +44,10 @@ public:
 
 int main()
 {
+  const auto* api = GetWebEngineProfileApi(1);
+  assert(api && api->structSize == sizeof(Dali::WebEngineProfileApi));
+  assert(api->createDirectRenderingView);
+  assert(!api->createDirectRenderingView(nullptr, nullptr, 10, 10));
   auto& manager = Manager::Get();
   // Default-only applications must not retain every expired control block.
   for(int i = 0; i < 1000; ++i)

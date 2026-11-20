@@ -134,7 +134,12 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
   {
     HandleFrame(std::move(pixels), frameWidth, frameHeight);
   });
-  DALI_ASSERT_ALWAYS(mRenderer->Initialize(initialWidth, initialHeight) && "Failed to initialize LWE ANGLE renderer");
+  if(!mRenderer->Initialize(initialWidth, initialHeight))
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to initialize ANGLE renderer\n");
+    Destroy();
+    return nullptr;
+  }
 
   WebEngineLweAngleRenderer* renderer = mRenderer.get();
   LWE::WebContainer::RendererGLConfiguration configuration;
@@ -185,7 +190,12 @@ LWE::WebContainer* WebEngineLweBackendWin::Create(uint32_t width,
     timezoneId.c_str()};
 
   mWebContainer = LWE::WebContainer::CreateGL(arguments, configuration);
-  DALI_ASSERT_ALWAYS(mWebContainer && "Failed to create LWE OpenGL WebContainer");
+  if(!mWebContainer)
+  {
+    DALI_LOG_ERROR("WebEngineLwe: failed to create OpenGL WebContainer\n");
+    Destroy();
+    return nullptr;
+  }
 
   return mWebContainer;
 }

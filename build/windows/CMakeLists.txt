@@ -89,3 +89,22 @@ if(DALI_LWE_BUILD_RENDERER_TESTS)
   )
   add_test(NAME lwe-angle-renderer COMMAND lwe-angle-renderer-test)
 endif()
+
+option(DALI_LWE_BUILD_INITIALIZATION_TESTS "Build LWE partial initialization cleanup tests" OFF)
+if(DALI_LWE_BUILD_INITIALIZATION_TESTS)
+  enable_testing()
+  get_target_property(lwe_plugin_sources ${PROJECT_NAME} SOURCES)
+  get_target_property(lwe_plugin_libraries ${PROJECT_NAME} LINK_LIBRARIES)
+  add_executable(lwe-initialization-failure-test
+    ${PLUGIN_ROOT_DIR}/tests/initialization-failure.cpp
+    ${lwe_plugin_sources}
+  )
+  target_include_directories(lwe-initialization-failure-test PRIVATE
+    ${PLUGIN_COMMON_DIR} ${PLUGIN_WINDOWS_DIR}
+  )
+  target_include_directories(lwe-initialization-failure-test SYSTEM PRIVATE ${LWE_INCLUDE_DIR})
+  target_compile_options(lwe-initialization-failure-test PRIVATE /W3 /vmg /utf-8 /wd4251 /wd4275 /UNDEBUG)
+  target_compile_definitions(lwe-initialization-failure-test PRIVATE __restrict__=__restrict)
+  target_link_libraries(lwe-initialization-failure-test PRIVATE ${lwe_plugin_libraries})
+  add_test(NAME lwe-initialization-failure COMMAND lwe-initialization-failure-test)
+endif()

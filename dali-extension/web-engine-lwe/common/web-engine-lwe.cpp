@@ -340,32 +340,45 @@ void WebEngineLwe::DestroyAllViews()
   }
 }
 
+bool WebEngineLwe::InitializeNativeImageRendering(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
+{
+  Destroy();
+  mBackend->SetFrameRenderedCallback([this]()
+  {
+    ExecuteCallback(mFrameRenderedCallback);
+  });
+  return CompleteCreate(mBackend->Create(width, height, locale, timezoneId));
+}
+
+WebEngineDirectRenderingSessionPtr WebEngineLwe::InitializeDirectRendering(uint32_t, uint32_t, const std::string&, const std::string&)
+{
+  // Not implemented: the native backend has no external-target rendering connection.
+  return {};
+}
+
 void WebEngineLwe::Create(uint32_t width, uint32_t height, const std::string& locale, const std::string& timezoneId)
 {
-  Destroy();
-  mBackend->SetFrameRenderedCallback([this]()
-  {
-    ExecuteCallback(mFrameRenderedCallback);
-  });
-  CompleteCreate(mBackend->Create(width, height, locale, timezoneId));
+  InitializeNativeImageRendering(width, height, locale, timezoneId);
 }
 
-void WebEngineLwe::Create(uint32_t width, uint32_t height, uint32_t argc, char** argv)
+void WebEngineLwe::Create(uint32_t width, uint32_t height, uint32_t /*argc*/, char** /*argv*/)
 {
   Destroy();
   mBackend->SetFrameRenderedCallback([this]()
   {
     ExecuteCallback(mFrameRenderedCallback);
   });
-  CompleteCreate(mBackend->Create(width, height, argc, argv));
+  // Startup arguments are owned by the runtime; retain platform locale defaults.
+  CompleteCreate(mBackend->Create(width, height, 0u, nullptr));
 }
 
-void WebEngineLwe::CompleteCreate(LWE::WebContainer* webContainer)
+bool WebEngineLwe::CompleteCreate(LWE::WebContainer* webContainer)
 {
   if(!webContainer)
   {
-    DALI_LOG_ERROR("Failed to create LWE WebContainer\n");
-    return;
+    DALI_LOG_ERROR("WebEngineLwe: failed to initialize native-image rendering\n");
+    Destroy();
+    return false;
   }
 
   mWebContainer      = webContainer;
@@ -380,15 +393,12 @@ void WebEngineLwe::CompleteCreate(LWE::WebContainer* webContainer)
   }
 
   RegisterEngineCallbacks();
+  return true;
 }
 
 void WebEngineLwe::Destroy()
 {
-  if(!mWebContainer)
-  {
-    return;
-  }
-
+  // A failed backend creation can own resources without a WebContainer.
   {
     std::lock_guard<std::mutex> lock(sLiveInstancesMutex);
     sLiveInstances.erase(this);
